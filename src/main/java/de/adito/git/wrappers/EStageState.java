@@ -1,4 +1,4 @@
-package wrappers;
+package de.adito.git.wrappers;
 
 import org.eclipse.jgit.lib.IndexDiff;
 

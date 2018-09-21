@@ -1,8 +1,8 @@
-package api;
+package de.adito.git.api;
 
-import data.IFileChange;
-import data.IFileDiff;
-import data.IFileStatus;
+import de.adito.git.api.data.IFileChange;
+import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.IFileStatus;
 import org.jetbrains.annotations.*;
 
 import java.io.File;

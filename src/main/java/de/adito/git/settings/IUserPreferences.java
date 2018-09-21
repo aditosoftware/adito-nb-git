@@ -1,4 +1,4 @@
-package settings;
+package de.adito.git.settings;
 
 /**
  * @author m.kaspera 20.09.2018
