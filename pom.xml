@@ -21,6 +21,19 @@
             <artifactId>annotations</artifactId>
             <version>16.0.3</version>
         </dependency>
+
+        <!-- Guice dependencies -->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-assistedinject</artifactId>
+            <version>4.2.0</version>
+        </dependency>
     </dependencies>
 
 
