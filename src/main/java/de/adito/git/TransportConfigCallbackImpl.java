@@ -3,6 +3,8 @@ package de.adito.git;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshTransport;
@@ -16,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author m.kaspera 21.09.2018
  */
-public class TransportConfigCallbackImpl implements ITransportConfigCallback {
+public class TransportConfigCallbackImpl implements ITransportConfigCallback  {
 
     private String password;
     private String sshKeyPath;
@@ -46,7 +48,31 @@ public class TransportConfigCallbackImpl implements ITransportConfigCallback {
 
         protected void configure(OpenSshConfig.Host hc, Session session) {
             if(password != null){
-                session.setPassword(password);
+                session.setUserInfo(new UserInfo() {
+                    public String getPassphrase() {
+                        return password;
+                    }
+
+                    public String getPassword() {
+                        return null;
+                    }
+
+                    public boolean promptPassword(String message) {
+                        return false;
+                    }
+
+                    public boolean promptPassphrase(String message) {
+                        return true;
+                    }
+
+                    public boolean promptYesNo(String message) {
+                        return false;
+                    }
+
+                    public void showMessage(String message) {
+
+                    }
+                });
             }
         }
 
