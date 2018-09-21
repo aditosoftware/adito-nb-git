@@ -15,6 +15,13 @@
             <artifactId>org.eclipse.jgit</artifactId>
             <version>5.1.1.201809181055-r</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.3</version>
+        </dependency>
     </dependencies>
-    
+
+
 </project>
