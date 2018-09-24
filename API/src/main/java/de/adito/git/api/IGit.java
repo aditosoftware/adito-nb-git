@@ -1,8 +1,5 @@
 package de.adito.git.api;
 
-import de.adito.git.api.data.IFileChange;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.api.data.IFileStatus;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
@@ -35,7 +32,7 @@ public interface IGit {
 
     boolean revert(@NotNull List<File> files);
 
-    @NotNull List<IFileChange> fileHistory();
+    @NotNull List<IFileHistory> fileHistory();
 
     @NotNull String createBranch(@NotNull String branchName, boolean checkout);
 
