@@ -13,6 +13,8 @@ import java.io.IOException;
  */
 public class RepositoryProvider {
 
+    private static Repository repository;
+
     /**
      *
      * @param pLocation Location of the local git repository
@@ -21,9 +23,20 @@ public class RepositoryProvider {
      *             the builder's parameters.
      */
     public static Repository get(String pLocation) throws IOException {
-        return FileRepositoryBuilder.create(new File(pLocation));
+        if(repository == null || (repository.getDirectory() != null && !pLocation.equals(repository.getDirectory().getAbsolutePath()))){
+            repository = FileRepositoryBuilder.create(new File(pLocation));
+        }
+        return repository;
     }
 
-    //TODO: add method where the information about the loocation of the repository file is gotten from the netbeans options
+    /**
+     *
+     * @return Repository that was already set or is retrieved from the location set in the netbeans options
+     */
+    public static Repository get() {
+        //TODO: if repository is not set get the information about the loocation of the repository file from the netbeans options
+        return repository;
+    }
+
 
 }
