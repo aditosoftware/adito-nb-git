@@ -7,10 +7,17 @@ import org.eclipse.jgit.lib.FileMode;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * Translates the JGit enums to the API enums and back
+ *
  * @author m.kaspera 24.09.2018
  */
 public class EnumMappings {
 
+    /**
+     *
+     * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
+     * @return translated {@link EChangeType}
+     */
     public static EChangeType _toEChangeType(@NotNull DiffEntry.ChangeType pChangeType) {
         switch (pChangeType) {
             case MODIFY:
@@ -28,6 +35,11 @@ public class EnumMappings {
         }
     }
 
+    /**
+     *
+     * @param pEChangeType {@link EChangeType} to translate to {@link org.eclipse.jgit.diff.DiffEntry.ChangeType}
+     * @return translated {@link org.eclipse.jgit.diff.DiffEntry.ChangeType}
+     */
     public static DiffEntry.ChangeType _fromEChangeType(@NotNull EChangeType pEChangeType) {
         switch (pEChangeType) {
             case MODIFY:
@@ -45,6 +57,11 @@ public class EnumMappings {
         }
     }
 
+    /**
+     *
+     * @param pFileMode {@link FileMode} to translate to {@link EFileType}
+     * @return translated {@link EFileType}
+     */
     public static EFileType _toEFileType(@NotNull FileMode pFileMode) {
         switch (pFileMode.getBits()) {
             case FileMode.TYPE_TREE:
@@ -66,6 +83,11 @@ public class EnumMappings {
         }
     }
 
+    /**
+     *
+     * @param pFileType {@link EFileType} to translate to {@link FileMode}
+     * @return translated {@link FileMode}
+     */
     public static FileMode _fromEFileType(@NotNull EFileType pFileType) {
         switch (pFileType){
             case TREE:
