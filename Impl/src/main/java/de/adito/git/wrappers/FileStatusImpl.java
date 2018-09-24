@@ -1,7 +1,7 @@
 package de.adito.git.wrappers;
 
 import de.adito.git.api.data.EStageState;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.IFileStatus;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.IndexDiff;
 
@@ -105,7 +105,7 @@ public class FileStatusImpl implements IFileStatus {
      * @return
      */
     public Map<String, EStageState> getConflictingStageState() {
-        Map<String, EStageState> conflictingStageState = new HashMap<String, EStageState>();
+        Map<String, EStageState> conflictingStageState = new HashMap<>();
         Map<String, IndexDiff.StageState> jgitConflictingStageState = status.getConflictingStageState();
         for(String fileName : jgitConflictingStageState.keySet()){
             conflictingStageState.put(fileName, _fromStageState(jgitConflictingStageState.get(fileName)));
