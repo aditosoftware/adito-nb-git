@@ -1,8 +1,9 @@
-package de.adito.git.wrappers;
-
-import org.eclipse.jgit.lib.IndexDiff;
+package de.adito.git.api.data;
 
 /**
+ *
+ * Enum that shows the different staging types
+ *
  * @author m.kaspera 20.09.2018
  */
 public enum EStageState {
@@ -71,32 +72,6 @@ public enum EStageState {
      */
     public boolean hasTheirs() {
         return (stageMask & 4) != 0;
-    }
-
-    /**
-     *
-     * @param stageState IndexDiff.StageState to "wrap"
-     * @return "wrapped" IndexDiff.StageState
-     */
-    public static EStageState fromStageState(IndexDiff.StageState stageState) {
-        switch (stageState) {
-            case BOTH_DELETED: // 0b001
-                return BOTH_DELETED;
-            case ADDED_BY_US: // 0b010
-                return ADDED_BY_US;
-            case DELETED_BY_THEM: // 0b011
-                return DELETED_BY_THEM;
-            case ADDED_BY_THEM: // 0b100
-                return ADDED_BY_THEM;
-            case DELETED_BY_US: // 0b101
-                return DELETED_BY_US;
-            case BOTH_ADDED: // 0b110
-                return BOTH_ADDED;
-            case BOTH_MODIFIED: // 0b111
-                return BOTH_MODIFIED;
-            default:
-                return null;
-        }
     }
 
 }

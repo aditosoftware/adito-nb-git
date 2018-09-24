@@ -1,7 +1,5 @@
 package de.adito.git.api.data;
 
-import de.adito.git.wrappers.EStageState;
-
 import java.util.Map;
 import java.util.Set;
 
