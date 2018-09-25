@@ -41,4 +41,17 @@ public interface IGit {
     boolean canMerge(@NotNull String sourceName, String targetName);
 
     boolean merge(@NotNull String sourceName, @NotNull String targetName);
+
+    ICommit getOommit(String identifier);
+
+    List<ICommit> getCommits();
+
+    List<ICommit> getCommits(IBranch sourceBranch);
+
+    List<ICommit> getCommits(File forFile);
+
+    IBranch getBranch(String identifier);
+
+    List<IBranch> getBranches();
+
 }
