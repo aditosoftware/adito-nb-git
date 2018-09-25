@@ -4,6 +4,8 @@ import de.adito.git.EnumMappings;
 import de.adito.git.RepositoryProvider;
 import de.adito.git.api.IFileDiff;
 import de.adito.git.api.data.*;
+import de.adito.git.data.FileChangeImpl;
+import de.adito.git.data.LineChangeImpl;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.patch.FileHeader;

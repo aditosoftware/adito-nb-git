@@ -1,4 +1,7 @@
-package de.adito.git.api.data;
+package de.adito.git.data;
+
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.ILineChange;
 
 /**
  * Stores the pair of {@link EChangeType} and the content of the line as String
@@ -6,7 +9,7 @@ package de.adito.git.api.data;
  *
  * @author m.kaspera 24.09.2018
  */
-public class LineChangeImpl implements ILineChange{
+public class LineChangeImpl implements ILineChange {
 
     private final EChangeType changeType;
     private final String lineContent;

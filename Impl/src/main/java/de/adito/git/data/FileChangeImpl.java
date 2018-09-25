@@ -1,5 +1,7 @@
-package de.adito.git.api.data;
+package de.adito.git.data;
 
+import de.adito.git.api.data.IFileChange;
+import de.adito.git.api.data.ILineChange;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
