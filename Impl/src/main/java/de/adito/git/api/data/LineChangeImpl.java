@@ -6,21 +6,26 @@ package de.adito.git.api.data;
  *
  * @author m.kaspera 24.09.2018
  */
-public class LineChange {
+public class LineChangeImpl implements ILineChange{
 
     private final EChangeType changeType;
     private final String lineContent;
 
-    public LineChange(EChangeType pChangeType, String pLineContent){
+    public LineChangeImpl(EChangeType pChangeType, String pLineContent){
         changeType = pChangeType;
         lineContent = pLineContent;
     }
 
-    public EChangeType getChangeType() {
+    public EChangeType getType() {
         return changeType;
     }
 
     public String getLineContent() {
         return lineContent;
+    }
+
+    @Override
+    public String toString() {
+        return (changeType == EChangeType.ADD ? "+" : "-") + lineContent;
     }
 }

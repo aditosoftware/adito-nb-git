@@ -3,7 +3,7 @@ package de.adito.git.api;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.FileChangeObj;
+import de.adito.git.api.data.IFileChange;
 
 /**
  * @author m.kaspera 20.09.2018
@@ -51,8 +51,8 @@ public interface IFileDiff {
 
     /**
      *
-     * @return {@link FileChangeObj} that contains a list detailing the changes in each changed line
+     * @return {@link IFileChange} that contains a list detailing the changes in each changed line
      */
-    FileChangeObj getFileChanges();
+    IFileChange getFileChanges();
 
 }
