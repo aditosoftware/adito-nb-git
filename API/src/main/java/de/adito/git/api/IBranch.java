@@ -5,7 +5,15 @@ package de.adito.git.api;
  */
 public interface IBranch {
 
+    /**
+     *
+     * @return the name of the Branch in clear text, as String
+     */
     String getName();
 
+    /**
+     *
+     * @return the identifier of the Branch as String
+     */
     String getId();
 }
