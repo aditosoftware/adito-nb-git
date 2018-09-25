@@ -24,18 +24,18 @@ public class FileDiffImpl implements IFileDiff {
     private DiffEntry diffEntry;
     private int changedStartLine = -1;
     private int changedEndLine = -1;
+    private FileChangeImpl fileChanges = null;
 
-    FileDiffImpl(DiffEntry pDiffEntry) {
+    public FileDiffImpl(DiffEntry pDiffEntry) {
         diffEntry = pDiffEntry;
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
     public int getChangeStartLine() {
-        if(changedStartLine != -1){
+        if (changedStartLine != -1) {
             return changedStartLine;
         } else {
             _setChangedLines();
@@ -44,12 +44,11 @@ public class FileDiffImpl implements IFileDiff {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
     public int getChangeEndLine() {
-        if(changedEndLine != -1){
+        if (changedEndLine != -1) {
             return changedEndLine;
         } else {
             _setChangedLines();
@@ -58,7 +57,6 @@ public class FileDiffImpl implements IFileDiff {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
@@ -67,7 +65,6 @@ public class FileDiffImpl implements IFileDiff {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
@@ -76,7 +73,6 @@ public class FileDiffImpl implements IFileDiff {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
@@ -85,7 +81,6 @@ public class FileDiffImpl implements IFileDiff {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
@@ -94,40 +89,43 @@ public class FileDiffImpl implements IFileDiff {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
-    public FileChangeObj getFileChanges() {
-        System.out.println("Entry: " + diffEntry + ", from: " + diffEntry.getOldId() + ", to: " + diffEntry.getNewId());
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        try (DiffFormatter formatter = new DiffFormatter(bout)) {
-            formatter.setRepository(RepositoryProvider.get());
-            formatter.setDetectRenames(true);
-            formatter.format(diffEntry);
-            // if the changedStart/EndLine is not yet set do so since we already created the diffFormatter
-            if(changedStartLine == -1){
-                FileHeader fileHeader = formatter.toFileHeader(diffEntry);
-                changedStartLine = fileHeader.getStartOffset();
-                changedEndLine = fileHeader.getEndOffset();
+    public FileChangeImpl getFileChanges() {
+        if (fileChanges == null) {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            try (DiffFormatter formatter = new DiffFormatter(bout)) {
+                formatter.setRepository(RepositoryProvider.get());
+                formatter.setDetectRenames(true);
+                formatter.format(diffEntry);
+                // if the changedStart/EndLine is not yet set do so since we already created the diffFormatter
+                fileChanges = new FileChangeImpl(_getLineChanges(bout.toString()));
+                if (changedStartLine == -1) {
+                    FileHeader fileHeader = formatter.toFileHeader(diffEntry);
+                    changedStartLine = fileHeader.getStartOffset();
+                    changedEndLine = fileHeader.getEndOffset();
+                }
+                //TODO exception handling
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        //TODO exception handling
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-       return new FileChangeObj(_getLineChanges(bout.toString()));
+        return fileChanges;
     }
 
     /**
-     *
      * @param pFormattedString String with output from the DiffFormatter.format for one file
-     * @return List of {@link LineChange} that contains the changes from the String in a queryable format
+     * @return List of {@link LineChangeImpl} that contains the changes from the String in a queryable format
      */
     @NotNull
-    private List<LineChange> _getLineChanges(@NotNull String pFormattedString){
-        List<LineChange> lineChanges = new ArrayList<>();
-        for(String formattedLine: pFormattedString.split("\n")){
-            lineChanges.add(new LineChange(formattedLine.startsWith("+") ? EChangeType.ADD : EChangeType.DELETE, formattedLine.substring(1)));
+    private List<ILineChange> _getLineChanges(@NotNull String pFormattedString) {
+        List<ILineChange> lineChanges = new ArrayList<>();
+        for (String formattedLine : pFormattedString.split("\n")) {
+            if(formattedLine.startsWith("+") && !formattedLine.startsWith("+++"))
+                lineChanges.add(new LineChangeImpl(EChangeType.ADD, formattedLine.substring(1)));
+            else if(formattedLine.startsWith("-") && !formattedLine.startsWith("---"))
+                lineChanges.add(new LineChangeImpl(EChangeType.DELETE, formattedLine.substring(1)));
         }
         return lineChanges;
     }
@@ -136,7 +134,7 @@ public class FileDiffImpl implements IFileDiff {
      * sets the start/endlines of changed part of the file, so that the {@link DiffFormatter} doesn't have to be
      * set up each time they are queried
      */
-    private void _setChangedLines(){
+    private void _setChangedLines() {
         try (DiffFormatter formatter = new DiffFormatter(null)) {
             formatter.setRepository(RepositoryProvider.get());
             formatter.setDetectRenames(true);
