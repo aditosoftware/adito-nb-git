@@ -12,20 +12,22 @@ class Util {
 
     /**
      * Checking the directory is empty and existing.
+     *
      * @param file The directory to check
      * @return true - The directory is empty. false - the directory isn't empty.
      */
     static boolean isDirEmpty(File file) {
-        if (file.isDirectory()) {
-            return Objects.requireNonNull(file.list()).length == 0;
+        if (file.exists()) {
+            return file.list().length == 0;
         }
-        return false;
+        return true;
     }
 
     /**
      * Get the relative path of a file.
+     *
      * @param file the file where the dir is needed
-     * @param git the git for checking the base dir
+     * @param git  the git for checking the base dir
      * @return gives the dir from file
      */
     static String getRelativePath(File file, Git git) {

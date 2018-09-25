@@ -4,7 +4,9 @@ import de.adito.git.api.*;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,11 +62,12 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public boolean pull(@NotNull File localPath) throws IOException, GitAPIException {
+    public boolean pull(@NotNull File localPath) throws  GitAPIException {
 
         try {
             // TODO: 25.09.2018 Doesn't work now
             //Repository localRepostitory = new FileRepository(localPath.getAbsolutePath() + File.separator + ".git");
+            git.getRepository().findRef(Constants.HEAD);
             git.getRepository().getDirectory();
             Git git = new Git(RepositoryProvider.get(localPath.getAbsolutePath() + File.separator + ".git"));
             git.pull().call();
@@ -78,11 +81,14 @@ public class GitImpl implements IGit {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public @NotNull IFileDiff diff(@NotNull File original, @NotNull File compareTo) {
+    public @Nullable List<File> pull() {
+
+        return null;
+    }
+
+    @Override
+    public @NotNull IFileDiff diff(@NotNull ICommit original, @NotNull ICommit compareTo) {
         return null;
     }
 
@@ -90,7 +96,7 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public boolean clone(@NotNull String url, @NotNull File localPath) throws GitAPIException, IOException {
+    public boolean clone(@NotNull String url, @NotNull File localPath) throws GitAPIException {
 
         try {
             if (Util.isDirEmpty(localPath)) {
@@ -136,14 +142,6 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public @NotNull List<IFileHistory> fileHistory() {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public @NotNull String createBranch(@NotNull String branchName, boolean checkout) {
         return null;
     }
@@ -174,11 +172,6 @@ public class GitImpl implements IGit {
 
     @Override
     public ICommit getCommit(String identifier) {
-        return null;
-    }
-
-    @Override
-    public List<ICommit> getCommits() {
         return null;
     }
 
