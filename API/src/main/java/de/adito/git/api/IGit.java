@@ -1,8 +1,10 @@
 package de.adito.git.api;
 
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -10,7 +12,7 @@ import java.util.List;
  */
 public interface IGit {
 
-    boolean add(List<File> addList);
+    boolean add(List<File> addList) throws GitAPIException;
 
     String commit(@NotNull String message);
 
@@ -20,11 +22,11 @@ public interface IGit {
 
     //boolean push(List<Commit> commits)
 
-    @Nullable List<File> pull();
+    public boolean pull(@NotNull File localPath) throws IOException, GitAPIException;
 
     @NotNull IFileDiff diff(@NotNull File original, @NotNull File compareTo);
 
-    boolean clone(@NotNull String url, @NotNull File dest);
+    boolean clone(@NotNull String url, @NotNull File localPath) throws GitAPIException, IOException;
 
     @NotNull List<IFileStatus> status();
 
@@ -42,7 +44,7 @@ public interface IGit {
 
     boolean merge(@NotNull String sourceName, @NotNull String targetName);
 
-    ICommit getOommit(String identifier);
+    ICommit getCommit(String identifier);
 
     List<ICommit> getCommits();
 
