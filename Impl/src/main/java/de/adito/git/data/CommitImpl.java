@@ -3,6 +3,8 @@ package de.adito.git.data;
 import de.adito.git.api.ICommit;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.util.Date;
+
 /**
  * @author m.kaspera 25.09.2018
  */
@@ -46,8 +48,8 @@ public class CommitImpl implements ICommit {
      * {@inheritDoc}
      */
     @Override
-    public long getTime() {
-        return revCommit.getCommitTime();
+    public Date getTime() {
+        return revCommit.getCommitterIdent().getWhen();
     }
 
     /**

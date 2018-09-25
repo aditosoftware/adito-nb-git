@@ -1,5 +1,7 @@
 package de.adito.git.api;
 
+import java.util.Date;
+
 /**
  * Interface for the functionality of a Object that has the details of a commit
  *
@@ -29,7 +31,7 @@ public interface ICommit {
      *
      * @return the timestamp of the date of the commit
      */
-    long getTime();
+    Date getTime();
 
     /**
      *
