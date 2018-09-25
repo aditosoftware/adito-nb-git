@@ -3,8 +3,6 @@ package de.adito.git;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;
-import java.util.Objects;
-
 /**
  * @author a.arnold
  */
