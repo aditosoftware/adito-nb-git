@@ -27,21 +27,19 @@ public interface IGit {
     String commit(@NotNull String message);
 
     /**
-     * Pushes the changes made to HEAD onto the current branch
+     * Pushes the changes made to HEAD onto the selected branch/remote
      *
-     * //TODO indentifier for which branch to push to?
+     * @param targetId the id/url of the branch/remote to push to
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean push();
+    boolean push(@NotNull String targetId);
 
-    //boolean push(List<Commit> commits)
-
-    public boolean pull(@NotNull File localPath) throws IOException, GitAPIException;
     /**
-     * //TODO indentifier for which branch to pull from?
-     * @return List containing all files that were affected by the pull
+     *
+     * @param targetId the id/url of the branch/remote to pull from
+     * @return {@code true} if the pull was successful, {@code false otherwise}
      */
-    @Nullable List<File> pull();
+    boolean pull(@NotNull String targetId);
 
     /**
      *
