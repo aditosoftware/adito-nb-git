@@ -1,15 +1,23 @@
 package de.adito.git;
 
 import de.adito.git.api.*;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
+import de.adito.git.data.BranchImpl;
+import de.adito.git.data.CommitImpl;
+import de.adito.git.wrappers.FileStatusImpl;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.RefSpec;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static de.adito.git.Util.getRelativePath;
@@ -19,11 +27,8 @@ import static de.adito.git.Util.getRelativePath;
  */
 
 public class GitImpl implements IGit {
-
-
     private Git git;
-
-    public GitImpl(Git pGit) {
+    GitImpl(Git pGit) {
         git = pGit;
     }
 
@@ -31,15 +36,20 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public boolean add(List<File> addList) throws GitAPIException {
+    public List add(List<File> addList) {
         if (addList.isEmpty()) {
-            return false;
+            return addList;
         }
         for (File file : addList) {
             AddCommand adder = git.add();
-            adder.addFilepattern(getRelativePath(file, git)).call();
+            adder.addFilepattern(getRelativePath(file, git));
+            try {
+                adder.call();
+            } catch (GitAPIException e) {
+                e.printStackTrace();
+            }
         }
-        return true;
+        return addList;
     }
 
     /**
@@ -47,65 +57,86 @@ public class GitImpl implements IGit {
      */
     @Override
     public String commit(@NotNull String message) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean push() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean pull(@NotNull File localPath) throws  GitAPIException {
-
+        CommitCommand commit = git.commit();
+        RevCommit revCommit = null;
         try {
-            // TODO: 25.09.2018 Doesn't work now
-            //Repository localRepostitory = new FileRepository(localPath.getAbsolutePath() + File.separator + ".git");
-            git.getRepository().findRef(Constants.HEAD);
-            git.getRepository().getDirectory();
-            Git git = new Git(RepositoryProvider.get(localPath.getAbsolutePath() + File.separator + ".git"));
-            git.pull().call();
-            return true;
-        } catch (IOException e) {
-            // TODO: 25.09.2018 NB Exception catching
-            System.out.println(e.getMessage());
+            revCommit = commit.setMessage(message).call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();// TODO: 26.09.2018 NB Task
         }
+        return ObjectId.toString(revCommit.getId());
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean push(@NotNull String targetId) {
+        if (status().getAdded().isEmpty()) {
+            // TODO: 26.09.2018 Throw Netbeans dialog
+        } else {
+            PushCommand push = git.push();
+            push.setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
+            try {
+                push.call();
+            } catch (JGitInternalException | GitAPIException e) {
+                throw new IllegalStateException("Unable to push into remote Git repository", e);
+            }
+        }
+        return true;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean pull(@NotNull String targetId){
+        if(targetId == null){
+            targetId = "master";
+        }
+        PullCommand pullcommand = git.pull().setRemoteBranchName(targetId);
+        pullcommand.setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
+        try {
+            pullcommand.call();
+        } catch (GitAPIException e) {
+            e.printStackTrace(); // TODO: 26.09.2018 NB Task
+        }
         return true;
     }
 
     @Override
-    public @Nullable List<File> pull() {
-
-        return null;
-    }
-
-    @Override
     public @NotNull IFileDiff diff(@NotNull ICommit original, @NotNull ICommit compareTo) {
-        return null;
+        // TODO: 26.09.2018
+
+        IFileDiff diff = null;
+/*        try {
+            diff = new FileDiffImpl(git.diff(original, compareTo));
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+*/
+        return diff;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean clone(@NotNull String url, @NotNull File localPath) throws GitAPIException {
+    public boolean clone(@NotNull String url, @NotNull File localPath) {
 
         try {
             if (Util.isDirEmpty(localPath)) {
                 Git git = new Git(RepositoryProvider.get(localPath.getAbsolutePath() + File.separator + ".git"));
-                git.cloneRepository()
-                        .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null))
-                        .setURI(url)
-                        .setDirectory(new File(localPath, ""))
-                        .call();
+                try {
+                    git.cloneRepository()
+                            // TODO: 25.09.2018 NetBeans pPassword
+                            .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null))
+                            .setURI(url)
+                            .setDirectory(new File(localPath, ""))
+                            .call();
+                } catch (GitAPIException e) {
+                    e.printStackTrace();
+                }
                 return true;
             }
         } catch (IOException e) {
@@ -119,8 +150,16 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public @NotNull List<IFileStatus> status() {
-        return null;
+    public @NotNull IFileStatus status() {
+
+        StatusCommand status = git.status();
+        Status call = null;
+        try {
+            call = status.call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        return new FileStatusImpl(call);
     }
 
     /**
@@ -143,15 +182,67 @@ public class GitImpl implements IGit {
      */
     @Override
     public @NotNull String createBranch(@NotNull String branchName, boolean checkout) {
-        return null;
+        try {
+            boolean alreadyExists = false;
+            List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
+            for (Ref ref : refs) {
+                System.out.println("DEBUG: Branchname: " + ref.getName());
+                if (ref.getName().equals("refs/heads/" + branchName)) {
+                    alreadyExists = true;
+                    return "Branch already exists"; // TODO: 26.09.2018 NB Task
+                }
+            }
+            if (!alreadyExists) {
+                git.branchCreate()
+                        .setName(branchName)
+                        .call();
+                git.push().setRemote("origin")
+                        .setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
+                alreadyExists = false;
+            }
+            if (checkout = true) {
+                checkout(branchName);
+            }
+        } catch (GitAPIException e) {
+            e.printStackTrace(); // TODO: 26.09.2018 NB Task
+        }
+        return "Created and Checkout: " + branchName;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean checkout(@NotNull String targetName) {
-        return false;
+    public void deleteBranch(@NotNull String branchName) {
+        String destination = "refs/heads/"+branchName;
+        try {
+            git.branchDelete()
+                    .setBranchNames(destination)
+                    .call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        RefSpec refSpec = new RefSpec().setSource(null).setDestination(destination);
+        try {
+            git.push().setRefSpecs(refSpec).setRemote("origin").call();
+        } catch (GitAPIException e) { // TODO: 26.09.2018 NB Task
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean checkout(@NotNull String branchName) {
+        CheckoutCommand check = git.checkout();
+        check.setName(branchName).setStartPoint(branchName);
+        try {
+            check.call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
     /**
@@ -170,35 +261,93 @@ public class GitImpl implements IGit {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ICommit getCommit(String identifier) {
-        return null;
+        RevCommit commit = null;
+        Iterable<RevCommit> iterable = null;
+        try {
+            iterable = git.log().add(ObjectId.fromString(identifier)).call();
+        } catch (GitAPIException | MissingObjectException | IncorrectObjectTypeException e) {
+            e.printStackTrace();
+        }
+        commit = iterable.iterator().next();
+
+        if (iterable.iterator().hasNext()) {
+            // TODO: 26.09.2018 NB Task
+        }
+        return new CommitImpl(commit);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<ICommit> getCommits(IBranch sourceBranch) {
-        return null;
+    public List<ICommit> getCommits(IBranch sourceBranch) throws IOException {
+        // TODO: 26.09.2018 Branch ID
+        List list = new ArrayList();
+
+        try {
+            for (RevCommit commit : git.log().add(git.getRepository().resolve(sourceBranch.getName())).call()) {
+                list.add(commit);
+            }
+            return list;
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<ICommit> getCommits(File forFile) {
+        // TODO: 26.09.2018 TreeIterator -> Changes at one File
+        git.log().addPath(getRelativePath(forFile, git));
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IBranch getBranch(String identifier) {
-        return null;
+        Ref branch;
+
+        List<Ref> list = new ArrayList<>();
+        try {
+            list = git.branchList().setContains(identifier).call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+
+        branch = list.iterator().next();
+        if (list.iterator().hasNext()) {
+            // TODO: 26.09.2018 NB Task
+        }
+        return new BranchImpl(branch);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<IBranch> getBranches() {
-        return null;
-    }
+        List<Ref> refList = null;
+        List<IBranch> branches = new ArrayList<>();
+        try {
+            refList = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
+        } catch (GitAPIException e) {
 
-    //doesn't needed now
-    private void _addAllFiles() throws GitAPIException {
-        git.add().addFilepattern(".").call();
-        git.add().setUpdate(true).addFilepattern(".").call();
+            e.printStackTrace();
+        }
+        while (refList.iterator().hasNext()) {
+            branches.add(new BranchImpl(refList.iterator().next()));
+        }
+        return branches;
     }
 }
 

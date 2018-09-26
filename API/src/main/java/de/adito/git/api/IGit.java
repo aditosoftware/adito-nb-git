@@ -16,7 +16,7 @@ public interface IGit {
      * @param addList List of files to add to staging
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean add(List<File> addList) throws GitAPIException;
+    List add(List<File> addList) throws GitAPIException;
 
     /**
      * @param message String with the commit message entered by the user
@@ -36,7 +36,7 @@ public interface IGit {
      * @param targetId the id/url of the branch/remote to pull from
      * @return {@code true} if the pull was successful, {@code false otherwise}
      */
-    boolean pull(@NotNull String targetId);
+    boolean pull(@NotNull String targetId) throws IOException;
 
     /**
      * @param original  the older ICommit
@@ -50,11 +50,12 @@ public interface IGit {
      * @param dest the location on the local disk
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean clone(@NotNull String url, @NotNull File dest) throws GitAPIException, IOException;
+    boolean clone(@NotNull String url, @NotNull File dest) throws IOException;
 
     /**
      * @return List of IFileStatus that describe the different staging states of the local files
      */
+    // TODO: 26.09.2018 FileStatus
     @NotNull IFileStatus status();
 
     /**
@@ -76,10 +77,16 @@ public interface IGit {
     @NotNull String createBranch(@NotNull String branchName, boolean checkout);
 
     /**
-     * @param targetName String with identifier of the branch to checkout
+     * @param branchName the name of the branch to delete
+     */
+    void deleteBranch(@NotNull String branchName);
+
+    /**
+     *
+     * @param branchName String with identifier of the branch to checkout
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean checkout(@NotNull String targetName);
+    boolean checkout(@NotNull String branchName);
 
     /**
      * @param sourceName String with identifier of source branch
@@ -105,7 +112,7 @@ public interface IGit {
      * @param sourceBranch IBranch for which all commits should be retrieved
      * @return List with all ICommits in the sourceBranch
      */
-    List<ICommit> getCommits(IBranch sourceBranch);
+    List<ICommit> getCommits(IBranch sourceBranch) throws IOException;
 
     /**
      * @param forFile File for which all commits should be retrieved

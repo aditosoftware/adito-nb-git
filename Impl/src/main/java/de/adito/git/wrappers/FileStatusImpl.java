@@ -16,7 +16,7 @@ public class FileStatusImpl implements IFileStatus {
 
     private Status status;
 
-    FileStatusImpl(Status pStatus){
+    public FileStatusImpl(Status pStatus){
         status = pStatus;
     }
 
