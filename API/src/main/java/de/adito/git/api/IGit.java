@@ -15,7 +15,7 @@ public interface IGit {
      * @param addList List of files to add to staging
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean add(List<File> addList);
+    List add(List<File> addList);
 
     /**
      * @param message String with the commit message entered by the user
