@@ -12,56 +12,56 @@ public interface IFileStatus {
 
     /**
      *
-     * @return {@code true} wenn keine Unterschiede zwischen Head,
-     *          index und dem working-tree existieren
+     * @return {@code true} if no differences exist between the working-tree, the index,
+     *          and the current HEAD, {@code false} if differences do exist
      */
     boolean isClean();
 
     /**
      *
-     * @return {@code true} wenn sich ein getracktes File geändert hat
+     * @return {@code true} if any tracked file is changed
      */
     boolean hasUncommittedChanges();
 
     /**
      *
-     * @return Liste mit Files die im Index sind aber nicht im HEAD,
-     *          z.B. neu angelegtes File das mit {@code git add ...} zum Index hinzugefügt wurde
+     * @return list of files added to the index, not in HEAD
+     *          (e.g. what you get if you call 'git add ...' on a newly created file)
      */
     Set<String> getAdded();
 
     /**
      *
-     * @return Liste mit Files die sich von Index zu HEAD unterscheiden,
-     *          z.B. ein geändertes existierendes File das mit {@code git add ...} zum Index hinzugefügt wurde
+     * @return list of files changed from HEAD to index
+     *          (e.g. what you get if you modify an existing file and call 'git add ...' on it)
      */
     Set<String> getChanged();
 
     /**
      *
-     * @return Liste mit Files die vom Index entfernt wurden, aber im HEAD liegen,
-     *          z.B. ein File das mit {@code git rm ...} entfernt wurde
+     * @return list of files removed from index, but in HEAD
+     *          (e.g. what you get if you call 'git rm ...' on a existing file)
      */
     Set<String> getRemoved();
 
     /**
      *
-     * @return Liste mit Files die im Index liegen aber nicht mehr im lokalen Filesystem,
-     *          z.B. Files die mit {@code rm ...} entfernt wurden
+     * @return list of files in index, but not filesystem
+     *          (e.g. what you get if you call 'rm ...' on a existing file)
      */
     Set<String> getMissing();
 
     /**
      *
-     * @return Liste mit Files die sich relativ zum Index verändert haben,
-     *          z.B. Files die lokal verändert wurden aber noch nicht zum Index hinzugefügt wurden
+     * @return list of files modified on disk relative to the index
+     *          (e.g. what you get if you modify an existing file without adding it to the index)
      */
     Set<String> getModified();
 
     /**
      *
-     * @return Liste mit Files die nicht ignoriert wurden und nicht im Index liegen,
-     *          z.B. ein neu angelegtes File das noch nicht zum Index hinzugefügt wurde
+     * @return list of files that are not ignored, and not in the index.
+     *          (e.g. what you get if you create a new file without adding it to the index)
      */
     Set<String> getUntracked();
 
@@ -73,8 +73,8 @@ public interface IFileStatus {
 
     /**
      *
-     * @return Set mit Files die sich im Konfliktzustand befinden,
-     *          z.B. wenn ein File lokal verändert wurde das in der Zwischenzeit von einer anderen Person bearbeitet wurde
+     * @return set of files that are in conflict.
+     *          (e.g what you get if you modify file that was modified by someone else in the meantime)
      */
     Set<String> getConflicting();
 
@@ -86,14 +86,14 @@ public interface IFileStatus {
 
     /**
      *
-     * @return Set mit Ordnern und Files die ignoriert sind und sich nicht im Index befinden
+     * @return set of files and folders that are ignored and not in the index.
      */
     Set<String> getIgnoredNotInIndex();
 
     /**
      *
-     * @return Set mit sämtlichen uncommiteten Änderungen, also sämtliche Files die sich relativ zum Index
-     *          verändert haben
+     * @return set of files and folders that are known to the repo and changed
+     * 	 *         either in the index or in the working tree.
      */
     Set<String> getUncommittedChanges();
 }
