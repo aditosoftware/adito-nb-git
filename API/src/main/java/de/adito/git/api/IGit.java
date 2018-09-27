@@ -1,6 +1,5 @@
 package de.adito.git.api;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
@@ -16,7 +15,7 @@ public interface IGit {
      * @param addList List of files to add to staging
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean add(List<File> addList) throws GitAPIException;
+    boolean add(List<File> addList);
 
     /**
      * @param message String with the commit message entered by the user
@@ -50,7 +49,7 @@ public interface IGit {
      * @param dest the location on the local disk
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean clone(@NotNull String url, @NotNull File dest) throws GitAPIException, IOException;
+    boolean clone(@NotNull String url, @NotNull File dest) throws IOException;
 
     /**
      * @return List of IFileStatus that describe the different staging states of the local files
