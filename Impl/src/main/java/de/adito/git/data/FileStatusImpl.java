@@ -1,8 +1,8 @@
-package de.adito.git.wrappers;
+package de.adito.git.data;
 
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.EStageState;
-import de.adito.git.api.IFileStatus;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.data.FileChangeTypeImpl;
 import org.eclipse.jgit.api.Status;

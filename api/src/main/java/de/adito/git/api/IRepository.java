@@ -1,9 +1,12 @@
 package de.adito.git.api;
 
+import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.IFileStatus;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 

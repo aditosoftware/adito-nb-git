@@ -1,4 +1,4 @@
-package de.adito.git.api;
+package de.adito.git.api.data;
 
 /**
  * @author m.kaspera 25.09.2018

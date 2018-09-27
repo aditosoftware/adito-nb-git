@@ -1,4 +1,4 @@
-package de.adito.git.api;
+package de.adito.git.api.data;
 
 import java.util.Date;
 

@@ -1,6 +1,6 @@
 package de.adito.git;
 
-import de.adito.git.api.IFileStatus;
+import de.adito.git.api.data.IFileStatus;
 
 import javax.swing.*;
 import java.awt.*;

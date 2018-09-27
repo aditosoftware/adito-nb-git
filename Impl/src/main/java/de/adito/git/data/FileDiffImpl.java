@@ -1,8 +1,8 @@
-package de.adito.git.wrappers;
+package de.adito.git.data;
 
 import de.adito.git.EnumMappings;
 import de.adito.git.GitRepositoryProvider;
-import de.adito.git.api.IFileDiff;
+import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.*;
 import de.adito.git.data.FileChangesImpl;
 import de.adito.git.data.LineChangeImpl;
