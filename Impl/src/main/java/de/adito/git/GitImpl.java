@@ -27,7 +27,9 @@ import static de.adito.git.Util.getRelativePath;
  */
 
 public class GitImpl implements IGit {
+
     private Git git;
+
     GitImpl(Git pGit) {
         git = pGit;
     }
@@ -49,6 +51,7 @@ public class GitImpl implements IGit {
                 e.printStackTrace();
             }
         }
+        //FIXME: just returning the list you got as parameter makes no sense here. Check if the files were really added to staging and remove any that were not
         return addList;
     }
 
@@ -64,6 +67,7 @@ public class GitImpl implements IGit {
         } catch (GitAPIException e) {
             e.printStackTrace();// TODO: 26.09.2018 NB Task
         }
+        //FIXME: check revCommit for null, if yes return emtpy string
         return ObjectId.toString(revCommit.getId());
     }
 
@@ -90,8 +94,9 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public boolean pull(@NotNull String targetId){
-        if(targetId == null){
+    public boolean pull(@NotNull String targetId) {
+        //FIXME: @NotNull and check for null makes no real sense. Maybe check for "" instead, or remove @NotNull
+        if (targetId == null) {
             targetId = "master";
         }
         PullCommand pullcommand = git.pull().setRemoteBranchName(targetId);
@@ -128,6 +133,7 @@ public class GitImpl implements IGit {
             if (Util.isDirEmpty(localPath)) {
                 Git git = new Git(RepositoryProvider.get(localPath.getAbsolutePath() + File.separator + ".git"));
                 try {
+                    //FIXME: see IntelliJ warning
                     git.cloneRepository()
                             // TODO: 25.09.2018 NetBeans pPassword
                             .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null))
@@ -152,6 +158,7 @@ public class GitImpl implements IGit {
     @Override
     public @NotNull IFileStatus status() {
 
+        //FIXME: swapping the variable names would make more sense
         StatusCommand status = git.status();
         Status call = null;
         try {
@@ -214,7 +221,7 @@ public class GitImpl implements IGit {
      */
     @Override
     public void deleteBranch(@NotNull String branchName) {
-        String destination = "refs/heads/"+branchName;
+        String destination = "refs/heads/" + branchName;
         try {
             git.branchDelete()
                     .setBranchNames(destination)
