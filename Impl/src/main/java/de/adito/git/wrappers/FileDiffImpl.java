@@ -1,7 +1,7 @@
 package de.adito.git.wrappers;
 
 import de.adito.git.EnumMappings;
-import de.adito.git.RepositoryProvider;
+import de.adito.git.GitRepositoryProvider;
 import de.adito.git.api.IFileDiff;
 import de.adito.git.api.data.*;
 import de.adito.git.data.FileChangesImpl;
@@ -98,7 +98,7 @@ public class FileDiffImpl implements IFileDiff {
         if (fileChanges == null) {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             try (DiffFormatter formatter = new DiffFormatter(bout)) {
-                formatter.setRepository(RepositoryProvider.get());
+                formatter.setRepository(GitRepositoryProvider.get());
                 formatter.setDetectRenames(true);
                 formatter.format(diffEntry);
                 // if the changedStart/EndLine is not yet set do so since we already created the diffFormatter
@@ -138,7 +138,7 @@ public class FileDiffImpl implements IFileDiff {
      */
     private void _setChangedLines() {
         try (DiffFormatter formatter = new DiffFormatter(null)) {
-            formatter.setRepository(RepositoryProvider.get());
+            formatter.setRepository(GitRepositoryProvider.get());
             formatter.setDetectRenames(true);
             FileHeader fileHeader = formatter.toFileHeader(diffEntry);
             changedStartLine = fileHeader.getStartOffset();

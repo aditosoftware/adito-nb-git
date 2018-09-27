@@ -1,5 +1,7 @@
 package de.adito.git;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.data.BranchImpl;
 import de.adito.git.data.CommitImpl;
@@ -25,12 +27,17 @@ import static de.adito.git.Util.getRelativePath;
  * @author A.Arnold 21.09.2018
  */
 
-public class GitImpl implements IGit {
+public class RepositoryImpl implements IRepository {
 
     private Git git;
 
-    GitImpl(Git pGit) {
-        git = pGit;
+//    GitImpl(Git pGit) {
+//        git = pGit;
+//    }
+
+    @Inject
+    public RepositoryImpl(@Assisted String repoPath) throws IOException {
+        git = new Git(GitRepositoryProvider.get(repoPath));
     }
 
     /**
@@ -130,7 +137,7 @@ public class GitImpl implements IGit {
 
         try {
             if (Util.isDirEmpty(localPath)) {
-                Git git = new Git(RepositoryProvider.get(localPath.getAbsolutePath() + File.separator + ".git"));
+                Git git = new Git(GitRepositoryProvider.get(localPath.getAbsolutePath() + File.separator + ".git"));
                 try {
                     //FIXME: see IntelliJ warning
                     git.cloneRepository()
@@ -173,7 +180,7 @@ public class GitImpl implements IGit {
      */
     @Override
     public void ignore(@NotNull List<File> files) throws IOException {
-        File gitIgnore = new File(RepositoryProvider.get().getDirectory().getParent(), ".gitignore");
+        File gitIgnore = new File(GitRepositoryProvider.get().getDirectory().getParent(), ".gitignore");
         try(BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true))){
             for(File file: files) {
                 outputStream.write((getRelativePath(file, git) + "\n").getBytes());

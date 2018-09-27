@@ -11,7 +11,7 @@ import java.io.IOException;
  *
  * @author m.kaspera 24.09.2018
  */
-public class RepositoryProvider {
+public class GitRepositoryProvider {
 
     private static Repository repository;
 

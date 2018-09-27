@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author m.kaspera 20.09.2018
  */
-public interface IGit {
+public interface IRepository {
 
     /**
      * @param addList List of files to add to staging
