@@ -75,10 +75,16 @@ public interface IGit {
     @NotNull String createBranch(@NotNull String branchName, boolean checkout);
 
     /**
-     * @param targetName String with identifier of the branch to checkout
+     * @param branchName the name of the branch to delete
+     */
+    void deleteBranch(@NotNull String branchName);
+
+    /**
+     *
+     * @param branchName String with identifier of the branch to checkout
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean checkout(@NotNull String targetName);
+    boolean checkout(@NotNull String branchName);
 
     /**
      * @param sourceName String with identifier of source branch
@@ -104,7 +110,7 @@ public interface IGit {
      * @param sourceBranch IBranch for which all commits should be retrieved
      * @return List with all ICommits in the sourceBranch
      */
-    List<ICommit> getCommits(IBranch sourceBranch);
+    List<ICommit> getCommits(IBranch sourceBranch) throws IOException;
 
     /**
      * @param forFile File for which all commits should be retrieved
