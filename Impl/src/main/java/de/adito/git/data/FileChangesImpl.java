@@ -1,6 +1,6 @@
 package de.adito.git.data;
 
-import de.adito.git.api.data.IFileChange;
+import de.adito.git.api.data.IFileChanges;
 import de.adito.git.api.data.ILineChange;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,11 +11,11 @@ import java.util.List;
  *
  * @author m.kaspera 24.09.2018
  */
-public class FileChangeImpl implements IFileChange {
+public class FileChangesImpl implements IFileChanges {
 
     private List<ILineChange> lineChanges;
 
-    public FileChangeImpl(List<ILineChange> pLineChanges) {
+    public FileChangesImpl(List<ILineChange> pLineChanges) {
         lineChanges = pLineChanges;
     }
 

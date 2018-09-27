@@ -4,7 +4,7 @@ import de.adito.git.EnumMappings;
 import de.adito.git.RepositoryProvider;
 import de.adito.git.api.IFileDiff;
 import de.adito.git.api.data.*;
-import de.adito.git.data.FileChangeImpl;
+import de.adito.git.data.FileChangesImpl;
 import de.adito.git.data.LineChangeImpl;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
@@ -26,7 +26,7 @@ public class FileDiffImpl implements IFileDiff {
     private DiffEntry diffEntry;
     private int changedStartLine = -1;
     private int changedEndLine = -1;
-    private FileChangeImpl fileChanges = null;
+    private FileChangesImpl fileChanges = null;
 
     public FileDiffImpl(DiffEntry pDiffEntry) {
         diffEntry = pDiffEntry;
@@ -94,7 +94,7 @@ public class FileDiffImpl implements IFileDiff {
      * {@inheritDoc}
      */
     @Override
-    public FileChangeImpl getFileChanges() {
+    public FileChangesImpl getFileChanges() {
         if (fileChanges == null) {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             try (DiffFormatter formatter = new DiffFormatter(bout)) {
@@ -102,7 +102,7 @@ public class FileDiffImpl implements IFileDiff {
                 formatter.setDetectRenames(true);
                 formatter.format(diffEntry);
                 // if the changedStart/EndLine is not yet set do so since we already created the diffFormatter
-                fileChanges = new FileChangeImpl(_getLineChanges(bout.toString()));
+                fileChanges = new FileChangesImpl(_getLineChanges(bout.toString()));
                 if (changedStartLine == -1) {
                     FileHeader fileHeader = formatter.toFileHeader(diffEntry);
                     changedStartLine = fileHeader.getStartOffset();
