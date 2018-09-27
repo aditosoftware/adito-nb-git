@@ -12,6 +12,7 @@
         <module>API</module>
         <module>Impl</module>
         <module>nbm</module>
+        <module>GUI</module>
     </modules>
 
     <build>
