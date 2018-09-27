@@ -1,7 +1,9 @@
 package de.adito.git.api;
 
 import de.adito.git.api.data.EStageState;
+import de.adito.git.api.data.IFileChangeType;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -96,4 +98,10 @@ public interface IFileStatus {
      * 	 *         either in the index or in the working tree.
      */
     Set<String> getUncommittedChanges();
+
+    /**
+     *
+     * @return
+     */
+    List<IFileChangeType> getUncommitted();
 }

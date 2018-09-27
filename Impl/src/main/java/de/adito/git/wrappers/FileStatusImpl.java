@@ -1,13 +1,15 @@
 package de.adito.git.wrappers;
 
+import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.EStageState;
 import de.adito.git.api.IFileStatus;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.data.FileChangeTypeImpl;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.IndexDiff;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 
 /**
  * @author m.kaspera 21.09.2018
@@ -127,6 +129,25 @@ public class FileStatusImpl implements IFileStatus {
      */
     public Set<String> getUncommittedChanges() {
         return status.getUncommittedChanges();
+    }
+
+    public List<IFileChangeType> getUncommitted() {
+        List<IFileChangeType> fileChangeTypes = new ArrayList<>();
+        fileChangeTypes.addAll(_toFileChangeTypes(status.getAdded(), EChangeType.ADD));
+        fileChangeTypes.addAll(_toFileChangeTypes(status.getChanged(), EChangeType.MODIFY));
+        fileChangeTypes.addAll(_toFileChangeTypes(status.getModified(), EChangeType.MODIFY));
+        fileChangeTypes.addAll(_toFileChangeTypes(status.getRemoved(), EChangeType.DELETE));
+        fileChangeTypes.addAll(_toFileChangeTypes(status.getMissing(), EChangeType.DELETE));
+        //uncommittedChanges.addAll(diff.getConflicting());
+        return fileChangeTypes;
+    }
+
+    private List<IFileChangeType> _toFileChangeTypes(Set<String> filenames, EChangeType changeType){
+        List<IFileChangeType> fileChangeTypes = new ArrayList<>();
+        for(String filename: filenames){
+            fileChangeTypes.add(new FileChangeTypeImpl(new File(filename), changeType));
+        }
+        return fileChangeTypes;
     }
 
     /**
