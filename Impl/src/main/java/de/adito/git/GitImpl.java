@@ -195,24 +195,29 @@ public class GitImpl implements IGit {
             for (Ref ref : refs) {
                 System.out.println("DEBUG: Branchname: " + ref.getName());
                 if (ref.getName().equals("refs/heads/" + branchName)) {
+                    //FIXME: setting a local variable just before jumping out of the method via return makes no sense
                     alreadyExists = true;
                     return "Branch already exists"; // TODO: 26.09.2018 NB Task
                 }
             }
+            //FIXME: unnecessary, alreadyExists is always false (you jump out of the method right after the only place where it is set true)
             if (!alreadyExists) {
                 git.branchCreate()
                         .setName(branchName)
                         .call();
                 git.push().setRemote("origin")
                         .setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
+                //FIXME: why?
                 alreadyExists = false;
             }
+            //FIXME: == instead of =
             if (checkout = true) {
                 checkout(branchName);
             }
         } catch (GitAPIException e) {
             e.printStackTrace(); // TODO: 26.09.2018 NB Task
         }
+        //FIXME: only return the id of the branch, don't add any unnecessary stuff
         return "Created and Checkout: " + branchName;
     }
 
@@ -280,6 +285,7 @@ public class GitImpl implements IGit {
         } catch (GitAPIException | MissingObjectException | IncorrectObjectTypeException e) {
             e.printStackTrace();
         }
+        //FIXME: check with hasNext() if there is an item available first
         commit = iterable.iterator().next();
 
         if (iterable.iterator().hasNext()) {
@@ -294,6 +300,7 @@ public class GitImpl implements IGit {
     @Override
     public List<ICommit> getCommits(IBranch sourceBranch) throws IOException {
         // TODO: 26.09.2018 Branch ID
+        //FIXME: don't use generic list, tell the list which class it has to expect
         List list = new ArrayList();
 
         try {
@@ -304,6 +311,7 @@ public class GitImpl implements IGit {
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
+        //FIXME: should probably return null here, only reachable after an exception happened
         return list;
     }
 
@@ -314,6 +322,7 @@ public class GitImpl implements IGit {
     public List<ICommit> getCommits(File forFile) {
         // TODO: 26.09.2018 TreeIterator -> Changes at one File
         git.log().addPath(getRelativePath(forFile, git));
+        //FIXME: ?
         return null;
     }
 
@@ -331,6 +340,7 @@ public class GitImpl implements IGit {
             e.printStackTrace();
         }
 
+        //FIXME: check with hasNext() if item is available first
         branch = list.iterator().next();
         if (list.iterator().hasNext()) {
             // TODO: 26.09.2018 NB Task
@@ -351,6 +361,7 @@ public class GitImpl implements IGit {
 
             e.printStackTrace();
         }
+        //FIXME: check if refList is null first, or initialize refList with new ArrayList<>() up  top
         while (refList.iterator().hasNext()) {
             branches.add(new BranchImpl(refList.iterator().next()));
         }
