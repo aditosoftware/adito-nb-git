@@ -15,8 +15,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.RefSpec;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -173,7 +172,13 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public void ignore(@NotNull List<File> files) {
+    public void ignore(@NotNull List<File> files) throws IOException {
+        File gitIgnore = new File(RepositoryProvider.get().getDirectory().getParent(), ".gitignore");
+        try(BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true))){
+            for(File file: files) {
+                outputStream.write((getRelativePath(file, git) + "\n").getBytes());
+            }
+        }
     }
 
     /**

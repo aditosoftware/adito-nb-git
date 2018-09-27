@@ -3,6 +3,7 @@ package de.adito.git.api;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public interface IGit {
     /**
      * @param files List of files that should be added to the .gitignore
      */
-    void ignore(@NotNull List<File> files);
+    void ignore(@NotNull List<File> files) throws IOException;
 
     /**
      * @param files List of files which should be reverted to the state in HEAD
