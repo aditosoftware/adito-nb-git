@@ -43,7 +43,7 @@ public interface IGit {
      * @param compareTo the later ICommit
      * @return IFileDiff that contains the differences between the two files
      */
-    @NotNull IFileDiff diff(@NotNull ICommit original, @NotNull ICommit compareTo);
+    @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws IOException;
 
     /**
      * @param url  the url from which to pull from, as String
@@ -117,7 +117,7 @@ public interface IGit {
      * @param forFile File for which all commits should be retrieved
      * @return List with ICommits that contains all commits that affected the file
      */
-    List<ICommit> getCommits(File forFile);
+    List<ICommit> getCommits(File forFile) throws IOException;
 
     /**
      * @param identifier String with identifier of the targeted branch

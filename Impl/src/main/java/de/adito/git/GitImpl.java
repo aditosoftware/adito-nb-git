@@ -3,21 +3,26 @@ package de.adito.git;
 import de.adito.git.api.*;
 import de.adito.git.data.BranchImpl;
 import de.adito.git.data.CommitImpl;
+import de.adito.git.wrappers.FileDiffImpl;
 import de.adito.git.wrappers.FileStatusImpl;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static de.adito.git.Util.getRelativePath;
 
@@ -37,21 +42,26 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public List add(List<File> addList) {
+    public List<File> add(List<File> addList) {
+        List<File> equalList = new ArrayList<>();
+        Set<String> added = status().getAdded();
+
         if (addList.isEmpty()) {
             return addList;
         }
         for (File file : addList) {
             AddCommand adder = git.add();
             adder.addFilepattern(getRelativePath(file, git));
+
+            if (added.contains(getRelativePath(file, git)))
+                equalList.add(file);
             try {
                 adder.call();
             } catch (GitAPIException e) {
                 e.printStackTrace();
             }
         }
-        //FIXME: just returning the list you got as parameter makes no sense here. Check if the files were really added to staging and remove any that were not
-        return addList;
+        return equalList;
     }
 
     /**
@@ -66,7 +76,9 @@ public class GitImpl implements IGit {
         } catch (GitAPIException e) {
             e.printStackTrace();// TODO: 26.09.2018 NB Task
         }
-        //FIXME: check revCommit for null, if yes return emtpy string
+        if (revCommit == null) {
+            return "";
+        }
         return ObjectId.toString(revCommit.getId());
     }
 
@@ -94,8 +106,7 @@ public class GitImpl implements IGit {
      */
     @Override
     public boolean pull(@NotNull String targetId) {
-        //FIXME: @NotNull and check for null makes no real sense. Maybe check for "" instead, or remove @NotNull
-        if (targetId == null) {
+        if (targetId.equals("")) {
             targetId = "master";
         }
         PullCommand pullcommand = git.pull().setRemoteBranchName(targetId);
@@ -109,17 +120,32 @@ public class GitImpl implements IGit {
     }
 
     @Override
-    public @NotNull IFileDiff diff(@NotNull ICommit original, @NotNull ICommit compareTo) {
+    public @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws IOException {
         // TODO: 26.09.2018
+        List<IFileDiff> listDiffImpl = new ArrayList<>();
 
-        IFileDiff diff = null;
-/*        try {
-            diff = new FileDiffImpl(git.diff(original, compareTo));
+        ObjectId head = git.getRepository().resolve(original.getShortMessage());
+        ObjectId prevHead = git.getRepository().resolve(compareTo.getShortMessage());
+        List<DiffEntry> listDiff = null;
+
+        ObjectReader reader = git.getRepository().newObjectReader();
+        CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
+        oldTreeIter.reset(reader, prevHead);
+        CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
+        newTreeIter.reset(reader, head);
+
+        try {
+            listDiff = git.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-*/
-        return diff;
+
+        if (listDiff != null) {
+            for(DiffEntry diffs : listDiff){
+                listDiffImpl.add( new FileDiffImpl(diffs));
+            }
+        }
+        return listDiffImpl;
     }
 
     /**
@@ -128,25 +154,18 @@ public class GitImpl implements IGit {
     @Override
     public boolean clone(@NotNull String url, @NotNull File localPath) {
 
-        try {
-            if (Util.isDirEmpty(localPath)) {
-                Git git = new Git(RepositoryProvider.get(localPath.getAbsolutePath() + File.separator + ".git"));
-                try {
-                    //FIXME: see IntelliJ warning
-                    git.cloneRepository()
-                            // TODO: 25.09.2018 NetBeans pPassword
-                            .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null))
-                            .setURI(url)
-                            .setDirectory(new File(localPath, ""))
-                            .call();
-                } catch (GitAPIException e) {
-                    e.printStackTrace();
-                }
-                return true;
+        if (Util.isDirEmpty(localPath)) {
+            CloneCommand cloneRepo = Git.cloneRepository()
+                    // TODO: 25.09.2018 NetBeans pPassword
+                    .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null))
+                    .setURI(url)
+                    .setDirectory(new File(localPath, ""));
+            try {
+                cloneRepo.call();
+            } catch (GitAPIException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            // TODO: 25.09.2018 NB Exception catching
-            System.out.println(e.getMessage());
+            return true;
         }
         return false;
     }
@@ -156,16 +175,14 @@ public class GitImpl implements IGit {
      */
     @Override
     public @NotNull IFileStatus status() {
-
-        //FIXME: swapping the variable names would make more sense
         StatusCommand status = git.status();
-        Status call = null;
+        Status statusImpl = null;
         try {
-            call = status.call();
+            statusImpl = status.call();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-        return new FileStatusImpl(call);
+        return new FileStatusImpl(statusImpl);
     }
 
     /**
@@ -194,35 +211,30 @@ public class GitImpl implements IGit {
      */
     @Override
     public @NotNull String createBranch(@NotNull String branchName, boolean checkout) {
+        boolean alreadyExists = false;
         try {
-            boolean alreadyExists = false;
             List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
             for (Ref ref : refs) {
                 System.out.println("DEBUG: Branchname: " + ref.getName());
                 if (ref.getName().equals("refs/heads/" + branchName)) {
-                    //FIXME: setting a local variable just before jumping out of the method via return makes no sense
                     alreadyExists = true;
                     return "Branch already exists"; // TODO: 26.09.2018 NB Task
                 }
             }
-            //FIXME: unnecessary, alreadyExists is always false (you jump out of the method right after the only place where it is set true)
             if (!alreadyExists) {
                 git.branchCreate()
                         .setName(branchName)
                         .call();
                 git.push().setRemote("origin")
                         .setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
-                //FIXME: why?
                 alreadyExists = false;
             }
-            //FIXME: == instead of =
-            if (checkout = true) {
+            if (checkout) {
                 checkout(branchName);
             }
         } catch (GitAPIException e) {
             e.printStackTrace(); // TODO: 26.09.2018 NB Task
         }
-        //FIXME: only return the id of the branch, don't add any unnecessary stuff
         return "Created and Checkout: " + branchName;
     }
 
@@ -284,18 +296,18 @@ public class GitImpl implements IGit {
     @Override
     public ICommit getCommit(String identifier) {
         RevCommit commit = null;
-        Iterable<RevCommit> iterable = null;
+        Iterable<RevCommit> commits = null;
         try {
-            iterable = git.log().add(ObjectId.fromString(identifier)).call();
+            commits = git.log().add(ObjectId.fromString(identifier)).call();
         } catch (GitAPIException | MissingObjectException | IncorrectObjectTypeException e) {
             e.printStackTrace();
         }
-        //FIXME: check with hasNext() if there is an item available first
-        commit = iterable.iterator().next();
-
-        if (iterable.iterator().hasNext()) {
-            // TODO: 26.09.2018 NB Task
-        }
+        if (commits != null) {
+            if (commits.iterator().hasNext()) {
+                // TODO: 26.09.2018 NB Task
+            }
+            commit = commits.iterator().next();
+        }  // else TODO: 27.09.2018 NB Task
         return new CommitImpl(commit);
     }
 
@@ -305,30 +317,44 @@ public class GitImpl implements IGit {
     @Override
     public List<ICommit> getCommits(IBranch sourceBranch) throws IOException {
         // TODO: 26.09.2018 Branch ID
-        //FIXME: don't use generic list, tell the list which class it has to expect
-        List list = new ArrayList();
-
+        List<ICommit> commitList = new ArrayList();
+        Iterable<RevCommit> commits = null;
         try {
+            commits = git.log().add(git.getRepository().resolve(sourceBranch.getName())).call();
+            /*
             for (RevCommit commit : git.log().add(git.getRepository().resolve(sourceBranch.getName())).call()) {
                 list.add(commit);
-            }
-            return list;
+            }*/
+
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-        //FIXME: should probably return null here, only reachable after an exception happened
-        return list;
+        if (commits != null) {
+            for (RevCommit commit : commits) {
+                commitList.add(new CommitImpl(commits.iterator().next()));
+            }
+        }
+        return commitList;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<ICommit> getCommits(File forFile) {
-        // TODO: 26.09.2018 TreeIterator -> Changes at one File
-        git.log().addPath(getRelativePath(forFile, git));
-        //FIXME: ?
-        return null;
+    public List<ICommit> getCommits(File forFile) throws IOException {
+        List<ICommit> commitList = new ArrayList<>();
+        Iterable<RevCommit> commits = null;
+        try {
+            commits = git.log().add(git.getRepository().resolve(getRelativePath(forFile, git))).call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        if (commits != null) {
+            for (RevCommit commit : commits) {
+                commitList.add(new CommitImpl(commit));
+            }
+        }
+        return commitList;
     }
 
     /**
@@ -345,11 +371,10 @@ public class GitImpl implements IGit {
             e.printStackTrace();
         }
 
-        //FIXME: check with hasNext() if item is available first
-        branch = list.iterator().next();
         if (list.iterator().hasNext()) {
             // TODO: 26.09.2018 NB Task
         }
+        branch = list.iterator().next();
         return new BranchImpl(branch);
     }
 
@@ -363,12 +388,12 @@ public class GitImpl implements IGit {
         try {
             refList = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
         } catch (GitAPIException e) {
-
             e.printStackTrace();
         }
-        //FIXME: check if refList is null first, or initialize refList with new ArrayList<>() up  top
-        while (refList.iterator().hasNext()) {
-            branches.add(new BranchImpl(refList.iterator().next()));
+        if (refList != null) {
+            while (refList.iterator().hasNext()) {
+                branches.add(new BranchImpl(refList.iterator().next()));
+            }
         }
         return branches;
     }
