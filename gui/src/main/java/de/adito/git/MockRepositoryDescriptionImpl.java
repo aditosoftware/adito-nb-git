@@ -3,6 +3,8 @@ package de.adito.git;
 import de.adito.git.api.data.IRepositoryDescription;
 
 /**
+ * Mock repository implementation for testing purposes
+ *
  * @author m.kaspera 27.09.2018
  */
 public class MockRepositoryDescriptionImpl implements IRepositoryDescription {

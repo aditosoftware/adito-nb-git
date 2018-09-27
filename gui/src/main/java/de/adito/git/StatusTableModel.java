@@ -6,6 +6,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.table.AbstractTableModel;
 
 /**
+ * Model that describes the contents of the table in the StatusWindow
+ *
  * @author m.kaspera 27.09.2018
  */
 public class StatusTableModel extends AbstractTableModel {

@@ -101,7 +101,8 @@ public interface IFileStatus {
 
     /**
      *
-     * @return
+     * @return List<IFileChangeType> containing all the files that were changed
+     *          in comparison to HEAD, with the type of change that happened
      */
     List<IFileChangeType> getUncommitted();
 }

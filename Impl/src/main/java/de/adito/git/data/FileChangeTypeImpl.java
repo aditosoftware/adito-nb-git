@@ -18,11 +18,19 @@ public class FileChangeTypeImpl implements IFileChangeType {
         changeType = pEChangeType;
     }
 
+    /**
+     *
+     * {@inheritDoc}
+     */
     @Override
     public File getFile() {
         return file;
     }
 
+    /**
+     *
+     * {@inheritDoc}
+     */
     @Override
     public EChangeType getChangeType() {
         return changeType;

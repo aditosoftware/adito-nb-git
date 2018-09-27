@@ -131,6 +131,10 @@ public class FileStatusImpl implements IFileStatus {
         return status.getUncommittedChanges();
     }
 
+    /**
+     *
+     * {@inheritDoc}
+     */
     public List<IFileChangeType> getUncommitted() {
         List<IFileChangeType> fileChangeTypes = new ArrayList<>();
         fileChangeTypes.addAll(_toFileChangeTypes(status.getAdded(), EChangeType.ADD));
