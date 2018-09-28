@@ -1,6 +1,7 @@
 package de.adito.git;
 
 import de.adito.git.api.data.IRepositoryDescription;
+import org.openide.util.NbBundle;
 
 /**
  * Mock repository implementation for testing purposes
@@ -15,7 +16,8 @@ public class MockRepositoryDescriptionImpl implements IRepositoryDescription {
 
     @Override
     public String getPath() {
-        return "C:\\Entwicklungszweige\\adito-nb-git\\.git";
+        //return "C:\\Entwicklungszweige\\adito-nb-git\\.git";
+        return NbBundle.getMessage(MockRepositoryDescriptionImpl.class, "VCSDirectory");
     }
 
     @Override

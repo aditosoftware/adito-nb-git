@@ -23,13 +23,19 @@
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util</artifactId>
+            <version>RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Adito Look-And-Feels -->
-        <dependency>
-            <groupId>de.adito.aditoweb.nbm</groupId>
-            <artifactId>nb-darcula</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>de.adito.aditoweb.nbm</groupId>-->
+            <!--<artifactId>nb-darcula</artifactId>-->
+            <!--<version>1.0.0-SNAPSHOT</version>-->
+        <!--</dependency>-->
     </dependencies>
 
 
