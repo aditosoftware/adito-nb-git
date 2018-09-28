@@ -26,11 +26,9 @@ public interface IGit {
 
     /**
      * Pushes the changes made to HEAD onto the selected branch/remote
-     *
-     * @param targetId the id/url of the branch/remote to push to
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean push(@NotNull String targetId);
+    boolean push();
 
     /**
      * @param targetId the id/url of the branch/remote to pull from
@@ -99,7 +97,7 @@ public interface IGit {
      * @param targetName String with identifier of target branch
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean merge(@NotNull String sourceName, @NotNull String targetName);
+    public boolean merge(@NotNull String sourceName, @NotNull String targetName, @NotNull String commitMessage);
 
     /**
      * @param identifier String with identifier of the commit

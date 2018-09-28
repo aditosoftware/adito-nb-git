@@ -86,17 +86,16 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public boolean push(@NotNull String targetId) {
+    public boolean push() {
         if (status().getAdded().isEmpty()) {
             // TODO: 26.09.2018 Throw Netbeans dialog
-        } else {
-            PushCommand push = git.push();
-            push.setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
-            try {
-                push.call();
-            } catch (JGitInternalException | GitAPIException e) {
-                throw new IllegalStateException("Unable to push into remote Git repository", e);
-            }
+        }
+        PushCommand push = git.push()
+                .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
+        try {
+            push.call();
+        } catch (JGitInternalException | GitAPIException e) {
+            throw new IllegalStateException("Unable to push into remote Git repository", e);
         }
         return true;
     }
@@ -141,8 +140,8 @@ public class GitImpl implements IGit {
         }
 
         if (listDiff != null) {
-            for(DiffEntry diffs : listDiff){
-                listDiffImpl.add( new FileDiffImpl(diffs));
+            for (DiffEntry diffs : listDiff) {
+                listDiffImpl.add(new FileDiffImpl(diffs));
             }
         }
         return listDiffImpl;
@@ -191,8 +190,8 @@ public class GitImpl implements IGit {
     @Override
     public void ignore(@NotNull List<File> files) throws IOException {
         File gitIgnore = new File(RepositoryProvider.get().getDirectory().getParent(), ".gitignore");
-        try(BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true))){
-            for(File file: files) {
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true))) {
+            for (File file : files) {
                 outputStream.write((getRelativePath(file, git) + "\n").getBytes());
             }
         }
@@ -265,7 +264,7 @@ public class GitImpl implements IGit {
     @Override
     public boolean checkout(@NotNull String branchName) {
         CheckoutCommand check = git.checkout();
-        check.setName(branchName).setStartPoint(branchName);
+        check.setName(branchName).setStartPoint(branchName).setCreateBranch(false);
         try {
             check.call();
         } catch (GitAPIException e) {
@@ -286,7 +285,18 @@ public class GitImpl implements IGit {
      * {@inheritDoc}
      */
     @Override
-    public boolean merge(@NotNull String sourceName, @NotNull String targetName) {
+    public boolean merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) {
+        try {
+            checkout(parentBranch);
+            ObjectId mergeBase;
+            mergeBase = git.getRepository().resolve(branchToMerge);
+            MergeResult mergeResult = git.merge()
+                    .include(mergeBase)
+                    .setCommit(true)
+                    .setFastForward(MergeCommand.FastForwardMode.NO_FF).setMessage(commitMessage).call();
+        } catch (IOException | GitAPIException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
