@@ -1,2 +1,5 @@
 Manifest-Version: 1.0
-OpenIDE-Module: de.adito.git
+OpenIDE-Module: de.adito.git/0
+OpenIDE-Module-Localizing-Bundle: de/adito/git/Bundle.properties
+OpenIDE-Module-Specification-Version: 0.2.5
+AutoUpdate-Show-In-Client: true
