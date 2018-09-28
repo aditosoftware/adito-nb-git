@@ -1,4 +1,4 @@
-package de.adito.git;
+package de.adito.git.gui;
 
 import de.adito.git.api.data.IFileStatus;
 import org.jetbrains.annotations.Nullable;

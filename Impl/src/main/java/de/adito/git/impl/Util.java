@@ -1,4 +1,4 @@
-package de.adito.git;
+package de.adito.git.impl;
 
 import org.eclipse.jgit.api.Git;
 

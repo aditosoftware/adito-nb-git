@@ -1,4 +1,4 @@
-package de.adito.git;
+package de.adito.git.impl;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;

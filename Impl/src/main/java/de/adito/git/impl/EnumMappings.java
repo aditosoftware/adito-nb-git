@@ -1,4 +1,4 @@
-package de.adito.git;
+package de.adito.git.impl;
 
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.EFileType;

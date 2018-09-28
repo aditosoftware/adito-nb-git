@@ -1,8 +1,8 @@
-package de.adito.git.Guice;
+package de.adito.git.nbm.Guice;
 
 import com.google.inject.AbstractModule;
-import de.adito.git.DialogDisplayerImpl;
-import de.adito.git.IDialogDisplayer;
+import de.adito.git.nbm.DialogDisplayerImpl;
+import de.adito.git.gui.IDialogDisplayer;
 
 /**
  * Module for Injector bindings in the nbm module

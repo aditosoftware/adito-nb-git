@@ -1,4 +1,4 @@
-package de.adito.git;
+package de.adito.git.gui;
 
 import javax.swing.*;
 

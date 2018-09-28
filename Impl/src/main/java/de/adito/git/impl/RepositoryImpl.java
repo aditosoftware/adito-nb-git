@@ -1,4 +1,4 @@
-package de.adito.git;
+package de.adito.git.impl;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -7,10 +7,10 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.data.BranchImpl;
-import de.adito.git.data.CommitImpl;
-import de.adito.git.data.FileDiffImpl;
-import de.adito.git.data.FileStatusImpl;
+import de.adito.git.impl.data.BranchImpl;
+import de.adito.git.impl.data.CommitImpl;
+import de.adito.git.impl.data.FileDiffImpl;
+import de.adito.git.impl.data.FileStatusImpl;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static de.adito.git.Util.getRelativePath;
+import static de.adito.git.impl.Util.getRelativePath;
 
 /**
  * @author A.Arnold 21.09.2018

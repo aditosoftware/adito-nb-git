@@ -1,4 +1,4 @@
-package de.adito.git.data;
+package de.adito.git.impl.data;
 
 import de.adito.git.api.data.ICommit;
 import org.eclipse.jgit.revwalk.RevCommit;

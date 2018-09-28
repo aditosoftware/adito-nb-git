@@ -1,6 +1,7 @@
-package de.adito.git;
+package de.adito.git.nbm;
 
 import com.google.inject.Inject;
+import de.adito.git.gui.IDialogDisplayer;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 

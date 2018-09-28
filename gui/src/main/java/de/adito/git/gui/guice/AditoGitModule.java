@@ -1,10 +1,10 @@
-package de.adito.git.Guice;
+package de.adito.git.gui.guice;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
-import de.adito.git.MockRepositoryDescriptionImpl;
-import de.adito.git.RepositoryImpl;
+import de.adito.git.gui.MockRepositoryDescriptionImpl;
+import de.adito.git.impl.RepositoryImpl;
 import de.adito.git.api.data.IRepositoryDescription;
 
 /**

@@ -1,4 +1,4 @@
-package de.adito.git;
+package de.adito.git.gui;
 
 import de.adito.git.api.data.IFileStatus;
 
@@ -14,8 +14,10 @@ import java.awt.*;
 public class StatusWindow extends JPanel {
 
     private IFileStatus status;
+    private IDialogDisplayer dialogDisplayer;
 
-    public StatusWindow(IFileStatus pStatus){
+    public StatusWindow(IFileStatus pStatus, IDialogDisplayer pDialogDisplayer){
+        dialogDisplayer = pDialogDisplayer;
         status = pStatus;
         _initGui();
     }

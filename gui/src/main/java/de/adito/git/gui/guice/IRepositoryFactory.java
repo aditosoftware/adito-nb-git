@@ -1,6 +1,6 @@
-package de.adito.git.Guice;
+package de.adito.git.gui.guice;
 
-import de.adito.git.RepositoryImpl;
+import de.adito.git.impl.RepositoryImpl;
 
 /**
  * Factory interface for Guice to construct the RepositoryImpl object with a String as
