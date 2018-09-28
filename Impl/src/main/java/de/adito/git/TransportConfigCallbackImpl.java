@@ -18,12 +18,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author m.kaspera 21.09.2018
  */
-public class TransportConfigCallbackImpl implements TransportConfigCallback {
+class TransportConfigCallbackImpl implements TransportConfigCallback {
 
     private String password;
     private String sshKeyPath;
 
-    public TransportConfigCallbackImpl(@Nullable String pPassword, @Nullable String pSshKeyPath) {
+    TransportConfigCallbackImpl(@Nullable String pPassword, @Nullable String pSshKeyPath) {
         password = pPassword;
         sshKeyPath = pSshKeyPath;
     }

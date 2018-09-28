@@ -1,6 +1,6 @@
 package de.adito.git.data;
 
-import de.adito.git.api.IBranch;
+import de.adito.git.api.data.IBranch;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 
