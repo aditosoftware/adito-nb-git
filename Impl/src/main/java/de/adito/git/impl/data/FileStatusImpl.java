@@ -2,9 +2,8 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.EStageState;
-import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.impl.data.FileChangeTypeImpl;
+import de.adito.git.api.data.IFileStatus;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.IndexDiff;
 
@@ -136,20 +135,20 @@ public class FileStatusImpl implements IFileStatus {
      * {@inheritDoc}
      */
     public List<IFileChangeType> getUncommitted() {
-        List<IFileChangeType> fileChangeTypes = new ArrayList<>();
-        fileChangeTypes.addAll(_toFileChangeTypes(status.getAdded(), EChangeType.ADD));
-        fileChangeTypes.addAll(_toFileChangeTypes(status.getChanged(), EChangeType.MODIFY));
-        fileChangeTypes.addAll(_toFileChangeTypes(status.getModified(), EChangeType.MODIFY));
-        fileChangeTypes.addAll(_toFileChangeTypes(status.getRemoved(), EChangeType.DELETE));
-        fileChangeTypes.addAll(_toFileChangeTypes(status.getMissing(), EChangeType.DELETE));
-        //uncommittedChanges.addAll(diff.getConflicting());
-        return fileChangeTypes;
+        HashMap<String, EChangeType> fileChangeTypes = new HashMap<>();
+        status.getChanged().forEach(changed -> fileChangeTypes.put(changed, EChangeType.MODIFY));
+        status.getModified().forEach(modified -> fileChangeTypes.put(modified, EChangeType.MODIFY));
+        status.getAdded().forEach(added -> fileChangeTypes.put(added, EChangeType.ADD));
+        status.getRemoved().forEach(removed -> fileChangeTypes.put(removed, EChangeType.DELETE));
+        status.getMissing().forEach(missing -> fileChangeTypes.put(missing, EChangeType.DELETE));
+        status.getConflicting().forEach(conflicting -> fileChangeTypes.put(conflicting, EChangeType.CONFLICTING));
+        return _toFileChangeTypes(fileChangeTypes);
     }
 
-    private List<IFileChangeType> _toFileChangeTypes(Set<String> filenames, EChangeType changeType){
+    private List<IFileChangeType> _toFileChangeTypes(HashMap<String, EChangeType> fileChanges){
         List<IFileChangeType> fileChangeTypes = new ArrayList<>();
-        for(String filename: filenames){
-            fileChangeTypes.add(new FileChangeTypeImpl(new File(filename), changeType));
+        for(String filename: fileChanges.keySet()){
+            fileChangeTypes.add(new FileChangeTypeImpl(new File(filename), fileChanges.get(filename)));
         }
         return fileChangeTypes;
     }

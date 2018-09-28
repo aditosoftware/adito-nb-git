@@ -19,5 +19,8 @@ public enum EChangeType {
     RENAME,
 
     /** Copy an existing file to a new location, keeping the original */
-    COPY
+    COPY,
+
+    /** file is in a conflicting state towards (e.g what you get if you modify file that was modified by someone else in the meantime) */
+    CONFLICTING
 }

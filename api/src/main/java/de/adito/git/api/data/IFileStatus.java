@@ -1,8 +1,5 @@
 package de.adito.git.api.data;
 
-import de.adito.git.api.data.EStageState;
-import de.adito.git.api.data.IFileChangeType;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
