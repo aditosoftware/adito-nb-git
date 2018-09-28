@@ -24,6 +24,11 @@
             <artifactId>org-openide-util</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-dialogs</artifactId>
+            <version>RELEASE</version>
+        </dependency>
 
         <dependency>
             <groupId>de.adito.git</groupId>
