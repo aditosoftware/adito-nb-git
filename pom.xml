@@ -8,6 +8,11 @@
     <artifactId>adito-nb-git</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <netbeans.version>RELEASE82</netbeans.version>
+    </properties>
+
     <modules>
         <module>API</module>
         <module>Impl</module>
@@ -44,7 +49,6 @@
                 <version>3.0.0</version>
             </plugin>
         </plugins>
-
     </build>
 
     <!-- Core Library -->
