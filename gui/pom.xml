@@ -10,26 +10,25 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>GUI</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>de.adito.git</groupId>
             <artifactId>API</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>de.adito.git</groupId>
             <artifactId>Impl</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
 
-        <!-- Adito Look-And-Feels -->
-        <!--<dependency>-->
-            <!--<groupId>de.adito.aditoweb.nbm</groupId>-->
-            <!--<artifactId>nb-darcula</artifactId>-->
-            <!--<version>1.0.0-SNAPSHOT</version>-->
-        <!--</dependency>-->
+         <!--Adito Look-And-Feels-->
+        <dependency>
+            <groupId>de.adito.aditoweb.nbm</groupId>
+            <artifactId>nb-darcula</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 
