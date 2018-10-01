@@ -16,4 +16,5 @@ public interface IBranch {
      * @return the identifier of the Branch as String
      */
     String getId();
+
 }
