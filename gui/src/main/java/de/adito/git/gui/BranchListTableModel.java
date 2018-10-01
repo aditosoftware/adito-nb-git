@@ -8,17 +8,27 @@ import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * BranchListTableModel is the AbstractTableModel for the BranchList.
+ *
+ * @author A.Arnold 01.10.2018
+ */
 public class BranchListTableModel extends AbstractTableModel {
 
     private List<IBranch> branches;
     private EBranchType branchType;
     private List<IBranch> filterBranchList;
 
+    /**
+     *
+     * @param pBranches The List of Branches to show
+     * @param pBranchType The BranchType for the Branch
+     */
     BranchListTableModel(List<IBranch> pBranches, @NotNull EBranchType pBranchType) {
         branches = pBranches;
         branchType = pBranchType;
         filterBranchList = new ArrayList<>();
-        refFilter();
+        _refFilter();
 
     }
 
@@ -42,7 +52,7 @@ public class BranchListTableModel extends AbstractTableModel {
         return branchType.getDisplayName();
     }
 
-    private void refFilter(){
+    private void _refFilter(){
         for (IBranch branch : branches) {
             if (branch.getName().startsWith(branchType.getSortKey(), 5)) {
                 filterBranchList.add(branch);
