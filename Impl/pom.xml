@@ -10,12 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>Impl</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>de.adito.git</groupId>
             <artifactId>API</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
