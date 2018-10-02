@@ -18,7 +18,8 @@ public class MockRepositoryDescriptionImpl implements IRepositoryDescription {
     @Override
     public String getPath() {
         //return "C:\\Entwicklungszweige\\adito-nb-git\\.git";
-        return ResourceBundle.getBundle(this.getClass().getPackage().getName() + ".Bundle").getString("VCS_Directory");
+//        return ResourceBundle.getBundle(this.getClass().getPackage().getName() + ".Bundle").getString("VCS_Directory");
+        return System.getProperty("vcsDirectory");
     }
 
     @Override
