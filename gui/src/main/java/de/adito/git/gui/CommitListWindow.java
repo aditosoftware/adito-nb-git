@@ -1,35 +1,67 @@
 package de.adito.git.gui;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.impl.RepositoryImpl;
-import org.eclipse.jgit.revwalk.RevCommit;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
+/**
+ * Class to display all commits
+ *
+ * @author A.Arnold 01.10.2018
+ */
 public class CommitListWindow extends JPanel {
-    private IRepository repository;
-    private List<ICommit> commits;
-    private ICommit commit;
-    private Iterable<ICommit> allCommits;
+    private List<ICommit> commitList;
 
-    public CommitListWindow(IRepository pRepository) throws Exception {
-        repository = pRepository;
+    /**
+     * CommitListWindow gives the GUI all Commits from the branch back.
+     * @param pRepository the repository where the branch is in.
+     * @param pBranch The branch to check the commits.
+     * @throws Exception The repository don't can call the RemotServer
+     */
+    public CommitListWindow(IRepository pRepository, IBranch pBranch) throws Exception {
+        this(pRepository, pRepository.getCommits(pBranch));
+    }
+
+    /**
+     *  CommitListWindow gives the GUI all Commits for one File back.
+     * @param pRepository The repository where the file is in.
+     * @param pFile The file to check the commits
+     * @throws Exception The repository don't can call the RemotServer
+     */
+    public CommitListWindow(IRepository pRepository, File pFile) throws Exception {
+        this(pRepository, pRepository.getCommits(pFile));
+    }
+
+    /**
+     * CommitListWindow gives the commit for one identifier back.
+     * @param pRepository The repository where the identifier is in.
+     * @param pIdentifier The identifier to check the commit.
+     * @throws Exception The repository don't can call the RemotServer
+     */
+    public CommitListWindow(IRepository pRepository, String pIdentifier) throws Exception {
+        this(pRepository, Collections.singletonList(pRepository.getCommit(pIdentifier)));
+    }
+
+    private CommitListWindow(IRepository pRepository, List<ICommit> pCommits){
+        commitList = pCommits;
         _initGUI();
     }
 
-    private void _initGUI() throws Exception {
+    private void _initGUI() {
         setLayout(new BorderLayout());
-        List<ICommit> commitList = repository.getAllCommits();
 
         JTable commitTable = new JTable(new CommitListTableModel(commitList));
+        commitTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         commitTable.getTableHeader().setReorderingAllowed(false);
 
-        JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         commitScrollPane.setPreferredSize(new Dimension(800, 300));
         add(commitScrollPane, BorderLayout.CENTER);
-
     }
 }

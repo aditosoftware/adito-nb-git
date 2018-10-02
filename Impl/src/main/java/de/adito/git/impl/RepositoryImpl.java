@@ -21,12 +21,14 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -53,12 +55,12 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<File> add(List<File> addList) throws Exception {
+    public boolean add(List<File> addList) throws Exception {
         List<File> equalList = new ArrayList<>();
         Set<String> added = status().getAdded();
 
         if (addList.isEmpty()) {
-            return addList;
+            return true;
         }
         for (File file : addList) {
             AddCommand adder = git.add();
@@ -72,7 +74,7 @@ public class RepositoryImpl implements IRepository {
                 throw new Exception("Unable to add Files to staging area", e);
             }
         }
-        return equalList;
+        return true;
     }
 
     /**
@@ -367,18 +369,15 @@ public class RepositoryImpl implements IRepository {
     @Override
     public List<ICommit> getCommits(File file) throws Exception {
         List<ICommit> commitList = new ArrayList<>();
-        Iterable<RevCommit> commits;
+        Iterable<RevCommit> logs;
         try {
-            commits = git.log().add(git.getRepository().resolve(getRelativePath(file, git))).call();
+            logs = git.log().addPath(getRelativePath(file, git)).call();
         } catch (GitAPIException e) {
             throw new Exception("Unable to check the Commits of the File: " + file, e);
         }
-        if (commits != null) {
-            for (RevCommit commit : commits) {
-                commitList.add(new CommitImpl(commit));
-            }
-        } else {
-            throw new Exception("The file can't be empty: " + file);
+        for (RevCommit log : logs) {
+            commitList.add(new CommitImpl(log));
+            System.out.println(log);
         }
         return commitList;
     }
@@ -390,7 +389,7 @@ public class RepositoryImpl implements IRepository {
 
         try {
             oldCommitList = git.log().all().call();
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
             throw new Exception("Can't check the comments.", e);
         }
         if (oldCommitList != null) {
@@ -416,9 +415,9 @@ public class RepositoryImpl implements IRepository {
             e.printStackTrace();
         }
 
-        if (list.iterator().hasNext()) {
-            throw new Exception("There are more than one branches for this identifier: " + identifier);
-        }
+//        if (list.iterator().hasNext()) {
+//            throw new Exception("There are more than one branches for this identifier: " + identifier);
+//        }
         branch = list.iterator().next();
         return new BranchImpl(branch);
     }

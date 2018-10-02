@@ -52,6 +52,9 @@ public class BranchListTableModel extends AbstractTableModel {
         return branchType.getDisplayName();
     }
 
+    /**
+     * add the branches to a new filtered list
+     */
     private void _refFilter(){
         for (IBranch branch : branches) {
             if (branch.getName().startsWith(branchType.getSortKey(), 5)) {

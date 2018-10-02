@@ -19,6 +19,7 @@ public class BranchListWindow extends JPanel {
     /**
      * BranchListWindow gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
      * @param pRepository the repository for checking all branches
+     * @throws Exception If the branches can't check there it throws an Exception.
      */
     public BranchListWindow(IRepository pRepository) throws Exception {
         repository = pRepository;
