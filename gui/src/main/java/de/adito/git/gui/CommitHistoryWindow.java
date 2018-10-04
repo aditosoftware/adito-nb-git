@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author A.Arnold 01.10.2018
  */
-public class CommitListWindow extends JPanel {
+public class CommitHistoryWindow extends JPanel {
     private List<ICommit> commitList;
 
     /**
@@ -23,9 +23,9 @@ public class CommitListWindow extends JPanel {
      *
      * @param pRepository the repository where the branch is in.
      * @param pBranch     The branch to check the commits.
-     * @throws Exception The repository don't can call the RemotServer
+     * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitListWindow(IRepository pRepository, IBranch pBranch) throws Exception {
+    public CommitHistoryWindow(IRepository pRepository, IBranch pBranch) throws Exception {
         this(pRepository, pRepository.getCommits(pBranch));
     }
 
@@ -34,9 +34,9 @@ public class CommitListWindow extends JPanel {
      *
      * @param pRepository The repository where the file is in.
      * @param pFile       The file to check the commits
-     * @throws Exception The repository don't can call the RemotServer
+     * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitListWindow(IRepository pRepository, File pFile) throws Exception {
+    public CommitHistoryWindow(IRepository pRepository, File pFile) throws Exception {
         this(pRepository, pRepository.getCommits(pFile));
     }
 
@@ -45,13 +45,13 @@ public class CommitListWindow extends JPanel {
      *
      * @param pRepository The repository where the identifier is in.
      * @param pIdentifier The identifier to check the commit.
-     * @throws Exception The repository don't can call the RemotServer
+     * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitListWindow(IRepository pRepository, String pIdentifier) throws Exception {
+    public CommitHistoryWindow(IRepository pRepository, String pIdentifier) throws Exception {
         this(pRepository, Collections.singletonList(pRepository.getCommit(pIdentifier)));
     }
 
-    private CommitListWindow(IRepository pRepository, List<ICommit> pCommits) {
+    private CommitHistoryWindow(IRepository pRepository, List<ICommit> pCommits) {
         _initGUI();
         commitList = pCommits;
         JTable commitTable = _createTable();
