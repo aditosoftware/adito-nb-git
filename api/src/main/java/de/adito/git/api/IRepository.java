@@ -18,7 +18,7 @@ public interface IRepository {
     /**
      * @param addList List of files to add to staging
      * @return {@code true} if the operation was successful, {@code false} otherwise
-     */ // FIXME: 02.10.2018 how can a List<File> return true? -> comment
+     */
     boolean add(List<File> addList) throws Exception;
 
     /**
@@ -26,6 +26,13 @@ public interface IRepository {
      * @return the ID of the commit as String
      */
     String commit(@NotNull String message) throws Exception;
+
+    /**
+     * @param message String with the commit message entered by the user
+     * @param fileList List of files that should be committed (and none else)
+     * @return the ID of the commit as String
+     */
+    String commit(@NotNull String message, List<File> fileList) throws Exception;
 
     /**
      * Pushes the changes made to HEAD onto the selected branch/remote

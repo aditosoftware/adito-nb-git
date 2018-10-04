@@ -2,7 +2,7 @@ package de.adito.git.impl;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
+import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileDiff;
@@ -25,8 +25,14 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -75,6 +81,27 @@ public class RepositoryImpl implements IRepository {
     public String commit(@NotNull String message) throws Exception {
         CommitCommand commit = git.commit();
         RevCommit revCommit;
+        try {
+            revCommit = commit.setMessage(message).call();
+        } catch (GitAPIException e) {
+            throw new Exception("Unable to commit to local Area", e);
+        }
+        if (revCommit == null) {
+            return "";
+        }
+        return ObjectId.toString(revCommit.getId());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String commit(@NotNull String message, List<File> fileList) throws Exception {
+        CommitCommand commit = git.commit();
+        RevCommit revCommit;
+        for (File file : fileList) {
+            commit.setOnly(getRelativePath(file, git));
+        }
         try {
             revCommit = commit.setMessage(message).call();
         } catch (GitAPIException e) {
