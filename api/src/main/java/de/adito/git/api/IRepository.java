@@ -18,8 +18,8 @@ public interface IRepository {
     /**
      * @param addList List of files to add to staging
      * @return {@code true} if the operation was successful, {@code false} otherwise
-     */
-    List add(List<File> addList) throws Exception;
+     */ // FIXME: 02.10.2018 how can a List<File> return true? -> comment
+    boolean add(List<File> addList) throws Exception;
 
     /**
      * @param message String with the commit message entered by the user
@@ -91,16 +91,8 @@ public interface IRepository {
     /**
      * @param sourceName String with identifier of source branch
      * @param targetName String with identifier of target branch
-     * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean canMerge(@NotNull String sourceName, String targetName);
-
-    /**
-     * @param sourceName String with identifier of source branch
-     * @param targetName String with identifier of target branch
-     * @return {@code true} if the operation was successful, {@code false} otherwise
-     */
-    public boolean merge(@NotNull String sourceName, @NotNull String targetName, @NotNull String commitMessage) throws Exception;
+    void merge(@NotNull String sourceName, @NotNull String targetName, @NotNull String commitMessage) throws Exception;
 
     /**
      * @param identifier String with identifier of the commit

@@ -21,16 +21,12 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -41,10 +37,6 @@ import static de.adito.git.impl.Util.getRelativePath;
 public class RepositoryImpl implements IRepository {
 
     private Git git;
-
-//    GitImpl(Git pGit) {
-//        git = pGit;
-//    }
 
     @Inject
     public RepositoryImpl(@Assisted String repoPath) throws IOException {
@@ -65,7 +57,6 @@ public class RepositoryImpl implements IRepository {
         for (File file : addList) {
             AddCommand adder = git.add();
             adder.addFilepattern(getRelativePath(file, git));
-
             if (added.contains(getRelativePath(file, git)))
                 equalList.add(file);
             try {
@@ -288,15 +279,7 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public boolean canMerge(@NotNull String sourceName, String targetName) {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws Exception {
+    public void merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws Exception {
         try {
             checkout(parentBranch);
         } catch (Exception e) {
@@ -316,7 +299,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to execute the merge command: " + parentBranch + "and " + branchToMerge, e);
         }
-        return false;
     }
 
     /**
@@ -331,12 +313,13 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException | MissingObjectException | IncorrectObjectTypeException e) {
             throw new Exception("Can't check the commits.", e);
         }
-
         if (commits != null) {
-            if (commits.iterator().hasNext()) {
-                throw new Exception("There are more Commits with one identifier: " + identifier);
-            }
-            commit = commits.iterator().next();
+            Iterator<RevCommit> iterator = commits.iterator();
+            if (iterator.hasNext()) {
+                commit = iterator.next();
+                if (iterator.hasNext())
+                    throw new Exception("There are more Commits with one identifier: " + identifier);
+            } else throw new Exception("There are no commit with this identifier: " + identifier);
         } else throw new Exception("There are no commit with this identifier: " + identifier);
         return new CommitImpl(commit);
     }
@@ -400,25 +383,27 @@ public class RepositoryImpl implements IRepository {
         return allCommits;
     }
 
-
     /**
      * {@inheritDoc}
      */
     @Override
     public IBranch getBranch(String identifier) throws Exception {
-        Ref branch;
-
-        List<Ref> list = new ArrayList<>();
+        Ref branch = null;
+        List<Ref> branches = new ArrayList<>();
         try {
-            list = git.branchList().setContains(identifier).call();
+            branches = git.branchList().setContains(identifier).call();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-
-//        if (list.iterator().hasNext()) {
-//            throw new Exception("There are more than one branches for this identifier: " + identifier);
-//        }
-        branch = list.iterator().next();
+        if (branches != null) {
+            Iterator<Ref> iterator = branches.iterator();
+            if (iterator.hasNext()) {
+                branch = iterator.next();
+                if (iterator.hasNext())
+                    throw new Exception("There are more than one branch for this identifier: " + identifier);
+                else throw new Exception("There are more than one branch for this identifier: " + identifier);
+            } else throw new Exception("There are more than one branch for this identifier: " + identifier);
+        }
         return new BranchImpl(branch);
     }
 
@@ -443,4 +428,3 @@ public class RepositoryImpl implements IRepository {
         return branches;
     }
 }
-
