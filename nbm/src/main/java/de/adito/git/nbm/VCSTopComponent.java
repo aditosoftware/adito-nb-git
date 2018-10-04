@@ -28,7 +28,7 @@ public class VCSTopComponent extends TopComponent {
         injector = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
         IRepository git = injector.getInstance(RepositoryProvider.class).getRepositoryImpl();
 
-        StatusWindow statusWindow = new StatusWindow(git.status(), injector.getInstance(IDialogDisplayer.class));
+        StatusWindow statusWindow = new StatusWindow(git.status(), injector.getInstance(IDialogDisplayer.class), git);
         add(new JLabel("test success"), BorderLayout.NORTH);
         add(statusWindow, BorderLayout.CENTER);
     }
