@@ -51,7 +51,7 @@ public class CommitHistoryWindow extends JPanel {
         this(pRepository, Collections.singletonList(pRepository.getCommit(pIdentifier)));
     }
 
-    private CommitHistoryWindow(IRepository pRepository, List<ICommit> pCommits) {
+    public CommitHistoryWindow(IRepository pRepository, List<ICommit> pCommits) {
         _initGUI();
         commitList = pCommits;
         JTable commitTable = _createTable();
