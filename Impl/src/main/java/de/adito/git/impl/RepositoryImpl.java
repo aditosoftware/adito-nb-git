@@ -387,24 +387,16 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public IBranch getBranch(String identifier) throws Exception {
-        Ref branch = null;
-        List<Ref> branches = new ArrayList<>();
-        try {
-            branches = git.branchList().setContains(identifier).call();
-        } catch (GitAPIException e) {
-            e.printStackTrace();
+    public IBranch getBranch(@NotNull String branchString) throws Exception {
+        List<Ref> branches = git.branchList().call();
+        if(branches.isEmpty()){
+            throw new Exception("This Branch doesn't exists: " + branchString);
         }
-        if (branches != null) {
-            Iterator<Ref> iterator = branches.iterator();
-            if (iterator.hasNext()) {
-                branch = iterator.next();
-                if (iterator.hasNext())
-                    throw new Exception("There are more than one branch for this identifier: " + identifier);
-                else throw new Exception("There are more than one branch for this identifier: " + identifier);
-            } else throw new Exception("There are more than one branch for this identifier: " + identifier);
-        }
-        return new BranchImpl(branch);
+        for (Ref branch : branches) {
+            if (branch.getName().equals(branchString)) {
+                return new BranchImpl(branch);
+            }
+        } return new BranchImpl(null);
     }
 
     /**
