@@ -7,6 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author A.Arnold 02.10.2018
+ *
+ */
+
 public class CommitListTableModel extends AbstractTableModel {
 
     private List<ICommit> commitList;
@@ -46,7 +51,6 @@ public class CommitListTableModel extends AbstractTableModel {
             case AUTHOR: return commit.getAuthor();
             case TIME: return commit.getTime();
         }
-
         return null;
     }
 
