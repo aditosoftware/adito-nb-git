@@ -14,6 +14,7 @@ public interface IDialogDisplayer {
      *
      * @param pDialog JDialog that should be displayed
      * @param pTitle String with title of the dialog
+     * @return {@code true} if the "okay" button was pressed, {@code false} if the dialog was cancelled
      */
-    void showDialog(JDialog pDialog, String pTitle);
+    boolean showDialog(JPanel pDialog, String pTitle);
 }
