@@ -115,10 +115,10 @@ public interface IRepository {
     List<ICommit> getAllCommits() throws Exception;
 
     /**
-     * @param identifier String with identifier of the targeted branch
+     * @param branchString String with the string of the targeted branch
      * @return the IBranch for the given identifier
      */
-    IBranch getBranch(String identifier) throws Exception;
+    IBranch getBranch(String branchString) throws Exception;
 
     /**
      * @return List of all IBranches in the repository

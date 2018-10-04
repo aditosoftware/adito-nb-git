@@ -20,8 +20,7 @@ public class BranchListTableModel extends AbstractTableModel {
     private List<IBranch> filterBranchList;
 
     /**
-     *
-     * @param pBranches The List of Branches to show
+     * @param pBranches   The List of Branches to show
      * @param pBranchType The BranchType for the Branch
      */
     BranchListTableModel(List<IBranch> pBranches, @NotNull EBranchType pBranchType) {
@@ -39,23 +38,36 @@ public class BranchListTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return 1;
+        return 2;
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        return filterBranchList.get(rowIndex).getName();
+        if (columnIndex == 0) {
+            return filterBranchList.get(rowIndex).getName();
+        }
+        if (columnIndex == 1) {
+            return filterBranchList.get(rowIndex).getId();
+        }
+        return null;
     }
+
 
     @Override
     public String getColumnName(int column) {
-        return branchType.getDisplayName();
+        if (column == 0) {
+            return branchType.getDisplayName();
+        }
+        if (column == 1){
+            return "branchID";
+        }
+        return null;
     }
 
     /**
      * add the branches to a new filtered list
      */
-    private void _refFilter(){
+    private void _refFilter() {
         for (IBranch branch : branches) {
             if (branch.getName().startsWith(branchType.getSortKey(), 5)) {
                 filterBranchList.add(branch);
