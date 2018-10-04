@@ -136,11 +136,12 @@ public class FileStatusImpl implements IFileStatus {
      */
     public List<IFileChangeType> getUncommitted() {
         HashMap<String, EChangeType> fileChangeTypes = new HashMap<>();
-        status.getChanged().forEach(changed -> fileChangeTypes.put(changed, EChangeType.MODIFY));
+        status.getChanged().forEach(changed -> fileChangeTypes.put(changed, EChangeType.CHANGED));
         status.getModified().forEach(modified -> fileChangeTypes.put(modified, EChangeType.MODIFY));
         status.getAdded().forEach(added -> fileChangeTypes.put(added, EChangeType.ADD));
+        status.getUntracked().forEach(untracked -> fileChangeTypes.put(untracked, EChangeType.NEW));
         status.getRemoved().forEach(removed -> fileChangeTypes.put(removed, EChangeType.DELETE));
-        status.getMissing().forEach(missing -> fileChangeTypes.put(missing, EChangeType.DELETE));
+        status.getMissing().forEach(missing -> fileChangeTypes.put(missing, EChangeType.MISSING));
         status.getConflicting().forEach(conflicting -> fileChangeTypes.put(conflicting, EChangeType.CONFLICTING));
         return _toFileChangeTypes(fileChangeTypes);
     }
