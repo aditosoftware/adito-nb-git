@@ -1,6 +1,7 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.ICommit;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.util.Date;
@@ -68,5 +69,14 @@ public class CommitImpl implements ICommit {
     @Override
     public String getShortMessage() {
         return revCommit.getShortMessage();
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public String getId() {
+        return ObjectId.toString(revCommit.getId());
     }
 }

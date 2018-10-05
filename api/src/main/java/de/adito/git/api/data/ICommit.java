@@ -44,4 +44,10 @@ public interface ICommit {
      * @return the first line of the commit message
      */
     String getShortMessage();
+
+    /**
+     *
+     * @return the ID of the Commit as String
+     */
+    String getId();
 }
