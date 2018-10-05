@@ -1,5 +1,7 @@
 package de.adito.git.gui;
 
+import de.adito.git.gui.actions.AbstractTableAction;
+
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -16,7 +18,7 @@ public class TablePopupMenu extends JPopupMenu {
     private List<AbstractTableAction> tableActions;
     private _PopupMouseListener mouseListener;
 
-    public TablePopupMenu(JTable pTable, List<AbstractTableAction> pTableActions){
+    TablePopupMenu(JTable pTable, List<AbstractTableAction> pTableActions){
         table = pTable;
         tableActions = pTableActions;
         for(AbstractTableAction action: tableActions){
@@ -28,7 +30,7 @@ public class TablePopupMenu extends JPopupMenu {
     /**
      * this method has to be called for the popup menu to appear on rightclick
      */
-    public void activateMouseListener(){
+    void activateMouseListener(){
         table.addMouseListener(mouseListener);
     }
 

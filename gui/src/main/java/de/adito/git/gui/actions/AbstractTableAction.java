@@ -1,4 +1,4 @@
-package de.adito.git.gui;
+package de.adito.git.gui.actions;
 
 import javax.swing.*;
 
@@ -16,7 +16,7 @@ public abstract class AbstractTableAction extends AbstractAction {
      *
      * @param name the title of the action (is displayed in a menu)
      */
-    AbstractTableAction(String name){
+    protected AbstractTableAction(String name){
         super(name);
     }
 

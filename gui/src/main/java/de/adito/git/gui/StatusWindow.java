@@ -3,6 +3,7 @@ package de.adito.git.gui;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
+import de.adito.git.gui.actions.AbstractTableAction;
 
 import javax.swing.*;
 import java.awt.*;
