@@ -15,12 +15,13 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -153,15 +153,10 @@ public class RepositoryImpl implements IRepository {
     public @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception {
         List<IFileDiff> listDiffImpl = new ArrayList<>();
 
-        ObjectId head = git.getRepository().resolve(original.getShortMessage());
-        ObjectId prevHead = git.getRepository().resolve(compareTo.getShortMessage());
         List<DiffEntry> listDiff;
 
-        ObjectReader reader = git.getRepository().newObjectReader();
-        CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
-        oldTreeIter.reset(reader, prevHead);
-        CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
-        newTreeIter.reset(reader, head);
+        CanonicalTreeParser oldTreeIter = prepareTreeParser(git.getRepository(), ObjectId.fromString(compareTo.getId()));
+        CanonicalTreeParser newTreeIter = prepareTreeParser(git.getRepository(), ObjectId.fromString(original.getId()));
 
         try {
             listDiff = git.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
@@ -340,20 +335,10 @@ public class RepositoryImpl implements IRepository {
     @Override
     public ICommit getCommit(String identifier) throws Exception {
         RevCommit commit;
-        Iterable<RevCommit> commits;
-        try {
-            commits = git.log().add(ObjectId.fromString(identifier)).call();
-        } catch (GitAPIException | MissingObjectException | IncorrectObjectTypeException e) {
-            throw new Exception("Can't check the commits.", e);
+        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+            ObjectId commitId = ObjectId.fromString(identifier);
+            commit = revWalk.parseCommit(commitId);
         }
-        if (commits != null) {
-            Iterator<RevCommit> iterator = commits.iterator();
-            if (iterator.hasNext()) {
-                commit = iterator.next();
-                if (iterator.hasNext())
-                    throw new Exception("There are more Commits with one identifier: " + identifier);
-            } else throw new Exception("There are no commit with this identifier: " + identifier);
-        } else throw new Exception("There are no commit with this identifier: " + identifier);
         return new CommitImpl(commit);
     }
 
@@ -452,5 +437,29 @@ public class RepositoryImpl implements IRepository {
 
         }
         return branches;
+    }
+
+    /**
+     * Helperfunction to prepare the TreeParser for the diff function
+     *
+     * @param repository the (git) repository
+     * @param objectId the objectId for the commit/Branch that the Tree should be prepared for
+     * @return initialised CanonicalTreeParser
+     * @throws IOException if an error occurs, such as an invalid ID or the treeparser cannot be reset
+     */
+    private CanonicalTreeParser prepareTreeParser(Repository repository, ObjectId objectId) throws IOException {
+        try (RevWalk walk = new RevWalk(repository)) {
+            RevCommit commit = walk.parseCommit(objectId);
+            RevTree tree = walk.parseTree(commit.getTree().getId());
+
+            CanonicalTreeParser treeParser = new CanonicalTreeParser();
+            try (ObjectReader reader = repository.newObjectReader()) {
+                treeParser.reset(reader, tree.getId());
+            }
+
+            walk.dispose();
+
+            return treeParser;
+        }
     }
 }
