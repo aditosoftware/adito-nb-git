@@ -151,7 +151,16 @@ public class FileStatusImpl implements IFileStatus {
         for(String filename: fileChanges.keySet()){
             fileChangeTypes.add(new FileChangeTypeImpl(new File(filename), fileChanges.get(filename)));
         }
+        fileChangeTypes.sort(new IFileChangeComparator());
         return fileChangeTypes;
+    }
+
+    private class IFileChangeComparator implements Comparator<IFileChangeType> {
+
+        @Override
+        public int compare(IFileChangeType file1, IFileChangeType file2) {
+            return file1.getFile().getName().compareTo(file2.getFile().getName());
+        }
     }
 
     /**
