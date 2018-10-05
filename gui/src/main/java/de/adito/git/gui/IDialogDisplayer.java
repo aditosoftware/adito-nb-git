@@ -14,7 +14,12 @@ public interface IDialogDisplayer {
      *
      * @param pDialog JDialog that should be displayed
      * @param pTitle String with title of the dialog
+     * @param okEnabled if the OK button is enabled by default
      * @return {@code true} if the "okay" button was pressed, {@code false} if the dialog was cancelled
      */
-    boolean showDialog(JPanel pDialog, String pTitle);
+    boolean showDialog(JPanel pDialog, String pTitle, boolean okEnabled);
+
+    void disableOKButton();
+
+    void enableOKButton();
 }
