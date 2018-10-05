@@ -72,6 +72,13 @@ public interface IRepository {
     void ignore(@NotNull List<File> files) throws IOException;
 
     /**
+     * Excludes the listed files, basically a local .gitignore
+     *
+     * @param files List of files that should be added to the .git/info/exclude
+     */
+    void exclude(@NotNull List<File> files) throws IOException;
+
+    /**
      * @param files List of files which should be reverted to the state in HEAD
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */

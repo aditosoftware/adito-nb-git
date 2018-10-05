@@ -231,6 +231,19 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
+    public void exclude(@NotNull List<File> files) throws IOException {
+        File gitIgnore = new File(GitRepositoryProvider.get().getDirectory(), "info/exclude");
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true))) {
+            for (File file : files) {
+                outputStream.write((getRelativePath(file, git) + "\n").getBytes());
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean revert(@NotNull List<File> files) {
         return false;
     }
