@@ -10,13 +10,11 @@ import org.eclipse.jgit.diff.Edit;
 public class FileChangeChunkImpl implements IFileChangeChunk {
 
     private Edit edit;
-    private EChangeType changeType;
     private String oldString;
     private String newString;
 
-    public FileChangeChunkImpl(Edit pEdit, EChangeType pChangeType, String pOldString, String pNewString){
+    public FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString){
         edit = pEdit;
-        changeType = pChangeType;
         oldString = pOldString;
         newString = pNewString;
     }
@@ -55,7 +53,17 @@ public class FileChangeChunkImpl implements IFileChangeChunk {
      */
     @Override
     public EChangeType getChangeType() {
-        return changeType;
+        switch (edit.getType())
+        {
+            case REPLACE:
+                return EChangeType.MODIFY;
+            case INSERT:
+                return EChangeType.ADD;
+            case DELETE:
+                return EChangeType.DELETE;
+            default:
+                return null;
+        }
     }
 
     /**
