@@ -54,22 +54,22 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public boolean add(List<File> addList) throws Exception {
-        List<File> equalList = new ArrayList<>();
-        Set<String> added = status().getAdded();
-
         if (addList.isEmpty()) {
             return true;
         }
+        AddCommand adder = git.add();
         for (File file : addList) {
-            AddCommand adder = git.add();
             adder.addFilepattern(getRelativePath(file, git));
-            if (added.contains(getRelativePath(file, git)))
-                equalList.add(file);
-            try {
-                adder.call();
-            } catch (GitAPIException e) {
-                throw new Exception("Unable to add Files to staging area", e);
-            }
+        }
+        try {
+            adder.call();
+        } catch (GitAPIException e) {
+            throw new Exception("Unable to add Files to staging area", e);
+        }
+        Set<String> added = status().getAdded();
+        for (File fileToAdd : addList) {
+            if (!added.contains(getRelativePath(fileToAdd, git)))
+                return false;
         }
         return true;
     }
@@ -239,31 +239,25 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public @NotNull String createBranch(@NotNull String branchName, boolean checkout) throws Exception {
-        boolean alreadyExists = false;
+    public void createBranch(@NotNull String branchName, boolean checkout) throws Exception {
         try {
             List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
             for (Ref ref : refs) {
                 if (ref.getName().equals("refs/heads/" + branchName)) {
-                    alreadyExists = true;
                     throw new Exception("Branch name already exists. " + branchName);
                 }
             }
-            if (!alreadyExists) {
-                git.branchCreate()
-                        .setName(branchName)
-                        .call();
-                git.push().setRemote("origin")
-                        .setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
-                alreadyExists = false;
-            }
+            git.branchCreate()
+                    .setName(branchName)
+                    .call();
+            git.push().setRemote("origin")
+                    .setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
             if (checkout) {
                 checkout(branchName);
             }
         } catch (GitAPIException e) {
             throw new Exception("Unable to create new branch: " + branchName, e);
         }
-        return "Created and Checkout: " + branchName;
     }
 
     /**
@@ -356,7 +350,7 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public List<ICommit> getCommits(IBranch sourceBranch) throws Exception {
-        List<ICommit> commitList = new ArrayList();
+        List<ICommit> commitList = new ArrayList<>();
         Iterable<RevCommit> commits;
         try {
             commits = git.log().add(git.getRepository().resolve(sourceBranch.getName())).call();
@@ -416,14 +410,15 @@ public class RepositoryImpl implements IRepository {
     @Override
     public IBranch getBranch(@NotNull String branchString) throws Exception {
         List<Ref> branches = git.branchList().call();
-        if(branches.isEmpty()){
+        if (branches.isEmpty()) {
             throw new Exception("This Branch doesn't exists: " + branchString);
         }
         for (Ref branch : branches) {
             if (branch.getName().equals(branchString)) {
                 return new BranchImpl(branch);
             }
-        } return new BranchImpl(null);
+        }
+        return new BranchImpl(null);
     }
 
     /**

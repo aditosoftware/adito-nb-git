@@ -80,9 +80,8 @@ public interface IRepository {
     /**
      * @param branchName String with the name of the branch
      * @param checkout   {@code true} if the branch should be automatically checked out after it was created
-     * @return the identifier for the branch as String
      */
-    @NotNull String createBranch(@NotNull String branchName, boolean checkout) throws Exception;
+    void createBranch(@NotNull String branchName, boolean checkout) throws Exception;
 
     /**
      * @param branchName the name of the branch to delete
