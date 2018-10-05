@@ -3,6 +3,7 @@ package de.adito.git.gui;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.gui.tableModels.CommitListTableModel;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,4 +1,4 @@
-package de.adito.git.gui;
+package de.adito.git.gui.tableModels;
 
 import de.adito.git.api.data.ICommit;
 
@@ -21,7 +21,7 @@ public class CommitListTableModel extends AbstractTableModel {
 
     private Map<Integer, String> columnNames = new HashMap<>();
 
-    CommitListTableModel(List<ICommit> pCommitList) {
+    public CommitListTableModel(List<ICommit> pCommitList) {
         commitList = pCommitList;
         columnNames.put(MESSAGE, "Message");
         columnNames.put(AUTHOR, "Author");

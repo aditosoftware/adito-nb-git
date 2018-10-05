@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.gui.actions.ShowAllCommitsAction;
+import de.adito.git.gui.tableModels.BranchListTableModel;
 
 import javax.swing.*;
 import java.awt.*;

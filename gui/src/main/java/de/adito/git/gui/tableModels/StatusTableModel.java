@@ -1,4 +1,4 @@
-package de.adito.git.gui;
+package de.adito.git.gui.tableModels;
 
 import de.adito.git.api.data.IFileStatus;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +16,7 @@ public class StatusTableModel extends AbstractTableModel {
 
     private IFileStatus status;
 
-    StatusTableModel(IFileStatus pStatus) {
+    public StatusTableModel(IFileStatus pStatus) {
         status = pStatus;
     }
 

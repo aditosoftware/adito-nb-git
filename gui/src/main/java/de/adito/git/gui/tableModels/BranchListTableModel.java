@@ -1,4 +1,4 @@
-package de.adito.git.gui;
+package de.adito.git.gui.tableModels;
 
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
@@ -23,7 +23,7 @@ public class BranchListTableModel extends AbstractTableModel {
      * @param pBranches   The List of Branches to show
      * @param pBranchType The BranchType for the Branch
      */
-    BranchListTableModel(List<IBranch> pBranches, @NotNull EBranchType pBranchType) {
+    public BranchListTableModel(List<IBranch> pBranches, @NotNull EBranchType pBranchType) {
         branches = pBranches;
         branchType = pBranchType;
         filterBranchList = new ArrayList<>();
