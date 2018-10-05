@@ -285,7 +285,7 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public boolean checkout(@NotNull String branchName) throws Exception {
+    public void checkout(@NotNull String branchName) throws Exception {
         CheckoutCommand check = git.checkout();
         check.setName(branchName).setStartPoint(branchName).setCreateBranch(false);
         try {
@@ -293,7 +293,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to checkout the Branch: " + branchName, e);
         }
-        return true;
     }
 
     /**

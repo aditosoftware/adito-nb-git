@@ -90,9 +90,8 @@ public interface IRepository {
 
     /**
      * @param branchName String with identifier of the branch to checkout
-     * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean checkout(@NotNull String branchName) throws Exception;
+    void checkout(@NotNull String branchName) throws Exception;
 
     /**
      * @param sourceName String with identifier of source branch
