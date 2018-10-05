@@ -21,11 +21,10 @@ public abstract class AbstractTableAction extends AbstractAction {
     }
 
     /**
+     * set rows to row numbers, check if action should be enabled/disabled
      *
      * @param rowNumbers the rows selected by the user
      */
-    public void setRows(int[] rowNumbers){
-        rows = rowNumbers;
-    }
+    public abstract void setRows(int[] rowNumbers);
 
 }
