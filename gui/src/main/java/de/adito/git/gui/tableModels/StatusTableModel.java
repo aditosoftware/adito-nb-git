@@ -20,6 +20,10 @@ public class StatusTableModel extends AbstractTableModel {
         status = pStatus;
     }
 
+    public void statusChanged(IFileStatus pStatus){
+        status = pStatus;
+    }
+
     @Override
     public int getRowCount() {
         return status.getUncommitted().size();

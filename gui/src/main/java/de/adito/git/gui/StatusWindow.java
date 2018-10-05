@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class StatusWindow extends JPanel {
     private IFileStatus status;
     private IRepository repository;
     private IDialogDisplayer dialogDisplayer;
+    private JTable statusTable;
 
     public StatusWindow(IFileStatus pStatus, IDialogDisplayer pDialogDisplayer, IRepository repository) {
         dialogDisplayer = pDialogDisplayer;
@@ -34,7 +36,7 @@ public class StatusWindow extends JPanel {
 
     private void _initGui() {
         setLayout(new BorderLayout());
-        JTable statusTable = new JTable(new StatusTableModel(status));
+        statusTable = new JTable(new StatusTableModel(status));
         statusTable.getColumnModel().getColumn(0).setMinWidth(150);
         statusTable.getColumnModel().getColumn(1).setMinWidth(250);
         statusTable.getColumnModel().getColumn(2).setMinWidth(50);
@@ -44,13 +46,14 @@ public class StatusWindow extends JPanel {
     }
 
     /**
-     *
      * @param pStatusTable JTable for which to set up the popup menu
      */
     private void _initPopupMenu(JTable pStatusTable) {
         List<AbstractTableAction> actionList = new ArrayList<>();
         actionList.add(new _ShowCommitDialogAction());
         actionList.add(new _AddAction());
+        actionList.add(new _IgnoreAction());
+        actionList.add(new _ExcludeAction());
         TablePopupMenu tablePopupMenu = new TablePopupMenu(pStatusTable, actionList);
         tablePopupMenu.activateMouseListener();
 
@@ -92,6 +95,7 @@ public class StatusWindow extends JPanel {
                     try {
                         repository.commit(commitDialog.getMessageText(), filesToCommit);
                         status = repository.status();
+                        ((StatusTableModel) statusTable.getModel()).statusChanged(status);
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }
@@ -118,8 +122,53 @@ public class StatusWindow extends JPanel {
             try {
                 repository.add(selectedFiles);
                 status = repository.status();
+                ((StatusTableModel) statusTable.getModel()).statusChanged(status);
                 revalidate();
             } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    private class _IgnoreAction extends AbstractTableAction {
+
+        _IgnoreAction() {
+            super("Ignore");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            List<File> selectedFiles = new ArrayList<>();
+            for (int rowNum : rows) {
+                selectedFiles.add(status.getUncommitted().get(rowNum).getFile());
+            }
+            try {
+                repository.ignore(selectedFiles);
+                status = repository.status();
+                ((StatusTableModel) statusTable.getModel()).statusChanged(status);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    private class _ExcludeAction extends AbstractTableAction {
+
+        _ExcludeAction() {
+            super("Exclude");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            List<File> selectedFiles = new ArrayList<>();
+            for (int rowNum : rows) {
+                selectedFiles.add(status.getUncommitted().get(rowNum).getFile());
+            }
+            try {
+                repository.exclude(selectedFiles);
+                status = repository.status();
+                ((StatusTableModel) statusTable.getModel()).statusChanged(status);
+            } catch (IOException e1) {
                 e1.printStackTrace();
             }
         }
