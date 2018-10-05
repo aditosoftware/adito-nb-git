@@ -12,7 +12,7 @@ import javax.swing.table.AbstractTableModel;
  */
 public class StatusTableModel extends AbstractTableModel {
 
-    static final String[] columnNames = {"Filename", "Filepath", "Changetype"};
+    public static final String[] columnNames = {"Filename", "Filepath", "Changetype"};
 
     private IFileStatus status;
 
@@ -47,13 +47,15 @@ public class StatusTableModel extends AbstractTableModel {
     @Nullable
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+        // Columns : | filename | filepath     | changetype |
+        // example:  | file     | example/file | modified   |
         switch (columnIndex) {
             case 0:
                 return status.getUncommitted().get(rowIndex).getFile().getName();
             case 1:
                 return status.getUncommitted().get(rowIndex).getFile().getPath();
             case 2:
-                return status.getUncommitted().get(rowIndex).getChangeType().toString();
+                return status.getUncommitted().get(rowIndex).getChangeType();
             default:
                 return null;
         }
