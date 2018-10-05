@@ -1,26 +1,9 @@
 package de.adito.git.api.data;
 
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.IFileChanges;
-
 /**
  * @author m.kaspera 20.09.2018
  */
 public interface IFileDiff {
-
-    /**
-     *
-     * @return the line from which an add/remove begins
-     */
-    int getChangeStartLine();
-
-    /**
-     *
-     * @return the line at which the add/remove stops
-     */
-    int getChangeEndLine();
 
     /**
      *

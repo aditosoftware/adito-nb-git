@@ -6,6 +6,7 @@ import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.*;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.patch.FileHeader;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,38 +23,11 @@ import java.util.List;
 public class FileDiffImpl implements IFileDiff {
 
     private DiffEntry diffEntry;
-    private int changedStartLine = -1;
-    private int changedEndLine = -1;
-    private FileChangesImpl fileChanges = null;
+    private FileChangesImpl fileChanges;
+    private FileHeader fileHeader;
 
     public FileDiffImpl(DiffEntry pDiffEntry) {
         diffEntry = pDiffEntry;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getChangeStartLine() {
-        if (changedStartLine != -1) {
-            return changedStartLine;
-        } else {
-            _setChangedLines();
-            return changedStartLine;
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getChangeEndLine() {
-        if (changedEndLine != -1) {
-            return changedEndLine;
-        } else {
-            _setChangedLines();
-            return changedEndLine;
-        }
     }
 
     /**
@@ -97,15 +71,11 @@ public class FileDiffImpl implements IFileDiff {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             try (DiffFormatter formatter = new DiffFormatter(bout)) {
                 formatter.setRepository(GitRepositoryProvider.get());
+                FileHeader fileHeader = formatter.toFileHeader(diffEntry);
+                EditList edits = fileHeader.getHunks().get(0).toEditList();
                 formatter.setDetectRenames(true);
                 formatter.format(diffEntry);
-                // if the changedStart/EndLine is not yet set do so since we already created the diffFormatter
-                fileChanges = new FileChangesImpl(_getLineChanges(bout.toString()));
-                if (changedStartLine == -1) {
-                    FileHeader fileHeader = formatter.toFileHeader(diffEntry);
-                    changedStartLine = fileHeader.getStartOffset();
-                    changedEndLine = fileHeader.getEndOffset();
-                }
+                fileChanges = new FileChangesImpl(_getLineChanges(bout.toString()), edits);
                 //TODO exception handling
             } catch (IOException e) {
                 e.printStackTrace();
@@ -128,23 +98,6 @@ public class FileDiffImpl implements IFileDiff {
                 lineChanges.add(new LineChangeImpl(EChangeType.DELETE, formattedLine.substring(1)));
         }
         return lineChanges;
-    }
-
-    /**
-     * sets the start/endlines of changed part of the file, so that the {@link DiffFormatter} doesn't have to be
-     * set up each time they are queried
-     */
-    private void _setChangedLines() {
-        try (DiffFormatter formatter = new DiffFormatter(null)) {
-            formatter.setRepository(GitRepositoryProvider.get());
-            formatter.setDetectRenames(true);
-            FileHeader fileHeader = formatter.toFileHeader(diffEntry);
-            changedStartLine = fileHeader.getStartOffset();
-            changedEndLine = fileHeader.getEndOffset();
-            //TODO exception handling
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

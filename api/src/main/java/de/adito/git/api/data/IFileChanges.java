@@ -7,7 +7,10 @@ import java.util.List;
  */
 public interface IFileChanges {
 
-    List<ILineChange> getChanges();
+    /**
+     *
+     * @return List with the changes made to the file, organized in chunks
+     */
+    List<IFileChangeChunk> getChangeChunks();
 
-    ILineChange getChange(int lineNumber);
 }
