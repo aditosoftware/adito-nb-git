@@ -406,7 +406,7 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public IBranch getBranch(@NotNull String branchString) throws Exception {
-        List<Ref> branches = git.branchList().call();
+        List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
         if (branches.isEmpty()) {
             throw new Exception("This Branch doesn't exists: " + branchString);
         }
@@ -443,7 +443,7 @@ public class RepositoryImpl implements IRepository {
      * Helperfunction to prepare the TreeParser for the diff function
      *
      * @param repository the (git) repository
-     * @param objectId the objectId for the commit/Branch that the Tree should be prepared for
+     * @param objectId   the objectId for the commit/Branch that the Tree should be prepared for
      * @return initialised CanonicalTreeParser
      * @throws IOException if an error occurs, such as an invalid ID or the treeparser cannot be reset
      */
