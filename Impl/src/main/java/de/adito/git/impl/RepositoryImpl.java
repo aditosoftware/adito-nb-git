@@ -15,15 +15,14 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedOutputStream;
@@ -176,6 +175,37 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
+    public String getFileContents(String identifier) throws IOException {
+        ObjectLoader loader = git.getRepository().open(ObjectId.fromString(identifier));
+        return new String(loader.getBytes());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getFileVersion(ICommit pCommit, String filename) throws IOException {
+        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+            RevCommit commit = revWalk.parseCommit(ObjectId.fromString(pCommit.getId()));
+            RevTree tree = commit.getTree();
+
+            // find the specific file
+            try (TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+                treeWalk.addTree(tree);
+                treeWalk.setRecursive(true);
+                treeWalk.setFilter(PathFilter.create(filename));
+                if (!treeWalk.next()) {
+                    throw new IllegalStateException("Could not find file " + filename);
+                }
+                return treeWalk.getObjectId(0).toString();
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean clone(@NotNull String url, @NotNull File localPath) {
 
         if (Util.isDirEmpty(localPath)) {
@@ -307,7 +337,8 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public void merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws Exception {
+    public void merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws
+            Exception {
         try {
             checkout(parentBranch);
         } catch (Exception e) {
@@ -443,7 +474,7 @@ public class RepositoryImpl implements IRepository {
      * Helperfunction to prepare the TreeParser for the diff function
      *
      * @param repository the (git) repository
-     * @param objectId the objectId for the commit/Branch that the Tree should be prepared for
+     * @param objectId   the objectId for the commit/Branch that the Tree should be prepared for
      * @return initialised CanonicalTreeParser
      * @throws IOException if an error occurs, such as an invalid ID or the treeparser cannot be reset
      */
