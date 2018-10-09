@@ -6,31 +6,33 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.CommitHistoryWindow;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Show all commits of one branch in new frames
  * @author A.Arnold 04.10.2018
  */
 public class ShowAllCommitsAction extends AbstractAction {
 
-    private JTabbedPane tabbedPane;
     private JTable branchTable;
     private IRepository repository;
 
-    public ShowAllCommitsAction(IRepository pRepository, JTable pCommitTable, JTabbedPane pTabbedPane) {
+    public ShowAllCommitsAction(IRepository pRepository, JTable pCommitTable) {
         putValue(Action.NAME, "Show Commits");
         putValue(Action.SHORT_DESCRIPTION, "Get all commits of this Branch or file");
         branchTable = pCommitTable;
         repository = pRepository;
-        tabbedPane = pTabbedPane;
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent event) {
         List<ICommit> commits = new ArrayList<>();
         List<IBranch> branches = new ArrayList<>();
+        String branchName = null;
+
         int[] selectedRows = branchTable.getSelectedRows();
         for (int row : selectedRows) {
             try {
@@ -39,16 +41,20 @@ public class ShowAllCommitsAction extends AbstractAction {
                 e1.printStackTrace();
             }
             for (IBranch branch : branches) {
+                branchName = branch.getName();
                 try {
                     commits.addAll(repository.getCommits(branch));
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
             }
-            JPanel jPanel = new JPanel();
-            jPanel.add(new CommitHistoryWindow(repository, commits));
-            tabbedPane.addTab("Tab", jPanel);
-            tabbedPane.updateUI();
+            JFrame commitFrame = new JFrame();
+            JPanel panel = new JPanel();
+            commitFrame.add(BorderLayout.CENTER, panel);
+            commitFrame.setPreferredSize(new Dimension(800, 300));
+            panel.add(branchName, new CommitHistoryWindow(repository, commits));
+            commitFrame.pack();
+            commitFrame.setVisible(true);
         }
     }
 }

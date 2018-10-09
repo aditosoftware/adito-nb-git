@@ -8,8 +8,8 @@ import de.adito.git.gui.tableModels.BranchListTableModel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 
 /**
@@ -19,16 +19,14 @@ import java.util.List;
  */
 public class BranchListWindow extends JPanel {
     private IRepository repository;
-    private JTabbedPane tabbedPane = new JTabbedPane();
-
 
     /**
      * BranchListWindow gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
+     *
      * @param pRepository the repository for checking all branches
-     * @param tabbedPane
      * @throws Exception If the branches can't check there it throws an Exception.
      */
-    public BranchListWindow(IRepository pRepository, JTabbedPane tabbedPane) throws Exception {
+    public BranchListWindow(IRepository pRepository) throws Exception {
         repository = pRepository;
         _initGui();
     }
@@ -55,28 +53,17 @@ public class BranchListWindow extends JPanel {
         JScrollPane remoteScrollPane = new JScrollPane(remoteStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         //the mainPanel & tabbedPanel
-        tabbedPane.setPreferredSize(new Dimension(800,300));
+        this.setPreferredSize(new Dimension(800, 300));
         JSplitPane mainPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, localScrollPane, remoteScrollPane);
         mainPanel.setResizeWeight(0.5);
-        tabbedPane.addTab("Branch List", mainPanel);
-        add(tabbedPane, BorderLayout.CENTER);
-
-
+        add(mainPanel, BorderLayout.CENTER);
     }
 
-    private class _popupStarter implements MouseListener {
+    private class _popupStarter extends MouseAdapter {
         JTable table;
 
-        _popupStarter(JTable pTable){
+        _popupStarter(JTable pTable) {
             table = pTable;
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
         }
 
         @Override
@@ -85,24 +72,12 @@ public class BranchListWindow extends JPanel {
                 int row = table.rowAtPoint(e.getPoint());
                 if (row >= 0) {
                     JPopupMenu popupMenu = new JPopupMenu();
-
-                    popupMenu.add(new ShowAllCommitsAction(repository, (JTable) e.getSource(), tabbedPane));
-
+                    popupMenu.add(new ShowAllCommitsAction(repository, (JTable) e.getSource()));
                     popupMenu.show(table, e.getX(), e.getY());
                 } else {
                     table.clearSelection();
                 }
             }
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-
         }
     }
 }
