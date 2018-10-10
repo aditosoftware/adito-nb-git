@@ -3,20 +3,27 @@ package de.adito.git.impl.data;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import org.eclipse.jgit.diff.Edit;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author m.kaspera 05.10.2018
  */
 public class FileChangeChunkImpl implements IFileChangeChunk {
 
-    private Edit edit;
-    private String oldString;
-    private String newString;
+    private final Edit edit;
+    private final String oldString;
+    private final String newString;
+    private final EChangeType changeType;
 
-    public FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString){
+    FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString){
+        this(pEdit, pOldString, pNewString, null);
+    }
+
+    FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, @Nullable EChangeType pChangeType){
         edit = pEdit;
         oldString = pOldString;
         newString = pNewString;
+        changeType = pChangeType;
     }
 
     /**
@@ -53,6 +60,9 @@ public class FileChangeChunkImpl implements IFileChangeChunk {
      */
     @Override
     public EChangeType getChangeType() {
+        if(changeType != null){
+            return changeType;
+        }
         switch (edit.getType())
         {
             case REPLACE:
