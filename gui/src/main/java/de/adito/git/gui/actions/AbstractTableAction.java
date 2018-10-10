@@ -25,6 +25,12 @@ public abstract class AbstractTableAction extends AbstractAction {
      *
      * @param rowNumbers the rows selected by the user
      */
-    public abstract void setRows(int[] rowNumbers);
+    public void setRows(int[] rowNumbers)
+    {
+        rows = rowNumbers;
+        setEnabled(filter(rows));
+    }
+
+    protected abstract boolean filter(int[] rows);
 
 }

@@ -1,5 +1,6 @@
 package de.adito.git.gui;
 
+import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
@@ -22,17 +23,18 @@ import java.util.List;
  *
  * @author m.kaspera 27.09.2018
  */
-public class StatusWindow extends JPanel {
+public class StatusWindow extends JPanel implements IStatusWindow {
 
     private IFileStatus status;
     private IRepository repository;
     private IDialogDisplayer dialogDisplayer;
     private JTable statusTable;
 
-    public StatusWindow(IFileStatus pStatus, IDialogDisplayer pDialogDisplayer, IRepository repository) {
+    @Inject
+    public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider repository) {
         dialogDisplayer = pDialogDisplayer;
-        status = pStatus;
-        this.repository = repository;
+        this.repository = repository.getRepositoryImpl();
+        status = this.repository.status();
         _initGui();
     }
 
@@ -44,7 +46,7 @@ public class StatusWindow extends JPanel {
         statusTable.getColumnModel().getColumn(2).setMinWidth(50);
         statusTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         // CellRenderer so the files are colored according to their EChangeType
-        for(int index = 0; index < statusTable.getColumnModel().getColumnCount(); index++) {
+        for (int index = 0; index < statusTable.getColumnModel().getColumnCount(); index++) {
             statusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
         }
 
@@ -111,14 +113,9 @@ public class StatusWindow extends JPanel {
             }
         }
 
-        /**
-         * Commit is always enabled
-         *
-         * @param rowNumbers the rows selected by the user
-         */
         @Override
-        public void setRows(int[] rowNumbers) {
-            rows = rowNumbers;
+        protected boolean filter(int[] rows) {
+            return true;
         }
     }
 
@@ -157,15 +154,24 @@ public class StatusWindow extends JPanel {
         @Override
         public void setRows(int[] rowNumbers) {
             rows = rowNumbers;
-            if(Arrays.stream(rowNumbers)
+            if (Arrays.stream(rowNumbers)
                     .anyMatch(row ->
                             statusTable.getValueAt(row, 2).equals(EChangeType.CHANGED)
-                            || statusTable.getValueAt(row, 2).equals(EChangeType.ADD)
-                            || statusTable.getValueAt(row, 2).equals(EChangeType.DELETE))){
+                                    || statusTable.getValueAt(row, 2).equals(EChangeType.ADD)
+                                    || statusTable.getValueAt(row, 2).equals(EChangeType.DELETE))) {
                 setEnabled(false);
             } else {
                 setEnabled(true);
             }
+        }
+
+        @Override
+        protected boolean filter(int[] rows) {
+            return Arrays.stream(rows)
+                    .anyMatch(row ->
+                            statusTable.getValueAt(row, 2).equals(EChangeType.CHANGED)
+                                    || statusTable.getValueAt(row, 2).equals(EChangeType.ADD)
+                                    || statusTable.getValueAt(row, 2).equals(EChangeType.DELETE));
         }
     }
 
@@ -194,21 +200,14 @@ public class StatusWindow extends JPanel {
         /**
          * Only enabled if all selected files are not in the index yet, i.e. have status
          * NEW, MODIFY or MISSING
-         *
-         * @param rowNumbers the rows selected by the user
          */
         @Override
-        public void setRows(int[] rowNumbers) {
-            rows = rowNumbers;
-            if(Arrays.stream(rowNumbers)
+        protected boolean filter(int[] rows) {
+            return Arrays.stream(rows)
                     .allMatch(row ->
                             statusTable.getValueAt(row, 2).equals(EChangeType.NEW)
                                     || statusTable.getValueAt(row, 2).equals(EChangeType.MODIFY)
-                                    || statusTable.getValueAt(row, 2).equals(EChangeType.MISSING))){
-                setEnabled(true);
-            } else {
-                setEnabled(false);
-            }
+                                    || statusTable.getValueAt(row, 2).equals(EChangeType.MISSING));
         }
     }
 
@@ -237,20 +236,14 @@ public class StatusWindow extends JPanel {
         /**
          * Only enabled if all selected files are not in the index yet, i.e. have status
          * NEW, MODIFY or MISSING
-         *
-         * @param rowNumbers the rows selected by the user
          */
         @Override
-        public void setRows(int[] rowNumbers) {
-            if(Arrays.stream(rowNumbers)
+        protected boolean filter(int[] rows) {
+            return Arrays.stream(rows)
                     .allMatch(row ->
                             statusTable.getValueAt(row, 2).equals(EChangeType.NEW)
                                     || statusTable.getValueAt(row, 2).equals(EChangeType.MODIFY)
-                                    || statusTable.getValueAt(row, 2).equals(EChangeType.MISSING))){
-                setEnabled(true);
-            } else {
-                setEnabled(false);
-            }
+                                    || statusTable.getValueAt(row, 2).equals(EChangeType.MISSING));
         }
     }
 
