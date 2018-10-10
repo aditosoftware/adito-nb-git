@@ -31,5 +31,8 @@ public enum EChangeType {
     COPY,
 
     /** file is in a conflicting state towards (e.g what you get if you modify file that was modified by someone else in the meantime) */
-    CONFLICTING
+    CONFLICTING,
+
+    /** Stayed the same, only used for LineChanges */
+    SAME
 }
