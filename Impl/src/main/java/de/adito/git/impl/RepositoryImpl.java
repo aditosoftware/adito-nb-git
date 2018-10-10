@@ -164,8 +164,8 @@ public class RepositoryImpl implements IRepository {
         }
 
         if (listDiff != null) {
-            for (DiffEntry diffs : listDiff) {
-                listDiffImpl.add(new FileDiffImpl(diffs));
+            for (DiffEntry diff : listDiff) {
+                listDiffImpl.add(new FileDiffImpl(diff, getFileContents(getFileVersion(compareTo, diff.getOldPath())), getFileContents(getFileVersion(original, diff.getNewPath()))));
             }
         }
         return listDiffImpl;
@@ -197,7 +197,7 @@ public class RepositoryImpl implements IRepository {
                 if (!treeWalk.next()) {
                     throw new IllegalStateException("Could not find file " + filename);
                 }
-                return treeWalk.getObjectId(0).toString();
+                return ObjectId.toString(treeWalk.getObjectId(0));
             }
         }
     }
