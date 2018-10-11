@@ -15,20 +15,26 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -148,6 +154,9 @@ public class RepositoryImpl implements IRepository {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception {
         List<IFileDiff> listDiffImpl = new ArrayList<>();
@@ -165,10 +174,46 @@ public class RepositoryImpl implements IRepository {
 
         if (listDiff != null) {
             for (DiffEntry diff : listDiff) {
-                listDiffImpl.add(new FileDiffImpl(diff, getFileContents(getFileVersion(compareTo, diff.getOldPath())), getFileContents(getFileVersion(original, diff.getNewPath()))));
+                try (DiffFormatter formatter = new DiffFormatter(null)) {
+                    formatter.setRepository(GitRepositoryProvider.get());
+                    FileHeader fileHeader = formatter.toFileHeader(diff);
+                    listDiffImpl.add(new FileDiffImpl(diff, fileHeader, getFileContents(getFileVersion(compareTo.getId(), diff.getOldPath())), getFileContents(getFileVersion(original.getId(), diff.getNewPath()))));
+                }
             }
         }
         return listDiffImpl;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public @NotNull List<IFileDiff> diff(@Nullable List<File> filesToDiff) throws Exception {
+        List<IFileDiff> returnList = new ArrayList<>();
+
+        // prepare the TreeIterators for the local working copy and the files in HEAD
+        FileTreeIterator fileTreeIterator = new FileTreeIterator(git.getRepository());
+        ObjectId lastCommitId = git.getRepository().resolve(Constants.HEAD);
+        CanonicalTreeParser treeParser = prepareTreeParser(git.getRepository(), lastCommitId);
+
+        // Use the DiffFormatter to retrieve a list of changes
+        DiffFormatter diffFormatter = new DiffFormatter(null);
+        diffFormatter.setRepository(git.getRepository());
+        diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_TRAILING);
+        List<DiffEntry> diffList = diffFormatter.scan(treeParser, fileTreeIterator);
+
+        for (DiffEntry diffEntry : diffList) {
+            // check if the diff is of a file in  the passed list
+            if (filesToDiff == null || filesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getNewPath()))) {
+                FileHeader fileHeader = diffFormatter.toFileHeader(diffEntry);
+                // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
+                StringBuilder fileLines = new StringBuilder();
+                Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> fileLines.append(line).append("\n"));
+                returnList.add(new FileDiffImpl(diffEntry, fileHeader,
+                        getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath())), fileLines.toString()));
+            }
+        }
+        return returnList;
     }
 
     /**
@@ -184,9 +229,9 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public String getFileVersion(ICommit pCommit, String filename) throws IOException {
+    public String getFileVersion(String commitId, String filename) throws IOException {
         try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-            RevCommit commit = revWalk.parseCommit(ObjectId.fromString(pCommit.getId()));
+            RevCommit commit = revWalk.parseCommit(ObjectId.fromString(commitId));
             RevTree tree = commit.getTree();
 
             // find the specific file
