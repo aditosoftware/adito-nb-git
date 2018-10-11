@@ -55,6 +55,14 @@ public interface IRepository {
     @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception;
 
     /**
+     * performs a diff of the working copy of the provided files with their version as it is in HEAD
+     *
+     * @param fileToDiff List of Files that should be diff'd with HEAD. pass null if all changes should be displayed
+     * @return List of IFileDiff describing the differences of the files in the working copy and HEAD
+     */
+    @NotNull List<IFileDiff> diff(@Nullable List<File> fileToDiff) throws Exception;
+
+    /**
      *
      * @param identifier String identifying the specific version of the file
      * @return the contents of the requested file as String
@@ -64,12 +72,12 @@ public interface IRepository {
 
     /**
      *
-     * @param commit the commit for the version of the file
+     * @param commitId the ID of the commit for the version of the file
      * @param filename the name of the file to be retrieved
      * @return identifying String for the specific version of the file
      * @throws IOException if an error occurs during transport/reading of the file
      */
-    String getFileVersion(ICommit commit, String filename) throws  IOException;
+    String getFileVersion(String commitId, String filename) throws  IOException;
 
     /**
      * @param url  the url from which to pull from, as String
