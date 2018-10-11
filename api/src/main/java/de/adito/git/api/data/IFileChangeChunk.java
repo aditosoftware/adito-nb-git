@@ -55,4 +55,8 @@ public interface IFileChangeChunk {
      * @return the contents of the line that were changed on B side (empty String for remove)
      */
     String getBLines();
+
+    String getAParityLines();
+
+    String getBParityLines();
 }

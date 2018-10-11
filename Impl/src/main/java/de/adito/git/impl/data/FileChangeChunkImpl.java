@@ -13,17 +13,30 @@ public class FileChangeChunkImpl implements IFileChangeChunk {
     private final Edit edit;
     private final String oldString;
     private final String newString;
+    private final String oldParityLines;
+    private final String newParityLines;
     private final EChangeType changeType;
 
     FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString){
-        this(pEdit, pOldString, pNewString, null);
+        this(pEdit, pOldString, pNewString, "", "", null);
     }
 
     FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, @Nullable EChangeType pChangeType){
+        this(pEdit, pOldString, pNewString, "", "", pChangeType);
+    }
+
+    FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, String pOldParityLines, String pNewParityLines){
+        this(pEdit, pOldString, pNewString, pOldParityLines, pNewParityLines, null);
+
+    }
+
+    private FileChangeChunkImpl (Edit pEdit, String pOldString, String pNewString, String pOldParityLines, String pNewParityLines, @Nullable EChangeType pChangeType){
         edit = pEdit;
         oldString = pOldString;
         newString = pNewString;
         changeType = pChangeType;
+        oldParityLines = pOldParityLines;
+        newParityLines = pNewParityLines;
     }
 
     /**
@@ -90,5 +103,21 @@ public class FileChangeChunkImpl implements IFileChangeChunk {
     @Override
     public String getBLines() {
         return newString;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getAParityLines() {
+        return oldParityLines;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getBParityLines() {
+        return newParityLines;
     }
 }

@@ -206,11 +206,15 @@ public class RepositoryImpl implements IRepository {
             // check if the diff is of a file in  the passed list
             if (filesToDiff == null || filesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getNewPath()))) {
                 FileHeader fileHeader = diffFormatter.toFileHeader(diffEntry);
-                // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
-                StringBuilder fileLines = new StringBuilder();
-                Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> fileLines.append(line).append("\n"));
-                returnList.add(new FileDiffImpl(diffEntry, fileHeader,
-                        getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath())), fileLines.toString()));
+                // remark: there seems to always be only one Hunk in the file header
+                if (fileHeader.getHunks().get(0).toEditList().size() > 0) {
+                    // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
+                    StringBuilder newFileLines = new StringBuilder();
+                    Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
+                    String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath()));
+                    returnList.add(new FileDiffImpl(diffEntry, fileHeader,
+                            oldFileContents, newFileLines.toString()));
+                }
             }
         }
         return returnList;
