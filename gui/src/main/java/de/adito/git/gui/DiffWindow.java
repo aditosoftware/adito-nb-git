@@ -71,6 +71,7 @@ public class DiffWindow extends JPanel {
             StyledDocument bDocument = bTextPane.getStyledDocument();
             Color aBGColor;
             Color bBGColor;
+            Color parityBGColor = Color.GRAY;
             for (IFileChangeChunk changeChunk : changeChunks) {
                 // Background color according to the EChangeType
                 if (changeChunk.getChangeType() == EChangeType.ADD) {
@@ -87,7 +88,9 @@ public class DiffWindow extends JPanel {
                     bBGColor = Color.WHITE;
                 }
                 _insertText(aDocument, changeChunk.getALines(), aBGColor);
+                _insertText(aDocument, changeChunk.getAParityLines(), parityBGColor);
                 _insertText(bDocument, changeChunk.getBLines(), bBGColor);
+                _insertText(bDocument, changeChunk.getBParityLines(), parityBGColor);
             }
         }
 
