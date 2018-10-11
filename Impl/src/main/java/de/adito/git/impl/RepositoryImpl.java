@@ -15,15 +15,14 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedOutputStream;
@@ -165,11 +164,42 @@ public class RepositoryImpl implements IRepository {
         }
 
         if (listDiff != null) {
-            for (DiffEntry diffs : listDiff) {
-                listDiffImpl.add(new FileDiffImpl(diffs));
+            for (DiffEntry diff : listDiff) {
+                listDiffImpl.add(new FileDiffImpl(diff, getFileContents(getFileVersion(compareTo, diff.getOldPath())), getFileContents(getFileVersion(original, diff.getNewPath()))));
             }
         }
         return listDiffImpl;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getFileContents(String identifier) throws IOException {
+        ObjectLoader loader = git.getRepository().open(ObjectId.fromString(identifier));
+        return new String(loader.getBytes());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getFileVersion(ICommit pCommit, String filename) throws IOException {
+        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+            RevCommit commit = revWalk.parseCommit(ObjectId.fromString(pCommit.getId()));
+            RevTree tree = commit.getTree();
+
+            // find the specific file
+            try (TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+                treeWalk.addTree(tree);
+                treeWalk.setRecursive(true);
+                treeWalk.setFilter(PathFilter.create(filename));
+                if (!treeWalk.next()) {
+                    throw new IllegalStateException("Could not find file " + filename);
+                }
+                return ObjectId.toString(treeWalk.getObjectId(0));
+            }
+        }
     }
 
     /**
@@ -307,7 +337,8 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public void merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws Exception {
+    public void merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws
+            Exception {
         try {
             checkout(parentBranch);
         } catch (Exception e) {

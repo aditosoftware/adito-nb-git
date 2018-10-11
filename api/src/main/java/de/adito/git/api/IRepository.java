@@ -55,6 +55,23 @@ public interface IRepository {
     @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception;
 
     /**
+     *
+     * @param identifier String identifying the specific version of the file
+     * @return the contents of the requested file as String
+     * @throws IOException if an error occurs during transport/reading of the file
+     */
+    String getFileContents(String identifier) throws IOException;
+
+    /**
+     *
+     * @param commit the commit for the version of the file
+     * @param filename the name of the file to be retrieved
+     * @return identifying String for the specific version of the file
+     * @throws IOException if an error occurs during transport/reading of the file
+     */
+    String getFileVersion(ICommit commit, String filename) throws  IOException;
+
+    /**
      * @param url  the url from which to pull from, as String
      * @param dest the location on the local disk
      * @return {@code true} if the operation was successful, {@code false} otherwise
