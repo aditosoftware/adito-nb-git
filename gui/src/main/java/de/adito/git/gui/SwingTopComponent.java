@@ -1,8 +1,11 @@
 package de.adito.git.gui;
 
 import javax.swing.*;
-import java.awt.*;
 
+/**
+ * The TopComponent to show the panels
+ * @author A.Arnold 11.10.2018
+ */
 public class SwingTopComponent implements ITopComponent {
     @Override
     public void setComponent(JComponent jComponent) {
