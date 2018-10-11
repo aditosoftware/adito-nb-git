@@ -25,9 +25,9 @@ public class StatusWindow extends JPanel implements IStatusWindow {
     private JTable statusTable;
 
     @Inject
-    public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider repository) {
+    public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider pRepository) {
         dialogDisplayer = pDialogDisplayer;
-        this.repository = repository.getRepositoryImpl();
+        repository = pRepository.getRepositoryImpl();
         status = this.repository.status();
         _initGui();
     }
