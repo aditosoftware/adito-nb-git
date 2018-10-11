@@ -5,13 +5,9 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.impl.EnumMappings;
-import de.adito.git.impl.GitRepositoryProvider;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.patch.FileHeader;
-
-import java.io.IOException;
 
 /**
  * Represents information about the uncovered changes by the diff command
@@ -21,12 +17,14 @@ import java.io.IOException;
 public class FileDiffImpl implements IFileDiff {
 
     private DiffEntry diffEntry;
+    private FileHeader fileHeader;
     private FileChangesImpl fileChanges;
     private String originalFileContents;
     private String newFileContents;
 
-    public FileDiffImpl(DiffEntry pDiffEntry, String pOriginalFileContents, String pNewFileContents) {
+    public FileDiffImpl(DiffEntry pDiffEntry, FileHeader pFileHeader, String pOriginalFileContents, String pNewFileContents) {
         diffEntry = pDiffEntry;
+        fileHeader = pFileHeader;
         originalFileContents = pOriginalFileContents;
         newFileContents = pNewFileContents;
     }
@@ -69,16 +67,8 @@ public class FileDiffImpl implements IFileDiff {
     @Override
     public FileChangesImpl getFileChanges() {
         if (fileChanges == null) {
-            try (DiffFormatter formatter = new DiffFormatter(null)) {
-                formatter.setRepository(GitRepositoryProvider.get());
-                FileHeader fileHeader = formatter.toFileHeader(diffEntry);
-                EditList edits = fileHeader.getHunks().get(0).toEditList();
-                formatter.setDetectRenames(true);
-                fileChanges = new FileChangesImpl(edits, originalFileContents, newFileContents);
-                //TODO exception handling
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            EditList edits = fileHeader.getHunks().get(0).toEditList();
+            fileChanges = new FileChangesImpl(edits, originalFileContents, newFileContents);
         }
         return fileChanges;
     }
