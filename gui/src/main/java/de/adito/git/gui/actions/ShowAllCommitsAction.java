@@ -13,40 +13,31 @@ import java.util.List;
 
 /**
  * Show all commits of one branch in new frames
+ *
  * @author A.Arnold 04.10.2018
  */
 public class ShowAllCommitsAction extends AbstractAction {
 
-    private JTable branchTable;
+    private List<IBranch> branches;
     private IRepository repository;
 
-    public ShowAllCommitsAction(IRepository pRepository, JTable pCommitTable) {
+    public ShowAllCommitsAction(IRepository pRepository, List<IBranch> pBranches) {
         putValue(Action.NAME, "Show Commits");
         putValue(Action.SHORT_DESCRIPTION, "Get all commits of this Branch or file");
-        branchTable = pCommitTable;
         repository = pRepository;
+        branches = pBranches;
     }
 
     @Override
     public void actionPerformed(ActionEvent event) {
         List<ICommit> commits = new ArrayList<>();
-        List<IBranch> branches = new ArrayList<>();
         String branchName = null;
-
-        int[] selectedRows = branchTable.getSelectedRows();
-        for (int row : selectedRows) {
+        for (IBranch branch : branches) {
+            branchName = branch.getName();
             try {
-                branches.add(repository.getBranch((String) branchTable.getModel().getValueAt(row, 0)));
+                commits.addAll(repository.getCommits(branch));
             } catch (Exception e1) {
                 e1.printStackTrace();
-            }
-            for (IBranch branch : branches) {
-                branchName = branch.getName();
-                try {
-                    commits.addAll(repository.getCommits(branch));
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
             }
             JFrame commitFrame = new JFrame();
             JPanel panel = new JPanel();
