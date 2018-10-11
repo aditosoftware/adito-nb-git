@@ -1,12 +1,8 @@
 package de.adito.git.nbm.Guice;
 
 import com.google.inject.AbstractModule;
-import de.adito.git.gui.IStatusWindow;
-import de.adito.git.gui.StatusWindow;
-import de.adito.git.gui.ITopComponent;
-import de.adito.git.gui.SwingTopComponent;
+import de.adito.git.gui.*;
 import de.adito.git.nbm.DialogDisplayerImpl;
-import de.adito.git.gui.IDialogDisplayer;
 
 /**
  * Module for Injector bindings in the nbm module
@@ -20,5 +16,8 @@ public class AditoNbmModule extends AbstractModule {
         bind(IDialogDisplayer.class).to(DialogDisplayerImpl.class);
         bind(ITopComponent.class).to(SwingTopComponent.class);
         bind(IStatusWindow.class).to(StatusWindow.class);
+        bind(IBranchListWindow.class).to(BranchListWindow.class);
+        bind(ISwingToolbar.class).to(SwingToolbar.class);
+        bind(INewBranchWindow.class).to(NewBranchWindow.class);
     }
 }
