@@ -21,9 +21,9 @@ public class CommitDialog extends JPanel {
     private IDialogDisplayer dialogDisplayer;
     private JEditorPane messagePane;
 
-    public CommitDialog(List<IFileChangeType> pFilesToCommit, IDialogDisplayer dialogDisplayer){
+    public CommitDialog(List<IFileChangeType> pFilesToCommit, IDialogDisplayer pDialogDisplayer){
         filesToCommit = pFilesToCommit;
-        this.dialogDisplayer = dialogDisplayer;
+        dialogDisplayer = pDialogDisplayer;
         _initGui();
     }
 

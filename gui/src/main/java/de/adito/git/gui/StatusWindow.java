@@ -53,13 +53,13 @@ public class StatusWindow extends JPanel implements IStatusWindow {
      */
     private void _initPopupMenu(JTable pStatusTable) {
         List<AbstractTableAction> actionList = new ArrayList<>();
-        actionList.add(new CommitAction(dialogDisplayer, statusTable, repository, status));
-        actionList.add(new AddAction(statusTable, repository, status));
-        actionList.add(new IgnoreAction(statusTable, repository, status));
-        actionList.add(new ExcludeAction(statusTable, repository, status));
+        actionList.add(new CommitAction(dialogDisplayer, repository, status));
+        actionList.add(new DiffAction(dialogDisplayer, statusTable, repository));
+        actionList.add(new AddAction(statusTable, repository));
+        actionList.add(new IgnoreAction(statusTable, repository));
+        actionList.add(new ExcludeAction(statusTable, repository));
         TablePopupMenu tablePopupMenu = new TablePopupMenu(pStatusTable, actionList);
         tablePopupMenu.activateMouseListener();
-
     }
 
 }

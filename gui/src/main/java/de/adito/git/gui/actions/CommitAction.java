@@ -5,10 +5,7 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.CommitDialog;
 import de.adito.git.gui.IDialogDisplayer;
-import de.adito.git.gui.tableModels.StatusTableModel;
-import de.adito.git.impl.data.CommitImpl;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -22,14 +19,12 @@ import java.util.List;
 public class CommitAction extends AbstractTableAction {
 
     private IDialogDisplayer dialogDisplayer;
-    private JTable statusTable;
     private IRepository repository;
     private IFileStatus status;
 
-    public CommitAction(IDialogDisplayer pDialogDisplayer, JTable pStatusTable, IRepository pRepository, IFileStatus pStatus) {
+    public CommitAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, IFileStatus pStatus) {
         super("Commit");
         dialogDisplayer = pDialogDisplayer;
-        statusTable = pStatusTable;
         repository = pRepository;
         status = pStatus;
     }
@@ -48,7 +43,6 @@ public class CommitAction extends AbstractTableAction {
             if (rows.length == status.getUncommitted().size()) {
                 try {
                     repository.commit(commitDialog.getMessageText());
-                    status = repository.status();
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -60,9 +54,6 @@ public class CommitAction extends AbstractTableAction {
                 }
                 try {
                     repository.commit(commitDialog.getMessageText(), filesToCommit);
-                    // refresh table view
-                    status = repository.status();
-                    ((StatusTableModel) statusTable.getModel()).statusChanged(status);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
