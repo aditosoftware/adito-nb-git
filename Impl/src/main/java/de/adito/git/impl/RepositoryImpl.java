@@ -3,10 +3,7 @@ package de.adito.git.impl;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.*;
 import de.adito.git.impl.data.BranchImpl;
 import de.adito.git.impl.data.CommitImpl;
 import de.adito.git.impl.data.FileDiffImpl;
@@ -203,14 +200,17 @@ public class RepositoryImpl implements IRepository {
         List<DiffEntry> diffList = diffFormatter.scan(treeParser, fileTreeIterator);
 
         for (DiffEntry diffEntry : diffList) {
-            // check if the diff is of a file in  the passed list
-            if (filesToDiff == null || filesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getNewPath()))) {
+            // check if the diff is of a file in  the passed list, except if filesToDiff is null (all files are valid).
+            if (filesToDiff == null
+                    || filesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getNewPath()))
+                    || filesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getOldPath()))) {
                 FileHeader fileHeader = diffFormatter.toFileHeader(diffEntry);
                 // remark: there seems to always be only one Hunk in the file header
                 if (fileHeader.getHunks().get(0).toEditList().size() > 0) {
                     // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
                     StringBuilder newFileLines = new StringBuilder();
-                    Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
+                    if(!diffEntry.getNewPath().equals("/dev/null"))
+                        Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
                     String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath()));
                     returnList.add(new FileDiffImpl(diffEntry, fileHeader,
                             oldFileContents, newFileLines.toString()));
