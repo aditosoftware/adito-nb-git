@@ -104,11 +104,14 @@ public class FileChangesImpl implements IFileChanges {
             aStart = previousEdit.getEndA();
             bStart = previousEdit.getEndB();
             aEnd = originalLines.length;
+            if(aEnd == 1 && originalLines[0].equals("")){
+                aEnd = 0;
+            }
             bEnd = newLines.length;
-            for (int index = previousEdit.getEndA(); index < originalLines.length; index++) {
+            for (int index = previousEdit.getEndA(); index < aEnd; index++) {
                 oldString.append(originalLines[index]).append("\n");
             }
-            for (int index = previousEdit.getEndB(); index < newLines.length; index++) {
+            for (int index = previousEdit.getEndB(); index < bEnd; index++) {
                 newString.append(newLines[index]).append("\n");
             }
         }
