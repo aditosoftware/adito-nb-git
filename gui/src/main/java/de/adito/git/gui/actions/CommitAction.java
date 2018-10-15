@@ -2,7 +2,6 @@ package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.CommitDialog;
 import de.adito.git.gui.IDialogDisplayer;
 
@@ -10,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Action class for showing the commit dialog and implementing the commit functionality
@@ -20,49 +20,36 @@ public class CommitAction extends AbstractTableAction {
 
     private IDialogDisplayer dialogDisplayer;
     private IRepository repository;
-    private IFileStatus status;
+    private Supplier<List<IFileChangeType>> selectedFiles;
 
-    public CommitAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, IFileStatus pStatus) {
+    public CommitAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles) {
         super("Commit");
         dialogDisplayer = pDialogDisplayer;
         repository = pRepository;
-        status = pStatus;
+        selectedFiles = pSelectedFiles;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> selectedFiles = new ArrayList<>();
-        for (int rowNum : rows) {
-            selectedFiles.add(status.getUncommitted().get(rowNum));
-        }
-        CommitDialog commitDialog = new CommitDialog(selectedFiles, dialogDisplayer);
+        List<IFileChangeType> fileChanges = selectedFiles.get();
+        CommitDialog commitDialog = new CommitDialog(fileChanges, dialogDisplayer);
         boolean doCommit = dialogDisplayer.showDialog(commitDialog, "Commit", false);
         // if user didn't cancel the dialog
         if (doCommit) {
-            // if all files are selected just commit everything
-            if (rows.length == status.getUncommitted().size()) {
-                try {
-                    repository.commit(commitDialog.getMessageText());
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+            try {
+                List<File> files = new ArrayList<>();
+                for(IFileChangeType fileChangeType: fileChanges){
+                    files.add(fileChangeType.getFile());
                 }
-                //if only a few files are selected only commit those select few files
-            } else {
-                List<File> filesToCommit = new ArrayList<>();
-                for (IFileChangeType changeType : selectedFiles) {
-                    filesToCommit.add(changeType.getFile());
-                }
-                try {
-                    repository.commit(commitDialog.getMessageText(), filesToCommit);
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
+                repository.commit(commitDialog.getMessageText(), files);
+            } catch (Exception e1) {
+                e1.printStackTrace();
             }
         }
     }
 
     @Override
-    protected boolean filter(int[] rows) {
+    protected boolean isEnabled0() {
         return true;
     }
 }

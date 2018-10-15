@@ -2,52 +2,51 @@ package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeType;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 11.10.2018
  */
 public class ExcludeAction extends AbstractTableAction {
 
-    private JTable statusTable;
     private IRepository repository;
+    private Supplier<List<IFileChangeType>> selectedFiles;
 
-    public ExcludeAction(JTable pStatusTable, IRepository pRepository) {
+    public ExcludeAction(IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles) {
         super("Exclude");
-        statusTable = pStatusTable;
         repository = pRepository;
+        selectedFiles = pSelectedFiles;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<File> selectedFiles = new ArrayList<>();
-        for (int rowNum : rows) {
-            selectedFiles.add(new File((String)statusTable.getValueAt(rowNum, 1)));
-        }
+        List<IFileChangeType> fileChanges = selectedFiles.get();
         try {
-            repository.exclude(selectedFiles);
+            List<File> files = new ArrayList<>();
+            for (IFileChangeType fileChangeType : fileChanges) {
+                files.add(fileChangeType.getFile());
+            }
+            repository.exclude(files);
         } catch (IOException e1) {
             e1.printStackTrace();
         }
     }
 
-    /**
-     * Only enabled if all selected files are not in the index yet, i.e. have status
-     * NEW, MODIFY or MISSING
-     */
     @Override
-    protected boolean filter(int[] rows) {
-        return Arrays.stream(rows)
-                .allMatch(row ->
-                        statusTable.getValueAt(row, 2).equals(EChangeType.NEW)
-                                || statusTable.getValueAt(row, 2).equals(EChangeType.MODIFY)
-                                || statusTable.getValueAt(row, 2).equals(EChangeType.MISSING));
+    protected boolean isEnabled0() {
+        List<IFileChangeType> fileChangeTypes = selectedFiles.get();
+        if (fileChangeTypes == null)
+            return false;
+        return fileChangeTypes.stream().allMatch(row ->
+                row.getChangeType().equals(EChangeType.NEW)
+                        || row.getChangeType().equals(EChangeType.MODIFY)
+                        || row.getChangeType().equals(EChangeType.MISSING));
     }
 }
