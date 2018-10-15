@@ -15,9 +15,5 @@ public class AditoNbmModule extends AbstractModule {
     protected void configure() {
         bind(IDialogDisplayer.class).to(DialogDisplayerImpl.class);
         bind(ITopComponent.class).to(SwingTopComponent.class);
-        bind(IStatusWindow.class).to(StatusWindow.class);
-        bind(IBranchListWindow.class).to(BranchListWindow.class);
-        bind(ISwingToolbar.class).to(SwingToolbar.class);
-        bind(INewBranchWindow.class).to(NewBranchWindow.class);
     }
 }
