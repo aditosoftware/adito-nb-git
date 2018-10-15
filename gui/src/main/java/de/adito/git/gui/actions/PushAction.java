@@ -15,6 +15,8 @@ public class PushAction extends AbstractAction {
     private IRepository repository;
 
     public PushAction(IRepository pRepository) {
+        putValue(Action.NAME, "Push");
+        putValue(Action.SHORT_DESCRIPTION, "Pull all added files to one Branch or Master Branch");
         repository = pRepository;
     }
 

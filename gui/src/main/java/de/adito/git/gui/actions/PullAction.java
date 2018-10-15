@@ -20,6 +20,8 @@ public class PullAction extends AbstractAction {
      * @param pTargetId the ID of one branch
      */
     public PullAction(IRepository pRepository, String pTargetId){
+        putValue(Action.NAME, "Pull");
+        putValue(Action.SHORT_DESCRIPTION, "Pull all Files from one Branch");
         targetId = pTargetId;
         repository = pRepository;
     }
