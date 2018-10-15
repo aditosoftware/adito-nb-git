@@ -2,8 +2,6 @@ package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.tableModels.StatusTableModel;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -20,26 +18,21 @@ public class ExcludeAction extends AbstractTableAction {
 
     private JTable statusTable;
     private IRepository repository;
-    private IFileStatus status;
 
-    public ExcludeAction(JTable pStatusTable, IRepository pRepository, IFileStatus pStatus) {
+    public ExcludeAction(JTable pStatusTable, IRepository pRepository) {
         super("Exclude");
         statusTable = pStatusTable;
         repository = pRepository;
-        status = pStatus;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         List<File> selectedFiles = new ArrayList<>();
         for (int rowNum : rows) {
-            selectedFiles.add(status.getUncommitted().get(rowNum).getFile());
+            selectedFiles.add(new File((String)statusTable.getValueAt(rowNum, 1)));
         }
         try {
             repository.exclude(selectedFiles);
-            // refresh table view
-            status = repository.status();
-            ((StatusTableModel) statusTable.getModel()).statusChanged(status);
         } catch (IOException e1) {
             e1.printStackTrace();
         }

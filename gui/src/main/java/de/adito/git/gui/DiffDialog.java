@@ -18,11 +18,11 @@ import java.util.List;
  *
  * @author m.kaspera 05.10.2018
  */
-public class DiffWindow extends JPanel {
+public class DiffDialog extends JPanel {
 
     private List<IFileDiff> diffs;
 
-    public DiffWindow(List<IFileDiff> pDiffs) {
+    public DiffDialog(List<IFileDiff> pDiffs) {
 
         this.diffs = pDiffs;
             _initGui();
