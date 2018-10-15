@@ -17,4 +17,12 @@ public interface IBranch {
      */
     String getId();
 
+    /**
+     *
+     * @param branch the branch for the shot name
+     * @return a String of the short Name
+     */
+    String getSimpleName(IBranch branch);
+
+
 }

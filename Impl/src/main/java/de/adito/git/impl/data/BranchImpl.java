@@ -11,12 +11,11 @@ public class BranchImpl implements IBranch {
 
     private Ref branchRef;
 
-    public BranchImpl(Ref pBranchRef){
+    public BranchImpl(Ref pBranchRef) {
         branchRef = pBranchRef;
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
@@ -25,11 +24,24 @@ public class BranchImpl implements IBranch {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
     public String getId() {
         return ObjectId.toString(branchRef.getObjectId());
+    }
+
+    /**
+     *
+     *{@inheritDoc}
+     */
+    @Override
+    public String getSimpleName(IBranch branch) {
+        String simpleName = null;
+        String name = branch.getName();
+
+        String[] split = name.split("/");
+        simpleName = split[split.length-1];
+        return simpleName;
     }
 }
