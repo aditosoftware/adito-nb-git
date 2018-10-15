@@ -1,10 +1,14 @@
 package de.adito.git.nbm.Guice;
 
 import com.google.inject.AbstractModule;
-import de.adito.git.gui.*;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
-import de.adito.git.gui.*;
+import de.adito.git.gui.IDialogDisplayer;
+import de.adito.git.gui.RepositoryProvider;
+import de.adito.git.impl.IFileSystemObserverProvider;
 import de.adito.git.nbm.DialogDisplayerImpl;
+import de.adito.git.nbm.FileSystemObserverImpl;
+import de.adito.git.nbm.FileSystemObserverProviderImpl;
 
 /**
  * Module for Injector bindings in the nbm module
@@ -17,6 +21,9 @@ public class AditoNbmModule extends AbstractModule {
     protected void configure() {
         bind(IRepositoryProviderFactory.class).toProvider(FactoryProvider.newFactory(IRepositoryProviderFactory.class, RepositoryProvider.class));
         bind(IDialogDisplayer.class).to(DialogDisplayerImpl.class);
+        bind(IFileSystemObserverProvider.class).to(FileSystemObserverProviderImpl.class);
+        install(new FactoryModuleBuilder().build(IFileSystemObserverImplFactory.class));
+        bind(IFileSystemObserverImplFactory.class).toProvider(FactoryProvider.newFactory(IFileSystemObserverImplFactory.class, FileSystemObserverImpl.class));
         bind(ITopComponent.class).to(SwingTopComponent.class);
     }
 }
