@@ -4,16 +4,19 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.actions.*;
+import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * class to display the results of the status command to git (i.e. lists all changes made to the
@@ -21,39 +24,35 @@ import java.util.function.Supplier;
  *
  * @author m.kaspera 27.09.2018
  */
-public class StatusWindow extends JPanel {
+public class StatusWindow extends JPanel implements IDiscardable {
 
-    private Observable<IFileStatus> status;
-    private Observable<IRepository> repository;
+    private final Observable<IFileStatus> status;
+    private final Observable<IRepository> repository;
+    private final Observable<List<IFileChangeType>> selectionObservable;
+    private final ObservableTable statusTable = new ObservableTable();
     private IDialogDisplayer dialogDisplayer;
-    private JTable statusTable;
     private JPopupMenu popupMenu;
 
     public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider repository) {
         dialogDisplayer = pDialogDisplayer;
         this.repository = repository.getRepositoryImpl();
-        repository.getRepositoryImpl().subscribe(pRepo -> {
-            status = pRepo.getStatus();
+        status = repository.getRepositoryImpl()
+                .flatMap(IRepository::getStatus);
+        selectionObservable = BehaviorSubject.zip(statusTable.selectedRows(), status, (pSelected, pStatus) -> {
+            if (pSelected == null || pStatus == null)
+                return Collections.emptyList();
+            List<IFileChangeType> uncommittedListCached = pStatus.getUncommitted();
+            return Stream.of(pSelected)
+                    .map(uncommittedListCached::get)
+                    .collect(Collectors.toList());
         });
-
-//        repository.getRepositoryImpl()
-//                .flatMap(IRepository::status)
-//                .subscribe(pStatus -> {
-//                    System.out.println(pStatus);
-//                })
-
-//        repository.getRepositoryImpl()
-//                .map(IRepository::status)
-//                .map(StatusTableModel::new)
-//                .subscribe(pModel -> statusTable.setModel(pModel));
-
         _initGui();
     }
 
     private void _initGui() {
         setLayout(new BorderLayout());
-        statusTable = new JTable();
-        status.map(StatusTableModel::new).subscribe(pModel -> statusTable.setModel(pModel));
+//        statusTable = new _ObservableTable();
+        statusTable.setModel(new StatusTableModel(status));
         statusTable.getColumnModel().getColumn(0).setMinWidth(150);
         statusTable.getColumnModel().getColumn(1).setMinWidth(250);
         statusTable.getColumnModel().getColumn(2).setMinWidth(50);
@@ -63,14 +62,13 @@ public class StatusWindow extends JPanel {
             statusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
         }
 
-        _SelectionSupplier selectionSupplier = new _SelectionSupplier();
         repository.subscribe(pRepository -> {
             popupMenu = new JPopupMenu();
-            CommitAction commitAction = new CommitAction(dialogDisplayer, pRepository, selectionSupplier);
-            AddAction addAction = new AddAction(pRepository, selectionSupplier);
-            DiffAction diffAction = new DiffAction(dialogDisplayer, pRepository, selectionSupplier);
-            IgnoreAction ignoreAction = new IgnoreAction(pRepository, selectionSupplier);
-            ExcludeAction excludeAction = new ExcludeAction(pRepository, selectionSupplier);
+            CommitAction commitAction = new CommitAction(dialogDisplayer, pRepository, selectionObservable);
+            AddAction addAction = new AddAction(pRepository, selectionObservable);
+            DiffAction diffAction = new DiffAction(dialogDisplayer, pRepository, selectionObservable);
+            IgnoreAction ignoreAction = new IgnoreAction(pRepository, selectionObservable);
+            ExcludeAction excludeAction = new ExcludeAction(pRepository, selectionObservable);
             popupMenu.add(commitAction);
             popupMenu.add(addAction);
             popupMenu.add(diffAction);
@@ -82,19 +80,11 @@ public class StatusWindow extends JPanel {
         add(statusTable, BorderLayout.CENTER);
     }
 
-    private class _SelectionSupplier implements Supplier<List<IFileChangeType>> {
-        @Override
-        public List<IFileChangeType> get() {
-            List<IFileChangeType> selectedFileChangeTypes = new ArrayList<>();
-            for (int rowNum : statusTable.getSelectedRows()) {
-                status.subscribe(status -> {
-                    if (rowNum < status.getUncommitted().size())
-                        selectedFileChangeTypes.add(status.getUncommitted().get(rowNum));
-                });
-            }
-            return selectedFileChangeTypes;
-        }
+    @Override
+    public void discard() {
+        ((StatusTableModel)statusTable.getModel()).discard();
     }
+
 
     /**
      * Listener that displays the popup menu on right-click and notifies the actions which rows are selected

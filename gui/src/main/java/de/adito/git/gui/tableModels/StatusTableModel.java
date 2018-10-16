@@ -1,6 +1,9 @@
 package de.adito.git.gui.tableModels;
 
 import de.adito.git.api.data.IFileStatus;
+import de.adito.git.gui.IDiscardable;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
@@ -10,18 +13,18 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author m.kaspera 27.09.2018
  */
-public class StatusTableModel extends AbstractTableModel {
+public class StatusTableModel extends AbstractTableModel implements IDiscardable {
 
     public static final String[] columnNames = {"Filename", "Filepath", "Changetype"};
 
-    private IFileStatus status;
+    private  IFileStatus status;
+    private Disposable statusDisposable;
 
-    public StatusTableModel(IFileStatus pStatus) {
-        status = pStatus;
-    }
-
-    public void statusChanged(IFileStatus pStatus){
-        status = pStatus;
+    public StatusTableModel(Observable<IFileStatus> pStatusObservable) {
+        statusDisposable = pStatusObservable.subscribe(pStatus -> {
+            status = pStatus;
+            fireTableDataChanged();
+        });
     }
 
     @Override
@@ -60,5 +63,13 @@ public class StatusTableModel extends AbstractTableModel {
                 return null;
         }
 
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void discard() {
+        statusDisposable.dispose();
     }
 }
