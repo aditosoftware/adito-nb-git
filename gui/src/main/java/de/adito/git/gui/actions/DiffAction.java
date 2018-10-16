@@ -5,6 +5,7 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.DiffDialog;
 import de.adito.git.gui.IDialogDisplayer;
+import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -19,19 +20,19 @@ public class DiffAction extends AbstractTableAction {
 
     private IRepository repository;
     private IDialogDisplayer dialogDisplayer;
-    private Supplier<List<IFileChangeType>> selectedFiles;
+    private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public DiffAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles){
+    public DiffAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable){
         super("Show Diff");
         repository = pRepository;
         dialogDisplayer = pDialogDisplayer;
-        this.selectedFiles = pSelectedFiles;
+        selectedFilesObservable = pSelectedFilesObservable;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         List<IFileDiff> fileDiffs;
-        List<IFileChangeType> fileChanges = selectedFiles.get();
+        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
         try {
             List<File> files = new ArrayList<>();
             for (IFileChangeType fileChangeType : fileChanges) {

@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
+import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -18,20 +19,20 @@ import java.util.function.Supplier;
 public class AddAction extends AbstractTableAction {
 
     private IRepository repository;
-    private Supplier<List<IFileChangeType>> selectedFiles;
+    private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public AddAction(IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles) {
+    public AddAction(IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Add");
-        selectedFiles = pSelectedFiles;
+        selectedFilesObservable = pSelectedFilesObservable;
         repository = pRepository;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> fileChanges = selectedFiles.get();
+        List<IFileChangeType> fileChangeTypes = selectedFilesObservable.blockingFirst();
         try {
             List<File> files = new ArrayList<>();
-            for(IFileChangeType fileChangeType: fileChanges){
+            for(IFileChangeType fileChangeType: fileChangeTypes){
                 files.add(fileChangeType.getFile());
             }
             repository.add(files);
@@ -46,10 +47,10 @@ public class AddAction extends AbstractTableAction {
      */
     @Override
     protected boolean isEnabled0() {
-        List<IFileChangeType> files = selectedFiles.get();
-        if (files == null)
+        List<IFileChangeType> fileChangeTypes = selectedFilesObservable.blockingFirst();
+        if (fileChangeTypes == null)
             return false;
-        return files.stream()
+        return fileChangeTypes.stream()
                 .anyMatch(row ->
                         row.getChangeType().equals(EChangeType.CHANGED)
                                 || row.getChangeType().equals(EChangeType.ADD)

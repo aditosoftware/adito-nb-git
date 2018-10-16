@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
+import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -17,17 +18,17 @@ import java.util.function.Supplier;
 public class ExcludeAction extends AbstractTableAction {
 
     private IRepository repository;
-    private Supplier<List<IFileChangeType>> selectedFiles;
+    private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public ExcludeAction(IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles) {
+    public ExcludeAction(IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Exclude");
         repository = pRepository;
-        selectedFiles = pSelectedFiles;
+        selectedFilesObservable = pSelectedFilesObservable;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> fileChanges = selectedFiles.get();
+        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
         try {
             List<File> files = new ArrayList<>();
             for (IFileChangeType fileChangeType : fileChanges) {
@@ -41,7 +42,7 @@ public class ExcludeAction extends AbstractTableAction {
 
     @Override
     protected boolean isEnabled0() {
-        List<IFileChangeType> fileChangeTypes = selectedFiles.get();
+        List<IFileChangeType> fileChangeTypes = selectedFilesObservable.blockingFirst();
         if (fileChangeTypes == null)
             return false;
         return fileChangeTypes.stream().allMatch(row ->

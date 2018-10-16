@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.CommitDialog;
 import de.adito.git.gui.IDialogDisplayer;
+import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -20,25 +21,25 @@ public class CommitAction extends AbstractTableAction {
 
     private IDialogDisplayer dialogDisplayer;
     private IRepository repository;
-    private Supplier<List<IFileChangeType>> selectedFiles;
+    private final Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public CommitAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles) {
+    public CommitAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Commit");
         dialogDisplayer = pDialogDisplayer;
         repository = pRepository;
-        selectedFiles = pSelectedFiles;
+        selectedFilesObservable = pSelectedFilesObservable;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> fileChanges = selectedFiles.get();
+        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
         CommitDialog commitDialog = new CommitDialog(fileChanges, dialogDisplayer);
         boolean doCommit = dialogDisplayer.showDialog(commitDialog, "Commit", false);
         // if user didn't cancel the dialog
         if (doCommit) {
             try {
                 List<File> files = new ArrayList<>();
-                for(IFileChangeType fileChangeType: fileChanges){
+                for (IFileChangeType fileChangeType : fileChanges) {
                     files.add(fileChangeType.getFile());
                 }
                 repository.commit(commitDialog.getMessageText(), files);

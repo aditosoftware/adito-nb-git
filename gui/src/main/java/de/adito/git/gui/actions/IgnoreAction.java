@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
+import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -17,17 +18,17 @@ import java.util.function.Supplier;
 public class IgnoreAction extends AbstractTableAction {
 
     private IRepository repository;
-    private Supplier<List<IFileChangeType>> selectedFiles;
+    private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public IgnoreAction(IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles) {
+    public IgnoreAction(IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Ignore");
-        selectedFiles = pSelectedFiles;
+        selectedFilesObservable = pSelectedFilesObservable;
         repository = pRepository;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> fileChanges = selectedFiles.get();
+        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
         List<File> files = new ArrayList<>();
         for (IFileChangeType fileChangeType : fileChanges) {
             files.add(fileChangeType.getFile());
@@ -45,7 +46,7 @@ public class IgnoreAction extends AbstractTableAction {
      */
     @Override
     protected boolean isEnabled0() {
-        List<IFileChangeType> fileChanges = selectedFiles.get();
+        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
         if (fileChanges == null)
             return false;
         return fileChanges.stream()
