@@ -29,6 +29,14 @@
             <artifactId>nb-darcula</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/info.clearthought/table-layout -->
+        <dependency>
+            <groupId>info.clearthought</groupId>
+            <artifactId>table-layout</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+
     </dependencies>
 
 
