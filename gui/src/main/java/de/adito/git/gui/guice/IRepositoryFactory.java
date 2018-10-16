@@ -1,5 +1,6 @@
 package de.adito.git.gui.guice;
 
+import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.impl.RepositoryImpl;
 
 /**
@@ -10,6 +11,6 @@ import de.adito.git.impl.RepositoryImpl;
  */
 public interface IRepositoryFactory {
 
-    RepositoryImpl create(String repoPath);
+    RepositoryImpl create(IRepositoryDescription pRepoDescription);
 
 }

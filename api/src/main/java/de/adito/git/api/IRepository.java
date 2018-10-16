@@ -14,13 +14,13 @@ import java.util.List;
 /**
  * @author m.kaspera 20.09.2018
  */
-public interface IRepository {
+public interface IRepository extends IFileSystemChangeListener {
 
     /**
      * @param addList List of files to add to staging
      * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean add(List<File> addList) throws Exception;
+    void add(List<File> addList) throws Exception;
 
     /**
      * @param message String with the commit message entered by the user

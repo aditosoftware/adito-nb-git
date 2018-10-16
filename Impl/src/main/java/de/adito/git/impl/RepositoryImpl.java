@@ -3,10 +3,7 @@ package de.adito.git.impl;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.*;
 import de.adito.git.impl.data.BranchImpl;
 import de.adito.git.impl.data.CommitImpl;
 import de.adito.git.impl.data.FileDiffImpl;
@@ -40,7 +37,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -54,18 +50,17 @@ public class RepositoryImpl implements IRepository {
     private Subject<IFileStatus> status;
 
     @Inject
-    public RepositoryImpl(@Assisted String repoPath) throws IOException {
-        git = new Git(GitRepositoryProvider.get(repoPath));
+    public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException {
+        git = new Git(GitRepositoryProvider.get(pRepositoryDescription));
+        // listen for changes in the fileSystem for the status command
+        pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription).addListener(this);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean add(List<File> addList) throws Exception {
-        if (addList.isEmpty()) {
-            return true;
-        }
+    public void add(List<File> addList) throws Exception {
         AddCommand adder = git.add();
         for (File file : addList) {
             adder.addFilepattern(getRelativePath(file, git));
@@ -75,14 +70,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to add Files to staging area", e);
         }
-        IFileStatus currentStatus = _status();
-        status.onNext(currentStatus);
-        Set<String> added = currentStatus.getAdded();
-        for (File fileToAdd : addList) {
-            if (!added.contains(getRelativePath(fileToAdd, git)))
-                return false;
-        }
-        return true;
     }
 
     /**
@@ -97,7 +84,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to commit to local Area", e);
         }
-        status.onNext(_status());
         if (revCommit == null) {
             return "";
         }
@@ -119,7 +105,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to commit to local Area", e);
         }
-        status.onNext(_status());
         if (revCommit == null) {
             return "";
         }
@@ -131,9 +116,6 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public boolean push() throws Exception {
-        if (_status().getAdded().isEmpty()) {
-            throw new Exception("there are no Files to push!");
-        }
         PushCommand push = git.push()
                 .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
         try {
@@ -159,7 +141,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to pull new files", e);
         }
-        status.onNext(_status());
         return true;
     }
 
@@ -307,7 +288,6 @@ public class RepositoryImpl implements IRepository {
                 outputStream.write((getRelativePath(file, git) + "\n").getBytes());
             }
         }
-        status.onNext(_status());
     }
 
     /**
@@ -321,7 +301,6 @@ public class RepositoryImpl implements IRepository {
                 outputStream.write((getRelativePath(file, git) + "\n").getBytes());
             }
         }
-        status.onNext(_status());
     }
 
     /**
@@ -355,7 +334,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to create new branch: " + branchName, e);
         }
-        status.onNext(_status());
     }
 
     /**
@@ -391,7 +369,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to checkout the Branch: " + branchName, e);
         }
-        status.onNext(_status());
     }
 
     /**
@@ -419,7 +396,6 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             throw new Exception("Unable to execute the merge command: " + parentBranch + "and " + branchToMerge, e);
         }
-        status.onNext(_status());
     }
 
     /**
@@ -530,6 +506,11 @@ public class RepositoryImpl implements IRepository {
 
         }
         return branches;
+    }
+
+    @Override
+    public void fileSystemChange() {
+        status.onNext(_status());
     }
 
     private IFileStatus _status(){

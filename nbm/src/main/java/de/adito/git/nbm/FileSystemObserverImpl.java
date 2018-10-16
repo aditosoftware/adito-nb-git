@@ -15,30 +15,45 @@ import java.util.ArrayList;
  */
 public class FileSystemObserverImpl implements IFileSystemObserver {
 
-    private ArrayList<IFileSystemChangeListener> fileSystemChangeListeners = new ArrayList<>();
+    private final ArrayList<IFileSystemChangeListener> fileSystemChangeListeners = new ArrayList<>();
 
     @Inject
     public FileSystemObserverImpl(@Assisted IRepositoryDescription pRepositoryDescription) {
-        FileUtil.addRecursiveListener(new _FileSystemListener(), new File(pRepositoryDescription.getPath()).getParentFile());
+        FileObject fileObject = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()).getParentFile());
+        if(fileObject != null) {
+            fileObject.addRecursiveListener(new _FileSystemListener());
+        } else {
+            System.err.println("Couldn't add RecursiveListener, fileObject was null");
+        }
     }
 
     @Override
     public void addListener(IFileSystemChangeListener changeListener) {
-        fileSystemChangeListeners.add(changeListener);
+        synchronized (fileSystemChangeListeners){
+            fileSystemChangeListeners.add(changeListener);
+        }
     }
 
     @Override
     public void removeListener(IFileSystemChangeListener toRemove) {
-        fileSystemChangeListeners.remove(toRemove);
+        synchronized (fileSystemChangeListeners) {
+            fileSystemChangeListeners.remove(toRemove);
+        }
     }
 
     private void _notifyListeners(){
-        for(IFileSystemChangeListener fileSystemChangeListener: fileSystemChangeListeners){
+        ArrayList<IFileSystemChangeListener> copy;
+
+        synchronized (fileSystemChangeListeners) {
+            copy = new ArrayList<>(fileSystemChangeListeners);
+        }
+
+        for (IFileSystemChangeListener fileSystemChangeListener : copy) {
             fileSystemChangeListener.fileSystemChange();
         }
     }
 
-    private class _FileSystemListener implements  FileChangeListener{
+    private class _FileSystemListener implements FileChangeListener{
         @Override
         public void fileFolderCreated(FileEvent fe) {
             _notifyListeners();

@@ -23,7 +23,7 @@ public class RepositoryProvider {
     RepositoryProvider(IRepositoryFactory pGitFactory, @Assisted IRepositoryDescription pDescription){
         gitFactory = pGitFactory;
         git = BehaviorSubject.create();
-        git.onNext(pGitFactory.create(pDescription.getPath()));
+        git.onNext(pGitFactory.create(pDescription));
     }
 
     /**
@@ -35,7 +35,7 @@ public class RepositoryProvider {
     }
 
     public void setRepositoryDescription(IRepositoryDescription pDescription){
-        git.onNext(gitFactory.create(pDescription.getPath()));
+        git.onNext(gitFactory.create(pDescription));
     }
 
 }
