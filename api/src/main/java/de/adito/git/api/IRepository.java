@@ -4,6 +4,7 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IFileStatus;
+import io.reactivex.Observable;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
@@ -89,7 +90,7 @@ public interface IRepository {
     /**
      * @return List of IFileStatus that describe the different staging states of the local files
      */
-    @NotNull IFileStatus status();
+    @NotNull Observable<IFileStatus> getStatus();
 
     /**
      * @param files List of files that should be added to the .gitignore

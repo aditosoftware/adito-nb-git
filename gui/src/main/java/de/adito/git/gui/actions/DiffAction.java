@@ -1,50 +1,52 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.DiffDialog;
 import de.adito.git.gui.IDialogDisplayer;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 12.10.2018
  */
 public class DiffAction extends AbstractTableAction {
 
-    private JTable statusTable;
     private IRepository repository;
     private IDialogDisplayer dialogDisplayer;
+    private Supplier<List<IFileChangeType>> selectedFiles;
 
-    public DiffAction(IDialogDisplayer pDialogDisplayer, JTable pStatusTable, IRepository pRepository){
+    public DiffAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Supplier<List<IFileChangeType>> pSelectedFiles){
         super("Show Diff");
-        statusTable = pStatusTable;
         repository = pRepository;
         dialogDisplayer = pDialogDisplayer;
-    }
-
-    @Override
-    protected boolean filter(int[] rows) {
-        return true;
+        this.selectedFiles = pSelectedFiles;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<File> selectedFiles = new ArrayList<>();
-        for (int rowNum : rows) {
-            selectedFiles.add(new File((String)statusTable.getValueAt(rowNum, 1)));
-        }
         List<IFileDiff> fileDiffs;
+        List<IFileChangeType> fileChanges = selectedFiles.get();
         try {
-            fileDiffs = repository.diff(selectedFiles);
+            List<File> files = new ArrayList<>();
+            for (IFileChangeType fileChangeType : fileChanges) {
+                files.add(fileChangeType.getFile());
+            }
+            fileDiffs = repository.diff(files);
             DiffDialog diffDialog = new DiffDialog(fileDiffs);
             dialogDisplayer.showDialog(diffDialog, "Diff for files", true);
         } catch (Exception e1) {
             e1.printStackTrace();
         }
+    }
+
+    @Override
+    protected boolean isEnabled0() {
+        return true;
     }
 }

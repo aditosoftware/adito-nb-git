@@ -9,28 +9,19 @@ import javax.swing.*;
  */
 public abstract class AbstractTableAction extends AbstractAction {
 
-    // storage for the selected rows by the user
-    protected int[] rows;
-
     /**
      *
      * @param name the title of the action (is displayed in a menu)
      */
-    protected AbstractTableAction(String name){
+    AbstractTableAction(String name){
         super(name);
     }
 
-    /**
-     * set rows to row numbers, check if action should be enabled/disabled
-     *
-     * @param rowNumbers the rows selected by the user
-     */
-    public void setRows(int[] rowNumbers)
-    {
-        rows = rowNumbers;
-        setEnabled(filter(rows));
+    @Override
+    public final boolean isEnabled() {
+        return isEnabled0();
     }
 
-    protected abstract boolean filter(int[] rows);
+    protected abstract boolean isEnabled0();
 
 }

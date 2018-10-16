@@ -1,15 +1,19 @@
 package de.adito.git.gui;
 
-import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.actions.*;
 import de.adito.git.gui.tableModels.StatusTableModel;
+import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * class to display the results of the status command to git (i.e. lists all changes made to the
@@ -17,24 +21,39 @@ import java.util.List;
  *
  * @author m.kaspera 27.09.2018
  */
-public class StatusWindow extends JPanel implements IStatusWindow {
+public class StatusWindow extends JPanel {
 
-    private IFileStatus status;
-    private IRepository repository;
+    private Observable<IFileStatus> status;
+    private Observable<IRepository> repository;
     private IDialogDisplayer dialogDisplayer;
     private JTable statusTable;
+    private JPopupMenu popupMenu;
 
-    @Inject
-    public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider pRepository) {
+    public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider repository) {
         dialogDisplayer = pDialogDisplayer;
-        repository = pRepository.getRepositoryImpl();
-        status = this.repository.status();
+        this.repository = repository.getRepositoryImpl();
+        repository.getRepositoryImpl().subscribe(pRepo -> {
+            status = pRepo.getStatus();
+        });
+
+//        repository.getRepositoryImpl()
+//                .flatMap(IRepository::status)
+//                .subscribe(pStatus -> {
+//                    System.out.println(pStatus);
+//                })
+
+//        repository.getRepositoryImpl()
+//                .map(IRepository::status)
+//                .map(StatusTableModel::new)
+//                .subscribe(pModel -> statusTable.setModel(pModel));
+
         _initGui();
     }
 
     private void _initGui() {
         setLayout(new BorderLayout());
-        statusTable = new JTable(new StatusTableModel(status));
+        statusTable = new JTable();
+        status.map(StatusTableModel::new).subscribe(pModel -> statusTable.setModel(pModel));
         statusTable.getColumnModel().getColumn(0).setMinWidth(150);
         statusTable.getColumnModel().getColumn(1).setMinWidth(250);
         statusTable.getColumnModel().getColumn(2).setMinWidth(50);
@@ -44,22 +63,64 @@ public class StatusWindow extends JPanel implements IStatusWindow {
             statusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
         }
 
-        _initPopupMenu(statusTable);
+        _SelectionSupplier selectionSupplier = new _SelectionSupplier();
+        repository.subscribe(pRepository -> {
+            popupMenu = new JPopupMenu();
+            CommitAction commitAction = new CommitAction(dialogDisplayer, pRepository, selectionSupplier);
+            AddAction addAction = new AddAction(pRepository, selectionSupplier);
+            DiffAction diffAction = new DiffAction(dialogDisplayer, pRepository, selectionSupplier);
+            IgnoreAction ignoreAction = new IgnoreAction(pRepository, selectionSupplier);
+            ExcludeAction excludeAction = new ExcludeAction(pRepository, selectionSupplier);
+            popupMenu.add(commitAction);
+            popupMenu.add(addAction);
+            popupMenu.add(diffAction);
+            popupMenu.add(ignoreAction);
+            popupMenu.add(excludeAction);
+        });
+
+        statusTable.addMouseListener(new _PopupMouseListener());
         add(statusTable, BorderLayout.CENTER);
     }
 
+    private class _SelectionSupplier implements Supplier<List<IFileChangeType>> {
+        @Override
+        public List<IFileChangeType> get() {
+            List<IFileChangeType> selectedFileChangeTypes = new ArrayList<>();
+            for (int rowNum : statusTable.getSelectedRows()) {
+                status.subscribe(status -> {
+                    if (rowNum < status.getUncommitted().size())
+                        selectedFileChangeTypes.add(status.getUncommitted().get(rowNum));
+                });
+            }
+            return selectedFileChangeTypes;
+        }
+    }
+
     /**
-     * @param pStatusTable JTable for which to set up the popup menu
+     * Listener that displays the popup menu on right-click and notifies the actions which rows are selected
      */
-    private void _initPopupMenu(JTable pStatusTable) {
-        List<AbstractTableAction> actionList = new ArrayList<>();
-        actionList.add(new CommitAction(dialogDisplayer, repository, status));
-        actionList.add(new DiffAction(dialogDisplayer, statusTable, repository));
-        actionList.add(new AddAction(statusTable, repository));
-        actionList.add(new IgnoreAction(statusTable, repository));
-        actionList.add(new ExcludeAction(statusTable, repository));
-        TablePopupMenu tablePopupMenu = new TablePopupMenu(pStatusTable, actionList);
-        tablePopupMenu.activateMouseListener();
+    private class _PopupMouseListener extends MouseAdapter {
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (SwingUtilities.isRightMouseButton(e)) {
+                JTable source = (JTable) e.getSource();
+                int row = source.rowAtPoint(e.getPoint());
+                int column = source.columnAtPoint(e.getPoint());
+
+                // if the row the user right-clicked on is not selected -> set it selected
+                if (!source.isRowSelected(row))
+                    source.changeSelection(row, column, false, false);
+
+                if (popupMenu != null) {
+                    for (Component component : popupMenu.getComponents())
+                        component.setEnabled(component.isEnabled());
+
+                    popupMenu.show(statusTable, e.getX(), e.getY());
+                }
+
+            }
+        }
     }
 
 }
