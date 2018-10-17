@@ -1,6 +1,7 @@
 package de.adito.git.gui.rxjava;
 
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -16,7 +17,9 @@ public class ObservableTable extends JTable {
 
     public ObservableTable() {
         selectedRowsObservable = Observable.create(new _SelectedRowsObservable(getSelectionModel()))
-                .startWith(new Integer[0]);
+                .startWith(new Integer[0])
+                .share()
+                .subscribeWith(BehaviorSubject.create());
     }
 
     public Observable<Integer[]> selectedRows() {
@@ -52,7 +55,10 @@ public class ObservableTable extends JTable {
         @NotNull
         @Override
         protected ListSelectionListener registerListener(@NotNull ListSelectionModel pListenableValue, @NotNull Consumer<Integer[]> pOnNext) {
-            ListSelectionListener listener = e -> pOnNext.accept(getSelectedRows(pListenableValue));
+            ListSelectionListener listener = e -> {
+                if(!e.getValueIsAdjusting())
+                    pOnNext.accept(getSelectedRows(pListenableValue));
+            };
             pListenableValue.addListSelectionListener(listener);
             return listener;
         }
