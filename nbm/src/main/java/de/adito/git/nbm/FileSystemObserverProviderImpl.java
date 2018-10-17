@@ -12,6 +12,7 @@ import de.adito.git.nbm.Guice.IFileSystemObserverImplFactory;
 public class FileSystemObserverProviderImpl implements IFileSystemObserverProvider {
 
     private IFileSystemObserverImplFactory pFactory;
+    private IFileSystemObserver fileSystemObserver;
 
     @Inject
     FileSystemObserverProviderImpl(IFileSystemObserverImplFactory pFactory){
@@ -20,6 +21,9 @@ public class FileSystemObserverProviderImpl implements IFileSystemObserverProvid
 
     @Override
     public IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription) {
-        return pFactory.create(pRepositoryDescription);
+        if(fileSystemObserver == null) {
+            fileSystemObserver = pFactory.create(pRepositoryDescription);
+        }
+        return fileSystemObserver;
     }
 }
