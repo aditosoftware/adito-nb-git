@@ -7,7 +7,6 @@ import de.adito.git.gui.actions.*;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,7 +37,7 @@ public class StatusWindow extends JPanel implements IDiscardable {
         this.repository = repository.getRepositoryImpl();
         status = repository.getRepositoryImpl()
                 .flatMap(IRepository::getStatus);
-        selectionObservable = BehaviorSubject.zip(statusTable.selectedRows(), status, (pSelected, pStatus) -> {
+        selectionObservable = Observable.combineLatest(statusTable.selectedRows(), status, (pSelected, pStatus) -> {
             if (pSelected == null || pStatus == null)
                 return Collections.emptyList();
             List<IFileChangeType> uncommittedListCached = pStatus.getUncommitted();
