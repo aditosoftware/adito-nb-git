@@ -1,5 +1,6 @@
 package de.adito.git.gui.rxjava;
 
+import de.adito.git.impl.rxjava.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;

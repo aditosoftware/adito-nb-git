@@ -1,4 +1,4 @@
-package de.adito.git.gui.rxjava;
+package de.adito.git.impl.rxjava;
 
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
