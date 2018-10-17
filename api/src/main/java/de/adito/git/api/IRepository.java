@@ -5,6 +5,7 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IFileStatus;
 import io.reactivex.Observable;
+import io.reactivex.Observer;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
@@ -135,7 +136,7 @@ public interface IRepository {
      * @param identifier String with identifier of the commit
      * @return ICommit describing the commit
      */
-    ICommit getCommit(String identifier) throws Exception;
+    ICommit getCommit(@NotNull String identifier) throws Exception;
 
     /**
      * @param sourceBranch IBranch for which all commits should be retrieved
@@ -149,6 +150,11 @@ public interface IRepository {
      */
     List<ICommit> getCommits(File forFile) throws Exception;
 
+    /**
+     *
+     * @return List of all Commits in the repository
+     * @throws Exception
+     */
     List<ICommit> getAllCommits() throws Exception;
 
     /**
@@ -160,6 +166,7 @@ public interface IRepository {
     /**
      * @return List of all IBranches in the repository
      */
-    List<IBranch> getBranches() throws Exception;
+    @NotNull
+    Observable<List<IBranch>> getBranches() throws Exception;
 
 }
