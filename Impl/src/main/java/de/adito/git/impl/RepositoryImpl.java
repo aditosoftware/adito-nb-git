@@ -1,16 +1,18 @@
 package de.adito.git.impl;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IFileSystemChangeListener;
+import de.adito.git.api.IFileSystemObserver;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.impl.data.BranchImpl;
 import de.adito.git.impl.data.CommitImpl;
 import de.adito.git.impl.data.FileDiffImpl;
 import de.adito.git.impl.data.FileStatusImpl;
+import de.adito.git.impl.rxjava.AbstractListenerObservable;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -37,23 +39,23 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
 /**
  * @author A.Arnold 21.09.2018
  */
-
 public class RepositoryImpl implements IRepository {
 
     private Git git;
-    private Subject<IFileStatus> status;
+    private final Observable<IFileStatus> status;
 
     @Inject
     public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException {
         git = new Git(GitRepositoryProvider.get(pRepositoryDescription));
         // listen for changes in the fileSystem for the status command
-        pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription).addListener(this);
+        status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription))).startWith(_status());
     }
 
     /**
@@ -202,7 +204,7 @@ public class RepositoryImpl implements IRepository {
                 if (fileHeader.getHunks().get(0).toEditList().size() > 0) {
                     // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
                     StringBuilder newFileLines = new StringBuilder();
-                    if(!diffEntry.getNewPath().equals("/dev/null"))
+                    if (!diffEntry.getNewPath().equals("/dev/null"))
                         Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
                     String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath()));
                     returnList.add(new FileDiffImpl(diffEntry, fileHeader,
@@ -271,9 +273,6 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public @NotNull Observable<IFileStatus> getStatus() {
-        if(status == null) {
-            status = BehaviorSubject.createDefault(_status());
-        }
         return status;
     }
 
@@ -508,12 +507,7 @@ public class RepositoryImpl implements IRepository {
         return branches;
     }
 
-    @Override
-    public void fileSystemChange() {
-        status.onNext(_status());
-    }
-
-    private IFileStatus _status(){
+    private IFileStatus _status() {
         StatusCommand statusCommnand = git.status();
         Status currentStatus = null;
         try {
@@ -545,6 +539,34 @@ public class RepositoryImpl implements IRepository {
             walk.dispose();
 
             return treeParser;
+        }
+    }
+
+    /**
+     * Bridge from the FileSystemChangeListener to Observables
+     */
+    private class _FileSystemChangeObservable extends AbstractListenerObservable<IFileSystemChangeListener, IFileSystemObserver, IFileStatus> {
+
+        _FileSystemChangeObservable(@NotNull IFileSystemObserver pListenableValue) {
+            super(pListenableValue);
+        }
+
+        @NotNull
+        @Override
+        protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pListenableValue, @NotNull Consumer<IFileStatus> pOnNext) {
+            IFileSystemChangeListener listener = () -> {
+                pOnNext.accept(_status());
+                System.out.println("set");
+            };
+            pListenableValue.addListener(listener);
+            System.out.println("added listener");
+            return listener;
+        }
+
+        @Override
+        protected void removeListener(@NotNull IFileSystemObserver pListenableValue, @NotNull IFileSystemChangeListener pLISTENER) {
+            System.out.println("removed listener");
+            pListenableValue.removeListener(pLISTENER);
         }
     }
 }
