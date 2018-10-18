@@ -121,7 +121,7 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public boolean push() throws Exception {
+    public boolean push() {
         PushCommand push = git.push()
                 .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
         try {
@@ -208,7 +208,7 @@ public class RepositoryImpl implements IRepository {
                 if (fileHeader.getHunks().get(0).toEditList().size() > 0) {
                     // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
                     StringBuilder newFileLines = new StringBuilder();
-                    if(!diffEntry.getNewPath().equals("/dev/null"))
+                    if (!diffEntry.getNewPath().equals("/dev/null"))
                         Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
                     String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath()));
                     returnList.add(new FileDiffImpl(diffEntry, fileHeader,
@@ -393,9 +393,43 @@ public class RepositoryImpl implements IRepository {
                     .include(mergeBase)
                     .setCommit(true)
                     .setFastForward(MergeCommand.FastForwardMode.NO_FF).setMessage(commitMessage).call();
+            if (mergeResult.getConflicts() != null) {
+                RevCommit forkCommit = findForkPoint(parentBranch, branchToMerge);
+                if(forkCommit != null)
+                    getFileContents(ObjectId.toString(forkCommit.getId()));
+            }
         } catch (GitAPIException e) {
             throw new Exception("Unable to execute the merge command: " + parentBranch + "and " + branchToMerge, e);
         }
+    }
+
+    /**
+     * @param parentBranchName  name of the branch currently on
+     * @param foreignBranchName name of the branch for which to find the closest forkPoint to this branch
+     * @return RevCommit that is the forkpoint between the two branches, or null if not available
+     * @throws IOException if an error occurs during parsing
+     */
+    @Nullable
+    private RevCommit findForkPoint(String parentBranchName, String foreignBranchName) throws IOException {
+        try (RevWalk walk = new RevWalk(git.getRepository())) {
+            RevCommit foreignCommit = walk.lookupCommit(git.getRepository().resolve(foreignBranchName));
+            List<ReflogEntry> refLog = git.getRepository().getReflogReader(parentBranchName).getReverseEntries();
+            if (refLog.isEmpty()) {
+                return null;
+            }
+            // <= to check both new and old ID for the oldest entry
+            for (int index = 0; index <= refLog.size(); index++) {
+                ObjectId commitId = index < refLog.size() ? refLog.get(index).getNewId() : refLog.get(index - 1).getOldId();
+                RevCommit commit = walk.lookupCommit(commitId);
+                // check if foreignCommit is reachable from the currently selected commit
+                if (walk.isMergedInto(commit, foreignCommit)) {
+                    // check if commit is a valid commit that does not contain errors when parsed
+                    walk.parseBody(commit);
+                    return commit;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -403,7 +437,7 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public ICommit getCommit(@NotNull String identifier) throws Exception {
-        RevCommit commit = null;
+        RevCommit commit;
         try (RevWalk revWalk = new RevWalk(git.getRepository())) {
             ObjectId commitId = ObjectId.fromString(identifier);
             commit = revWalk.parseCommit(commitId);
