@@ -1,5 +1,6 @@
 package de.adito.git.impl.data;
 
+import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -32,8 +33,7 @@ public class BranchImpl implements IBranch {
     }
 
     /**
-     *
-     *{@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     public String getSimpleName(IBranch branch) {
@@ -41,7 +41,19 @@ public class BranchImpl implements IBranch {
         String name = branch.getName();
 
         String[] split = name.split("/");
-        simpleName = split[split.length-1];
+        simpleName = split[split.length - 1];
         return simpleName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public EBranchType getType() {
+        String[] split = branchRef.getName().split("/");
+        if (split[1].equals("remotes")) {
+            return EBranchType.REMOTE;
+        } else
+            return EBranchType.LOCAL;
     }
 }

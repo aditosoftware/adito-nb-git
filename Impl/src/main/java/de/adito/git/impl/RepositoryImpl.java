@@ -1,7 +1,6 @@
 package de.adito.git.impl;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IFileSystemChangeListener;
 import de.adito.git.api.IFileSystemObserver;
@@ -13,6 +12,7 @@ import de.adito.git.impl.data.FileDiffImpl;
 import de.adito.git.impl.data.FileStatusImpl;
 import de.adito.git.impl.rxjava.AbstractListenerObservable;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -49,11 +50,14 @@ import static de.adito.git.impl.Util.getRelativePath;
 public class RepositoryImpl implements IRepository {
 
     private Git git;
+    private final Observable<List<IBranch>> branchList;
     private final Observable<IFileStatus> status;
 
     @Inject
     public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException {
         git = new Git(GitRepositoryProvider.get(pRepositoryDescription));
+        branchList = BehaviorSubject.createDefault(_branchList());
+
         // listen for changes in the fileSystem for the status command
         status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription))).startWith(_status());
     }
@@ -204,7 +208,7 @@ public class RepositoryImpl implements IRepository {
                 if (fileHeader.getHunks().get(0).toEditList().size() > 0) {
                     // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
                     StringBuilder newFileLines = new StringBuilder();
-                    if (!diffEntry.getNewPath().equals("/dev/null"))
+                    if(!diffEntry.getNewPath().equals("/dev/null"))
                         Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
                     String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath()));
                     returnList.add(new FileDiffImpl(diffEntry, fileHeader,
@@ -317,16 +321,13 @@ public class RepositoryImpl implements IRepository {
     public void createBranch(@NotNull String branchName, boolean checkout) throws Exception {
         try {
             List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
-            for (Ref ref : refs) {
-                if (ref.getName().equals("refs/heads/" + branchName)) {
-                    throw new Exception("Branch name already exists. " + branchName);
-                }
+
+            if (refs.stream().anyMatch(ref -> ref.getName().equals("refs/heads/" + branchName))) {
+                throw new Exception("Branch name already exists. " + branchName);
             }
-            git.branchCreate()
-                    .setName(branchName)
-                    .call();
-            git.push().setRemote("origin")
-                    .setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
+
+            git.branchCreate().setName(branchName).call();
+            git.push().setRemote("origin").setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
             if (checkout) {
                 checkout(branchName);
             }
@@ -401,8 +402,8 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public ICommit getCommit(String identifier) throws Exception {
-        RevCommit commit;
+    public ICommit getCommit(@NotNull String identifier) throws Exception {
+        RevCommit commit = null;
         try (RevWalk revWalk = new RevWalk(git.getRepository())) {
             ObjectId commitId = ObjectId.fromString(identifier);
             commit = revWalk.parseCommit(commitId);
@@ -416,16 +417,16 @@ public class RepositoryImpl implements IRepository {
     @Override
     public List<ICommit> getCommits(IBranch sourceBranch) throws Exception {
         List<ICommit> commitList = new ArrayList<>();
-        Iterable<RevCommit> commits;
+        Iterable<RevCommit> refCommits;
+        LogCommand logCommand = git.log().add(git.getRepository().resolve(sourceBranch.getName()));
+
         try {
-            commits = git.log().add(git.getRepository().resolve(sourceBranch.getName())).call();
+            refCommits = logCommand.call();
         } catch (GitAPIException e) {
             throw new Exception("Unable to check the commits of one branch: " + sourceBranch, e);
         }
-        if (commits != null) {
-            for (RevCommit commit : commits) {
-                commitList.add(new CommitImpl(commit));
-            }
+        if (refCommits != null) {
+            refCommits.forEach(commit -> commitList.add(new CommitImpl(commit)));
         } else {
             throw new Exception("The branch can't be empty: " + sourceBranch);
         }
@@ -439,34 +440,34 @@ public class RepositoryImpl implements IRepository {
     public List<ICommit> getCommits(File file) throws Exception {
         List<ICommit> commitList = new ArrayList<>();
         Iterable<RevCommit> logs;
+        LogCommand logCommand = git.log().addPath(getRelativePath(file, git));
+
         try {
-            logs = git.log().addPath(getRelativePath(file, git)).call();
+            logs = logCommand.call();
         } catch (GitAPIException e) {
             throw new Exception("Unable to check the Commits of the File: " + file, e);
         }
-        for (RevCommit log : logs) {
-            commitList.add(new CommitImpl(log));
-            System.out.println(log);
-        }
+        logs.forEach(log -> commitList.add(new CommitImpl(log)));
         return commitList;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<ICommit> getAllCommits() throws Exception {
-        Iterable<RevCommit> oldCommitList;
-        List<ICommit> allCommits = new ArrayList<>();
-
+        List<ICommit> Commits = new ArrayList<>();
+        Iterable<RevCommit> implCommits;
+        LogCommand logCommand = git.log().all();
         try {
-            oldCommitList = git.log().all().call();
+            implCommits = logCommand.call();
         } catch (GitAPIException e) {
             throw new Exception("Can't check the comments.", e);
         }
-        if (oldCommitList != null) {
-            for (RevCommit commit : oldCommitList) {
-                allCommits.add(new CommitImpl(commit));
-            }
+        if (implCommits != null) {
+            implCommits.forEach(commit -> Commits.add(new CommitImpl(commit)));
         }
-        return allCommits;
+        return Commits;
     }
 
     /**
@@ -474,37 +475,38 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public IBranch getBranch(@NotNull String branchString) throws Exception {
-        List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
-        if (branches.isEmpty()) {
+        List<Ref> refList = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
+        if (refList.isEmpty()) {
             throw new Exception("This Branch doesn't exists: " + branchString);
         }
-        for (Ref branch : branches) {
-            if (branch.getName().equals(branchString)) {
-                return new BranchImpl(branch);
-            }
-        }
-        return new BranchImpl(null);
+        Ref branch = refList.stream().filter(pBranch -> pBranch.getName().equals(branchString))
+                .collect(Collectors.toList()).get(0);
+
+        return new BranchImpl(branch);
     }
 
     /**
      * {@inheritDoc}
      */
+    @NotNull
     @Override
-    public List<IBranch> getBranches() throws Exception {
-        List<Ref> refList;
-        List<IBranch> branches = new ArrayList<>();
-        try {
-            refList = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
-        } catch (GitAPIException e) {
-            throw new Exception("Can't call branches from Remote", e);
-        }
-        if (refList != null) {
-            for (Ref ref : refList) {
-                branches.add(new BranchImpl(ref));
-            }
+    public Observable<List<IBranch>> getBranches() {
+        return branchList;
+    }
 
+    private List<IBranch> _branchList() {
+        ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.ALL);
+        List<IBranch> branchList = new ArrayList<>();
+        List<Ref> refBranchList = null;
+        try {
+            refBranchList = listBranchCommand.call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
         }
-        return branches;
+        if (refBranchList != null) {
+            refBranchList.forEach(branch -> branchList.add(new BranchImpl(branch)));
+        }
+        return branchList;
     }
 
     private IFileStatus _status() {
