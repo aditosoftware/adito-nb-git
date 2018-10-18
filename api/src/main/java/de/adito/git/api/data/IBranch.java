@@ -24,5 +24,10 @@ public interface IBranch {
      */
     String getSimpleName(IBranch branch);
 
+    /**
+     * Checkout which type of branch the branch is. There are two types of branches to check: heads(remote) and local
+     * @return the type of the branch (REMOTE or LOCAL)
+     */
+    EBranchType getType();
 
 }

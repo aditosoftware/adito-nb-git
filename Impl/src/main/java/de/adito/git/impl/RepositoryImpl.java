@@ -456,7 +456,7 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public List<ICommit> getAllCommits() throws Exception {
-        List<ICommit> Commits = new ArrayList<>();
+        List<ICommit> commits = new ArrayList<>();
         Iterable<RevCommit> implCommits;
         LogCommand logCommand = git.log().all();
         try {
@@ -465,9 +465,9 @@ public class RepositoryImpl implements IRepository {
             throw new Exception("Can't check the comments.", e);
         }
         if (implCommits != null) {
-            implCommits.forEach(commit -> Commits.add(new CommitImpl(commit)));
+            implCommits.forEach(commit -> commits.add(new CommitImpl(commit)));
         }
-        return Commits;
+        return commits;
     }
 
     /**
