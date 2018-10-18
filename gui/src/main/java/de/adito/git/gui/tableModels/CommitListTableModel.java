@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * The table model for the commits
  * @author A.Arnold 02.10.2018
- *
  */
 
 public class CommitListTableModel extends AbstractTableModel {
@@ -21,6 +21,10 @@ public class CommitListTableModel extends AbstractTableModel {
 
     private Map<Integer, String> columnNames = new HashMap<>();
 
+    /**
+     *
+     * @param pCommitList the list of commits to show
+     */
     public CommitListTableModel(List<ICommit> pCommitList) {
         commitList = pCommitList;
         columnNames.put(MESSAGE, "Message");
@@ -46,10 +50,13 @@ public class CommitListTableModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         ICommit commit = commitList.get(rowIndex);
-        switch (columnIndex){
-            case MESSAGE: return commit.getShortMessage();
-            case AUTHOR: return commit.getAuthor();
-            case TIME: return commit.getTime();
+        switch (columnIndex) {
+            case MESSAGE:
+                return commit.getShortMessage();
+            case AUTHOR:
+                return commit.getAuthor();
+            case TIME:
+                return commit.getTime();
         }
         return null;
     }

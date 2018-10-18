@@ -1,34 +1,40 @@
 package de.adito.git.gui;
 
-import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.gui.actions.ShowAllCommitsAction;
+import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.BranchListTableModel;
+import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import java.util.stream.Stream;
 
 /**
  * class to display the branches of a repository
  *
  * @author A.Arnold 28.09.2018
  */
-public class BranchListWindow extends JPanel implements IBranchListWindow {
-    private IRepository repository;
+public class BranchListWindow extends JPanel {
+    private Observable<IRepository> repository;
+    private ObservableTable localStatusTable = new ObservableTable();
+    private ObservableTable remoteStatusTable = new ObservableTable();
+
 
     /**
      * BranchListWindow gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
      *
      * @param pRepository the repository for checking all branches
-     * @throws Exception If the branches can't check there it throws an Exception.
      */
-    public BranchListWindow(IRepository pRepository) throws Exception {
+    public BranchListWindow(Observable<IRepository> pRepository) {
         repository = pRepository;
         _initGui();
     }
@@ -36,21 +42,40 @@ public class BranchListWindow extends JPanel implements IBranchListWindow {
     /**
      * Initialise the GUI for the BranchWindow
      */
-    private void _initGui() throws Exception {
+    private void _initGui() {
         setLayout(new BorderLayout());
-        List<IBranch> branches = repository.getBranches();
+        Observable<List<IBranch>> branchObservable = repository.flatMap(IRepository::getBranches);
 
         //the local Status Table
-        JTable localStatusTable = new JTable(new BranchListTableModel(branches, EBranchType.LOCAL));
+
+        Observable<List<IBranch>> localSelectionObservable = Observable.combineLatest(localStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
+            if (pSelected == null || pBranches == null)
+                return Collections.emptyList();
+            return Stream.of(pSelected)
+                    .map(pBranches::get)
+                    .filter(pBranch -> pBranch.getType() == EBranchType.LOCAL)
+                    .collect(Collectors.toList());
+        });
+        Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(localStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
+            if (pSelected == null || pBranches == null)
+                return Collections.emptyList();
+            return Stream.of(pSelected)
+                    .map(pBranches::get)
+                    .filter(pBranch -> pBranch.getType() == EBranchType.REMOTE)
+                    .collect(Collectors.toList());
+        });
+
+
+        localStatusTable.setModel(new BranchListTableModel(branchObservable, EBranchType.LOCAL));
         localStatusTable.getTableHeader().setReorderingAllowed(false);
-        localStatusTable.addMouseListener(new _PopupStarter(localStatusTable));
+        localStatusTable.addMouseListener(new _PopupStarter(localSelectionObservable, localStatusTable));
         localStatusTable.removeColumn(localStatusTable.getColumn("branchID"));
         JScrollPane localScrollPane = new JScrollPane(localStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         //the remote Status Table
-        JTable remoteStatusTable = new JTable(new BranchListTableModel(branches, EBranchType.REMOTE));
+        remoteStatusTable.setModel(new BranchListTableModel(branchObservable, EBranchType.REMOTE));
         remoteStatusTable.getTableHeader().setReorderingAllowed(false);
-        remoteStatusTable.addMouseListener(new _PopupStarter(remoteStatusTable));
+        remoteStatusTable.addMouseListener(new _PopupStarter(remoteSelectionObservable, remoteStatusTable));
         remoteStatusTable.removeColumn(remoteStatusTable.getColumn("branchID"));
         JScrollPane remoteScrollPane = new JScrollPane(remoteStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -66,29 +91,20 @@ public class BranchListWindow extends JPanel implements IBranchListWindow {
      */
     private class _PopupStarter extends MouseAdapter {
         JTable table;
+        Observable<List<IBranch>> branchList;
 
-        _PopupStarter(JTable pTable) {
+        _PopupStarter(Observable<List<IBranch>> pBranchList, JTable pTable) {
+            branchList = pBranchList;
             table = pTable;
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
             if (SwingUtilities.isRightMouseButton(e)) {
-                List<IBranch> branches = new ArrayList<>();
                 int row = table.rowAtPoint(e.getPoint());
                 if (row >= 0) {
-                    String branchName = null;
-                    int[] selectedRows = table.getSelectedRows();
-
-                    for (int selectedRow : selectedRows) {
-                        try {
-                            branches.add(repository.getBranch((String) table.getModel().getValueAt(row, 0)));
-                        } catch (Exception e1) {
-                            e1.printStackTrace();
-                        }
-                    }
                     JPopupMenu popupMenu = new JPopupMenu();
-                    popupMenu.add(new ShowAllCommitsAction(repository, branches));
+                    popupMenu.add(new ShowAllCommitsAction(repository, branchList));
                     popupMenu.show(table, e.getX(), e.getY());
                 } else {
                     table.clearSelection();

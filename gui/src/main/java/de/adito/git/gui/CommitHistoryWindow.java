@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.tableModels.CommitListTableModel;
+import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,12 +23,12 @@ public class CommitHistoryWindow extends JPanel {
     /**
      * CommitListWindow gives the GUI all Commits from the branch back.
      *
-     * @param pRepository the repository where the branch is in.
+     * @param pRepository The repository where the branch is in.
      * @param pBranch     The branch to check the commits.
      * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitHistoryWindow(IRepository pRepository, IBranch pBranch) throws Exception {
-        this(pRepository, pRepository.getCommits(pBranch));
+    public CommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) throws Exception {
+        this(pRepository, pRepository.blockingFirst().getCommits(pBranch));
     }
 
     /**
@@ -37,8 +38,8 @@ public class CommitHistoryWindow extends JPanel {
      * @param pFile       The file to check the commits
      * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitHistoryWindow(IRepository pRepository, File pFile) throws Exception {
-        this(pRepository, pRepository.getCommits(pFile));
+    public CommitHistoryWindow(Observable<IRepository> pRepository, File pFile) throws Exception {
+        this(pRepository, pRepository.blockingFirst().getCommits(pFile));
     }
 
     /**
@@ -48,11 +49,11 @@ public class CommitHistoryWindow extends JPanel {
      * @param pIdentifier The identifier to check the commit.
      * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitHistoryWindow(IRepository pRepository, String pIdentifier) throws Exception {
-        this(pRepository, Collections.singletonList(pRepository.getCommit(pIdentifier)));
+    public CommitHistoryWindow(Observable<IRepository> pRepository, String pIdentifier) throws Exception {
+        this(pRepository, Collections.singletonList(pRepository.blockingFirst().getCommit(pIdentifier)));
     }
 
-    public CommitHistoryWindow(IRepository pRepository, List<ICommit> pCommits) {
+    public CommitHistoryWindow(Observable<IRepository> pRepository, List<ICommit> pCommits) {
         _initGUI();
         commitList = pCommits;
         JTable commitTable = _createTable();
@@ -72,6 +73,4 @@ public class CommitHistoryWindow extends JPanel {
         add(commitScrollPane, BorderLayout.CENTER);
         return commitTable;
     }
-
-
 }

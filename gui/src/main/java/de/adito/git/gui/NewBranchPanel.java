@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import info.clearthought.layout.TableLayout;
+import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -14,21 +16,28 @@ import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
 
-public class NewBranchPanel extends JPanel implements INewBranchWindow {
+/**
+ * the Panel for the NewBranchAction
+ * @author A.Arnold 17.10.2018
+ */
+public class NewBranchPanel extends JPanel {
+
     private IDialogDisplayer dialogDisplayer;
-    private List<IBranch> branches;
+    private @NotNull List<IBranch> branchList;
     private JTextField textField = new JTextField();
     private JCheckBox checkbox = new JCheckBox();
     private HashSet<String> branchMap = new HashSet<>();
 
-
+    /**
+     * @param pRepository      The repository where the new branch has to be
+     * @param pDialogDisplayer the displayer where to provide functionality of giving an overlying framework
+     */
     @Inject
-    public NewBranchPanel(IRepository pRepository, IDialogDisplayer pDialogDisplayer) throws Exception {
-        branches = pRepository.getBranches();
+    public NewBranchPanel(Observable<IRepository> pRepository, IDialogDisplayer pDialogDisplayer) throws Exception {
+        branchList = pRepository.blockingFirst().getBranches().blockingFirst();
         dialogDisplayer = pDialogDisplayer;
         checkbox.setSelected(true);
         textField.setPreferredSize(new Dimension(200, 24));
-
         _initGui();
     }
 
@@ -46,12 +55,12 @@ public class NewBranchPanel extends JPanel implements INewBranchWindow {
 
         double[] cols = {gap, pref, gap, pref, gap};
         double[] rows = {gap,
-                        pref,
-                        gap,
-                        pref,
-                        gap,
-                        pref,
-                        fill};
+                pref,
+                gap,
+                pref,
+                gap,
+                pref,
+                fill};
 
         setLayout(new TableLayout(cols, rows));
         TableLayoutUtil tlu = new TableLayoutUtil(this);
@@ -66,8 +75,7 @@ public class NewBranchPanel extends JPanel implements INewBranchWindow {
         labelAlreadyExists.setForeground(Color.red);
         labelAlreadyExists.setVisible(false);
         setVisible(true);
-
-        for (IBranch branch : branches) {
+        for (IBranch branch : branchList) {
             branchMap.add(branch.getSimpleName(branch));
         }
         textField.getDocument().addDocumentListener(new _DocumentListener(branchMap, labelAlreadyExists));
@@ -103,7 +111,6 @@ public class NewBranchPanel extends JPanel implements INewBranchWindow {
             } catch (BadLocationException e1) {
                 e1.printStackTrace();
             }
-
         }
 
         @Override
@@ -113,7 +120,6 @@ public class NewBranchPanel extends JPanel implements INewBranchWindow {
             } catch (BadLocationException e1) {
                 e1.printStackTrace();
             }
-
         }
     }
 
