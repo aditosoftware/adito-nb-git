@@ -9,11 +9,16 @@ import org.eclipse.jgit.lib.Ref;
  * @author m.kaspera 25.09.2018
  */
 public class BranchImpl implements IBranch {
-
     private Ref branchRef;
+    private EBranchType branchType;
 
     public BranchImpl(Ref pBranchRef) {
         branchRef = pBranchRef;
+        String[] split = branchRef.getName().split("/");
+        if (split[1].equals("remotes")) {
+            branchType = EBranchType.REMOTE;
+        } else
+            branchType = EBranchType.LOCAL;
     }
 
     /**
@@ -50,10 +55,6 @@ public class BranchImpl implements IBranch {
      */
     @Override
     public EBranchType getType() {
-        String[] split = branchRef.getName().split("/");
-        if (split[1].equals("remotes")) {
-            return EBranchType.REMOTE;
-        } else
-            return EBranchType.LOCAL;
+        return branchType;
     }
 }

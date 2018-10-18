@@ -3,6 +3,7 @@ package de.adito.git.gui;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.gui.actions.CheckoutAction;
 import de.adito.git.gui.actions.ShowAllCommitsAction;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.BranchListTableModel;
@@ -56,7 +57,7 @@ public class BranchListWindow extends JPanel {
                     .filter(pBranch -> pBranch.getType() == EBranchType.LOCAL)
                     .collect(Collectors.toList());
         });
-        Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(localStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
+        Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(remoteStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
             if (pSelected == null || pBranches == null)
                 return Collections.emptyList();
             return Stream.of(pSelected)
@@ -64,7 +65,6 @@ public class BranchListWindow extends JPanel {
                     .filter(pBranch -> pBranch.getType() == EBranchType.REMOTE)
                     .collect(Collectors.toList());
         });
-
 
         localStatusTable.setModel(new BranchListTableModel(branchObservable, EBranchType.LOCAL));
         localStatusTable.getTableHeader().setReorderingAllowed(false);
@@ -105,6 +105,7 @@ public class BranchListWindow extends JPanel {
                 if (row >= 0) {
                     JPopupMenu popupMenu = new JPopupMenu();
                     popupMenu.add(new ShowAllCommitsAction(repository, branchList));
+                    popupMenu.add(new CheckoutAction(repository, branchList));
                     popupMenu.show(table, e.getX(), e.getY());
                 } else {
                     table.clearSelection();
