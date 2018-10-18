@@ -208,7 +208,7 @@ public class RepositoryImpl implements IRepository {
                 if (fileHeader.getHunks().get(0).toEditList().size() > 0) {
                     // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
                     StringBuilder newFileLines = new StringBuilder();
-                    if(!diffEntry.getNewPath().equals("/dev/null"))
+                    if (!diffEntry.getNewPath().equals("/dev/null"))
                         Files.lines(new File(diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
                     String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath()));
                     returnList.add(new FileDiffImpl(diffEntry, fileHeader,
@@ -362,12 +362,22 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public void checkout(@NotNull String branchName) throws Exception {
-        CheckoutCommand check = git.checkout();
-        check.setName(branchName).setStartPoint(branchName).setCreateBranch(false);
+        CheckoutCommand checkout = git.checkout();
+        checkout.setName(branchName).setStartPoint(branchName).setCreateBranch(false);
         try {
-            check.call();
+            checkout.call();
         } catch (GitAPIException e) {
-            throw new Exception("Unable to checkout the Branch: " + branchName, e);
+            throw new Exception("Unable to checkout Branch: " + branchName, e);
+        }
+    }
+
+    @Override
+    public void checkout(@NotNull IBranch branch) throws Exception {
+        CheckoutCommand checkout = git.checkout().setName(branch.getName()).setCreateBranch(false).setStartPoint(branch.getName());
+        try {
+            checkout.call();
+        } catch (GitAPIException e) {
+            throw new Exception("Unable to checkout Branch " + branch.getName(), e);
         }
     }
 

@@ -127,6 +127,11 @@ public interface IRepository {
     void checkout(@NotNull String branchName) throws Exception;
 
     /**
+     * @param branch branch to checkout
+     */
+    void checkout(@NotNull IBranch branch) throws  Exception;
+
+    /**
      * @param sourceName String with identifier of source branch
      * @param targetName String with identifier of target branch
      */
