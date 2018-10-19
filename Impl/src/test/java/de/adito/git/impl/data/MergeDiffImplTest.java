@@ -181,12 +181,7 @@ public class MergeDiffImplTest {
         for(IFileChangeChunk chunk: changeChunks){
             changedLines.append(chunk.getALines());
         }
-        System.out.println(changedLines.toString());
-        System.out.println(Arrays.toString(aLines));
         Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
-        System.out.println(originalLines.toString().split("\n").length);
-        System.out.println(linesAfterChange.split("\n").length);
-        System.out.println(linesBeforeChange.split("\n").length);
         Assertions.assertEquals(originalLines.toString().split("\n").length + linesAfterChange.split("\n").length,
                 changedLines.toString().split("\n").length);
     }
@@ -212,8 +207,6 @@ public class MergeDiffImplTest {
         for(IFileChangeChunk chunk: changeChunks){
             changedLines.append(chunk.getALines());
         }
-        System.out.println(changedLines.toString());
-        System.out.println(Arrays.toString(aLines));
         Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
         Assertions.assertFalse(changedLines.toString().contains(linesBeforeChange));
         Assertions.assertEquals(originalLines.toString().split("\n").length
