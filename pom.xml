@@ -14,10 +14,10 @@
     </properties>
 
     <modules>
-        <module>API</module>
-        <module>Impl</module>
+        <module>api</module>
+        <module>impl</module>
         <module>nbm</module>
-        <module>GUI</module>
+        <module>gui</module>
     </modules>
 
     <build>

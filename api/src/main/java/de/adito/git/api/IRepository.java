@@ -1,11 +1,7 @@
 package de.adito.git.api;
 
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.*;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import org.jetbrains.annotations.*;
 
 import java.io.File;

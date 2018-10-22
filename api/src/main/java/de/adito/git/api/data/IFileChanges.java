@@ -1,5 +1,7 @@
 package de.adito.git.api.data;
 
+import io.reactivex.Observable;
+
 import java.util.List;
 
 /**
