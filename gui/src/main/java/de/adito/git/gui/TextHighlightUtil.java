@@ -58,6 +58,24 @@ class TextHighlightUtil {
     /**
      * @param document StyledDocument of the JTextPane for which to insert the message
      * @param message  String that should be inserted into the JTextPane
+     * @param changeType ChangeType, determines the background color of the line/text
+     * @throws BadLocationException if the message is getting inserted out of bounds
+     */
+    static void insertText(StyledDocument document, String message, EChangeType changeType) throws BadLocationException {
+        if (changeType == EChangeType.ADD) {
+            insertText(document, message, Color.GREEN);
+        } else if (changeType == EChangeType.DELETE) {
+            insertText(document, message, Color.RED);
+        } else if (changeType == EChangeType.MODIFY) {
+            insertText(document, message, Color.GREEN);
+        } else {
+            insertText(document, message, Color.WHITE);
+        }
+    }
+
+    /**
+     * @param document StyledDocument of the JTextPane for which to insert the message
+     * @param message  String that should be inserted into the JTextPane
      * @param color    The Background color for the Text getting inserted
      * @throws BadLocationException if the message is getting inserted out of bounds
      */
