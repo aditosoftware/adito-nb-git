@@ -40,11 +40,11 @@ public class DiffDialog extends JPanel {
 
         try {
             for (IFileDiff fileDiff : diffs) {
-                _insertText(oldVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.OLD) + "\n\n", Color.WHITE);
-                _insertText(newVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.NEW) + "\n\n", Color.WHITE);
-                _insertChangeChunks(fileDiff.getFileChanges().getChangeChunks().blockingFirst(), oldVersionPane, newVersionPane);
-                _insertText(oldVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
-                _insertText(newVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
+                TextHighlightUtil.insertText(oldVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.OLD) + "\n\n", Color.WHITE);
+                TextHighlightUtil.insertText(newVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.NEW) + "\n\n", Color.WHITE);
+                TextHighlightUtil.insertChangeChunks(fileDiff.getFileChanges().getChangeChunks().blockingFirst(), oldVersionPane, newVersionPane, true);
+                TextHighlightUtil.insertText(oldVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
+                TextHighlightUtil.insertText(newVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
             }
         } catch (BadLocationException e) {
             e.printStackTrace();
@@ -57,54 +57,6 @@ public class DiffDialog extends JPanel {
         splitPane.setResizeWeight(0.5);
         JScrollPane scrollPane = new JScrollPane(splitPane);
         add(scrollPane, BorderLayout.CENTER);
-    }
-
-    /**
-     * @param changeChunks List with IFileChangeChunk that describe the changes
-     * @param aTextPane    JTextPane for the "old" side of the diff
-     * @param bTextPane    JTextPane for the "new" side of the diff
-     * @throws BadLocationException if the message is getting inserted out of bounds
-     */
-    private void _insertChangeChunks(List<IFileChangeChunk> changeChunks, JTextPane aTextPane, JTextPane
-            bTextPane) throws BadLocationException {
-        StyledDocument aDocument = aTextPane.getStyledDocument();
-        StyledDocument bDocument = bTextPane.getStyledDocument();
-        Color aBGColor;
-        Color bBGColor;
-        Color parityBGColor = Color.GRAY;
-        for (IFileChangeChunk changeChunk : changeChunks) {
-            // Background color according to the EChangeType
-            if (changeChunk.getChangeType() == EChangeType.ADD) {
-                aBGColor = Color.WHITE;
-                bBGColor = Color.GREEN;
-            } else if (changeChunk.getChangeType() == EChangeType.DELETE) {
-                aBGColor = Color.RED;
-                bBGColor = Color.WHITE;
-            } else if (changeChunk.getChangeType() == EChangeType.MODIFY) {
-                aBGColor = Color.RED;
-                bBGColor = Color.GREEN;
-            } else {
-                aBGColor = Color.WHITE;
-                bBGColor = Color.WHITE;
-            }
-            _insertText(aDocument, changeChunk.getALines(), aBGColor);
-            _insertText(aDocument, changeChunk.getAParityLines(), parityBGColor);
-            _insertText(bDocument, changeChunk.getBLines(), bBGColor);
-            _insertText(bDocument, changeChunk.getBParityLines(), parityBGColor);
-        }
-    }
-
-    /**
-     * @param document StyledDocument of the JTextPane for which to insert the message
-     * @param message  String that should be inserted into the JTextPane
-     * @param color    The Background color for the Text getting inserted
-     * @throws BadLocationException if the message is getting inserted out of bounds
-     */
-    private void _insertText(StyledDocument document, String message, Color color) throws BadLocationException {
-        SimpleAttributeSet attr = new SimpleAttributeSet();
-        StyleConstants.setBackground(attr, color);
-        int offset = document.getLength();
-        document.insertString(offset, message, attr);
     }
 
 }
