@@ -23,13 +23,6 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-         <!--Adito Look-And-Feels-->
-        <dependency>
-            <groupId>de.adito.aditoweb.nbm</groupId>
-            <artifactId>nb-darcula</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/info.clearthought/table-layout -->
         <dependency>
             <groupId>info.clearthought</groupId>
