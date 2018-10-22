@@ -54,9 +54,9 @@ public class MergeDiffImpl implements IMergeDiff {
      */
     @Override
     public void insertBaseSideChunk(IFileChangeChunk toInsert) {
-//        IFileChanges changes = mergeSideDiff.getFileChanges();
-//        ((FileChangesImpl) changes).getSubject().onNext();
-        _insertChangeChunk(toInsert, mergeSideDiff.getFileChanges().getChangeChunks());
+        IFileChanges changes = mergeSideDiff.getFileChanges();
+        _insertChangeChunk(toInsert, changes.getChangeChunks().blockingFirst());
+        ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
     }
 
     /**
@@ -65,7 +65,9 @@ public class MergeDiffImpl implements IMergeDiff {
      */
     @Override
     public void insertMergeSideChunk(IFileChangeChunk toInsert) {
-        _insertChangeChunk(toInsert, baseSideDiff.getFileChanges().getChangeChunks());
+        IFileChanges changes = baseSideDiff.getFileChanges();
+        _insertChangeChunk(toInsert, baseSideDiff.getFileChanges().getChangeChunks().blockingFirst());
+        ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
     }
 
     /**

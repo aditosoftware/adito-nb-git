@@ -42,7 +42,7 @@ public class DiffDialog extends JPanel {
                 for (IFileDiff fileDiff : diffs) {
                     _insertText(oldVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.OLD) + "\n\n", Color.WHITE);
                     _insertText(newVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.NEW) + "\n\n", Color.WHITE);
-                    _insertChangeChunks(fileDiff.getFileChanges().getChangeChunks(), oldVersionPane, newVersionPane);
+                    _insertChangeChunks(fileDiff.getFileChanges().getChangeChunks().blockingFirst(), oldVersionPane, newVersionPane);
                     _insertText(oldVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
                     _insertText(newVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
                 }

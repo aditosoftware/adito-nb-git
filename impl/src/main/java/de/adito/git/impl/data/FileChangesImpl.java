@@ -3,6 +3,9 @@ package de.adito.git.impl.data;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChanges;
+import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.jetbrains.annotations.NotNull;
@@ -19,25 +22,31 @@ import java.util.List;
  */
 public class FileChangesImpl implements IFileChanges {
 
-    private List<IFileChangeChunk> changeChunks;
+    private Subject<List<IFileChangeChunk>> changeChunks;
     private final String[] originalLines;
     private final String[] newLines;
 
     FileChangesImpl(EditList editList, String pOriginalFileContents, String pNewFileContents) {
-        changeChunks = new ArrayList<>();
+        List<IFileChangeChunk> changeChunkList = new ArrayList<>();
         // combine the lineChanges with the information from editList and build chunks
         originalLines = pOriginalFileContents.split("\n");
         newLines = pNewFileContents.split("\n");
         // from beginning of the file to the first chunk
-        changeChunks.add(_getUnchangedChunk(null, editList.get(0)));
+        changeChunkList.add(_getUnchangedChunk(null, editList.get(0)));
         // first chunk extra, since the index in the for loop starts at 0
-        changeChunks.add(_getChangedChunk(editList.get(0)));
+        changeChunkList.add(_getChangedChunk(editList.get(0)));
         for (int index = 1; index < editList.size(); index++) {
-            changeChunks.add(_getUnchangedChunk(editList.get(index - 1), editList.get(index)));
-            changeChunks.add(_getChangedChunk(editList.get(index)));
+            changeChunkList.add(_getUnchangedChunk(editList.get(index - 1), editList.get(index)));
+            changeChunkList.add(_getChangedChunk(editList.get(index)));
         }
         // from last chunk to end of file
-        changeChunks.add(_getUnchangedChunk(editList.get(editList.size() - 1), null));
+        changeChunkList.add(_getUnchangedChunk(editList.get(editList.size() - 1), null));
+        changeChunks = BehaviorSubject.createDefault(changeChunkList);
+    }
+
+    protected Subject<List<IFileChangeChunk>> getSubject()
+    {
+        return changeChunks;
     }
 
     /**
@@ -123,7 +132,7 @@ public class FileChangesImpl implements IFileChanges {
      * {@inheritDoc}
      */
     @Override
-    public List<IFileChangeChunk> getChangeChunks() {
+    public Observable<List<IFileChangeChunk>> getChangeChunks() {
         return changeChunks;
     }
 

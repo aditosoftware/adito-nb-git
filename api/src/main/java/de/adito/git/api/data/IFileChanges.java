@@ -13,6 +13,6 @@ public interface IFileChanges {
      *
      * @return List with the changes made to the file, organized in chunks
      */
-    List<IFileChangeChunk> getChangeChunks();
+    Observable<List<IFileChangeChunk>> getChangeChunks();
 
 }
