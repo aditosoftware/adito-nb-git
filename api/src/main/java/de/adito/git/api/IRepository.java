@@ -130,8 +130,9 @@ public interface IRepository {
     /**
      * @param sourceName String with identifier of source branch
      * @param targetName String with identifier of target branch
+     * @return List of IMergeDiffs, the list is empty if no merge conflict happened, else the list of IMergeDiffs describe the merge conflicts
      */
-    void merge(@NotNull String sourceName, @NotNull String targetName, @NotNull String commitMessage) throws Exception;
+    List<IMergeDiff> merge(@NotNull String sourceName, @NotNull String targetName, @NotNull String commitMessage) throws Exception;
 
     /**
      * @param identifier String with identifier of the commit

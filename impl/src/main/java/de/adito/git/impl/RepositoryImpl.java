@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -385,8 +386,9 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public void merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws
+    public List<IMergeDiff> merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws
             Exception {
+        List<IMergeDiff> mergeConflicts = new ArrayList<>();
         try {
             checkout(parentBranch);
         } catch (Exception e) {
@@ -405,12 +407,25 @@ public class RepositoryImpl implements IRepository {
                     .setFastForward(MergeCommand.FastForwardMode.NO_FF).setMessage(commitMessage).call();
             if (mergeResult.getConflicts() != null) {
                 RevCommit forkCommit = findForkPoint(parentBranch, branchToMerge);
-                if(forkCommit != null)
-                    getFileContents(ObjectId.toString(forkCommit.getId()));
+                if (forkCommit != null)
+                    mergeConflicts = _getMergeConflicts(parentBranch, branchToMerge, new CommitImpl(forkCommit), mergeResult.getConflicts());
             }
         } catch (GitAPIException e) {
             throw new Exception("Unable to execute the merge command: " + parentBranch + "and " + branchToMerge, e);
         }
+        return mergeConflicts;
+    }
+
+    private List<IMergeDiff> _getMergeConflicts(String parentBranch, String branchToMerge, CommitImpl forkCommit, Map<String, int[][]> conflicts) {
+        List<IMergeDiff> mergeConflicts = new ArrayList<>();
+//        List<IFileDiff> baseDiff = diff(parentBranch, forkCommit);
+//        List<IFileDiff> toMergeDiff = diff(branchToMerge, forkCommit);
+//        for (String fileName : conflicts.keySet()) {
+//
+//        }
+//        IMergeDiff mergeDiff = new MergeDiffImpl(baseDiff, toMergeDiff);
+//        return mergeDiff;
+        return mergeConflicts;
     }
 
     /**
@@ -537,6 +552,20 @@ public class RepositoryImpl implements IRepository {
     public Observable<List<IBranch>> getBranches() {
         return branchList;
     }
+
+//    private ICommit _getLatestCommit(String branchName) {
+//        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+//            git.getRepository().parseCommit(git.getRepository().resolve(branchName));
+//            revWalk.sort(RevSort.COMMIT_TIME_DESC);
+//            RevCommit commit = revWalk.parseCommit(ref.getLeaf().getObjectId());
+//            revWalk.markStart(commit);
+//            RevCommit newestCommit = revWalk.next();
+//            return new CommitImpl(newestCommit);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
     private List<IBranch> _branchList() {
         ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.ALL);
