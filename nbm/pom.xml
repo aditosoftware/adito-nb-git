@@ -47,18 +47,16 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
+                <version>4.1</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <publicPackages>
-                        <!--<publicPackage>de.adito.aditoweb.designer.*</publicPackage>-->
-                    </publicPackages>
-                    <moduleType>eager</moduleType>
-
                     <!--todo-->
                     <verifyRuntime>false</verifyRuntime>
                     <verifyIntegrity>false</verifyIntegrity>
                 </configuration>
             </plugin>
+
+            <!-- Include MetaInf -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
