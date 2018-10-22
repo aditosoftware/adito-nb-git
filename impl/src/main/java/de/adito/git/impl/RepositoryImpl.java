@@ -6,10 +6,7 @@ import de.adito.git.api.IFileSystemChangeListener;
 import de.adito.git.api.IFileSystemObserver;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
-import de.adito.git.impl.data.BranchImpl;
-import de.adito.git.impl.data.CommitImpl;
-import de.adito.git.impl.data.FileDiffImpl;
-import de.adito.git.impl.data.FileStatusImpl;
+import de.adito.git.impl.data.*;
 import de.adito.git.impl.rxjava.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -416,15 +413,29 @@ public class RepositoryImpl implements IRepository {
         return mergeConflicts;
     }
 
-    private List<IMergeDiff> _getMergeConflicts(String parentBranch, String branchToMerge, CommitImpl forkCommit, Map<String, int[][]> conflicts) {
+    private List<IMergeDiff> _getMergeConflicts(String parentBranch, String branchToMerge, CommitImpl forkCommit, Map<String, int[][]> conflicts) throws Exception {
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
-//        List<IFileDiff> baseDiff = diff(parentBranch, forkCommit);
-//        List<IFileDiff> toMergeDiff = diff(branchToMerge, forkCommit);
-//        for (String fileName : conflicts.keySet()) {
-//
-//        }
-//        IMergeDiff mergeDiff = new MergeDiffImpl(baseDiff, toMergeDiff);
-//        return mergeDiff;
+        ICommit parentBranchCommit = null;
+        ICommit toMergeCommit = null;
+        try {
+            parentBranchCommit = new CommitImpl(git.getRepository().parseCommit(git.getRepository().resolve(parentBranch)));
+            toMergeCommit = new CommitImpl(git.getRepository().parseCommit(git.getRepository().resolve(branchToMerge)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(parentBranchCommit != null && toMergeCommit != null) {
+            List<IFileDiff> parentDiffList = diff(parentBranchCommit, forkCommit);
+            List<IFileDiff> toMergeDiffList = diff(toMergeCommit, forkCommit);
+            for(IFileDiff parentDiff: parentDiffList){
+                if(conflicts.keySet().contains(parentDiff.getFilePath(EChangeSide.NEW))){
+                    for(IFileDiff toMergeDiff: toMergeDiffList){
+                        if(toMergeDiff.getFilePath(EChangeSide.NEW).equals(parentDiff.getFilePath(EChangeSide.NEW))){
+                            mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
+                        }
+                    }
+                }
+            }
+        }
         return mergeConflicts;
     }
 
@@ -552,20 +563,6 @@ public class RepositoryImpl implements IRepository {
     public Observable<List<IBranch>> getBranches() {
         return branchList;
     }
-
-//    private ICommit _getLatestCommit(String branchName) {
-//        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-//            git.getRepository().parseCommit(git.getRepository().resolve(branchName));
-//            revWalk.sort(RevSort.COMMIT_TIME_DESC);
-//            RevCommit commit = revWalk.parseCommit(ref.getLeaf().getObjectId());
-//            revWalk.markStart(commit);
-//            RevCommit newestCommit = revWalk.next();
-//            return new CommitImpl(newestCommit);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
 
     private List<IBranch> _branchList() {
         ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.ALL);
