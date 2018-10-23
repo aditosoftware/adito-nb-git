@@ -10,8 +10,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Abstrake Implementierung eines Observables für RxJava.
- * Diese Abstraktion bildet die Brücke zwischen normalen Listenern und dem reaktiven Paradigma.
+ * Abstract implementation of an RxJava Observable.
+ * This abstraction connects the normal listeners with the reactive programming paradigm.
  *
  * @author w.glanzer, 23.04.2018
  */
@@ -32,31 +32,31 @@ public abstract class AbstractListenerObservable<LISTENER, MODEL, VALUE> impleme
     }
 
     /**
-     * Erzeugt einen neuen Listener und fügt diesen dem VALUE hinzu.
-     * Wird der VALUE geändert / springt der hinzugefügte Listener an, so ist pOnNext aufzurufen
+     * Creates a new Listener and adds it to the VALUE.
+     * If the value is changed / the listener is activated pOnNext has to be called
      *
-     * @param pListenableValue Value, auf den gehört wird
-     * @param pOnNext          onNext-Funktion des Emitters, um einen neuen Value zu feuern
-     * @return der Strong Listener, nicht <tt>null</tt>
+     * @param pListenableValue Value that we're listening to
+     * @param pOnNext          onNext function of the emitter to fire a new value
+     * @return the strong listener, not <tt>null</tt>
      */
     @NotNull
     protected abstract LISTENER registerListener(@NotNull MODEL pListenableValue, @NotNull Consumer<VALUE> pOnNext);
 
     /**
-     * Entfernt den Listener, der bei registerListener hinzugefügt wurde, von VALUE
+     * Removes the listener, that was added by registerListener, from VALUE
      *
-     * @param pListenableValue Listenable Value, auf dem der Listener sitzt
-     * @param pLISTENER        Listener, der entfernt werden soll
+     * @param pListenableValue Listenable Value, to which the listener reacts
+     * @param pLISTENER        Listener, that is to be removed
      */
     protected abstract void removeListener(@NotNull MODEL pListenableValue, @NotNull LISTENER pLISTENER);
 
     /**
-     * Disposable-Impl, die den Listener hält
+     * Disposable-Impl, that keeps the listener
      */
     private class _Disposable implements Disposable {
         private LISTENER listener;
 
-        public _Disposable(LISTENER pListener) {
+        _Disposable(LISTENER pListener) {
             listener = pListener;
         }
 
