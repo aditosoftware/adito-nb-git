@@ -14,6 +14,13 @@
 
     <dependencies>
         <dependency>
+            <groupId>de.adito.git</groupId>
+            <artifactId>gui</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- NetBeans -->
+        <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-windows</artifactId>
             <version>${netbeans.version}</version>
@@ -29,17 +36,53 @@
             <version>${netbeans.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.netbeans.modules</groupId>
-            <artifactId>org-netbeans-modules-masterfs</artifactId>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-filesystems</artifactId>
             <version>${netbeans.version}</version>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-ui</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-nodes</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-projectapi</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-loaders</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-projectuiapi-base</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-modules</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>de.adito.git</groupId>
-            <artifactId>gui</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+            <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -50,9 +93,7 @@
                 <version>4.1</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <!--todo-->
-                    <verifyRuntime>false</verifyRuntime>
-                    <verifyIntegrity>false</verifyIntegrity>
+                    <sourceManifestFile>${project.basedir}/src/nbm/manifest.mf</sourceManifestFile>
                 </configuration>
             </plugin>
 
