@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Represents the state of the files in a three-way merger:
@@ -57,6 +58,7 @@ public class MergeDiffImpl implements IMergeDiff {
         IFileChanges changes = mergeSideDiff.getFileChanges();
         _insertChangeChunk(toInsert, changes.getChangeChunks().blockingFirst());
         ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
+        _applyChangesSelf(toInsert, () -> (FileChangesImpl)getBaseSideDiff().getFileChanges());
     }
 
     /**
@@ -68,6 +70,7 @@ public class MergeDiffImpl implements IMergeDiff {
         IFileChanges changes = baseSideDiff.getFileChanges();
         _insertChangeChunk(toInsert, baseSideDiff.getFileChanges().getChangeChunks().blockingFirst());
         ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
+        _applyChangesSelf(toInsert, () -> (FileChangesImpl)getMergeSideDiff().getFileChanges());
     }
 
     /**
@@ -85,11 +88,33 @@ public class MergeDiffImpl implements IMergeDiff {
      * @param fileChangeChunkList list of IFileChangeChunks that should get the changes from toInsert applied to it
      */
     private void _insertChangeChunk(@NotNull IFileChangeChunk toInsert, @NotNull List<IFileChangeChunk> fileChangeChunkList) {
-        List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndizes(toInsert, fileChangeChunkList);
+        List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndices(toInsert, fileChangeChunkList);
         for (Integer num : affectedIndizes) {
             fileChangeChunkList.set(num, MergeDiffImpl._applyChange(toInsert, fileChangeChunkList.get(num)));
         }
         MergeDiffImpl._propagateAdditionalLines(fileChangeChunkList, affectedIndizes.get(affectedIndizes.size() - 1), (toInsert.getBEnd() - toInsert.getBStart()) - (toInsert.getAEnd() - toInsert.getAStart()));
+    }
+
+    /**
+     * Accepts the changes from the B-side of the IFileChangeChunk, writes them to the A-side, saves
+     * the changes into the list and adjusts the line numbers in the following IFileChangeChunks if needed
+     *
+     * @param toChangeChunk IFileChangeChunk whose B-side is accepted -> copy B-side over to the A-side
+     * @param fileChangeSupplier Supplier for the FileChangesImpl containing the IFileChangeChunk, to write the changed IFileChangeChunk back to the list
+     */
+    private void _applyChangesSelf(@NotNull IFileChangeChunk toChangeChunk, Supplier<FileChangesImpl> fileChangeSupplier) {
+        synchronized (fileChangeSupplier.get()) {
+            List<IFileChangeChunk> changeChunkList = fileChangeSupplier.get().getChangeChunks().blockingFirst();
+            int indexInList = changeChunkList.indexOf(toChangeChunk);
+            // create new IFileChangeChunks since IFileChangeChunks are effectively final
+            Edit edit = new Edit(toChangeChunk.getAStart(), toChangeChunk.getAStart() + (toChangeChunk.getBEnd() - toChangeChunk.getBStart()), toChangeChunk.getBStart(), toChangeChunk.getBEnd());
+            IFileChangeChunk changedChunk = new FileChangeChunkImpl(edit, toChangeChunk.getBLines(), toChangeChunk.getBLines(), EChangeType.SAME);
+            // adjust line numbers in the following lines/changeChunks
+            _propagateAdditionalLines(changeChunkList, indexInList + 1, (toChangeChunk.getBEnd() - toChangeChunk.getBStart()) - (toChangeChunk.getAEnd() - toChangeChunk.getAStart()));
+            // save the changes to the list and fire a change on the list
+            changeChunkList.set(indexInList, changedChunk);
+            fileChangeSupplier.get().getSubject().onNext(changeChunkList);
+        }
     }
 
     /**
@@ -126,14 +151,14 @@ public class MergeDiffImpl implements IMergeDiff {
         int terminateAt;
         if (toInsert.getChangeType() == EChangeType.MODIFY) {
             // if the replace change started in a previous chunk, start from an offset (offset = number of lines of the change taken during the last chunk(s))
-            int indexOffset = Math.abs(toInsert.getAStart() - toChange.getAStart());
+            int indexOffset = toChange.getAStart() - toInsert.getAStart() > 0 ? toChange.getAStart() - toInsert.getAStart() : 0;
             /*
                 if the chunk in which to insert the change is longer, terminateAt is the number of lines in the change minus the lines processed in previous chunks
                 else it is the length of this chunk
               */
-            terminateAt = toChange.getAEnd() >= toInsert.getAEnd() ? toInsertLines.length - indexOffset : toChange.getAEnd() - toInsert.getAStart();
+            terminateAt = toChange.getAEnd() > toInsert.getAEnd() ? toInsertLines.length - indexOffset : toChange.getAEnd() - toInsert.getAStart() - 1;
             // if the change starts on the last line of this chunk, we have to add that line. Without this, the line is not added
-            if (toChange.getAEnd() == toInsert.getAStart()) {
+            if (toChange.getAEnd() == toInsert.getAStart() + 1) {
                 terminateAt = 1;
             }
             // collect the changed lines
@@ -155,12 +180,19 @@ public class MergeDiffImpl implements IMergeDiff {
         // if the chunk at which to insert the changes ends later than the changed part
         if (toChange.getAEnd() > toInsert.getAEnd()) {
             // If the toChange chunk contains lines after the change, append these
-            for (int index = toInsert.getAEnd() - toChange.getAStart() + 1; index < toChangeLines.length; index++) {
+            int startIndex = toInsert.getAEnd() - toChange.getAStart();
+            if(toInsert.getChangeType() == EChangeType.ADD){
+                startIndex += 1;
+            }
+            for (int index = startIndex; index < toChangeLines.length; index++) {
                 toChangeResult.append(toChangeLines[index]).append("\n");
                 numLines++;
             }
         }
-        return new FileChangeChunkImpl(new Edit(toChange.getAStart(), toChange.getAStart() + numLines, toChange.getBStart(), toChange.getBEnd()), toChangeResult.toString(), toChange.getBLines());
+        return new FileChangeChunkImpl(new Edit(toChange.getAStart(), toChange.getAStart() + numLines, toChange.getBStart(), toChange.getBEnd()),
+                toChangeResult.toString(),
+                toChange.getBLines(),
+                toChange.getChangeType());
     }
 
     /**
@@ -171,15 +203,15 @@ public class MergeDiffImpl implements IMergeDiff {
      * @return List of Integers with the indices of the affected IFileChangeChunks in the list
      */
     @NotNull
-    static List<Integer> _affectedChunkIndizes(@NotNull IFileChangeChunk toInsert, @NotNull List<IFileChangeChunk> fileChangeChunkList) {
+    static List<Integer> _affectedChunkIndices(@NotNull IFileChangeChunk toInsert, @NotNull List<IFileChangeChunk> fileChangeChunkList) {
         List<Integer> affectedChunks = new ArrayList<>();
         int intersectionIndex = 0;
         // Side A ist assumed to be the text from the fork-point
-        while (fileChangeChunkList.get(intersectionIndex).getAEnd() < toInsert.getAStart() && intersectionIndex < fileChangeChunkList.size()) {
+        while (fileChangeChunkList.get(intersectionIndex).getAEnd() <= toInsert.getAStart() && intersectionIndex < fileChangeChunkList.size()) {
             intersectionIndex++;
         }
         // all chunks before the affected area are now excluded
-        while (fileChangeChunkList.get(intersectionIndex).getAStart() <= toInsert.getAEnd() && intersectionIndex < fileChangeChunkList.size()) {
+        while (fileChangeChunkList.get(intersectionIndex).getAStart() < toInsert.getAEnd() && intersectionIndex < fileChangeChunkList.size()) {
             affectedChunks.add(intersectionIndex);
             intersectionIndex++;
         }
@@ -198,7 +230,10 @@ public class MergeDiffImpl implements IMergeDiff {
             // FileChangeChunks don't have setters, so create a new one
             IFileChangeChunk updated = new FileChangeChunkImpl(
                     new Edit(fileChangeChunkList.get(index).getAStart() + numLines, fileChangeChunkList.get(index).getAEnd() + numLines,
-                            fileChangeChunkList.get(index).getBStart(), fileChangeChunkList.get(index).getBEnd()), fileChangeChunkList.get(index).getALines(), fileChangeChunkList.get(index).getBLines());
+                            fileChangeChunkList.get(index).getBStart(), fileChangeChunkList.get(index).getBEnd()),
+                    fileChangeChunkList.get(index).getALines(),
+                    fileChangeChunkList.get(index).getBLines(),
+                    fileChangeChunkList.get(index).getChangeType());
             // replace the current FileChangeChunk with the updated one
             fileChangeChunkList.set(index, updated);
         }
