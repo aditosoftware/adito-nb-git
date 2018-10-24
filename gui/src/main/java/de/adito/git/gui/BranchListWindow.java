@@ -16,7 +16,6 @@ import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import java.util.stream.Stream;
 
 /**
@@ -28,7 +27,6 @@ public class BranchListWindow extends JPanel {
     private Observable<IRepository> repository;
     private ObservableTable localStatusTable = new ObservableTable();
     private ObservableTable remoteStatusTable = new ObservableTable();
-
 
     /**
      * BranchListWindow gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
@@ -48,7 +46,6 @@ public class BranchListWindow extends JPanel {
         Observable<List<IBranch>> branchObservable = repository.flatMap(IRepository::getBranches);
 
         //the local Status Table
-
         Observable<List<IBranch>> localSelectionObservable = Observable.combineLatest(localStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
             if (pSelected == null || pBranches == null)
                 return Collections.emptyList();
@@ -57,6 +54,14 @@ public class BranchListWindow extends JPanel {
                     .filter(pBranch -> pBranch.getType() == EBranchType.LOCAL)
                     .collect(Collectors.toList());
         });
+        localStatusTable.setModel(new BranchListTableModel(branchObservable, EBranchType.LOCAL));
+        localStatusTable.getTableHeader().setReorderingAllowed(false);
+        localStatusTable.addMouseListener(new _PopupStarter(localSelectionObservable, localStatusTable));
+        localStatusTable.removeColumn(localStatusTable.getColumn("branchID"));
+        JScrollPane localScrollPane = new JScrollPane(localStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+
+        //the remote Status Table
         Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(remoteStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
             if (pSelected == null || pBranches == null)
                 return Collections.emptyList();
@@ -65,14 +70,6 @@ public class BranchListWindow extends JPanel {
                     .filter(pBranch -> pBranch.getType() == EBranchType.REMOTE)
                     .collect(Collectors.toList());
         });
-
-        localStatusTable.setModel(new BranchListTableModel(branchObservable, EBranchType.LOCAL));
-        localStatusTable.getTableHeader().setReorderingAllowed(false);
-        localStatusTable.addMouseListener(new _PopupStarter(localSelectionObservable, localStatusTable));
-        localStatusTable.removeColumn(localStatusTable.getColumn("branchID"));
-        JScrollPane localScrollPane = new JScrollPane(localStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        //the remote Status Table
         remoteStatusTable.setModel(new BranchListTableModel(branchObservable, EBranchType.REMOTE));
         remoteStatusTable.getTableHeader().setReorderingAllowed(false);
         remoteStatusTable.addMouseListener(new _PopupStarter(remoteSelectionObservable, remoteStatusTable));
@@ -87,7 +84,7 @@ public class BranchListWindow extends JPanel {
     }
 
     /**
-     * A private helper class for the Mousehandler and click options
+     * A private helper class for the mousehandler and click options
      */
     private class _PopupStarter extends MouseAdapter {
         JTable table;
