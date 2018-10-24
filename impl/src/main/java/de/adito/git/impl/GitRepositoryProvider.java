@@ -24,8 +24,8 @@ public class GitRepositoryProvider {
      *             the builder's parameters.
      */
     public static Repository get(IRepositoryDescription pRepositoryDescription) throws IOException {
-        if(repository == null || (repository.getDirectory() != null && !pRepositoryDescription.getPath().equals(repository.getDirectory().getAbsolutePath()))){
-            repository = FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath()));
+        if(repository == null || (repository.getDirectory() != null && !pRepositoryDescription.getPath().equals(repository.getDirectory().getParentFile().getAbsolutePath()))){
+            repository = FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath()+ File.separator + ".git"));
         }
         return repository;
     }

@@ -19,7 +19,7 @@ public class FileSystemObserverImpl implements IFileSystemObserver {
 
     @Inject
     public FileSystemObserverImpl(@Assisted IRepositoryDescription pRepositoryDescription) {
-        FileObject fileObject = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()).getParentFile());
+        FileObject fileObject = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
         if(fileObject != null) {
             fileObject.addRecursiveListener(new _FileSystemListener());
         } else {
