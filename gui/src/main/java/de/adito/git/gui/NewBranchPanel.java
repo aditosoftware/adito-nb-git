@@ -76,7 +76,7 @@ public class NewBranchPanel extends JPanel {
         labelAlreadyExists.setVisible(false);
         setVisible(true);
         for (IBranch branch : branchList) {
-            branchMap.add(branch.getSimpleName(branch));
+            branchMap.add(branch.getSimpleName());
         }
         textField.getDocument().addDocumentListener(new _DocumentListener(branchMap, labelAlreadyExists));
     }

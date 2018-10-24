@@ -19,10 +19,9 @@ public interface IBranch {
 
     /**
      *
-     * @param branch the branch for the shot name
      * @return a String of the short Name
      */
-    String getSimpleName(IBranch branch);
+    String getSimpleName();
 
     /**
      * Checkout which type of branch the branch is. There are two types of branches to check: heads(remote) and local

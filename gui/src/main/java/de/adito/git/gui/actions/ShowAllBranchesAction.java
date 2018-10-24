@@ -14,7 +14,7 @@ import java.awt.event.ActionEvent;
  */
 public class ShowAllBranchesAction extends AbstractAction {
     private Observable<IRepository> repository;
-    private ITopComponentDisplayer topComponentWrapper;
+    private ITopComponentDisplayer topComponentDisplayer;
 
     /**
      * This is an action to show all branches of one repository.
@@ -26,12 +26,12 @@ public class ShowAllBranchesAction extends AbstractAction {
         putValue(Action.NAME, "Show Branches");
         putValue(Action.SHORT_DESCRIPTION, "Get all Branches of this Repository");
         repository = pRepository;
-        topComponentWrapper = pTopComponent;
+        topComponentDisplayer = pTopComponent;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        topComponentWrapper.showBranchWindow(repository);
+        topComponentDisplayer.showBranchWindow(repository);
     }
 
 }

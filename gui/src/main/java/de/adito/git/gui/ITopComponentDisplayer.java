@@ -1,6 +1,7 @@
 package de.adito.git.gui;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IBranch;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -19,4 +20,6 @@ public interface ITopComponentDisplayer {
     void setComponent(JComponent jComponent);
 
     void showBranchWindow(Observable<IRepository> pRepository);
+
+    void showAllCommits(Observable<IRepository> repository, IBranch branch) throws Exception;
 }

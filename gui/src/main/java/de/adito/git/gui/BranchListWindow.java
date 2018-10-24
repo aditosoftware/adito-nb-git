@@ -27,13 +27,15 @@ public class BranchListWindow extends JPanel {
     private Observable<IRepository> repository;
     private ObservableTable localStatusTable = new ObservableTable();
     private ObservableTable remoteStatusTable = new ObservableTable();
+    private ITopComponentDisplayer topComponentDisplayer;
 
     /**
      * BranchListWindow gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
      *
      * @param pRepository the repository for checking all branches
      */
-    public BranchListWindow(Observable<IRepository> pRepository) {
+    public BranchListWindow(Observable<IRepository> pRepository, ITopComponentDisplayer pTopComponentDisplayer) {
+        topComponentDisplayer = pTopComponentDisplayer;
         repository = pRepository;
         _initGui();
     }
@@ -101,7 +103,7 @@ public class BranchListWindow extends JPanel {
                 int row = table.rowAtPoint(e.getPoint());
                 if (row >= 0) {
                     JPopupMenu popupMenu = new JPopupMenu();
-                    popupMenu.add(new ShowAllCommitsAction(repository, branchList));
+                    popupMenu.add(new ShowAllCommitsAction(repository, branchList, topComponentDisplayer));
                     popupMenu.add(new CheckoutAction(repository, branchList));
                     popupMenu.show(table, e.getX(), e.getY());
                 } else {

@@ -41,9 +41,10 @@ public class BranchImpl implements IBranch {
      * {@inheritDoc}
      */
     @Override
-    public String getSimpleName(IBranch branch) {
+    // TODO: 24.10.2018
+    public String getSimpleName() {
         String simpleName = null;
-        String name = branch.getName();
+        String name = getName();
 
         String[] split = name.split("/");
         simpleName = split[split.length - 1];

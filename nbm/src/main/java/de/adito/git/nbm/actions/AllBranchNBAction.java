@@ -27,7 +27,7 @@ import java.awt.event.ActionEvent;
  * @author a.arnold, 22.10.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.AllBranchNBAction")
-@ActionRegistration(displayName = "AllBranches")
+@ActionRegistration(displayName = "LBL_ShowALlBranchesAction_Name")
 @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 100)
 public class AllBranchNBAction extends NodeAction {
     private Injector INJECTOR = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());

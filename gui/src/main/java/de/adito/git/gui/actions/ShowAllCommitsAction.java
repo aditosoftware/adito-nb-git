@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.CommitHistoryWindow;
+import de.adito.git.gui.ITopComponentDisplayer;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -20,8 +21,11 @@ import java.util.List;
 public class ShowAllCommitsAction extends AbstractAction {
     private Observable<List<IBranch>> branches;
     private Observable<IRepository> repository;
+    private ITopComponentDisplayer topComponentDisplayer;
 
-    public ShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches) {
+
+    public ShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches, ITopComponentDisplayer pTopComponentDisplayer) {
+        topComponentDisplayer = pTopComponentDisplayer;
         putValue(Action.NAME, "Show Commits");
         putValue(Action.SHORT_DESCRIPTION, "Get all commits of this Branch or file");
         repository = pRepository;
@@ -33,27 +37,14 @@ public class ShowAllCommitsAction extends AbstractAction {
      */
     @Override
     public void actionPerformed(ActionEvent event) {
-        List<ICommit> commits = new ArrayList<>();
         List<IBranch> iBranches = branches.blockingFirst();
-
         for (IBranch branch : iBranches) {
-            String branchName = branch.getName();
             try {
-                commits.addAll(repository.blockingFirst().getCommits(branch));
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-            JFrame commitFrame = new JFrame();
-            JPanel panel = new JPanel();
-            commitFrame.add(BorderLayout.CENTER, panel);
-            commitFrame.setPreferredSize(new Dimension(800, 300));
-            try {
-                panel.add(branchName, new CommitHistoryWindow(repository, commits));
+                topComponentDisplayer.showAllCommits(repository, branch);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-            commitFrame.pack();
-            commitFrame.setVisible(true);
         }
+
     }
 }
