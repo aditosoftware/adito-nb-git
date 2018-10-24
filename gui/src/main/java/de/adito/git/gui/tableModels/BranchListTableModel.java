@@ -33,7 +33,7 @@ public class BranchListTableModel extends AbstractTableModel implements IDiscard
         branchType = pBranchType;
         branchesDisposable = pBranches.subscribe(pBranchList -> {
             branches = pBranchList.stream()
-                    .filter(pBranch -> pBranch.getName().startsWith(branchType.getSortKey(), 5))
+                    .filter(pBranch -> pBranch.getType() == branchType)
                     .collect(Collectors.toList());
             fireTableDataChanged();
         });

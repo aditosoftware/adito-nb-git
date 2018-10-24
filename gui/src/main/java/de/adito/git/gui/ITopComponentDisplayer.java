@@ -1,5 +1,8 @@
 package de.adito.git.gui;
 
+import de.adito.git.api.IRepository;
+import io.reactivex.Observable;
+
 import javax.swing.*;
 
 /**
@@ -8,11 +11,12 @@ import javax.swing.*;
  *
  * @author A.Arnold 09.10.2018
  */
-public interface ITopComponent {
+public interface ITopComponentDisplayer {
 
     /**
      * @param jComponent the JComponent to hand over
      */
     void setComponent(JComponent jComponent);
 
+    void showBranchWindow(Observable<IRepository> pRepository);
 }

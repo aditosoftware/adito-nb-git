@@ -1,8 +1,7 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.gui.BranchListWindow;
-import de.adito.git.gui.ITopComponent;
+import de.adito.git.gui.ITopComponentDisplayer;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -15,7 +14,7 @@ import java.awt.event.ActionEvent;
  */
 public class ShowAllBranchesAction extends AbstractAction {
     private Observable<IRepository> repository;
-    private ITopComponent topComponent;
+    private ITopComponentDisplayer topComponentWrapper;
 
     /**
      * This is an action to show all branches of one repository.
@@ -23,23 +22,16 @@ public class ShowAllBranchesAction extends AbstractAction {
      * @param pRepository   The observable repository to show all branches
      * @param pTopComponent the top component for the new window
      */
-    public ShowAllBranchesAction(Observable<IRepository> pRepository, ITopComponent pTopComponent) {
+    public ShowAllBranchesAction(Observable<IRepository> pRepository, ITopComponentDisplayer pTopComponent) {
         putValue(Action.NAME, "Show Branches");
         putValue(Action.SHORT_DESCRIPTION, "Get all Branches of this Repository");
         repository = pRepository;
-        topComponent = pTopComponent;
+        topComponentWrapper = pTopComponent;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void actionPerformed(ActionEvent e) {
-        try {
-            topComponent.setComponent(new BranchListWindow(repository));
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
+        topComponentWrapper.showBranchWindow(repository);
     }
 
 }

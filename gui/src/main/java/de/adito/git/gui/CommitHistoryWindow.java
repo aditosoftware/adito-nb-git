@@ -21,7 +21,7 @@ public class CommitHistoryWindow extends JPanel {
     private List<ICommit> commitList;
 
     /**
-     * CommitListWindow gives the GUI all Commits from the branch back.
+     * CommitListWindow gives the GUI of all Commits from the branch back.
      *
      * @param pRepository The repository where the branch is in.
      * @param pBranch     The branch to check the commits.
@@ -32,7 +32,7 @@ public class CommitHistoryWindow extends JPanel {
     }
 
     /**
-     * CommitListWindow gives the GUI all Commits for one File back.
+     * CommitListWindow gives the GUI of all Commits for one File back.
      *
      * @param pRepository The repository where the file is in.
      * @param pFile       The file to check the commits

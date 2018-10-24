@@ -1,12 +1,16 @@
 package de.adito.git.gui;
 
+import de.adito.git.api.IRepository;
+import io.reactivex.Observable;
+
 import javax.swing.*;
 
 /**
  * The TopComponent to show the panels
+ *
  * @author A.Arnold 11.10.2018
  */
-public class SwingTopComponent implements ITopComponent {
+public class SwingComponentDisplayer implements ITopComponentDisplayer {
     @Override
     public void setComponent(JComponent jComponent) {
         JFrame frame = new JFrame();
@@ -14,5 +18,10 @@ public class SwingTopComponent implements ITopComponent {
         frame.add(jComponent);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    @Override
+    public void showBranchWindow(Observable<IRepository> pRepository) {
+        setComponent(new BranchListWindow(pRepository));
     }
 }
