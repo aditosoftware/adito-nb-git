@@ -153,6 +153,12 @@ public interface IRepository {
     List<ICommit> getCommits(File forFile) throws Exception;
 
     /**
+     * @return the directory of the actual repository
+     */
+
+    String getDirectory();
+
+    /**
      *
      * @return List of all Commits in the repository
      * @throws Exception

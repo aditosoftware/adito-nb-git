@@ -321,11 +321,12 @@ public class RepositoryImpl implements IRepository {
             List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
 
             if (refs.stream().anyMatch(ref -> ref.getName().equals("refs/heads/" + branchName))) {
-                throw new Exception("Branch name already exists. " + branchName);
+                throw new Exception("Branch already exist. " + branchName);
             }
 
             git.branchCreate().setName(branchName).call();
-            git.push().setRemote("origin").setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
+            // the next line of code is for an automatically push after creating a branch
+            //git.push().setRemote("origin").setRefSpecs(new RefSpec().setSourceDestination(branchName, branchName)).call();
             if (checkout) {
                 checkout(branchName);
             }
@@ -423,13 +424,13 @@ public class RepositoryImpl implements IRepository {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if(parentBranchCommit != null && toMergeCommit != null) {
+        if (parentBranchCommit != null && toMergeCommit != null) {
             List<IFileDiff> parentDiffList = diff(parentBranchCommit, forkCommit);
             List<IFileDiff> toMergeDiffList = diff(toMergeCommit, forkCommit);
-            for(IFileDiff parentDiff: parentDiffList){
-                if(conflicts.keySet().contains(parentDiff.getFilePath(EChangeSide.NEW))){
-                    for(IFileDiff toMergeDiff: toMergeDiffList){
-                        if(toMergeDiff.getFilePath(EChangeSide.NEW).equals(parentDiff.getFilePath(EChangeSide.NEW))){
+            for (IFileDiff parentDiff : parentDiffList) {
+                if (conflicts.keySet().contains(parentDiff.getFilePath(EChangeSide.NEW))) {
+                    for (IFileDiff toMergeDiff : toMergeDiffList) {
+                        if (toMergeDiff.getFilePath(EChangeSide.NEW).equals(parentDiff.getFilePath(EChangeSide.NEW))) {
                             mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
                         }
                     }
@@ -519,6 +520,12 @@ public class RepositoryImpl implements IRepository {
         }
         logs.forEach(log -> commitList.add(new CommitImpl(log)));
         return commitList;
+    }
+
+    @Override
+    public String getDirectory()  {
+
+        return String.valueOf(git.getRepository().getDirectory());
     }
 
     /**
