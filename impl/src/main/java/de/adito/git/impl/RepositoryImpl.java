@@ -320,6 +320,21 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
+    public void reset(@Nullable List<File> files, boolean hardReset) throws Exception {
+        ResetCommand resetCommand = git.reset();
+        if(files != null) {
+            for(File file: files)
+                resetCommand.addPath(Util.getRelativePath(file, git));
+        }
+        if(hardReset)
+            resetCommand.setMode(ResetCommand.ResetType.HARD);
+        resetCommand.call();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void createBranch(@NotNull String branchName, boolean checkout) throws Exception {
         try {
             List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();

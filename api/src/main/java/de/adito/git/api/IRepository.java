@@ -106,6 +106,13 @@ public interface IRepository {
     void revertWorkDir(@NotNull List<File> files) throws Exception;
 
     /**
+     *
+     * @param files List of files that should be reset. Can also be null, in which case all changes are reset
+     * @param hardReset if true, a hard reset is performed (also changes the working directory)
+     */
+    void reset(@Nullable List<File> files, boolean hardReset) throws Exception;
+
+    /**
      * @param branchName String with the name of the branch
      * @param checkout   {@code true} if the branch should be automatically checked out after it was created
      */
