@@ -102,9 +102,8 @@ public interface IRepository {
 
     /**
      * @param files List of files which should be reverted to the state in HEAD
-     * @return {@code true} if the operation was successful, {@code false} otherwise
      */
-    boolean revert(@NotNull List<File> files);
+    void revertWorkDir(@NotNull List<File> files) throws Exception;
 
     /**
      * @param branchName String with the name of the branch
@@ -132,7 +131,7 @@ public interface IRepository {
      * @param targetName String with identifier of target branch
      * @return List of IMergeDiffs, the list is empty if no merge conflict happened, else the list of IMergeDiffs describe the merge conflicts
      */
-    List<IMergeDiff> merge(@NotNull String sourceName, @NotNull String targetName, @NotNull String commitMessage) throws Exception;
+    List<IMergeDiff> merge(@NotNull String sourceName, @NotNull String targetName) throws Exception;
 
     /**
      * @param identifier String with identifier of the commit
@@ -161,7 +160,7 @@ public interface IRepository {
     /**
      *
      * @return List of all Commits in the repository
-     * @throws Exception
+     * @throws Exception An Error occurred while calling JGit
      */
     List<ICommit> getAllCommits() throws Exception;
 

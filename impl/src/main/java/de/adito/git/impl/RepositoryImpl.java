@@ -308,8 +308,12 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public boolean revert(@NotNull List<File> files) {
-        return false;
+    public void revertWorkDir(@NotNull List<File> files) throws Exception {
+        CheckoutCommand checkoutCommand = git.checkout();
+        for(File file: files) {
+            checkoutCommand.addPath(Util.getRelativePath(file ,git));
+        }
+        checkoutCommand.call();
     }
 
     /**
@@ -384,7 +388,7 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<IMergeDiff> merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws
+    public List<IMergeDiff> merge(@NotNull String parentBranch, @NotNull String branchToMerge) throws
             Exception {
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
         try {
@@ -401,8 +405,8 @@ public class RepositoryImpl implements IRepository {
         try {
             MergeResult mergeResult = git.merge()
                     .include(mergeBase)
-                    .setCommit(true)
-                    .setFastForward(MergeCommand.FastForwardMode.NO_FF).setMessage(commitMessage).call();
+                    .setCommit(false)
+                    .setFastForward(MergeCommand.FastForwardMode.NO_FF).call();
             if (mergeResult.getConflicts() != null) {
                 RevCommit forkCommit = findForkPoint(parentBranch, branchToMerge);
                 if (forkCommit != null)
