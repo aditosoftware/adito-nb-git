@@ -141,6 +141,14 @@ public interface IRepository {
     List<IMergeDiff> merge(@NotNull String sourceName, @NotNull String targetName) throws Exception;
 
     /**
+     *
+     * @param commitId Id of the commit for which the changed files should be retrieved
+     * @return List<String> detailing the changed files in the commit
+     * @throws Exception if JGit encountered an error condition
+     */
+    List<String> getCommitedFiles(String commitId) throws Exception;
+
+    /**
      * @param identifier String with identifier of the commit
      * @return ICommit describing the commit
      */

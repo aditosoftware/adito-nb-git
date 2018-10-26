@@ -156,16 +156,7 @@ public class RepositoryImpl implements IRepository {
     public @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception {
         List<IFileDiff> listDiffImpl = new ArrayList<>();
 
-        List<DiffEntry> listDiff;
-
-        CanonicalTreeParser oldTreeIter = prepareTreeParser(git.getRepository(), ObjectId.fromString(compareTo.getId()));
-        CanonicalTreeParser newTreeIter = prepareTreeParser(git.getRepository(), ObjectId.fromString(original.getId()));
-
-        try {
-            listDiff = git.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
-        } catch (GitAPIException e) {
-            throw new Exception("Unable to show changes between commits");
-        }
+        List<DiffEntry> listDiff = _doDiff(ObjectId.fromString(original.getId()), ObjectId.fromString(compareTo.getId()));
 
         if (listDiff != null) {
             for (DiffEntry diff : listDiff) {
@@ -493,13 +484,24 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public ICommit getCommit(@NotNull String identifier) throws Exception {
-        RevCommit commit;
-        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-            ObjectId commitId = ObjectId.fromString(identifier);
-            commit = revWalk.parseCommit(commitId);
+    public List<String> getCommitedFiles(String commitId) throws Exception {
+        RevCommit thisCommit = _getRevCommit(commitId);
+        List<DiffEntry> diffEntries = new ArrayList<>();
+        for(RevCommit parent: thisCommit.getParents()) {
+            diffEntries.addAll(_doDiff(thisCommit.getId(), parent.getId()));
         }
-        return new CommitImpl(commit);
+        return diffEntries.stream()
+                .map(DiffEntry::getOldPath)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ICommit getCommit(@NotNull String identifier) throws Exception {
+        return new CommitImpl(_getRevCommit(identifier));
     }
 
     /**
@@ -589,6 +591,37 @@ public class RepositoryImpl implements IRepository {
     @Override
     public Observable<List<IBranch>> getBranches() {
         return branchList;
+    }
+
+    /**
+     *
+     * @param identifier Id of the commit to be retrieved
+     * @return RevCommit that matches the passed identifier
+     * @throws IOException if JGit encountered an error condition
+     */
+    private RevCommit _getRevCommit(String identifier) throws IOException {
+        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+            ObjectId commitId = ObjectId.fromString(identifier);
+            return revWalk.parseCommit(commitId);
+        }
+    }
+
+    /**
+     *
+     * @param currentId Id of the current branch/commit/file
+     * @param compareToId Id of the branch/commit/file to be compared with the current one
+     * @return List<DiffEntry> with the DiffEntrys that make the difference between the two commits/branches/files
+     * @throws Exception if JGit encountered an error condition
+     */
+    private List<DiffEntry> _doDiff(ObjectId currentId, ObjectId compareToId) throws Exception {
+        CanonicalTreeParser oldTreeIter = prepareTreeParser(git.getRepository(), compareToId);
+        CanonicalTreeParser newTreeIter = prepareTreeParser(git.getRepository(), currentId);
+
+        try {
+            return git.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
+        } catch (GitAPIException e) {
+            throw new Exception("Unable to show changes between commits", e);
+        }
     }
 
     private List<IBranch> _branchList() {
