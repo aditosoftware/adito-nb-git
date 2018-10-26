@@ -21,7 +21,7 @@ public class FileChangeChunkImpl implements IFileChangeChunk {
         this(pEdit, pOldString, pNewString, "", "", null);
     }
 
-    FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, @Nullable EChangeType pChangeType){
+    public FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, @Nullable EChangeType pChangeType){
         this(pEdit, pOldString, pNewString, "", "", pChangeType);
     }
 
