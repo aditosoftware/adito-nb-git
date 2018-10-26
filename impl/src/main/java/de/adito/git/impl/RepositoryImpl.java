@@ -57,7 +57,8 @@ public class RepositoryImpl implements IRepository {
         branchList = BehaviorSubject.createDefault(_branchList());
 
         // listen for changes in the fileSystem for the status command
-        status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription))).startWith(_status());
+        status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
+                .subscribeWith(BehaviorSubject.createDefault(_status()));
     }
 
     /**
@@ -409,7 +410,7 @@ public class RepositoryImpl implements IRepository {
         try {
             checkout(parentBranch);
         } catch (Exception e) {
-            throw new Exception("Unable to checkout the parentBranch: " + parentBranch + "at the merge command");
+            throw new Exception("Unable to checkout the parentBranch: " + parentBranch + " at the merge command", e);
         }
         ObjectId mergeBase;
         try {
