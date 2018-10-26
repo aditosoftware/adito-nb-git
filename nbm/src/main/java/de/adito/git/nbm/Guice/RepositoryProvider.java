@@ -1,4 +1,4 @@
-package de.adito.git.gui;
+package de.adito.git.nbm.Guice;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -14,7 +14,7 @@ import io.reactivex.subjects.Subject;
  *
  * @author m.kaspera 27.09.2018
  */
-public class RepositoryProvider {
+public class RepositoryProvider implements IRepositoryProvider {
 
     private final Subject<IRepository> git;
     private IRepositoryFactory gitFactory;
@@ -30,6 +30,7 @@ public class RepositoryProvider {
      *
      * @return IRepository implementation of the IRepository interface
      */
+    @Override
     public Observable<IRepository> getRepositoryImpl(){
         return git;
     }

@@ -4,9 +4,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IRepositoryDescription;
-import de.adito.git.gui.RepositoryProvider;
 import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.nbm.Guice.AditoNbmModule;
+import de.adito.git.nbm.Guice.IRepositoryProvider;
 import de.adito.git.nbm.Guice.IRepositoryProviderFactory;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ public class RepositoryCache {
     private boolean inited = false;
     private Injector INJECTOR = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
     private IRepositoryProviderFactory repositoryProviderFactory = INJECTOR.getInstance(IRepositoryProviderFactory.class);
-    private Map<Project, RepositoryProvider> REPOSITORYCACHE = new HashMap<>();
+    private Map<Project, IRepositoryProvider> REPOSITORYCACHE = new HashMap<>();
 
     /**
      * Constructor for single instance.
@@ -72,7 +72,7 @@ public class RepositoryCache {
         if (!inited)
             throw new RuntimeException("Repository Cache not initialized yet!");
 
-        RepositoryProvider provider = REPOSITORYCACHE.get(pProject);
+        IRepositoryProvider provider = REPOSITORYCACHE.get(pProject);
         if (provider == null)
             return null;
         return provider.getRepositoryImpl();
