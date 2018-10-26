@@ -3,6 +3,10 @@ package de.adito.git.gui.guice;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
+import de.adito.git.gui.ITopComponentDisplayer;
+import de.adito.git.gui.SwingComponentDisplayer;
+import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.impl.RepositoryImpl;
 
 /**
@@ -18,5 +22,7 @@ public class AditoGitModule extends AbstractModule {
         // bind IRepository to RepositoryImpl and construct the necessary factory
         install(new FactoryModuleBuilder().build(IRepositoryFactory.class));
         bind(IRepositoryFactory.class).toProvider(FactoryProvider.newFactory(IRepositoryFactory.class, RepositoryImpl.class));
+        bind(IIconLoader.class).to(SwingIconLoaderImpl.class);
+        bind(ITopComponentDisplayer.class).to(SwingComponentDisplayer.class);
     }
 }
