@@ -32,49 +32,41 @@ public class MergeDiffImpl implements IMergeDiff {
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
-    public IFileDiff getBaseSideDiff() {
-        return baseSideDiff;
+    public IFileDiff getDiff(CONFLICT_SIDE conflictSide) {
+        if (conflictSide == CONFLICT_SIDE.YOURS) {
+            return baseSideDiff;
+        } else return mergeSideDiff;
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
-    public IFileDiff getMergeSideDiff() {
-        return mergeSideDiff;
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     */
-    @Override
-    public void insertBaseSideChunk(IFileChangeChunk toInsert) {
-        IFileChanges changes = mergeSideDiff.getFileChanges();
-        _insertChangeChunk(toInsert, changes.getChangeChunks().blockingFirst());
+    public void acceptChunk(IFileChangeChunk acceptedChunk, CONFLICT_SIDE conflictSide) {
+        // list of changes the chunk should be applied to is the list of fileChangeChunks of the other side
+        IFileChanges changes = getDiff(conflictSide == CONFLICT_SIDE.YOURS ? CONFLICT_SIDE.THEIRS : CONFLICT_SIDE.YOURS).getFileChanges();
+        _insertChangeChunk(acceptedChunk, changes.getChangeChunks().blockingFirst());
         ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
-        _applyChangesSelf(toInsert, () -> (FileChangesImpl)getBaseSideDiff().getFileChanges());
+        _applyChangesSelf(acceptedChunk, () -> (FileChangesImpl) getDiff(conflictSide).getFileChanges());
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
-    public void insertMergeSideChunk(IFileChangeChunk toInsert) {
-        IFileChanges changes = baseSideDiff.getFileChanges();
-        _insertChangeChunk(toInsert, baseSideDiff.getFileChanges().getChangeChunks().blockingFirst());
-        ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
-        _applyChangesSelf(toInsert, () -> (FileChangesImpl)getMergeSideDiff().getFileChanges());
+    public void discardChange(IFileChangeChunk changeChunk, IMergeDiff.CONFLICT_SIDE conflict_side) {
+        IFileChangeChunk replaceWith = new FileChangeChunkImpl(
+                new Edit(changeChunk.getAStart(), changeChunk.getAEnd(), changeChunk.getBStart(), changeChunk.getBEnd()),
+                changeChunk.getALines(),
+                changeChunk.getBLines(),
+                EChangeType.SAME);
+        getDiff(conflict_side).getFileChanges().replace(changeChunk, replaceWith);
     }
 
     /**
-     *
      * {@inheritDoc}
      */
     @Override
@@ -83,8 +75,7 @@ public class MergeDiffImpl implements IMergeDiff {
     }
 
     /**
-     *
-     * @param toInsert the IFileChangeChunk whose changes should be inserted into the fileChangeChunkList
+     * @param toInsert            the IFileChangeChunk whose changes should be inserted into the fileChangeChunkList
      * @param fileChangeChunkList list of IFileChangeChunks that should get the changes from toInsert applied to it
      */
     private void _insertChangeChunk(@NotNull IFileChangeChunk toInsert, @NotNull List<IFileChangeChunk> fileChangeChunkList) {
@@ -99,7 +90,7 @@ public class MergeDiffImpl implements IMergeDiff {
      * Accepts the changes from the B-side of the IFileChangeChunk, writes them to the A-side, saves
      * the changes into the list and adjusts the line numbers in the following IFileChangeChunks if needed
      *
-     * @param toChangeChunk IFileChangeChunk whose B-side is accepted -> copy B-side over to the A-side
+     * @param toChangeChunk      IFileChangeChunk whose B-side is accepted -> copy B-side over to the A-side
      * @param fileChangeSupplier Supplier for the FileChangesImpl containing the IFileChangeChunk, to write the changed IFileChangeChunk back to the list
      */
     private void _applyChangesSelf(@NotNull IFileChangeChunk toChangeChunk, Supplier<FileChangesImpl> fileChangeSupplier) {
@@ -118,7 +109,6 @@ public class MergeDiffImpl implements IMergeDiff {
     }
 
     /**
-     *
      * @param toInsert IFileChangeChunk with the change that should be applied to the other IFileChangeChunk
      * @param toChange IFileChangeChunk that should have it's a-side lines changed in such a way that in contains the changes from toInsert
      * @return the IFileChangeChunk toChange with the changes from toInsert applied to it
@@ -181,7 +171,7 @@ public class MergeDiffImpl implements IMergeDiff {
         if (toChange.getAEnd() > toInsert.getAEnd()) {
             // If the toChange chunk contains lines after the change, append these
             int startIndex = toInsert.getAEnd() - toChange.getAStart();
-            if(toInsert.getChangeType() == EChangeType.ADD){
+            if (toInsert.getChangeType() == EChangeType.ADD) {
                 startIndex += 1;
             }
             for (int index = startIndex; index < toChangeLines.length; index++) {
@@ -198,7 +188,7 @@ public class MergeDiffImpl implements IMergeDiff {
     /**
      * checks which IFileChangeChunks in the list are affected by the IFileChangeChunk that gets inserted
      *
-     * @param toInsert the IFileChangeChunk to apply to the list of IFileChangeChunks
+     * @param toInsert            the IFileChangeChunk to apply to the list of IFileChangeChunks
      * @param fileChangeChunkList List of IFileChangeChunks on which to apply toInsert
      * @return List of Integers with the indices of the affected IFileChangeChunks in the list
      */
@@ -222,8 +212,8 @@ public class MergeDiffImpl implements IMergeDiff {
      * Adjust the start/end indices of the IFileChangeChunks in the list, starting from the given index
      *
      * @param fileChangeChunkList the list of IFileChangeChunks
-     * @param listIndex the first index that gets the offset
-     * @param numLines the number of lines the IFileChangeChunks have been set back
+     * @param listIndex           the first index that gets the offset
+     * @param numLines            the number of lines the IFileChangeChunks have been set back
      */
     static void _propagateAdditionalLines(List<IFileChangeChunk> fileChangeChunkList, int listIndex, int numLines) {
         for (int index = listIndex; index < fileChangeChunkList.size(); index++) {
