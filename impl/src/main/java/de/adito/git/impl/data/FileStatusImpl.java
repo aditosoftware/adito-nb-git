@@ -135,6 +135,12 @@ public class FileStatusImpl implements IFileStatus {
      * {@inheritDoc}
      */
     public List<IFileChangeType> getUncommitted() {
+        /*
+            can't use a stream with distinct() here since
+            1) need to put the EChangeType in, according to which list we retrieved
+            2) the ordering is important, if a File is conflicting the EChangeType should read
+                conflicting in the end, not changed. distinct() only guarantees that on ordered streams
+         */
         HashMap<String, EChangeType> fileChangeTypes = new HashMap<>();
         status.getChanged().forEach(changed -> fileChangeTypes.put(changed, EChangeType.CHANGED));
         status.getModified().forEach(modified -> fileChangeTypes.put(modified, EChangeType.MODIFY));
