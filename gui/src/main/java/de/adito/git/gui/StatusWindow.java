@@ -7,6 +7,7 @@ import de.adito.git.gui.actions.*;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,13 +30,14 @@ public class StatusWindow extends JPanel implements IDiscardable {
     private final Observable<IRepository> repository;
     private final Observable<List<IFileChangeType>> selectionObservable;
     private final ObservableTable statusTable = new ObservableTable();
+    private Disposable disposable;
     private IDialogDisplayer dialogDisplayer;
     private JPopupMenu popupMenu;
 
-    public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider repository) {
+    public StatusWindow(IDialogDisplayer pDialogDisplayer, Observable<IRepository> pRepository) {
         dialogDisplayer = pDialogDisplayer;
-        this.repository = repository.getRepositoryImpl();
-        status = repository.getRepositoryImpl()
+        repository = pRepository;
+        status = repository
                 .flatMap(IRepository::getStatus);
         selectionObservable = Observable.combineLatest(statusTable.selectedRows(), status, (pSelected, pStatus) -> {
             if (pSelected == null || pStatus == null)
@@ -61,7 +63,7 @@ public class StatusWindow extends JPanel implements IDiscardable {
             statusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
         }
 
-        repository.subscribe(pRepository -> {
+        disposable = repository.subscribe(pRepository -> {
             popupMenu = new JPopupMenu();
             CommitAction commitAction = new CommitAction(dialogDisplayer, pRepository, selectionObservable);
             AddAction addAction = new AddAction(pRepository, selectionObservable);
@@ -82,6 +84,7 @@ public class StatusWindow extends JPanel implements IDiscardable {
     @Override
     public void discard() {
         ((StatusTableModel)statusTable.getModel()).discard();
+        disposable.dispose();
     }
 
 
