@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class FileChangesImpl implements IFileChanges {
 
-    private Subject<List<IFileChangeChunk>> changeChunks;
+    private final Subject<List<IFileChangeChunk>> changeChunks;
     private final String[] originalLines;
     private final String[] newLines;
 
@@ -44,7 +44,7 @@ public class FileChangesImpl implements IFileChanges {
         changeChunks = BehaviorSubject.createDefault(changeChunkList);
     }
 
-    protected Subject<List<IFileChangeChunk>> getSubject()
+    Subject<List<IFileChangeChunk>> getSubject()
     {
         return changeChunks;
     }
@@ -134,6 +134,24 @@ public class FileChangesImpl implements IFileChanges {
     @Override
     public Observable<List<IFileChangeChunk>> getChangeChunks() {
         return changeChunks;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean replace(IFileChangeChunk current, IFileChangeChunk replaceWith) {
+        List<IFileChangeChunk> tmpCopy;
+        synchronized (changeChunks) {
+            tmpCopy = changeChunks.blockingFirst();
+        }
+        int currentIndex = tmpCopy.indexOf(current);
+        if(currentIndex == -1) {
+            return false;
+        }
+        tmpCopy.set(currentIndex, replaceWith);
+        changeChunks.onNext(tmpCopy);
+        return true;
     }
 
 }
