@@ -1,13 +1,17 @@
 package de.adito.git.gui.icon;
 
 import javax.swing.*;
-import java.io.File;
 
 /**
  * @author m.kaspera 25.10.2018
  */
 public interface IIconLoader {
 
-    ImageIcon getIcon(File iconFile);
+    /**
+     *
+     * @param iconPath Path to the file that contains the icon as string. Do not use \\ as separator
+     * @return ImageIcon for the passed file
+     */
+    ImageIcon getIcon(String iconPath);
 
 }
