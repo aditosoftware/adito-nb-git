@@ -24,8 +24,8 @@ public class NBTopComponentDisplayer implements ITopComponentDisplayer {
     }
 
     /**
-     * Open a new Topcomponent of {@link AllBranchTopComponent}
-     * @param pRepository The repository for which the branches shoud be displayed
+     * Open a new TopComponent of {@link AllBranchTopComponent}
+     * @param pRepository The repository for which the branches should be displayed
      */
     @Override
     public void showBranchWindow(Observable<IRepository> pRepository) {
