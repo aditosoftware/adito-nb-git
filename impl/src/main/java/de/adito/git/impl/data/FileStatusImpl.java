@@ -157,7 +157,7 @@ public class FileStatusImpl implements IFileStatus {
     private List<IFileChangeType> _toFileChangeTypes(HashMap<String, EChangeType> fileChanges){
         List<IFileChangeType> fileChangeTypes = new ArrayList<>();
         for(String filename: fileChanges.keySet()){
-            fileChangeTypes.add(new FileChangeTypeImpl(new File(gitDirectory, filename), fileChanges.get(filename)));
+            fileChangeTypes.add(new FileChangeTypeImpl(new File(gitDirectory.getParent(), filename), fileChanges.get(filename)));
         }
         fileChangeTypes.sort(new IFileChangeComparator());
         return fileChangeTypes;
