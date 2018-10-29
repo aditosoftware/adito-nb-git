@@ -1,5 +1,7 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.IDialogDisplayer;
 import de.adito.git.gui.NewBranchPanel;
@@ -14,7 +16,7 @@ import java.awt.event.ActionEvent;
  *
  * @author A.Arnold 18.10.2018
  */
-public class NewBranchAction extends AbstractAction {
+class NewBranchAction extends AbstractAction {
     private Observable<IRepository> repository;
     private IDialogDisplayer dialogDisplayer;
     private NewBranchPanel newBranchPanel;
@@ -23,7 +25,8 @@ public class NewBranchAction extends AbstractAction {
      * @param pRepository      The repository where the new branch should exists
      * @param pDialogDisplayer The Interface to provide functionality of giving an overlying framework
      */
-    public NewBranchAction(Observable<IRepository> pRepository, IDialogDisplayer pDialogDisplayer) throws Exception {
+    @Inject
+    NewBranchAction(IDialogDisplayer pDialogDisplayer, @Assisted Observable<IRepository> pRepository) throws Exception {
         putValue(Action.NAME, "New Branch");
         putValue(Action.SHORT_DESCRIPTION, "Create a new branch in the repository");
         repository = pRepository;

@@ -1,5 +1,7 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
@@ -9,22 +11,22 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Action for adding files to staging
  *
  * @author m.kaspera 11.10.2018
  */
-public class AddAction extends AbstractTableAction {
+class AddAction extends AbstractTableAction {
 
     private IRepository repository;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public AddAction(IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    @Inject
+    AddAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Add");
         selectedFilesObservable = pSelectedFilesObservable;
-        repository = pRepository;
+        repository = pRepository.blockingFirst();
     }
 
     @Override

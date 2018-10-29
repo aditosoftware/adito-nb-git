@@ -1,31 +1,34 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
-import de.adito.git.gui.DiffDialog;
 import de.adito.git.gui.IDialogDisplayer;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 12.10.2018
  */
-public class DiffAction extends AbstractTableAction {
+class DiffAction extends AbstractTableAction {
 
     private IRepository repository;
-    private IDialogDisplayer dialogDisplayer;
+    private IDialogProvider dialogProvider;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public DiffAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable){
+    @Inject
+    DiffAction(@Assisted Observable<IRepository> pRepository, IDialogProvider pDialogProvider,
+                      @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable){
         super("Show Diff");
-        repository = pRepository;
-        dialogDisplayer = pDialogDisplayer;
+        repository = pRepository.blockingFirst();
+        dialogProvider = pDialogProvider;
         selectedFilesObservable = pSelectedFilesObservable;
     }
 
@@ -39,8 +42,7 @@ public class DiffAction extends AbstractTableAction {
                 files.add(fileChangeType.getFile());
             }
             fileDiffs = repository.diff(files);
-            DiffDialog diffDialog = new DiffDialog(fileDiffs);
-            dialogDisplayer.showDialog(diffDialog, "Diff for files", true);
+            dialogProvider.showDiffDialog(fileDiffs);
         } catch (Exception e1) {
             e1.printStackTrace();
         }

@@ -1,5 +1,7 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.ITopComponentDisplayer;
 import io.reactivex.Observable;
@@ -12,7 +14,7 @@ import java.awt.event.ActionEvent;
  *
  * @author A.Arnold 16.10.2018
  */
-public class ShowAllBranchesAction extends AbstractAction {
+class ShowAllBranchesAction extends AbstractAction {
     private Observable<IRepository> repository;
     private ITopComponentDisplayer topComponentWrapper;
 
@@ -22,7 +24,8 @@ public class ShowAllBranchesAction extends AbstractAction {
      * @param pRepository   The observable repository to show all branches
      * @param pTopComponent the top component for the new window
      */
-    public ShowAllBranchesAction(Observable<IRepository> pRepository, ITopComponentDisplayer pTopComponent) {
+    @Inject
+     ShowAllBranchesAction(ITopComponentDisplayer pTopComponent, @Assisted Observable<IRepository> pRepository) {
         putValue(Action.NAME, "Show Branches");
         putValue(Action.SHORT_DESCRIPTION, "Get all Branches of this Repository");
         repository = pRepository;
