@@ -22,8 +22,7 @@ public class RepositoryProvider implements IRepositoryProvider {
     @Inject
     RepositoryProvider(IRepositoryFactory pGitFactory, @Assisted IRepositoryDescription pDescription){
         gitFactory = pGitFactory;
-        git = BehaviorSubject.create();
-        git.onNext(pGitFactory.create(pDescription));
+        git = BehaviorSubject.createDefault(pGitFactory.create(pDescription));
     }
 
     /**
