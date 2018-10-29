@@ -1,5 +1,7 @@
-package de.adito.git.gui;
+package de.adito.git.gui.window;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
@@ -17,7 +19,7 @@ import java.util.List;
  *
  * @author A.Arnold 01.10.2018
  */
-public class CommitHistoryWindow extends JPanel {
+class CommitHistoryWindow extends JPanel {
     private List<ICommit> commitList;
 
     /**
@@ -27,7 +29,7 @@ public class CommitHistoryWindow extends JPanel {
      * @param pBranch     The branch to check the commits.
      * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) throws Exception {
+    CommitHistoryWindow(@Assisted Observable<IRepository> pRepository, @Assisted IBranch pBranch) throws Exception {
         this(pRepository, pRepository.blockingFirst().getCommits(pBranch));
     }
 
@@ -38,7 +40,7 @@ public class CommitHistoryWindow extends JPanel {
      * @param pFile       The file to check the commits
      * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitHistoryWindow(Observable<IRepository> pRepository, File pFile) throws Exception {
+    CommitHistoryWindow(@Assisted Observable<IRepository> pRepository, @Assisted File pFile) throws Exception {
         this(pRepository, pRepository.blockingFirst().getCommits(pFile));
     }
 
@@ -49,11 +51,11 @@ public class CommitHistoryWindow extends JPanel {
      * @param pIdentifier The identifier to check the commit.
      * @throws Exception The repository can't call the RemoteServer
      */
-    public CommitHistoryWindow(Observable<IRepository> pRepository, String pIdentifier) throws Exception {
+    CommitHistoryWindow(@Assisted Observable<IRepository> pRepository, @Assisted String pIdentifier) throws Exception {
         this(pRepository, Collections.singletonList(pRepository.blockingFirst().getCommit(pIdentifier)));
     }
 
-    public CommitHistoryWindow(Observable<IRepository> pRepository, List<ICommit> pCommits) {
+    CommitHistoryWindow(@Assisted Observable<IRepository> pRepository, @Assisted List<ICommit> pCommits) {
         _initGUI();
         commitList = pCommits;
         JTable commitTable = _createTable();

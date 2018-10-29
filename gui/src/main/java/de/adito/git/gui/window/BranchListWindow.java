@@ -1,10 +1,11 @@
-package de.adito.git.gui;
+package de.adito.git.gui.window;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
-import de.adito.git.gui.actions.CheckoutAction;
-import de.adito.git.gui.actions.ShowAllCommitsAction;
+import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.BranchListTableModel;
 import io.reactivex.Observable;
@@ -23,7 +24,8 @@ import java.util.stream.Stream;
  *
  * @author A.Arnold 28.09.2018
  */
-public class BranchListWindow extends JPanel {
+class BranchListWindow extends JPanel {
+    private final IActionProvider actionProvider;
     private Observable<IRepository> repository;
     private ObservableTable localStatusTable = new ObservableTable();
     private ObservableTable remoteStatusTable = new ObservableTable();
@@ -33,7 +35,9 @@ public class BranchListWindow extends JPanel {
      *
      * @param pRepository the repository for checking all branches
      */
-    public BranchListWindow(Observable<IRepository> pRepository) {
+    @Inject
+    BranchListWindow(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
+        actionProvider = pActionProvider;
         repository = pRepository;
         _initGui();
     }
@@ -101,8 +105,8 @@ public class BranchListWindow extends JPanel {
                 int row = table.rowAtPoint(e.getPoint());
                 if (row >= 0) {
                     JPopupMenu popupMenu = new JPopupMenu();
-                    popupMenu.add(new ShowAllCommitsAction(repository, branchList));
-                    popupMenu.add(new CheckoutAction(repository, branchList));
+                    popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList));
+                    popupMenu.add(actionProvider.getCheckoutAction(repository, branchList));
                     popupMenu.show(table, e.getX(), e.getY());
                 } else {
                     table.clearSelection();
