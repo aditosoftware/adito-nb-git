@@ -651,7 +651,7 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-        return new FileStatusImpl(currentStatus);
+        return new FileStatusImpl(currentStatus, git.getRepository().getDirectory());
     }
 
     /**
