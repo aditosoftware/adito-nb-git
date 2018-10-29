@@ -15,4 +15,5 @@ public interface IFileChanges {
      */
     Observable<List<IFileChangeChunk>> getChangeChunks();
 
+    boolean replace(IFileChangeChunk current, IFileChangeChunk replaceWith);
 }

@@ -1,12 +1,17 @@
-package de.adito.git.gui;
+package de.adito.git.gui.window;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.actions.*;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,19 +28,21 @@ import java.util.stream.Stream;
  *
  * @author m.kaspera 27.09.2018
  */
-public class StatusWindow extends JPanel implements IDiscardable {
+class StatusWindow extends JPanel implements IDiscardable {
 
     private final Observable<IFileStatus> status;
     private final Observable<IRepository> repository;
+    private IActionProvider actionProvider;
     private final Observable<List<IFileChangeType>> selectionObservable;
     private final ObservableTable statusTable = new ObservableTable();
-    private IDialogDisplayer dialogDisplayer;
+    private Disposable disposable;
     private JPopupMenu popupMenu;
 
-    public StatusWindow(IDialogDisplayer pDialogDisplayer, RepositoryProvider repository) {
-        dialogDisplayer = pDialogDisplayer;
-        this.repository = repository.getRepositoryImpl();
-        status = repository.getRepositoryImpl()
+    @Inject
+    StatusWindow(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
+        repository = pRepository;
+        actionProvider = pActionProvider;
+        status = repository
                 .flatMap(IRepository::getStatus);
         selectionObservable = Observable.combineLatest(statusTable.selectedRows(), status, (pSelected, pStatus) -> {
             if (pSelected == null || pStatus == null)
@@ -50,7 +57,6 @@ public class StatusWindow extends JPanel implements IDiscardable {
 
     private void _initGui() {
         setLayout(new BorderLayout());
-//        statusTable = new _ObservableTable();
         statusTable.setModel(new StatusTableModel(status));
         statusTable.getColumnModel().getColumn(0).setMinWidth(150);
         statusTable.getColumnModel().getColumn(1).setMinWidth(250);
@@ -61,18 +67,13 @@ public class StatusWindow extends JPanel implements IDiscardable {
             statusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
         }
 
-        repository.subscribe(pRepository -> {
+        disposable = repository.subscribe(pRepository -> {
             popupMenu = new JPopupMenu();
-            CommitAction commitAction = new CommitAction(dialogDisplayer, pRepository, selectionObservable);
-            AddAction addAction = new AddAction(pRepository, selectionObservable);
-            DiffAction diffAction = new DiffAction(dialogDisplayer, pRepository, selectionObservable);
-            IgnoreAction ignoreAction = new IgnoreAction(pRepository, selectionObservable);
-            ExcludeAction excludeAction = new ExcludeAction(pRepository, selectionObservable);
-            popupMenu.add(commitAction);
-            popupMenu.add(addAction);
-            popupMenu.add(diffAction);
-            popupMenu.add(ignoreAction);
-            popupMenu.add(excludeAction);
+            popupMenu.add(actionProvider.getCommitAction(repository, selectionObservable));
+            popupMenu.add(actionProvider.getAddAction(repository, selectionObservable));
+            popupMenu.add(actionProvider.getDiffAction(repository, selectionObservable));
+            popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
+            popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
         });
 
         statusTable.addMouseListener(new _PopupMouseListener());
@@ -82,6 +83,7 @@ public class StatusWindow extends JPanel implements IDiscardable {
     @Override
     public void discard() {
         ((StatusTableModel)statusTable.getModel()).discard();
+        disposable.dispose();
     }
 
 

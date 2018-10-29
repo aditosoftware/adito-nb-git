@@ -16,9 +16,11 @@ import java.util.*;
 public class FileStatusImpl implements IFileStatus {
 
     private Status status;
+    private File gitDirectory;
 
-    public FileStatusImpl(Status pStatus){
+    public FileStatusImpl(Status pStatus, File pGitDirectory){
         status = pStatus;
+        gitDirectory = pGitDirectory;
     }
 
     /**
@@ -135,6 +137,12 @@ public class FileStatusImpl implements IFileStatus {
      * {@inheritDoc}
      */
     public List<IFileChangeType> getUncommitted() {
+        /*
+            can't use a stream with distinct() here since
+            1) need to put the EChangeType in, according to which list we retrieved
+            2) the ordering is important, if a File is conflicting the EChangeType should read
+                conflicting in the end, not changed. distinct() only guarantees that on ordered streams
+         */
         HashMap<String, EChangeType> fileChangeTypes = new HashMap<>();
         status.getChanged().forEach(changed -> fileChangeTypes.put(changed, EChangeType.CHANGED));
         status.getModified().forEach(modified -> fileChangeTypes.put(modified, EChangeType.MODIFY));
@@ -149,7 +157,7 @@ public class FileStatusImpl implements IFileStatus {
     private List<IFileChangeType> _toFileChangeTypes(HashMap<String, EChangeType> fileChanges){
         List<IFileChangeType> fileChangeTypes = new ArrayList<>();
         for(String filename: fileChanges.keySet()){
-            fileChangeTypes.add(new FileChangeTypeImpl(new File(filename), fileChanges.get(filename)));
+            fileChangeTypes.add(new FileChangeTypeImpl(new File(gitDirectory.getParent(), filename), fileChanges.get(filename)));
         }
         fileChangeTypes.sort(new IFileChangeComparator());
         return fileChangeTypes;

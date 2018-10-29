@@ -1,11 +1,18 @@
 package de.adito.git.nbm.topComponents;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.BranchListWindow;
 import de.adito.git.gui.ITopComponentDisplayer;
+import de.adito.git.gui.guice.AditoGitModule;
+import de.adito.git.gui.window.IWindowProvider;
+import de.adito.git.nbm.Guice.AditoNbmModule;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import org.openide.windows.TopComponent;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -15,9 +22,17 @@ import java.awt.*;
  */
 
 @TopComponent.Description(preferredID = "AllBranchTopComponent", persistenceType = TopComponent.PERSISTENCE_NEVER)
-@TopComponent.Registration(mode = AllBranchTopComponent.MODE, openAtStartup = false)
+@TopComponent.Registration(mode = "explorer", openAtStartup = false)
 class AllBranchTopComponent extends AbstractRepositoryTopComponent {
     static final String MODE = "output";
+
+    private Disposable displayNameDisposable;
+    private IWindowProvider windowProvider;
+
+    AllBranchTopComponent() {
+        Injector injector = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
+        windowProvider = injector.getInstance(IWindowProvider.class);
+    }
 
     /**
      * @param pRepository The repository of which all branches should be shown
@@ -25,7 +40,12 @@ class AllBranchTopComponent extends AbstractRepositoryTopComponent {
     AllBranchTopComponent(Observable<IRepository> pRepository, ITopComponentDisplayer pTopComponentDisplayer) {
         super(pRepository);
         setLayout(new BorderLayout());
-        add(new BranchListWindow(pRepository, pTopComponentDisplayer), BorderLayout.CENTER);
+        add(windowProvider.getBranchListWindow(pRepository), BorderLayout.CENTER);
+
+        //Set the displayname in the TopComponent of NetBeans.
+        displayNameDisposable = pRepository.subscribe(pRepo -> SwingUtilities.invokeLater(() -> {
+            setDisplayName("Git Branches - " + pRepo.getDirectory()); //todo I18N
+        }));
     }
 
     @Override

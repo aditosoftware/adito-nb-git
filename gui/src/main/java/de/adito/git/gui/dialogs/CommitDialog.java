@@ -1,7 +1,14 @@
-package de.adito.git.gui;
+package de.adito.git.gui.dialogs;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IDialogDisplayer;
+import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.tableModels.StatusTableModel;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -15,19 +22,20 @@ import java.util.List;
  *
  * @author m.kaspera 04.10.2018
  */
-public class CommitDialog extends JPanel {
+class CommitDialog extends JPanel {
 
-    private List<IFileChangeType> filesToCommit;
+    private Observable<List<IFileChangeType>> filesToCommit;
     private IDialogDisplayer dialogDisplayer;
     private JEditorPane messagePane;
 
-    public CommitDialog(List<IFileChangeType> pFilesToCommit, IDialogDisplayer pDialogDisplayer){
+    @Inject
+    public CommitDialog(IDialogDisplayer pDialogDisplayer, @Assisted Observable<List<IFileChangeType>> pFilesToCommit){
         filesToCommit = pFilesToCommit;
         dialogDisplayer = pDialogDisplayer;
         _initGui();
     }
 
-    public String getMessageText(){
+    String getMessageText(){
         return messagePane.getText();
     }
 
@@ -59,14 +67,13 @@ public class CommitDialog extends JPanel {
     /**
      * TableModel for the Table, has the list of files to commit. Similar to {@link StatusTableModel}
      */
-    private class _CommitTableModel extends AbstractTableModel {
+    private class _CommitTableModel extends AbstractTableModel implements IDiscardable {
 
-
+        private Disposable disposable;
         private List<IFileChangeType> fileList;
 
-        _CommitTableModel(List<IFileChangeType> pFileList){
-
-            fileList = pFileList;
+        _CommitTableModel(Observable<List<IFileChangeType>> pFilesToCommit){
+            disposable = pFilesToCommit.subscribe(fileToCommit -> fileList = fileToCommit);
         }
 
         @Override
@@ -94,6 +101,11 @@ public class CommitDialog extends JPanel {
                 return fileList.get(rowIndex).getChangeType();
             }
             return null;
+        }
+
+        @Override
+        public void discard() {
+            disposable.dispose();
         }
     }
 

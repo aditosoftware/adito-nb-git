@@ -1,5 +1,7 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
@@ -15,14 +17,15 @@ import java.util.function.Supplier;
 /**
  * @author m.kaspera 11.10.2018
  */
-public class ExcludeAction extends AbstractTableAction {
+class ExcludeAction extends AbstractTableAction {
 
     private IRepository repository;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public ExcludeAction(IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    @Inject
+    ExcludeAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Exclude");
-        repository = pRepository;
+        repository = pRepository.blockingFirst();
         selectedFilesObservable = pSelectedFilesObservable;
     }
 

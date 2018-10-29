@@ -1,9 +1,12 @@
-package de.adito.git.gui;
+package de.adito.git.gui.dialogs;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileDiff;
+import de.adito.git.gui.TextHighlightUtil;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -18,11 +21,12 @@ import java.util.List;
  *
  * @author m.kaspera 05.10.2018
  */
-public class DiffDialog extends JPanel {
+class DiffDialog extends JPanel {
 
     private List<IFileDiff> diffs;
 
-    public DiffDialog(List<IFileDiff> pDiffs) {
+    @Inject
+    public DiffDialog(@Assisted List<IFileDiff> pDiffs) {
 
         this.diffs = pDiffs;
         _initGui();

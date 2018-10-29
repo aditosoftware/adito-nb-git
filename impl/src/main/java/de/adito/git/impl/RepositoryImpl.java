@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -57,7 +57,8 @@ public class RepositoryImpl implements IRepository {
         branchList = BehaviorSubject.createDefault(_branchList());
 
         // listen for changes in the fileSystem for the status command
-        status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription))).startWith(_status());
+        status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
+                .subscribeWith(BehaviorSubject.createDefault(_status()));
     }
 
     /**
@@ -155,16 +156,7 @@ public class RepositoryImpl implements IRepository {
     public @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception {
         List<IFileDiff> listDiffImpl = new ArrayList<>();
 
-        List<DiffEntry> listDiff;
-
-        CanonicalTreeParser oldTreeIter = prepareTreeParser(git.getRepository(), ObjectId.fromString(compareTo.getId()));
-        CanonicalTreeParser newTreeIter = prepareTreeParser(git.getRepository(), ObjectId.fromString(original.getId()));
-
-        try {
-            listDiff = git.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
-        } catch (GitAPIException e) {
-            throw new Exception("Unable to show changes between commits");
-        }
+        List<DiffEntry> listDiff = _doDiff(ObjectId.fromString(original.getId()), ObjectId.fromString(compareTo.getId()));
 
         if (listDiff != null) {
             for (DiffEntry diff : listDiff) {
@@ -308,8 +300,27 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public boolean revert(@NotNull List<File> files) {
-        return false;
+    public void revertWorkDir(@NotNull List<File> files) throws Exception {
+        CheckoutCommand checkoutCommand = git.checkout();
+        for (File file : files) {
+            checkoutCommand.addPath(Util.getRelativePath(file, git));
+        }
+        checkoutCommand.call();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reset(@Nullable List<File> files, boolean hardReset) throws Exception {
+        ResetCommand resetCommand = git.reset();
+        if (files != null) {
+            for (File file : files)
+                resetCommand.addPath(Util.getRelativePath(file, git));
+        }
+        if (hardReset)
+            resetCommand.setMode(ResetCommand.ResetType.HARD);
+        resetCommand.call();
     }
 
     /**
@@ -384,13 +395,13 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<IMergeDiff> merge(@NotNull String parentBranch, @NotNull String branchToMerge, @NotNull String commitMessage) throws
+    public List<IMergeDiff> merge(@NotNull String parentBranch, @NotNull String branchToMerge) throws
             Exception {
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
         try {
             checkout(parentBranch);
         } catch (Exception e) {
-            throw new Exception("Unable to checkout the parentBranch: " + parentBranch + "at the merge command");
+            throw new Exception("Unable to checkout the parentBranch: " + parentBranch + " at the merge command", e);
         }
         ObjectId mergeBase;
         try {
@@ -401,12 +412,12 @@ public class RepositoryImpl implements IRepository {
         try {
             MergeResult mergeResult = git.merge()
                     .include(mergeBase)
-                    .setCommit(true)
-                    .setFastForward(MergeCommand.FastForwardMode.NO_FF).setMessage(commitMessage).call();
+                    .setCommit(false)
+                    .setFastForward(MergeCommand.FastForwardMode.NO_FF).call();
             if (mergeResult.getConflicts() != null) {
-                RevCommit forkCommit = findForkPoint(parentBranch, branchToMerge);
+                RevCommit forkCommit = _findForkPoint(parentBranch, branchToMerge);
                 if (forkCommit != null)
-                    mergeConflicts = _getMergeConflicts(parentBranch, branchToMerge, new CommitImpl(forkCommit), mergeResult.getConflicts());
+                    mergeConflicts = _getMergeConflicts(parentBranch, branchToMerge, new CommitImpl(forkCommit), mergeResult.getConflicts().keySet());
             }
         } catch (GitAPIException e) {
             throw new Exception("Unable to execute the merge command: " + parentBranch + "and " + branchToMerge, e);
@@ -414,25 +425,31 @@ public class RepositoryImpl implements IRepository {
         return mergeConflicts;
     }
 
-    private List<IMergeDiff> _getMergeConflicts(String parentBranch, String branchToMerge, CommitImpl forkCommit, Map<String, int[][]> conflicts) throws Exception {
+    /**
+     * @param currentBranch Identifier for the current branch
+     * @param branchToMerge Identifier for the branch that should be merged into the current one
+     * @param forkCommit    the commit where the branches of the two commits diverged
+     * @param conflicts     Set of Strings (filepaths) that give the files with conflicts that occurred during the merge
+     * @return List<IMergeDiff> describing the changes from the fork commit to each branch
+     * @throws Exception if JGit encountered an error condition
+     */
+    private List<IMergeDiff> _getMergeConflicts(String currentBranch, String branchToMerge, CommitImpl forkCommit, Set<String> conflicts) throws Exception {
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
-        ICommit parentBranchCommit = null;
-        ICommit toMergeCommit = null;
+        ICommit parentBranchCommit;
+        ICommit toMergeCommit;
         try {
-            parentBranchCommit = new CommitImpl(git.getRepository().parseCommit(git.getRepository().resolve(parentBranch)));
+            parentBranchCommit = new CommitImpl(git.getRepository().parseCommit(git.getRepository().resolve(currentBranch)));
             toMergeCommit = new CommitImpl(git.getRepository().parseCommit(git.getRepository().resolve(branchToMerge)));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new Exception(e);
         }
-        if (parentBranchCommit != null && toMergeCommit != null) {
-            List<IFileDiff> parentDiffList = diff(parentBranchCommit, forkCommit);
-            List<IFileDiff> toMergeDiffList = diff(toMergeCommit, forkCommit);
-            for (IFileDiff parentDiff : parentDiffList) {
-                if (conflicts.keySet().contains(parentDiff.getFilePath(EChangeSide.NEW))) {
-                    for (IFileDiff toMergeDiff : toMergeDiffList) {
-                        if (toMergeDiff.getFilePath(EChangeSide.NEW).equals(parentDiff.getFilePath(EChangeSide.NEW))) {
-                            mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
-                        }
+        List<IFileDiff> parentDiffList = diff(parentBranchCommit, forkCommit);
+        List<IFileDiff> toMergeDiffList = diff(toMergeCommit, forkCommit);
+        for (IFileDiff parentDiff : parentDiffList) {
+            if (conflicts.contains(parentDiff.getFilePath(EChangeSide.NEW))) {
+                for (IFileDiff toMergeDiff : toMergeDiffList) {
+                    if (toMergeDiff.getFilePath(EChangeSide.NEW).equals(parentDiff.getFilePath(EChangeSide.NEW))) {
+                        mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
                     }
                 }
             }
@@ -447,7 +464,7 @@ public class RepositoryImpl implements IRepository {
      * @throws IOException if an error occurs during parsing
      */
     @Nullable
-    private RevCommit findForkPoint(String parentBranchName, String foreignBranchName) throws IOException {
+    private RevCommit _findForkPoint(String parentBranchName, String foreignBranchName) throws IOException {
         try (RevWalk walk = new RevWalk(git.getRepository())) {
             RevCommit foreignCommit = walk.lookupCommit(git.getRepository().resolve(foreignBranchName));
             List<ReflogEntry> refLog = git.getRepository().getReflogReader(parentBranchName).getReverseEntries();
@@ -473,13 +490,24 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public ICommit getCommit(@NotNull String identifier) throws Exception {
-        RevCommit commit;
-        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-            ObjectId commitId = ObjectId.fromString(identifier);
-            commit = revWalk.parseCommit(commitId);
+    public List<String> getCommitedFiles(String commitId) throws Exception {
+        RevCommit thisCommit = _getRevCommit(commitId);
+        List<DiffEntry> diffEntries = new ArrayList<>();
+        for (RevCommit parent : thisCommit.getParents()) {
+            diffEntries.addAll(_doDiff(thisCommit.getId(), parent.getId()));
         }
-        return new CommitImpl(commit);
+        return diffEntries.stream()
+                .map(DiffEntry::getOldPath)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ICommit getCommit(@NotNull String identifier) throws Exception {
+        return new CommitImpl(_getRevCommit(identifier));
     }
 
     /**
@@ -523,7 +551,7 @@ public class RepositoryImpl implements IRepository {
     }
 
     @Override
-    public String getDirectory()  {
+    public String getDirectory() {
 
         return String.valueOf(git.getRepository().getDirectory());
     }
@@ -571,6 +599,35 @@ public class RepositoryImpl implements IRepository {
         return branchList;
     }
 
+    /**
+     * @param identifier Id of the commit to be retrieved
+     * @return RevCommit that matches the passed identifier
+     * @throws IOException if JGit encountered an error condition
+     */
+    private RevCommit _getRevCommit(String identifier) throws IOException {
+        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+            ObjectId commitId = ObjectId.fromString(identifier);
+            return revWalk.parseCommit(commitId);
+        }
+    }
+
+    /**
+     * @param currentId   Id of the current branch/commit/file
+     * @param compareToId Id of the branch/commit/file to be compared with the current one
+     * @return List<DiffEntry> with the DiffEntrys that make the difference between the two commits/branches/files
+     * @throws Exception if JGit encountered an error condition
+     */
+    private List<DiffEntry> _doDiff(ObjectId currentId, ObjectId compareToId) throws Exception {
+        CanonicalTreeParser oldTreeIter = prepareTreeParser(git.getRepository(), compareToId);
+        CanonicalTreeParser newTreeIter = prepareTreeParser(git.getRepository(), currentId);
+
+        try {
+            return git.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
+        } catch (GitAPIException e) {
+            throw new Exception("Unable to show changes between commits", e);
+        }
+    }
+
     private List<IBranch> _branchList() {
         ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.ALL);
         List<IBranch> branchList = new ArrayList<>();
@@ -594,7 +651,7 @@ public class RepositoryImpl implements IRepository {
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-        return new FileStatusImpl(currentStatus);
+        return new FileStatusImpl(currentStatus, git.getRepository().getDirectory());
     }
 
     /**

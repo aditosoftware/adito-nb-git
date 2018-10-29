@@ -1,5 +1,7 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
@@ -10,20 +12,20 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 11.10.2018
  */
-public class IgnoreAction extends AbstractTableAction {
+class IgnoreAction extends AbstractTableAction {
 
     private IRepository repository;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public IgnoreAction(IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    @Inject
+    IgnoreAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Ignore");
         selectedFilesObservable = pSelectedFilesObservable;
-        repository = pRepository;
+        repository = pRepository.blockingFirst();
     }
 
     @Override

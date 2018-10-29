@@ -1,5 +1,7 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
 
@@ -12,13 +14,14 @@ import java.awt.event.ActionEvent;
  *
  * @author A.Arnold 11.10.2018
  */
-public class PushAction extends AbstractAction {
+class PushAction extends AbstractAction {
     private Observable<IRepository> repository;
 
     /**
      * @param pRepository The repository to push
      */
-    public PushAction(Observable<IRepository> pRepository) {
+    @Inject
+    PushAction(@Assisted Observable<IRepository> pRepository) {
         putValue(Action.NAME, "Push");
         putValue(Action.SHORT_DESCRIPTION, "Pull all added files to one Branch or Master Branch");
         repository = pRepository;
@@ -29,6 +32,10 @@ public class PushAction extends AbstractAction {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        repository.subscribe(IRepository::push);
+        try {
+            repository.blockingFirst().push();
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
     }
 }

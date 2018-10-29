@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * @author m.kaspera 22.10.2018
  */
-class TextHighlightUtil {
+public class TextHighlightUtil {
 
 
     /**
@@ -24,7 +24,7 @@ class TextHighlightUtil {
      * @param insertParityStrings if true, the parity strings are inserted into the textPanes as well
      * @throws BadLocationException if the message is getting inserted out of bounds
      */
-    static void insertChangeChunks(List<IFileChangeChunk> changeChunks, JTextPane aTextPane,
+    public static void insertChangeChunks(List<IFileChangeChunk> changeChunks, JTextPane aTextPane,
                                    JTextPane bTextPane, boolean insertParityStrings) throws BadLocationException {
         StyledDocument aDocument = aTextPane.getStyledDocument();
         StyledDocument bDocument = bTextPane.getStyledDocument();
@@ -61,7 +61,7 @@ class TextHighlightUtil {
      * @param changeType ChangeType, determines the background color of the line/text
      * @throws BadLocationException if the message is getting inserted out of bounds
      */
-    static void insertText(StyledDocument document, String message, EChangeType changeType) throws BadLocationException {
+    public static void insertText(StyledDocument document, String message, EChangeType changeType) throws BadLocationException {
         if (changeType == EChangeType.ADD) {
             insertText(document, message, Color.GREEN);
         } else if (changeType == EChangeType.DELETE) {
@@ -79,7 +79,7 @@ class TextHighlightUtil {
      * @param color    The Background color for the Text getting inserted
      * @throws BadLocationException if the message is getting inserted out of bounds
      */
-    static void insertText(StyledDocument document, String message, Color color) throws BadLocationException {
+    public static void insertText(StyledDocument document, String message, Color color) throws BadLocationException {
         SimpleAttributeSet attr = new SimpleAttributeSet();
         StyleConstants.setBackground(attr, color);
         int offset = document.getLength();

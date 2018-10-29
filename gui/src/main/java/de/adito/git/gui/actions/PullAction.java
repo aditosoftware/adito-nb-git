@@ -1,5 +1,7 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
 
@@ -12,7 +14,7 @@ import java.awt.event.ActionEvent;
  * @author A.Arnold 11.10.2018
  */
 
-public class PullAction extends AbstractAction {
+class PullAction extends AbstractAction {
     private String targetId;
     private Observable<IRepository> repository;
 
@@ -22,7 +24,8 @@ public class PullAction extends AbstractAction {
      * @param pRepository the repository where the pull command should work
      * @param pTargetId   the ID of the branch which is to pull
      */
-    public PullAction(Observable<IRepository> pRepository, String pTargetId) {
+    @Inject
+    PullAction(@Assisted Observable<IRepository> pRepository, @Assisted String pTargetId) {
         putValue(Action.NAME, "Pull");
         putValue(Action.SHORT_DESCRIPTION, "Pull all Files from one Branch");
         targetId = pTargetId;

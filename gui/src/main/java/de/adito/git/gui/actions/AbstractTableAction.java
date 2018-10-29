@@ -7,7 +7,7 @@ import javax.swing.*;
  *
  * @author m.kaspera 04.10.2018
  */
-public abstract class AbstractTableAction extends AbstractAction {
+abstract class AbstractTableAction extends AbstractAction {
 
     /**
      *

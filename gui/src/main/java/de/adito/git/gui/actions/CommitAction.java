@@ -1,48 +1,49 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.CommitDialog;
-import de.adito.git.gui.IDialogDisplayer;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Action class for showing the commit dialog and implementing the commit functionality
  *
  * @author m.kaspera 11.10.2018
  */
-public class CommitAction extends AbstractTableAction {
+class CommitAction extends AbstractTableAction {
 
-    private IDialogDisplayer dialogDisplayer;
     private IRepository repository;
+    private IDialogProvider dialogProvider;
     private final Observable<List<IFileChangeType>> selectedFilesObservable;
 
-    public CommitAction(IDialogDisplayer pDialogDisplayer, IRepository pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    @Inject
+    CommitAction(@Assisted Observable<IRepository> pRepository, IDialogProvider pDialogProvider,
+                        @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Commit");
-        dialogDisplayer = pDialogDisplayer;
-        repository = pRepository;
+        repository = pRepository.blockingFirst();
+        dialogProvider = pDialogProvider;
         selectedFilesObservable = pSelectedFilesObservable;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
-        CommitDialog commitDialog = new CommitDialog(fileChanges, dialogDisplayer);
-        boolean doCommit = dialogDisplayer.showDialog(commitDialog, "Commit", false);
+        DialogResult dialogResult = dialogProvider.showCommitDialog(selectedFilesObservable);
         // if user didn't cancel the dialog
-        if (doCommit) {
+        if (dialogResult.isPressedOk()) {
             try {
                 List<File> files = new ArrayList<>();
-                for (IFileChangeType fileChangeType : fileChanges) {
+                for (IFileChangeType fileChangeType : selectedFilesObservable.blockingFirst()) {
                     files.add(fileChangeType.getFile());
                 }
-                repository.commit(commitDialog.getMessageText(), files);
+                repository.commit(dialogResult.getMessage(), files);
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
