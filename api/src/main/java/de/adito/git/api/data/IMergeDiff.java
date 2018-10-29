@@ -29,8 +29,10 @@ public interface IMergeDiff {
     /**
      *
      * @param text inserts a line of text to the fork-point commit text
+     * @param offset the offset of the place of insertion from the beginning of the document
+     * @param insert true if the text is inserted, false if the text is removed/deleted
      */
-    void insertText(String text);
+    void insertText(String text, int offset, boolean insert);
 
     enum CONFLICT_SIDE {YOURS, THEIRS}
 

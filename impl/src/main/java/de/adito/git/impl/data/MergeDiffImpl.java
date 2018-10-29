@@ -70,8 +70,19 @@ public class MergeDiffImpl implements IMergeDiff {
      * {@inheritDoc}
      */
     @Override
-    public void insertText(String text) {
+    public void insertText(String text, int offset, boolean insert) {
 
+    }
+
+    private int _getChunkForOffset(int offset, CONFLICT_SIDE conflictSide) {
+        int currentOffset = 0;
+        int changeChunkIndex = 0;
+        List<IFileChangeChunk> changeChunks = getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst();
+        while(offset > currentOffset){
+            currentOffset += changeChunks.get(changeChunkIndex).getALines().length();
+            changeChunkIndex++;
+        }
+        return changeChunkIndex;
     }
 
     /**
