@@ -2,7 +2,8 @@ package de.adito.git.api;
 
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -132,6 +133,12 @@ public interface IRepository {
      * @param branch branch to checkout
      */
     void checkout(@NotNull IBranch branch) throws  Exception;
+
+    /**
+     * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
+     * or if the branch to be merged cannot be read from the conflicting files
+     */
+    List<IMergeDiff> getMergeConflicts() throws Exception;
 
     /**
      * @param sourceName String with identifier of source branch

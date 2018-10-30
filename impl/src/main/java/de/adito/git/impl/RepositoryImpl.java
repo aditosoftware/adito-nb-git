@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -391,6 +392,17 @@ public class RepositoryImpl implements IRepository {
         }
     }
 
+    public List<IMergeDiff> getMergeConflicts() throws Exception {
+        Set<String> conflictingFiles = status.blockingFirst().getConflicting();
+        if (conflictingFiles.size() > 0) {
+            File aConflictingFile = new File(git.getRepository().getDirectory().getParent(), conflictingFiles.iterator().next());
+            String currentBranch = git.getRepository().getBranch();
+            String branchToMerge = _getConflictingBranch(aConflictingFile);
+            return _getMergeConflicts(currentBranch, branchToMerge, new CommitImpl(_findForkPoint(currentBranch, branchToMerge)), conflictingFiles);
+        }
+        return Collections.emptyList();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -398,6 +410,10 @@ public class RepositoryImpl implements IRepository {
     public List<IMergeDiff> merge(@NotNull String parentBranch, @NotNull String branchToMerge) throws
             Exception {
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
+        if (status.blockingFirst().getConflicting().size() > 0) {
+            RevCommit forkCommit = _findForkPoint(parentBranch, branchToMerge);
+            mergeConflicts = _getMergeConflicts(parentBranch, branchToMerge, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
+        }
         try {
             checkout(parentBranch);
         } catch (Exception e) {
@@ -423,6 +439,10 @@ public class RepositoryImpl implements IRepository {
             throw new Exception("Unable to execute the merge command: " + parentBranch + "and " + branchToMerge, e);
         }
         return mergeConflicts;
+    }
+
+    private String _getConflictingBranch(File conflictingFile) throws IOException {
+        return Files.lines(conflictingFile.toPath()).filter(line -> line.startsWith(">>>>>>>>")).findFirst().map(s -> s.replace(">", "").trim()).orElse(null);
     }
 
     /**
