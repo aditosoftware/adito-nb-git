@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs;
 
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
@@ -17,7 +18,7 @@ interface IDialogFactory {
 
     MergeConflictResolutionDialog create(IMergeDiff pMergeDiff);
 
-    CommitDialog createCommitDialog(Observable<List<IFileChangeType>> pFilesToCommit);
+    CommitDialog createCommitDialog(@Assisted("enable")Runnable pEnableOk, @Assisted("disable")Runnable pDisableOk, Observable<List<IFileChangeType>> pFilesToCommit);
 
     DiffDialog createDiffDialog(List<IFileDiff> pDiffs);
 

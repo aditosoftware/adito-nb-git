@@ -9,7 +9,6 @@ import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.IDialogDisplayer;
 import de.adito.git.gui.guice.IRepositoryFactory;
-import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import java.util.List;
@@ -53,7 +52,7 @@ class DialogProviderImpl implements IDialogProvider
     @Override
     public DialogResult showCommitDialog(Observable<List<IFileChangeType>> pFilesToCommit) {
         String commitMessage = null;
-        CommitDialog commitDialog = dialogFactory.createCommitDialog(pFilesToCommit);
+        CommitDialog commitDialog = dialogFactory.createCommitDialog(dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton, pFilesToCommit);
         boolean pressedOk = dialogDisplayer.showDialog(commitDialog, "Commit", false);
         if(pressedOk) {
             commitMessage = commitDialog.getMessageText();
