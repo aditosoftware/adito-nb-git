@@ -24,14 +24,16 @@ import java.util.List;
  */
 class CommitDialog extends JPanel {
 
+    private final Runnable enableOk;
+    private final Runnable disableOK;
     private Observable<List<IFileChangeType>> filesToCommit;
-    private IDialogDisplayer dialogDisplayer;
     private JEditorPane messagePane;
 
     @Inject
-    public CommitDialog(IDialogDisplayer pDialogDisplayer, @Assisted Observable<List<IFileChangeType>> pFilesToCommit){
+    public CommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOK, @Assisted Observable<List<IFileChangeType>> pFilesToCommit){
+        enableOk = pEnableOk;
+        disableOK = pDisableOK;
         filesToCommit = pFilesToCommit;
-        dialogDisplayer = pDialogDisplayer;
         _initGui();
     }
 
@@ -117,27 +119,27 @@ class CommitDialog extends JPanel {
         @Override
         public void insertUpdate(DocumentEvent e) {
             if(e.getDocument().getLength() == 0){
-                dialogDisplayer.disableOKButton();
+                disableOK.run();
             } else {
-                dialogDisplayer.enableOKButton();
+                enableOk.run();
             }
         }
 
         @Override
         public void removeUpdate(DocumentEvent e) {
             if(e.getDocument().getLength() == 0){
-                dialogDisplayer.disableOKButton();
+                disableOK.run();
             } else {
-                dialogDisplayer.enableOKButton();
+                enableOk.run();
             }
         }
 
         @Override
         public void changedUpdate(DocumentEvent e) {
             if(e.getDocument().getLength() == 0){
-                dialogDisplayer.disableOKButton();
+                disableOK.run();
             } else {
-                dialogDisplayer.enableOKButton();
+                enableOk.run();
             }
         }
     }
