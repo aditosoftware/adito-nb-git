@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
 import de.adito.git.gui.IDialogDisplayer;
+import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.impl.IFileSystemObserverProvider;
 import de.adito.git.nbm.DialogDisplayerImpl;
 import de.adito.git.nbm.FileSystemObserverImpl;
@@ -18,6 +19,7 @@ public class AditoNbmModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        install(new AditoGitModule());
         install(new FactoryModuleBuilder().build(IFileSystemObserverImplFactory.class));
 
         bind(IRepositoryProviderFactory.class).to(RepositoryProviderFactory.class);

@@ -3,7 +3,6 @@ package de.adito.git.nbm.topComponents;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
-import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import io.reactivex.Observable;
@@ -27,7 +26,7 @@ class AllBranchTopComponent extends TopComponent {
     private IWindowProvider windowProvider;
 
     AllBranchTopComponent() {
-        Injector injector = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
+        Injector injector = Guice.createInjector(new AditoNbmModule());
         windowProvider = injector.getInstance(IWindowProvider.class);
     }
 
