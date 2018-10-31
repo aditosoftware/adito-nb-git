@@ -1,5 +1,6 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
@@ -18,6 +19,7 @@ class RevertWorkDirAction extends AbstractTableAction {
     private final IRepository repository;
     private final Observable<List<IFileChangeType>> selectedFilesObservable;
 
+    @Inject
     RevertWorkDirAction(@Assisted Observable<IRepository> pRepository,
                         @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Revert");
