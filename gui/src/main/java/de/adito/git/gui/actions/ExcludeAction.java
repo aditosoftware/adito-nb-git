@@ -10,9 +10,8 @@ import io.reactivex.Observable;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera 11.10.2018
@@ -31,12 +30,8 @@ class ExcludeAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
         try {
-            List<File> files = new ArrayList<>();
-            for (IFileChangeType fileChangeType : fileChanges) {
-                files.add(fileChangeType.getFile());
-            }
+            List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
             repository.exclude(files);
         } catch (IOException e1) {
             e1.printStackTrace();
