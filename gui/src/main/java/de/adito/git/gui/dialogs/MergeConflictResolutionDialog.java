@@ -16,7 +16,7 @@ import org.eclipse.jgit.diff.Edit;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.Element;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.HashSet;
@@ -36,13 +36,15 @@ class MergeConflictResolutionDialog extends JPanel implements IDiscardable {
     private final static String ACCEPT_CHANGE_RIGHT_ICON = "/de/adito/git/gui/icons/acceptChange.png";
     private final static String DISCARD_CHANGE_ICON = "/de/adito/git/gui/icons/discardChange.png";
     private final IMergeDiff mergeDiff;
-    private IIconLoader iconLoader;
+    private final IIconLoader iconLoader;
     private final JTextPane currentBranchVersionPane = new JTextPane();
     private final JTextPane forkPointVersionPane = new JTextPane();
     private final JTextPane mergeBranchVersionPane = new JTextPane();
     private final JPanel leftButtonPanel = new JPanel(null);
     private final JPanel rightButtonPanel = new JPanel(null);
+    private int caretPosition = 0;
     private Set<Disposable> disposables = new HashSet<>(25);
+    private _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
 
     @Inject
     MergeConflictResolutionDialog(IIconLoader pIconLoader, @Assisted IMergeDiff pMergeDiff) {
@@ -61,22 +63,7 @@ class MergeConflictResolutionDialog extends JPanel implements IDiscardable {
 
         JPanel forkPointPanel = new JPanel(new BorderLayout());
         forkPointVersionPane.setEditable(true);
-        forkPointVersionPane.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                Element root = e.getDocument().getDefaultRootElement();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                Element root = e.getDocument().getDefaultRootElement();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-
-            }
-        });
+        forkPointVersionPane.getDocument().addDocumentListener(paneDocumentListener);
         forkPointPanel.add(forkPointVersionPane, BorderLayout.CENTER);
 
         JScrollPane currentBranchScrollPane = new JScrollPane(currentBranchPanel);
@@ -145,18 +132,24 @@ class MergeConflictResolutionDialog extends JPanel implements IDiscardable {
         insertCall = changeChunk -> mergeDiff.acceptChunk(changeChunk, conflictSide);
         disposables.add(mergeDiff.getDiff(conflictSide).getFileChanges().getChangeChunks().subscribe(changeChunks -> {
             // reset the text, else the text will just be appended to the textPane after each accepted change
-            textPane.setText("");
-            _clearPanel(buttonPanel);
-            if (conflictSide == IMergeDiff.CONFLICT_SIDE.YOURS) {
-                forkPointVersionPane.setText("");
-            }
-            for (IFileChangeChunk changeChunk : changeChunks) {
-                if (changeChunk.getChangeType() != EChangeType.SAME) {
-                    _insertButtonsForChunk(buttonPanel, icon, changeChunk, insertCall, mergeDiff.getDiff(conflictSide).getFileChanges(), textPane.getFontMetrics(textPane.getFont()).getHeight());
+            paneDocumentListener.disable();
+            try {
+                textPane.setText("");
+                _clearPanel(buttonPanel);
+                if (conflictSide == IMergeDiff.CONFLICT_SIDE.YOURS) {
+                    forkPointVersionPane.setText("");
                 }
-                TextHighlightUtil.insertText(textPane.getStyledDocument(), changeChunk.getBLines(), changeChunk.getChangeType());
-                if (conflictSide == IMergeDiff.CONFLICT_SIDE.YOURS)
-                    TextHighlightUtil.insertText(forkPointVersionPane.getStyledDocument(), changeChunk.getALines(), Color.WHITE);
+                for (IFileChangeChunk changeChunk : changeChunks) {
+                    if (changeChunk.getChangeType() != EChangeType.SAME) {
+                        _insertButtonsForChunk(buttonPanel, icon, changeChunk, insertCall, mergeDiff.getDiff(conflictSide).getFileChanges(), textPane.getFontMetrics(textPane.getFont()).getHeight());
+                    }
+                    TextHighlightUtil.insertText(textPane.getStyledDocument(), changeChunk.getBLines(), changeChunk.getChangeType());
+                    if (conflictSide == IMergeDiff.CONFLICT_SIDE.YOURS)
+                        TextHighlightUtil.insertText(forkPointVersionPane.getStyledDocument(), changeChunk.getALines(), Color.WHITE);
+                }
+            } finally {
+                forkPointVersionPane.setCaretPosition(caretPosition);
+                paneDocumentListener.enable();
             }
         }));
     }
@@ -230,6 +223,60 @@ class MergeConflictResolutionDialog extends JPanel implements IDiscardable {
         panel.removeAll();
         panel.validate();
         panel.repaint();
+    }
+
+    /**
+     * DocumentListener to check for user-input in the fork-point version of the merge conflict
+     * Can be manually dis-/enabled if text is input by the code, this is done by calling the
+     * methods named disable/enable
+     */
+    private class _PaneDocumentListener implements DocumentListener {
+
+        private boolean isActive = true;
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            if (isActive) {
+                try {
+                    // get the information about what text and where before the invokeLater(), else the information can be outdated
+                    final String insertedText = e.getDocument().getText(e.getOffset(), e.getLength());
+                    final int insertOffset = e.getOffset();
+                    SwingUtilities.invokeLater(() -> {
+                        caretPosition = forkPointVersionPane.getCaretPosition() + insertedText.length();
+                        mergeDiff.insertText(insertedText, insertedText.length(), insertOffset, true);
+                    });
+                } catch (BadLocationException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            if (isActive) {
+                caretPosition = forkPointVersionPane.getCaretPosition();
+                SwingUtilities.invokeLater(() -> mergeDiff.insertText("", e.getLength(), e.getOffset(), false));
+            }
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+
+        }
+
+        /**
+         * Enables the processing of events for this listener
+         */
+        void enable() {
+            isActive = true;
+        }
+
+        /**
+         * Disables the processing of events for this listener. Acts as if the listener wouldn't be here if disabled
+         */
+        void disable() {
+            isActive = false;
+        }
     }
 
 }
