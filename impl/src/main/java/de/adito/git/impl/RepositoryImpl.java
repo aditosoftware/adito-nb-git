@@ -313,12 +313,20 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public void reset(@Nullable List<File> files, EResetType resetType) throws Exception {
+    public void reset(@NotNull List<File> files) throws Exception {
         ResetCommand resetCommand = git.reset();
-        if (files != null) {
-            for (File file : files)
-                resetCommand.addPath(Util.getRelativePath(file, git));
-        }
+        for (File file : files)
+            resetCommand.addPath(Util.getRelativePath(file, git));
+        resetCommand.call();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void reset(@NotNull String identifier, EResetType resetType) throws Exception {
+        ResetCommand resetCommand = git.reset();
+        resetCommand.setRef(identifier);
         if (resetType == EResetType.HARD)
             resetCommand.setMode(ResetCommand.ResetType.HARD);
         else if (resetType == EResetType.MIXED)

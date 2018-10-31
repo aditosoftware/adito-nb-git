@@ -109,9 +109,14 @@ public interface IRepository {
     /**
      *
      * @param files List of files that should be reset. Can also be null, in which case all changes are reset
-     * @param resetType which type of reset should be conducted {@see EResetType}
      */
-    void reset(@Nullable List<File> files, EResetType resetType) throws Exception;
+    void reset(@NotNull List<File> files) throws Exception;
+
+    /**
+     * @param identifier ID for the branch/commit to reset to
+     * @param resetType  resetType which type of reset should be conducted {@see EResetType}
+     */
+    void reset(@NotNull String identifier, EResetType resetType) throws Exception;
 
     /**
      * @param branchName String with the name of the branch
