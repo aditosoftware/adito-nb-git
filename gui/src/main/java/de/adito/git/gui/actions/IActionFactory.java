@@ -36,4 +36,6 @@ interface IActionFactory {
     ShowAllBranchesAction createShowAllBranchesAction(Observable<IRepository> pRepository);
 
     ShowAllCommitsAction createShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches);
+
+    RevertWorkDirAction createRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 }
