@@ -5,7 +5,9 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.gui.IDiscardable;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -17,8 +19,9 @@ import java.util.stream.Collectors;
  *
  * @author m.kaspera 11.10.2018
  */
-class AddAction extends AbstractTableAction {
+class AddAction extends AbstractTableAction implements IDiscardable {
 
+    private final Disposable disposable;
     private IRepository repository;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
@@ -27,6 +30,7 @@ class AddAction extends AbstractTableAction {
         super("Add");
         selectedFilesObservable = pSelectedFilesObservable;
         repository = pRepository.blockingFirst();
+        disposable = selectedFilesObservable.subscribe(selectedFiles -> this.setEnabled(isEnabled0()));
     }
 
     @Override
@@ -41,7 +45,7 @@ class AddAction extends AbstractTableAction {
 
     /**
      * Not enabled if file is already in index (i.e. has status
-     * CHANGED, ADD or DELETE
+     * MODIFY, ADD or DELETE
      */
     @Override
     protected boolean isEnabled0() {
@@ -50,8 +54,13 @@ class AddAction extends AbstractTableAction {
             return false;
         return fileChangeTypes.stream()
                 .anyMatch(row ->
-                        row.getChangeType().equals(EChangeType.CHANGED)
+                        row.getChangeType().equals(EChangeType.MODIFY)
                                 || row.getChangeType().equals(EChangeType.ADD)
                                 || row.getChangeType().equals(EChangeType.DELETE));
+    }
+
+    @Override
+    public void discard() {
+        disposable.dispose();
     }
 }
