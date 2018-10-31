@@ -59,4 +59,14 @@ class DialogProviderImpl implements IDialogProvider
         }
         return new DialogResult(pressedOk, commitMessage);
     }
+
+    @Override
+    public DialogResult showResetDialog() {
+        ResetDialog resetDialog = dialogFactory.createResetDialog();
+        boolean pressedOk = dialogDisplayer.showDialog(resetDialog, "Reset", true);
+        if (pressedOk) {
+            return new DialogResult(true, null, resetDialog.getResetType());
+        }
+        return new DialogResult(false, null);
+    }
 }

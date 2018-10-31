@@ -21,4 +21,6 @@ public interface IDialogProvider {
 
     DialogResult showCommitDialog(Observable<List<IFileChangeType>> pFilesToCommit);
 
+    DialogResult showResetDialog();
+
 }
