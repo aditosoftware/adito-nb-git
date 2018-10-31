@@ -3,16 +3,11 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.TextHighlightUtil;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.util.List;
 
@@ -23,6 +18,7 @@ import java.util.List;
  */
 class DiffDialog extends JPanel {
 
+    private final static int SCROLL_SPEED_INCREMENT = 16;
     private List<IFileDiff> diffs;
 
     @Inject
@@ -60,6 +56,7 @@ class DiffDialog extends JPanel {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, oldPanel, newPanel);
         splitPane.setResizeWeight(0.5);
         JScrollPane scrollPane = new JScrollPane(splitPane);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
         add(scrollPane, BorderLayout.CENTER);
     }
 

@@ -32,6 +32,7 @@ import java.util.function.Consumer;
  */
 class MergeConflictResolutionDialog extends JPanel implements IDiscardable {
 
+    private final static int SCROLL_SPEED_INCREMENT = 16;
     private final static String ACCEPT_CHANGE_ICON = "/de/adito/git/gui/icons/acceptChangeRight.png";
     private final static String ACCEPT_CHANGE_RIGHT_ICON = "/de/adito/git/gui/icons/acceptChange.png";
     private final static String DISCARD_CHANGE_ICON = "/de/adito/git/gui/icons/discardChange.png";
@@ -67,8 +68,11 @@ class MergeConflictResolutionDialog extends JPanel implements IDiscardable {
         forkPointPanel.add(forkPointVersionPane, BorderLayout.CENTER);
 
         JScrollPane currentBranchScrollPane = new JScrollPane(currentBranchPanel);
+        currentBranchScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
         JScrollPane forkPointScrollPane = new JScrollPane(forkPointPanel);
+        forkPointScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
         JScrollPane mergeBranchScrollPane = new JScrollPane(mergeBranchPanel);
+        mergeBranchScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
 
         // add a splitPane on top of another splitPane so there are three sub-windows for each textPane/version of the file
         JSplitPane currentToForkSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, currentBranchScrollPane, forkPointScrollPane);

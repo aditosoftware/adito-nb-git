@@ -25,6 +25,7 @@ import java.util.stream.Stream;
  * @author A.Arnold 28.09.2018
  */
 class BranchListWindow extends JPanel {
+    private final static int SCROLL_SPEED_INCREMENT = 16;
     private final IActionProvider actionProvider;
     private Observable<IRepository> repository;
     private ObservableTable localStatusTable = new ObservableTable();
@@ -63,6 +64,7 @@ class BranchListWindow extends JPanel {
         localStatusTable.addMouseListener(new _PopupStarter(localSelectionObservable, localStatusTable));
         localStatusTable.removeColumn(localStatusTable.getColumn("branchID"));
         JScrollPane localScrollPane = new JScrollPane(localStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        localScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
 
 
         //the remote Status Table
@@ -79,6 +81,7 @@ class BranchListWindow extends JPanel {
         remoteStatusTable.addMouseListener(new _PopupStarter(remoteSelectionObservable, remoteStatusTable));
         remoteStatusTable.removeColumn(remoteStatusTable.getColumn("branchID"));
         JScrollPane remoteScrollPane = new JScrollPane(remoteStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        remoteScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
 
         //the mainPanel & tabbedPanel
         this.setPreferredSize(new Dimension(800, 300));
