@@ -5,14 +5,13 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
-import de.adito.git.gui.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera 12.10.2018
@@ -35,12 +34,8 @@ class DiffAction extends AbstractTableAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         List<IFileDiff> fileDiffs;
-        List<IFileChangeType> fileChanges = selectedFilesObservable.blockingFirst();
         try {
-            List<File> files = new ArrayList<>();
-            for (IFileChangeType fileChangeType : fileChanges) {
-                files.add(fileChangeType.getFile());
-            }
+            List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
             fileDiffs = repository.diff(files);
             dialogProvider.showDiffDialog(fileDiffs);
         } catch (Exception e1) {

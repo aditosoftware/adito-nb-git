@@ -23,14 +23,13 @@ import java.awt.*;
 
 @TopComponent.Description(preferredID = "AllBranchTopComponent", persistenceType = TopComponent.PERSISTENCE_NEVER)
 @TopComponent.Registration(mode = "explorer", openAtStartup = false)
-class AllBranchTopComponent extends AbstractRepositoryTopComponent {
-    static final String MODE = "output";
+class AllBranchTopComponent extends TopComponent {
 
     private Disposable displayNameDisposable;
     private IWindowProvider windowProvider;
 
     AllBranchTopComponent() {
-        Injector injector = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
+        Injector injector = Guice.createInjector(new AditoNbmModule());
         windowProvider = injector.getInstance(IWindowProvider.class);
     }
 

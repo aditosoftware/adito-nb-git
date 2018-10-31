@@ -9,8 +9,8 @@ import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Action for adding files to staging
@@ -31,12 +31,8 @@ class AddAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<IFileChangeType> fileChangeTypes = selectedFilesObservable.blockingFirst();
         try {
-            List<File> files = new ArrayList<>();
-            for(IFileChangeType fileChangeType: fileChangeTypes){
-                files.add(fileChangeType.getFile());
-            }
+            List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
             repository.add(files);
         } catch (Exception e1) {
             e1.printStackTrace();

@@ -1,6 +1,5 @@
 package de.adito.git.gui.window;
 
-import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
@@ -20,6 +19,8 @@ import java.util.List;
  * @author A.Arnold 01.10.2018
  */
 class CommitHistoryWindow extends JPanel {
+
+    private final static int SCROLL_SPEED_INCREMENT = 16;
     private List<ICommit> commitList;
 
     /**
@@ -71,6 +72,7 @@ class CommitHistoryWindow extends JPanel {
         commitTable.getTableHeader().setReorderingAllowed(false);
 
         JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        commitScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
         commitScrollPane.setPreferredSize(new Dimension(800, 300));
         add(commitScrollPane, BorderLayout.CENTER);
         return commitTable;

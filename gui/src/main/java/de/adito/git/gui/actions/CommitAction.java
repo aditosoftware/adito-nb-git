@@ -10,8 +10,8 @@ import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Action class for showing the commit dialog and implementing the commit functionality
@@ -25,8 +25,8 @@ class CommitAction extends AbstractTableAction {
     private final Observable<List<IFileChangeType>> selectedFilesObservable;
 
     @Inject
-    CommitAction(@Assisted Observable<IRepository> pRepository, IDialogProvider pDialogProvider,
-                        @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    CommitAction(IDialogProvider pDialogProvider, @Assisted Observable<IRepository> pRepository,
+                 @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Commit");
         repository = pRepository.blockingFirst();
         dialogProvider = pDialogProvider;
@@ -39,10 +39,7 @@ class CommitAction extends AbstractTableAction {
         // if user didn't cancel the dialog
         if (dialogResult.isPressedOk()) {
             try {
-                List<File> files = new ArrayList<>();
-                for (IFileChangeType fileChangeType : selectedFilesObservable.blockingFirst()) {
-                    files.add(fileChangeType.getFile());
-                }
+                List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
                 repository.commit(dialogResult.getMessage(), files);
             } catch (Exception e1) {
                 e1.printStackTrace();

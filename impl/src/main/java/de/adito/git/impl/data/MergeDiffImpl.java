@@ -1,6 +1,7 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.*;
+import javafx.util.Pair;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,19 +71,110 @@ public class MergeDiffImpl implements IMergeDiff {
      * {@inheritDoc}
      */
     @Override
-    public void insertText(String text, int offset, boolean insert) {
-
+    public void insertText(@NotNull String text, int length, int offset, boolean insert) {
+        if (insert) {
+            _insertText(text, offset, CONFLICT_SIDE.YOURS);
+            _insertText(text, offset, CONFLICT_SIDE.THEIRS);
+        } else {
+            _deleteText(length, offset, CONFLICT_SIDE.THEIRS);
+            _deleteText(length, offset, CONFLICT_SIDE.YOURS);
+        }
     }
 
-    private int _getChunkForOffset(int offset, CONFLICT_SIDE conflictSide) {
-        int currentOffset = 0;
-        int changeChunkIndex = 0;
-        List<IFileChangeChunk> changeChunks = getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst();
-        while(offset > currentOffset){
-            currentOffset += changeChunks.get(changeChunkIndex).getALines().length();
-            changeChunkIndex++;
+    /**
+     * @param text         the text that was inserted by the user as String
+     * @param offset       the offset in comparison to the start of the document for the start of the user-input
+     * @param conflictSide Side of the conflict
+     */
+    private void _insertText(String text, int offset, CONFLICT_SIDE conflictSide) {
+        List<Pair<Integer, Integer>> affectedIndices = _getChunksForOffset(offset, text.length(), conflictSide);
+        assert affectedIndices.size() == 1;
+        IFileChangeChunk affectedChunk = getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst().get(affectedIndices.get(0).getKey());
+        // get the part before and after the insert and add the added text in the middle
+        String beforeOffsetPart = affectedChunk.getALines().substring(0, offset - affectedIndices.get(0).getValue());
+        String afterOffsetPart = affectedChunk.getALines().substring(offset - affectedIndices.get(0).getValue());
+        _updateChunkAndPropagateChanges(true, text, affectedChunk, affectedIndices.get(0).getKey(), beforeOffsetPart + text + afterOffsetPart, conflictSide);
+    }
+
+    /**
+     * @param length       the number of characters that was deleted by the user
+     * @param offset       the offset in comparison to the start of the document for the start of the user-input
+     * @param conflictSide Side of the conflict
+     */
+    private void _deleteText(int length, int offset, CONFLICT_SIDE conflictSide) {
+        List<Pair<Integer, Integer>> affectedChunksInfo = _getChunksForOffset(offset, length, conflictSide);
+        List<IFileChangeChunk> changeChunkList = getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst();
+        for (Pair<Integer, Integer> affectedChunkInfo : affectedChunksInfo) {
+            int beforeOffsetPartEnd = offset - affectedChunkInfo.getValue() > 0 ? offset - affectedChunkInfo.getValue() : 0;
+            // if this IFileChangeChunk has less lines after the offset/beginning of the chunk, set the afterOffsetPartStart to the end of the IFileChangeChunk
+            int afterOffsetPartStart = changeChunkList.get(affectedChunkInfo.getKey()).getALines().length() < (offset + length) - affectedChunkInfo.getValue()
+                    ? changeChunkList.get(affectedChunkInfo.getKey()).getALines().length()
+                    : (offset + length) - affectedChunkInfo.getValue();
+            // piece together the parts
+            String beforeRemovedPart = changeChunkList.get(affectedChunkInfo.getKey()).getALines().substring(0, beforeOffsetPartEnd);
+            String afterRemovedPart = changeChunkList.get(affectedChunkInfo.getKey()).getALines().substring(afterOffsetPartStart);
+            String replacedPart = changeChunkList.get(affectedChunkInfo.getKey()).getALines().substring(beforeOffsetPartEnd, afterOffsetPartStart);
+            _updateChunkAndPropagateChanges(false, replacedPart, changeChunkList.get(affectedChunkInfo.getKey()), affectedChunkInfo.getKey(), beforeRemovedPart + afterRemovedPart, conflictSide);
         }
-        return changeChunkIndex;
+    }
+
+    /**
+     * @param insert             if the user deleted or added text
+     * @param text               the text that was either deleted or added by the user
+     * @param affectedChunk      the IFileChangeChunk that was affected by the change
+     * @param affectedChunkIndex the index of the affected chunk in the list of IFileChangeChunks
+     * @param newALines          the new content in the A-lines as String
+     * @param conflictSide       side of the conflict
+     */
+    private void _updateChunkAndPropagateChanges(boolean insert, String text, IFileChangeChunk affectedChunk, int affectedChunkIndex, String newALines, CONFLICT_SIDE conflictSide) {
+        int additionalLines = 0;
+        // if newlines were added/removed, find out how many
+        if (text.contains("\n")) {
+            additionalLines = (int) text.chars().filter(chr -> chr == '\n').count();
+            // if the newlines were deleted the number of newlines is negative
+            if (!insert)
+                additionalLines = -additionalLines;
+            _propagateAdditionalLines(getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst(), affectedChunkIndex + 1, additionalLines);
+        }
+        getDiff(conflictSide).getFileChanges().replace(affectedChunk, new FileChangeChunkImpl(
+                new Edit(affectedChunk.getAStart(),
+                        affectedChunk.getAEnd() + additionalLines,
+                        affectedChunk.getBStart(),
+                        affectedChunk.getBEnd()),
+                newALines, affectedChunk.getBLines(),
+                affectedChunk.getChangeType()));
+    }
+
+    /**
+     * @param offset       the offset in comparison to the start of the document for the start of the user-input
+     * @param lenString    the number of characters that was deleted/added by the user
+     * @param conflictSide side of the conflict
+     * @return List of Integer pairs that contain the
+     * a) Index of the IFileChangeChunk affected by the change
+     * b) The index of the first character in the IChangeChunk, measured in characters that come before it in the document
+     */
+    private List<Pair<Integer, Integer>> _getChunksForOffset(int offset, int lenString, CONFLICT_SIDE conflictSide) {
+        List<Pair<Integer, Integer>> affectedIndices = new ArrayList<>();
+        int currentOffset = 0;
+        int nextOffset;
+        List<IFileChangeChunk> changeChunks = getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst();
+        if (changeChunks.size() > 0) {
+            for (int index = 0; index < changeChunks.size(); index++) {
+                // calculate the upper end of this IFileChangeChunk
+                nextOffset = currentOffset + changeChunks.get(index).getALines().length();
+                /*
+                    add line if
+                        a) offset is bigger than lower bound and smaller than upper bound (change is contained in this chunk)
+                        b) lower bound is bigger than offset but smaller than offset + lenString (change starts in chunk before and continues in this one)
+                  */
+                if ((offset >= currentOffset && offset < nextOffset) || (offset + lenString >= currentOffset && offset < currentOffset)) {
+                    affectedIndices.add(new Pair<>(index, currentOffset));
+                }
+                // the upper end of this IFileChangeChunk is the lower end of the next
+                currentOffset = nextOffset;
+            }
+        }
+        return affectedIndices;
     }
 
     /**

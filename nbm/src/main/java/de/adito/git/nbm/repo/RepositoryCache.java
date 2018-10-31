@@ -4,7 +4,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IRepositoryDescription;
-import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.Guice.IRepositoryProvider;
 import de.adito.git.nbm.Guice.IRepositoryProviderFactory;
@@ -32,7 +31,7 @@ public class RepositoryCache {
     private static RepositoryCache INSTANCE;
     private PropertyChangeListener pcl = new _OpenProjectListener();
     private boolean inited = false;
-    private Injector INJECTOR = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
+    private Injector INJECTOR = Guice.createInjector(new AditoNbmModule());
     private IRepositoryProviderFactory repositoryProviderFactory = INJECTOR.getInstance(IRepositoryProviderFactory.class);
     private Map<Project, IRepositoryProvider> REPOSITORYCACHE = new HashMap<>();
 
