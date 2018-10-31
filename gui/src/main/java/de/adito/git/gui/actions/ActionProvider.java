@@ -6,6 +6,7 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
+import javax.swing.*;
 import java.util.List;
 
 /**
@@ -77,6 +78,16 @@ public class ActionProvider implements IActionProvider {
     @Override
     public ShowAllCommitsAction getShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches) {
         return actionFactory.createShowAllCommitsAction(pRepository, pBranches);
+    }
+
+    @Override
+    public Action getRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return actionFactory.createRevertWorkDirAction(pRepository, pSelectedFilesObservable);
+    }
+
+    @Override
+    public Action getResetAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return null;
     }
 
 }
