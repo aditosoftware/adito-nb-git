@@ -39,5 +39,5 @@ interface IActionFactory {
 
     RevertWorkDirAction createRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
-    ResetAction createResetAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    ResetFilesAction createResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 }

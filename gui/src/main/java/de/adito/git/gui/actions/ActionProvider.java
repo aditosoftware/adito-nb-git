@@ -86,8 +86,8 @@ public class ActionProvider implements IActionProvider {
     }
 
     @Override
-    public Action getResetAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        return actionFactory.createResetAction(pRepository, pSelectedFilesObservable);
+    public Action getResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return actionFactory.createResetFilesAction(pRepository, pSelectedFilesObservable);
     }
 
 }

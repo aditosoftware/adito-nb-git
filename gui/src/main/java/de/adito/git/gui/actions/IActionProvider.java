@@ -39,6 +39,6 @@ public interface IActionProvider {
 
     Action getRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
-    Action getResetAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    Action getResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
 }
