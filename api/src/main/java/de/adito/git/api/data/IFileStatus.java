@@ -62,7 +62,7 @@ public interface IFileStatus {
      * @return list of files that are not ignored, and not in the index.
      *          (e.g. what you get if you create a new file without adding it to the index)
      */
-    Set<String> getUntracked();
+    Map<String, EChangeType> getUntracked();
 
     /**
      *
