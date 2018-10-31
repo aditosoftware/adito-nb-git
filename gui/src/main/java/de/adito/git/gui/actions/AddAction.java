@@ -50,8 +50,8 @@ class AddAction extends AbstractTableAction {
             return false;
         return fileChangeTypes.stream()
                 .anyMatch(row ->
-                        row.getChangeType().equals(EChangeType.CHANGED)
-                                || row.getChangeType().equals(EChangeType.ADD)
-                                || row.getChangeType().equals(EChangeType.DELETE));
+                        EChangeType.CHANGED.equals(row.getChangeType())
+                                || EChangeType.ADD.equals(row.getChangeType())
+                                || EChangeType.DELETE.equals(row.getChangeType()));
     }
 }
