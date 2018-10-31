@@ -7,7 +7,7 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.actions.*;
+import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
@@ -71,9 +71,13 @@ class StatusWindow extends JPanel implements IDiscardable {
             popupMenu = new JPopupMenu();
             popupMenu.add(actionProvider.getCommitAction(repository, selectionObservable));
             popupMenu.add(actionProvider.getAddAction(repository, selectionObservable));
-            popupMenu.add(actionProvider.getDiffAction(repository, selectionObservable));
             popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
             popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
+            popupMenu.addSeparator();
+            popupMenu.add(actionProvider.getDiffAction(repository, selectionObservable));
+            popupMenu.addSeparator();
+            popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
+            popupMenu.add(actionProvider.getResetAction(repository, selectionObservable));
         });
 
         statusTable.addMouseListener(new _PopupMouseListener());
