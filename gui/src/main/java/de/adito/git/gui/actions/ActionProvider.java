@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author m.kaspera 26.10.2018
  */
-public class ActionProvider implements IActionProvider {
+class ActionProvider implements IActionProvider {
 
     private final IActionFactory actionFactory;
 

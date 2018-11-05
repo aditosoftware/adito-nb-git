@@ -13,13 +13,15 @@ import java.util.List;
  */
 public interface IDialogProvider {
 
-    DialogResult createMergeConflictDialog(Observable<IRepository> pRepository, List<IMergeDiff> pMergeConflictDiffs);
+    DialogResult showMergeConflictDialog(Observable<IRepository> pRepository, List<IMergeDiff> pMergeConflictDiffs);
 
-    DialogResult createMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
+    DialogResult showMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
 
     DialogResult showDiffDialog(List<IFileDiff> fileDiffs);
 
     DialogResult showCommitDialog(Observable<List<IFileChangeType>> pFilesToCommit);
+
+    DialogResult showNewBranchDialog(Observable<IRepository> pRepository);
 
     DialogResult showResetDialog();
 

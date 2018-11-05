@@ -3,13 +3,12 @@ package de.adito.git.gui.guice;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
-import de.adito.git.gui.ITopComponentDisplayer;
-import de.adito.git.gui.SwingComponentDisplayer;
 import de.adito.git.gui.actions.ActionModule;
 import de.adito.git.gui.dialogs.DialogModule;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.window.WindowModule;
+import de.adito.git.impl.IFileSystemObserverProvider;
 import de.adito.git.impl.RepositoryImpl;
 
 /**
@@ -17,11 +16,11 @@ import de.adito.git.impl.RepositoryImpl;
  *
  * @author m.kaspera 21.09.2018
  */
-@SuppressWarnings( "deprecation" )
+@SuppressWarnings("deprecation")
 public class AditoGitModule extends AbstractModule {
 
     @Override
-    protected void configure (){
+    protected void configure() {
         // Dialog-Modul
         install(new DialogModule());
         install(new ActionModule());
@@ -31,6 +30,6 @@ public class AditoGitModule extends AbstractModule {
         install(new FactoryModuleBuilder().build(IRepositoryFactory.class));
         bind(IRepositoryFactory.class).toProvider(FactoryProvider.newFactory(IRepositoryFactory.class, RepositoryImpl.class));
         bind(IIconLoader.class).to(SwingIconLoaderImpl.class);
-        bind(ITopComponentDisplayer.class).to(SwingComponentDisplayer.class);
+        bind(IFileSystemObserverProvider.class).to(FileSystemObserverProviderImpl.class);
     }
 }

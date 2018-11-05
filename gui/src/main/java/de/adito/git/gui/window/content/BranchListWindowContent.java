@@ -1,4 +1,4 @@
-package de.adito.git.gui.window;
+package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  *
  * @author A.Arnold 28.09.2018
  */
-class BranchListWindow extends JPanel {
+class BranchListWindowContent extends JPanel {
     private final static int SCROLL_SPEED_INCREMENT = 16;
     private final IActionProvider actionProvider;
     private Observable<IRepository> repository;
@@ -32,12 +32,12 @@ class BranchListWindow extends JPanel {
     private ObservableTable remoteStatusTable = new ObservableTable();
 
     /**
-     * BranchListWindow gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
+     * BranchListWindowContent gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
      *
      * @param pRepository the repository for checking all branches
      */
     @Inject
-    BranchListWindow(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
+    BranchListWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
         actionProvider = pActionProvider;
         repository = pRepository;
         _initGui();

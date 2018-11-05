@@ -5,7 +5,9 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.gui.IDiscardable;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;

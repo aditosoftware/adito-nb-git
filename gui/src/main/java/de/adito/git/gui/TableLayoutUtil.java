@@ -7,18 +7,18 @@ import javax.swing.*;
 
 /**
  * This Util class is for easy use the Tablelayout
+ *
  * @author Thomas Tasior 17.07.2006, 14:07:52
  */
-public class TableLayoutUtil
-{
+public class TableLayoutUtil {
     private JComponent container;
 
     /**
      * Initialise the components
+     *
      * @param pContainer The Container for the JComponents to add
      */
-    TableLayoutUtil(JComponent pContainer)
-    {
+    public TableLayoutUtil(JComponent pContainer) {
         container = pContainer;
     }
 
@@ -29,8 +29,7 @@ public class TableLayoutUtil
      * @param pRow       The row where the component has to add.
      * @param pComponent The component to add.
      */
-    public final void add(int pCol, int pRow, JComponent pComponent)
-    {
+    public final void add(int pCol, int pRow, JComponent pComponent) {
         StringBuffer sb = new StringBuffer();
         sb.append(pCol).append(", ").append(pRow);
         container.add(pComponent, sb.toString());
@@ -44,8 +43,7 @@ public class TableLayoutUtil
      * @param pAlignment Information for horizontal and vertical alignment.
      * @param pComponent The Component to add.
      */
-    public final void add(int pCol, int pRow, String pAlignment, JComponent pComponent)
-    {
+    public final void add(int pCol, int pRow, String pAlignment, JComponent pComponent) {
         container.add(pComponent, String.valueOf(pCol) + ", " + pRow + ", " + pAlignment);
     }
 
@@ -59,8 +57,7 @@ public class TableLayoutUtil
      * @param pRow_2     The column till the component claim the area.
      * @param pComponent The Component to add.
      */
-    public final void add(int pCol, int pRow, int pCol_2, int pRow_2, JComponent pComponent)
-    {
+    public final void add(int pCol, int pRow, int pCol_2, int pRow_2, JComponent pComponent) {
         StringBuffer sb = new StringBuffer();
         sb.append(pCol).append(", ").append(pRow).append(", ");
         sb.append(pCol_2).append(", ").append(pRow_2);
@@ -81,8 +78,7 @@ public class TableLayoutUtil
      * @param pAlignment Alignment for vertical and horizontal claim. (siehe TLUConstants)
      */
     public final void add(int pCol, int pRow, int pCol_2, int pRow_2, String pAlignment,
-                          JComponent pComponent)
-    {
+                          JComponent pComponent) {
         StringBuffer sb = new StringBuffer();
         sb.append(pCol).append(", ").append(pRow).append(", ");
         sb.append(pCol_2).append(", ").append(pRow_2).append(", ").append(pAlignment);
@@ -96,9 +92,8 @@ public class TableLayoutUtil
      * @return TableLayout of the component or pDefault, if there is no TableLayout
      */
     @NotNull
-    public final TableLayout getLayout(TableLayout pDefault)
-    {
-        if(!(container.getLayout() instanceof TableLayout))
+    public final TableLayout getLayout(TableLayout pDefault) {
+        if (!(container.getLayout() instanceof TableLayout))
             return pDefault;
 
         return (TableLayout) container.getLayout();

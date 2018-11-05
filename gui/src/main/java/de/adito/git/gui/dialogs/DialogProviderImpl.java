@@ -7,7 +7,6 @@ import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.IDialogDisplayer;
 import de.adito.git.gui.guice.IRepositoryFactory;
 import io.reactivex.Observable;
 
@@ -32,13 +31,13 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult createMergeConflictDialog(Observable<IRepository> pRepository, List<IMergeDiff> pMergeConflictDiffs) {
+    public DialogResult showMergeConflictDialog(Observable<IRepository> pRepository, List<IMergeDiff> pMergeConflictDiffs) {
         boolean pressedOk = dialogDisplayer.showDialog(dialogFactory.create(pRepository, pMergeConflictDiffs), "Merge Conflicts", true);
         return new DialogResult(pressedOk, null);
     }
 
     @Override
-    public DialogResult createMergeConflictResolutionDialog(IMergeDiff pMergeDiff) {
+    public DialogResult showMergeConflictResolutionDialog(IMergeDiff pMergeDiff) {
         boolean pressedOk = dialogDisplayer.showDialog(dialogFactory.create(pMergeDiff), "Conflict resolution for file " + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW), true);
         return new DialogResult(pressedOk, null);
     }
@@ -61,12 +60,9 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult showResetDialog() {
-        ResetDialog resetDialog = dialogFactory.createResetDialog();
-        boolean pressedOk = dialogDisplayer.showDialog(resetDialog, "Reset", true);
-        if (pressedOk) {
-            return new DialogResult(true, null, resetDialog.getResetType());
-        }
-        return new DialogResult(false, null);
+    public DialogResult showNewBranchDialog(Observable<IRepository> pRepository) {
+        NewBranchDialog dialog = dialogFactory.createNewBranchDialog(pRepository, dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton);
+        boolean pressedOk = dialogDisplayer.showDialog(dialog, "New Branch", false);
+        return new DialogResult(pressedOk, dialog.getBranchName());
     }
 }

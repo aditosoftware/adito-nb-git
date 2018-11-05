@@ -18,9 +18,11 @@ interface IDialogFactory {
 
     MergeConflictResolutionDialog create(IMergeDiff pMergeDiff);
 
-    CommitDialog createCommitDialog(@Assisted("enable")Runnable pEnableOk, @Assisted("disable")Runnable pDisableOk, Observable<List<IFileChangeType>> pFilesToCommit);
+    CommitDialog createCommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk, Observable<List<IFileChangeType>> pFilesToCommit);
 
     DiffDialog createDiffDialog(List<IFileDiff> pDiffs);
+
+    NewBranchDialog createNewBranchDialog(Observable<IRepository> pRepository, @Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk);
 
     ResetDialog createResetDialog();
 

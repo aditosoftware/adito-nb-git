@@ -34,7 +34,7 @@ class MergeAction extends AbstractTableAction {
         try {
             List<IMergeDiff> mergeConflictDiffs = repositoryObservable.blockingFirst().merge(currentBranch, targetBranch);
             if(mergeConflictDiffs.size() > 0){
-                dialogProvider.createMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
+                dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
             }
         } catch (Exception e1) {
             e1.printStackTrace();

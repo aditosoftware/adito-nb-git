@@ -24,7 +24,7 @@ public class FileStatusCellRenderer extends DefaultTableCellRenderer {
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.NEW)) {
             label.setForeground(Color.GREEN);
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.MODIFY)) {
-            label.setForeground(Color.BLUE);
+            label.setForeground(Color.WHITE);
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.CHANGED)) {
             label.setForeground(Color.YELLOW);
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.DELETE)) {

@@ -21,7 +21,7 @@ class CheckoutAction extends AbstractAction {
 
     /**
      * @param pRepository The repository where the branch is
-     * @param pBranchList the Branchlist of selected branches
+     * @param pBranchList the branch list of selected branches
      */
     @Inject
     CheckoutAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranchList) {

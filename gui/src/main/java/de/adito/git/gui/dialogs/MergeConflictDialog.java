@@ -77,7 +77,7 @@ class MergeConflictDialog extends JPanel {
     private void _doManualResolve(Observable<Optional<IMergeDiff>> pSelectedMergeDiffObservable) {
         Optional<IMergeDiff> mergeDiffOptional = pSelectedMergeDiffObservable.blockingFirst();
         mergeDiffOptional.ifPresent(iMergeDiff -> {
-            if (dialogFactory.createMergeConflictResolutionDialog(iMergeDiff).isPressedOk())
+            if (dialogFactory.showMergeConflictResolutionDialog(iMergeDiff).isPressedOk())
                 _acceptManualVersion(iMergeDiff);
         });
     }

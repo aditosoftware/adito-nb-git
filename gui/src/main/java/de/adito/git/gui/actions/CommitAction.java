@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Action class for showing the commit dialog and implementing the commit functionality
+ * Action class for showing the commit dialogs and implementing the commit functionality
  *
  * @author m.kaspera 11.10.2018
  */
@@ -36,7 +36,7 @@ class CommitAction extends AbstractTableAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         DialogResult dialogResult = dialogProvider.showCommitDialog(selectedFilesObservable);
-        // if user didn't cancel the dialog
+        // if user didn't cancel the dialogs
         if (dialogResult.isPressedOk()) {
             try {
                 List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());

@@ -6,6 +6,7 @@ import com.google.inject.Module;
 import com.google.inject.spi.Elements;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,7 +33,6 @@ public class GuiceUtil {
     }
 
     /**
-     *
      * @param toFilter Module whose bindings should be filtered
      * @param toRemove the bindings that should be removed/filtered from the module
      * @return a new Module all the bindings/factories/stuff from the passed Module, minus the filtered bindings
@@ -45,6 +45,16 @@ public class GuiceUtil {
             else
                 return true;
         }).collect(Collectors.toList()));
+    }
+
+    /**
+     * @param toFilter Module whose bindings should be filtered
+     * @param toRemove the bindings that should be removed/filtered from the module
+     * @return a new Module all the bindings/factories/stuff from the passed Module, minus the filtered bindings
+     */
+    @NotNull
+    public static Module filterModule(@NotNull Module toFilter, @NotNull Key<?>... toRemove) {
+        return filterModule(toFilter, Arrays.asList(toRemove));
     }
 
 }

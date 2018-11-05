@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.FileStatusCellRenderer;
-import de.adito.git.gui.IDialogDisplayer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
@@ -30,27 +29,27 @@ class CommitDialog extends JPanel {
     private JEditorPane messagePane;
 
     @Inject
-    public CommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOK, @Assisted Observable<List<IFileChangeType>> pFilesToCommit){
+    public CommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOK, @Assisted Observable<List<IFileChangeType>> pFilesToCommit) {
         enableOk = pEnableOk;
         disableOK = pDisableOK;
         filesToCommit = pFilesToCommit;
         _initGui();
     }
 
-    String getMessageText(){
+    String getMessageText() {
         return messagePane.getText();
     }
 
     /**
      * initialise GUI elements
      */
-    private void _initGui(){
+    private void _initGui() {
         setLayout(new BorderLayout());
         JTable fileStatusTable = new JTable(new _CommitTableModel(filesToCommit));
         // Hide the status column from view, but leave the data (retrieved via table.getModel.getValueAt)
         fileStatusTable.getColumnModel().removeColumn(fileStatusTable.getColumn(StatusTableModel.columnNames[2]));
         // Set Renderer for cells so they are colored according to their EChangeType
-        for(int index = 0; index < fileStatusTable.getColumnModel().getColumnCount(); index++) {
+        for (int index = 0; index < fileStatusTable.getColumnModel().getColumnCount(); index++) {
             fileStatusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
         }
         // Size for the Table with the list of files to commit
@@ -74,7 +73,7 @@ class CommitDialog extends JPanel {
         private Disposable disposable;
         private List<IFileChangeType> fileList;
 
-        _CommitTableModel(Observable<List<IFileChangeType>> pFilesToCommit){
+        _CommitTableModel(Observable<List<IFileChangeType>> pFilesToCommit) {
             disposable = pFilesToCommit.subscribe(fileToCommit -> fileList = fileToCommit);
         }
 
@@ -95,11 +94,11 @@ class CommitDialog extends JPanel {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if(columnIndex == 0) {
+            if (columnIndex == 0) {
                 return fileList.get(rowIndex).getFile().getName();
-            } else if(columnIndex == 1){
+            } else if (columnIndex == 1) {
                 return fileList.get(rowIndex).getFile().getPath();
-            } else if(columnIndex == 2){
+            } else if (columnIndex == 2) {
                 return fileList.get(rowIndex).getChangeType();
             }
             return null;
@@ -118,7 +117,7 @@ class CommitDialog extends JPanel {
 
         @Override
         public void insertUpdate(DocumentEvent e) {
-            if(e.getDocument().getLength() == 0){
+            if (e.getDocument().getLength() == 0) {
                 disableOK.run();
             } else {
                 enableOk.run();
@@ -127,7 +126,7 @@ class CommitDialog extends JPanel {
 
         @Override
         public void removeUpdate(DocumentEvent e) {
-            if(e.getDocument().getLength() == 0){
+            if (e.getDocument().getLength() == 0) {
                 disableOK.run();
             } else {
                 enableOk.run();
@@ -136,7 +135,7 @@ class CommitDialog extends JPanel {
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-            if(e.getDocument().getLength() == 0){
+            if (e.getDocument().getLength() == 0) {
                 disableOK.run();
             } else {
                 enableOk.run();

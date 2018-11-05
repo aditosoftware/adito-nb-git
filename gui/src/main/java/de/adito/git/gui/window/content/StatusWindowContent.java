@@ -1,4 +1,4 @@
-package de.adito.git.gui.window;
+package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  *
  * @author m.kaspera 27.09.2018
  */
-class StatusWindow extends JPanel implements IDiscardable {
+class StatusWindowContent extends JPanel implements IDiscardable {
 
     private final Observable<IFileStatus> status;
     private final Observable<IRepository> repository;
@@ -39,7 +39,7 @@ class StatusWindow extends JPanel implements IDiscardable {
     private JPopupMenu popupMenu;
 
     @Inject
-    StatusWindow(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
+    StatusWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
         repository = pRepository;
         actionProvider = pActionProvider;
         status = repository

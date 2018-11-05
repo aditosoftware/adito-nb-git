@@ -2,25 +2,23 @@ package de.adito.git.gui.window;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
 import io.reactivex.Observable;
 
 import java.io.File;
-import java.util.List;
 
 /**
- * @author m.kaspera 29.10.2018
+ * An interface provider class for the windows
+ *
+ * @author a.arnold, 31.10.2018
  */
 public interface IWindowProvider {
 
-    StatusWindow getStatusWindow(Observable<IRepository> pRepository);
+    void showBranchListWindow(Observable<IRepository> pRepository);
 
-    CommitHistoryWindow getCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) throws Exception;
+    void showCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch);
 
-    CommitHistoryWindow getCommitHistoryWindow(Observable<IRepository> pRepository, File pFile) throws Exception;
+    void showCommitHistoryWindow(Observable<IRepository> pRepository, File pFile);
 
-    CommitHistoryWindow getCommitHistoryWindow(Observable<IRepository> pRepository, List<ICommit> pCommits);
-
-    BranchListWindow getBranchListWindow(Observable<IRepository> pRepository);
+    void showStatusWindow(Observable<IRepository> pRepository);
 
 }
