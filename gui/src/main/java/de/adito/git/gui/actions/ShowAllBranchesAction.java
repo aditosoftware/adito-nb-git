@@ -1,6 +1,7 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.window.IWindowProvider;
@@ -14,6 +15,7 @@ import java.awt.event.ActionEvent;
  *
  * @author A.Arnold 16.10.2018
  */
+@Singleton
 class ShowAllBranchesAction extends AbstractAction {
     private Observable<IRepository> repository;
     private IWindowProvider windowProvider;

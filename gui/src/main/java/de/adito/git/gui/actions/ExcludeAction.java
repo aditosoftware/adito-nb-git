@@ -1,6 +1,7 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author m.kaspera 11.10.2018
  */
+@Singleton
 class ExcludeAction extends AbstractTableAction {
 
     private IRepository repository;
@@ -39,13 +41,12 @@ class ExcludeAction extends AbstractTableAction {
     }
 
     @Override
-    protected boolean isEnabled0() {
-        List<IFileChangeType> fileChangeTypes = selectedFilesObservable.blockingFirst();
-        if (fileChangeTypes == null)
-            return false;
-        return fileChangeTypes.stream().allMatch(row ->
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return selectedFilesObservable.map(selectedFiles -> selectedFiles
+                .stream()
+                .allMatch(row ->
                 row.getChangeType().equals(EChangeType.NEW)
                         || row.getChangeType().equals(EChangeType.MODIFY)
-                        || row.getChangeType().equals(EChangeType.MISSING));
+                        || row.getChangeType().equals(EChangeType.MISSING)));
     }
 }

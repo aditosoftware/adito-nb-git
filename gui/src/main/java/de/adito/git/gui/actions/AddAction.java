@@ -1,13 +1,12 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.IDiscardable;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -19,25 +18,24 @@ import java.util.stream.Collectors;
  *
  * @author m.kaspera 11.10.2018
  */
-class AddAction extends AbstractTableAction implements IDiscardable {
+@Singleton
+class AddAction extends AbstractTableAction {
 
-    private final Disposable disposable;
-    private IRepository repository;
+    private Observable<IRepository> repository;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
     @Inject
     AddAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Add");
         selectedFilesObservable = pSelectedFilesObservable;
-        repository = pRepository.blockingFirst();
-        disposable = selectedFilesObservable.subscribe(selectedFiles -> this.setEnabled(isEnabled0()));
+        repository = pRepository;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
             List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
-            repository.add(files);
+            repository.blockingFirst().add(files);
         } catch (Exception e1) {
             e1.printStackTrace();
         }
@@ -48,19 +46,11 @@ class AddAction extends AbstractTableAction implements IDiscardable {
      * MODIFY, ADD or DELETE
      */
     @Override
-    protected boolean isEnabled0() {
-        List<IFileChangeType> fileChangeTypes = selectedFilesObservable.blockingFirst();
-        if (fileChangeTypes == null)
-            return false;
-        return fileChangeTypes.stream()
-                .anyMatch(row ->
-                        EChangeType.CHANGED.equals(row.getChangeType())
-                                || EChangeType.ADD.equals(row.getChangeType())
-                                || EChangeType.DELETE.equals(row.getChangeType()));
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return selectedFilesObservable.map(selectedFiles -> selectedFiles.stream().anyMatch(row ->
+                EChangeType.CHANGED.equals(row.getChangeType())
+                        || EChangeType.ADD.equals(row.getChangeType())
+                        || EChangeType.DELETE.equals(row.getChangeType())));
     }
 
-    @Override
-    public void discard() {
-        disposable.dispose();
-    }
 }

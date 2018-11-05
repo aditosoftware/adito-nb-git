@@ -37,9 +37,9 @@ class RevertWorkDirAction extends AbstractTableAction {
     }
 
     @Override
-    protected boolean isEnabled0() {
-        return selectedFilesObservable.blockingFirst()
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return selectedFilesObservable.map(selectedFiles -> selectedFiles
                 .stream()
-                .noneMatch(fileChangeType -> fileChangeType.getChangeType().equals(EChangeType.SAME));
+                .noneMatch(fileChangeType -> fileChangeType.getChangeType().equals(EChangeType.SAME)));
     }
 }

@@ -1,6 +1,7 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
@@ -13,7 +14,7 @@ import java.awt.event.ActionEvent;
  *
  * @author A.Arnold 11.10.2018
  */
-
+@Singleton
 class PullAction extends AbstractAction {
     private String targetId;
     private Observable<IRepository> repository;

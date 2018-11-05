@@ -1,11 +1,13 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.List;
 /**
  * @author m.kaspera 24.10.2018
  */
+@Singleton
 class MergeAction extends AbstractTableAction {
 
     private final Observable<IRepository> repositoryObservable;
@@ -42,8 +45,7 @@ class MergeAction extends AbstractTableAction {
     }
 
     @Override
-    protected boolean isEnabled0() {
-        return false;
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return BehaviorSubject.createDefault(false);
     }
-
 }

@@ -1,6 +1,7 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
@@ -15,7 +16,8 @@ import java.util.List;
  *
  * @author A.Arnold 18.10.2018
  */
-class CheckoutAction extends AbstractAction {
+@Singleton
+class CheckoutAction extends AbstractTableAction {
     private Observable<IRepository> repository;
     private Observable<List<IBranch>> branchList;
 
@@ -25,6 +27,7 @@ class CheckoutAction extends AbstractAction {
      */
     @Inject
     CheckoutAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranchList) {
+        super("Checkout");
         branchList = pBranchList;
         putValue(Action.NAME, "Checkout");
         putValue(Action.SHORT_DESCRIPTION, "Command to change the branch to another one");
@@ -50,5 +53,10 @@ class CheckoutAction extends AbstractAction {
     @Override
     public boolean isEnabled() {
         return branchList.blockingFirst().size() == 1;
+    }
+
+    @Override
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return branchList.map(branches -> branches.size() == 1);
     }
 }

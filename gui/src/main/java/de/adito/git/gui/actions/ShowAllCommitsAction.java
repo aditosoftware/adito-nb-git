@@ -1,6 +1,7 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
@@ -16,7 +17,8 @@ import java.util.List;
  *
  * @author A.Arnold 04.10.2018
  */
-class ShowAllCommitsAction extends AbstractAction {
+@Singleton
+class ShowAllCommitsAction extends AbstractTableAction {
 
     private final IWindowProvider windowProvider;
     private final Observable<List<IBranch>> branches;
@@ -24,6 +26,7 @@ class ShowAllCommitsAction extends AbstractAction {
 
     @Inject
     ShowAllCommitsAction(IWindowProvider pWindowProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranches) {
+        super("Show Commits");
         windowProvider = pWindowProvider;
         putValue(Action.NAME, "Show Commits");
         putValue(Action.SHORT_DESCRIPTION, "Get all commits of this Branch or file");
@@ -39,4 +42,8 @@ class ShowAllCommitsAction extends AbstractAction {
         branches.blockingFirst().forEach(pBranch -> windowProvider.showCommitHistoryWindow(repository, pBranch));
     }
 
+    @Override
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return branches.map(branchList -> branchList.size() > 0);
+    }
 }

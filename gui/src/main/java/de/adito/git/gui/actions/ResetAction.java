@@ -5,11 +5,9 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
 
 import javax.inject.Singleton;
 import java.awt.event.ActionEvent;
@@ -19,13 +17,12 @@ import java.util.List;
  * @author m.kaspera 05.11.2018
  */
 @Singleton
-class ResetAction extends AbstractTableAction implements IDiscardable {
+class ResetAction extends AbstractTableAction {
 
 
     private final IDialogProvider dialogProvider;
     private final Observable<IRepository> repository;
     private final Observable<List<ICommit>> selectedCommitObservable;
-    private final Disposable disposable;
 
     @Inject
     ResetAction(IDialogProvider pDialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<ICommit>> pSelectedCommitObservable) {
@@ -33,7 +30,6 @@ class ResetAction extends AbstractTableAction implements IDiscardable {
         dialogProvider = pDialogProvider;
         repository = pRepository;
         selectedCommitObservable = pSelectedCommitObservable;
-        disposable = selectedCommitObservable.subscribe(pSelectedCommits -> setEnabled(pSelectedCommits.size() == 1));
     }
 
     @Override
@@ -52,12 +48,8 @@ class ResetAction extends AbstractTableAction implements IDiscardable {
     }
 
     @Override
-    protected boolean isEnabled0() {
-        return selectedCommitObservable.blockingFirst().size() == 1;
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return selectedCommitObservable.map(selectedCommits -> selectedCommits.size() == 1);
     }
 
-    @Override
-    public void discard() {
-        disposable.dispose();
-    }
 }

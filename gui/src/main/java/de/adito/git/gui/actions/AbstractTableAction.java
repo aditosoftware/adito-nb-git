@@ -1,5 +1,9 @@
 package de.adito.git.gui.actions;
 
+import de.adito.git.gui.IDiscardable;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+
 import javax.swing.*;
 
 /**
@@ -7,7 +11,9 @@ import javax.swing.*;
  *
  * @author m.kaspera 04.10.2018
  */
-abstract class AbstractTableAction extends AbstractAction {
+abstract class AbstractTableAction extends AbstractAction implements IDiscardable {
+
+    private final Disposable disposable;
 
     /**
      *
@@ -15,13 +21,13 @@ abstract class AbstractTableAction extends AbstractAction {
      */
     AbstractTableAction(String name){
         super(name);
+        disposable = getIsEnabledObservable().subscribe(this::setEnabled);
     }
+
+    protected abstract Observable<Boolean> getIsEnabledObservable();
 
     @Override
-    public final boolean isEnabled() {
-        return isEnabled0();
+    public void discard() {
+        disposable.dispose();
     }
-
-    protected abstract boolean isEnabled0();
-
 }

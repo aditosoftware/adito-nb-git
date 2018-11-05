@@ -1,6 +1,7 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
  *
  * @author m.kaspera 11.10.2018
  */
+@Singleton
 class CommitAction extends AbstractTableAction {
 
     private IRepository repository;
@@ -48,7 +50,7 @@ class CommitAction extends AbstractTableAction {
     }
 
     @Override
-    protected boolean isEnabled0() {
-        return true;
+    protected Observable<Boolean> getIsEnabledObservable() {
+        return selectedFilesObservable.map(selectedFiles -> true);
     }
 }

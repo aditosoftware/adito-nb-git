@@ -1,6 +1,7 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
@@ -13,6 +14,7 @@ import java.util.List;
 /**
  * @author m.kaspera 26.10.2018
  */
+@Singleton
 class ActionProvider implements IActionProvider {
 
     private final IActionFactory actionFactory;
@@ -22,6 +24,7 @@ class ActionProvider implements IActionProvider {
         this.actionFactory = actionFactory;
     }
 
+    @Override
     public MergeAction getMergeAction(Observable<IRepository> pRepository, String pCurrentBranch, String pTargetBranch) {
         return actionFactory.createMergeAction(pRepository, pCurrentBranch, pTargetBranch);
     }
