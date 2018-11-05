@@ -83,10 +83,10 @@ public class FileStatusImpl implements IFileStatus {
      * {@inheritDoc}
      * @return
      */
-    public Map<String, EChangeType> getUntracked() {
-        Map<String, EChangeType> untrackedMap = new HashMap<>();
+    public List<IFileChangeType> getUntracked() {
+        HashMap<String, EChangeType> untrackedMap = new HashMap<>();
         status.getUntracked().forEach(fileString -> untrackedMap.put(fileString, EChangeType.NEW));
-        return untrackedMap;
+        return _toFileChangeTypes(untrackedMap);
     }
 
     /**
