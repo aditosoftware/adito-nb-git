@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Singleton
 class CommitAction extends AbstractTableAction {
 
-    private IRepository repository;
+    private Observable<IRepository> repository;
     private IDialogProvider dialogProvider;
     private final Observable<List<IFileChangeType>> selectedFilesObservable;
 
@@ -30,7 +30,7 @@ class CommitAction extends AbstractTableAction {
     CommitAction(IDialogProvider pDialogProvider, @Assisted Observable<IRepository> pRepository,
                  @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Commit");
-        repository = pRepository.blockingFirst();
+        repository = pRepository;
         dialogProvider = pDialogProvider;
         selectedFilesObservable = pSelectedFilesObservable;
     }
@@ -42,7 +42,7 @@ class CommitAction extends AbstractTableAction {
         if (dialogResult.isPressedOk()) {
             try {
                 List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
-                repository.commit(dialogResult.getMessage(), files);
+                repository.blockingFirst().commit(dialogResult.getMessage(), files);
             } catch (Exception e1) {
                 e1.printStackTrace();
             }

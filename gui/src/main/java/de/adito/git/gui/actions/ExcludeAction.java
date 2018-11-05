@@ -20,13 +20,13 @@ import java.util.stream.Collectors;
 @Singleton
 class ExcludeAction extends AbstractTableAction {
 
-    private IRepository repository;
+    private Observable<IRepository> repository;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
     @Inject
     ExcludeAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Exclude");
-        repository = pRepository.blockingFirst();
+        repository = pRepository;
         selectedFilesObservable = pSelectedFilesObservable;
     }
 
@@ -34,7 +34,7 @@ class ExcludeAction extends AbstractTableAction {
     public void actionPerformed(ActionEvent e) {
         try {
             List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
-            repository.exclude(files);
+            repository.blockingFirst().exclude(files);
         } catch (IOException e1) {
             e1.printStackTrace();
         }

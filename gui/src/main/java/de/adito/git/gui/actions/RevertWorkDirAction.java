@@ -16,21 +16,21 @@ import java.util.stream.Collectors;
  */
 class RevertWorkDirAction extends AbstractTableAction {
 
-    private final IRepository repository;
+    private final Observable<IRepository> repository;
     private final Observable<List<IFileChangeType>> selectedFilesObservable;
 
     @Inject
     RevertWorkDirAction(@Assisted Observable<IRepository> pRepository,
                         @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Revert");
-        repository = pRepository.blockingFirst();
+        repository = pRepository;
         selectedFilesObservable = pSelectedFilesObservable;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
-            repository.revertWorkDir(selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
+            repository.blockingFirst().revertWorkDir(selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
         } catch (Exception e1) {
             e1.printStackTrace();
         }

@@ -20,21 +20,21 @@ import java.util.stream.Collectors;
 @Singleton
 class IgnoreAction extends AbstractTableAction {
 
-    private IRepository repository;
+    private Observable<IRepository> repository;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
     @Inject
     IgnoreAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         super("Ignore");
         selectedFilesObservable = pSelectedFilesObservable;
-        repository = pRepository.blockingFirst();
+        repository = pRepository;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
         try {
-            repository.ignore(files);
+            repository.blockingFirst().ignore(files);
         } catch (IOException e1) {
             e1.printStackTrace();
         }

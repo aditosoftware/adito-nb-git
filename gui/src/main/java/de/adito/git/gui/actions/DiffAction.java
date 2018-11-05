@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Singleton
 class DiffAction extends AbstractTableAction {
 
-    private IRepository repository;
+    private Observable<IRepository> repository;
     private IDialogProvider dialogProvider;
     private Observable<List<IFileChangeType>> selectedFilesObservable;
 
@@ -28,7 +28,7 @@ class DiffAction extends AbstractTableAction {
     DiffAction(@Assisted Observable<IRepository> pRepository, IDialogProvider pDialogProvider,
                       @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable){
         super("Show Diff");
-        repository = pRepository.blockingFirst();
+        repository = pRepository;
         dialogProvider = pDialogProvider;
         selectedFilesObservable = pSelectedFilesObservable;
     }
@@ -38,7 +38,7 @@ class DiffAction extends AbstractTableAction {
         List<IFileDiff> fileDiffs;
         try {
             List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
-            fileDiffs = repository.diff(files);
+            fileDiffs = repository.blockingFirst().diff(files);
             dialogProvider.showDiffDialog(fileDiffs);
         } catch (Exception e1) {
             e1.printStackTrace();
