@@ -42,7 +42,7 @@ class MergeConflictDialog extends JPanel {
         mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
         Observable<IFileStatus> obs = pRepository.flatMap(IRepository::getStatus);
         mergeDiffListObservable = Observable.combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
-                .filter(pMergeDiff -> true/*pMergeDiff -> pStatus.getConflicting().contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW))*/)
+                .filter(pMergeDiff -> pStatus.getConflicting().contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
                 .collect(Collectors.toList()));
         selectedMergeDiffObservable = Observable.combineLatest(mergeConflictTable.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
             // if either the list or selection is null, more than one element is selected or the list has 0 elements
@@ -86,7 +86,7 @@ class MergeConflictDialog extends JPanel {
         Optional<IMergeDiff> mergeDiffOptional = pSelectedMergeDiff.blockingFirst();
         if (mergeDiffOptional.isPresent()) {
             IMergeDiff selectedMergeDiff = mergeDiffOptional.get();
-            File selectedFile = new File(new File(repository.blockingFirst().getDirectory()).getParent(), selectedMergeDiff.getDiff(conflictSide).getFilePath(EChangeSide.NEW));
+            File selectedFile = new File(repository.blockingFirst().getTopLevelDirectory(), selectedMergeDiff.getDiff(conflictSide).getFilePath(EChangeSide.NEW));
             StringBuilder fileContents = new StringBuilder();
             for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst()) {
                 // BLines is always the "new" version of the file, in comparison to the fork point
@@ -97,7 +97,7 @@ class MergeConflictDialog extends JPanel {
     }
 
     private void _acceptManualVersion(IMergeDiff iMergeDiff) {
-        File selectedFile = new File(new File(repository.blockingFirst().getDirectory()).getParent(), iMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW));
+        File selectedFile = new File(repository.blockingFirst().getTopLevelDirectory(), iMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW));
         StringBuilder fileContents = new StringBuilder();
         for (IFileChangeChunk changeChunk : iMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks().blockingFirst()) {
             // BLines is always the "new" version of the file, in comparison to the fork point
