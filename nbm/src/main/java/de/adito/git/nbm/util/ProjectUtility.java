@@ -1,8 +1,5 @@
 package de.adito.git.nbm.util;
 
-import de.adito.git.api.IRepository;
-import de.adito.git.nbm.repo.RepositoryCache;
-import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.FileOwnerQuery;
@@ -17,18 +14,7 @@ import org.openide.util.Lookup;
  *
  * @author a.arnold, 22.10.2018
  */
-public class ProjectUtility {
-
-    /**
-     * if the {@code pNode} is another repository than the last git command, return the repository of the {@code pNode}
-     *
-     * @param pProject the repository to check
-     * @return the repository of the node
-     */
-    public static boolean checkAndChangeRepository(@NotNull Project pProject) {
-        Observable<IRepository> repo = RepositoryCache.getInstance().findRepository(pProject);
-        return true;
-    }
+class ProjectUtility {
 
     /**
      * Find a project for a {@link Node} component
@@ -37,7 +23,7 @@ public class ProjectUtility {
      * @return The project of a {@link Node}
      */
     @Nullable
-    public static Project findProject(@NotNull Node pNode) {
+    static Project findProject(@NotNull Node pNode) {
         return findProject(pNode.getLookup());
     }
 
@@ -48,7 +34,7 @@ public class ProjectUtility {
      * @return The project of a {@link Lookup}
      */
     @Nullable
-    public static Project findProject(@NotNull Lookup pLookup) {
+    private static Project findProject(@NotNull Lookup pLookup) {
         Project project = pLookup.lookup(Project.class);
         if (project == null) {
             FileObject fo = pLookup.lookup(FileObject.class);
@@ -65,5 +51,6 @@ public class ProjectUtility {
         }
         return project;
     }
+
 
 }

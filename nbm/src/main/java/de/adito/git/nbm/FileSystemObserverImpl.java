@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
+ * An observer class for the files in the version control version
+ *
  * @author m.kaspera 15.10.2018
  */
 public class FileSystemObserverImpl implements IFileSystemObserver {
@@ -20,7 +22,7 @@ public class FileSystemObserverImpl implements IFileSystemObserver {
     @Inject
     public FileSystemObserverImpl(@Assisted IRepositoryDescription pRepositoryDescription) {
         FileObject fileObject = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
-        if(fileObject != null) {
+        if (fileObject != null) {
             fileObject.addRecursiveListener(new _FileSystemListener());
         } else {
             System.err.println("Couldn't add RecursiveListener, fileObject was null");
@@ -29,7 +31,7 @@ public class FileSystemObserverImpl implements IFileSystemObserver {
 
     @Override
     public void addListener(IFileSystemChangeListener changeListener) {
-        synchronized (fileSystemChangeListeners){
+        synchronized (fileSystemChangeListeners) {
             fileSystemChangeListeners.add(changeListener);
         }
     }
@@ -41,7 +43,7 @@ public class FileSystemObserverImpl implements IFileSystemObserver {
         }
     }
 
-    private void _notifyListeners(){
+    private void _notifyListeners() {
         ArrayList<IFileSystemChangeListener> copy;
 
         synchronized (fileSystemChangeListeners) {
@@ -53,7 +55,7 @@ public class FileSystemObserverImpl implements IFileSystemObserver {
         }
     }
 
-    private class _FileSystemListener implements FileChangeListener{
+    private class _FileSystemListener implements FileChangeListener {
         @Override
         public void fileFolderCreated(FileEvent fe) {
             _notifyListeners();
