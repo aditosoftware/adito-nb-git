@@ -11,40 +11,44 @@ import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.NodeAction;
 
 /**
- * An action class for NetBeans to show all branches.
+ * An action class to push all current commits
  *
- * @author a.arnold, 22.10.2018
+ * @author a.arnold, 25.10.2018
  */
-@ActionID(category = "System", id = "de.adito.git.nbm.actions.AllBranchNBAction")
-@ActionRegistration(displayName = "LBL_ShowALlBranchesNBAction_Name")
-@ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 500)
-public class AllBranchNBAction extends NodeAction {
+@ActionID(category = "System", id = "de.adito.git.nbm.actions.PushNBAction")
+@ActionRegistration(displayName = "LBL_PushNBAction_Name")
+@ActionReferences({
+        //Reference for the toolbar
+        @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 300),
+        //Reference for the menu
+        @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 200)
+})
+public class PushNBAction extends NodeAction {
 
     /**
-     * @param activatedNodes The active nodes in NetBeans
+     * @param activatedNodes The activated nodes in NetBeans
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
         Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
-        if (repository != null) {
-            Injector injector = Guice.createInjector(new AditoNbmModule());
-            IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
+        Injector injector = Guice.createInjector(new AditoNbmModule());
+        IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
-            actionProvider.getShowAllBranchesAction(repository).actionPerformed(null);
+        if (repository != null) {
+            actionProvider.getPushAction(repository).actionPerformed(null);
         }
     }
 
     /**
-     * Checking the entry point of the class {@link AllBranchNBAction}
-     *
-     * @param activatedNodes The active nodes in Netbeans
-     * @return returns true if the activated project has an repository, else false.
+     * @param activatedNodes The activated nodes in NetBeans
+     * @return return true, if there is one repository for the nodes
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
@@ -56,12 +60,9 @@ public class AllBranchNBAction extends NodeAction {
         return false;
     }
 
-    /**
-     * @return Returns the Name of the action.
-     */
     @Override
     public String getName() {
-        return "Show All branches";
+        return "Push";
     }
 
     @Override
