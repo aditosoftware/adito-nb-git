@@ -24,6 +24,9 @@ abstract class AbstractTableAction extends AbstractAction implements IDiscardabl
         disposable = getIsEnabledObservable().subscribe(this::setEnabled);
     }
 
+    /**
+     * @return an observable that indicates the current state of the action (dis/enabled)
+     */
     protected abstract Observable<Boolean> getIsEnabledObservable();
 
     @Override
