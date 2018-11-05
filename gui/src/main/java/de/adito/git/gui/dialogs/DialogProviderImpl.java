@@ -7,7 +7,7 @@ import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.guice.IRepositoryFactory;
+import de.adito.git.gui.IDialogDisplayer;
 import io.reactivex.Observable;
 
 import java.util.List;
@@ -19,14 +19,11 @@ import java.util.List;
 class DialogProviderImpl implements IDialogProvider
 {
     private final IDialogDisplayer dialogDisplayer;
-    private final IRepositoryFactory repositoryFactory;
     private final IDialogFactory dialogFactory;
 
     @Inject
-    public DialogProviderImpl(IDialogDisplayer pDialogDisplayer, IRepositoryFactory pRepositoryFactory,
-                              IDialogFactory pDialogFactory) {
+    public DialogProviderImpl(IDialogDisplayer pDialogDisplayer, IDialogFactory pDialogFactory) {
         dialogDisplayer = pDialogDisplayer;
-        repositoryFactory = pRepositoryFactory;
         dialogFactory = pDialogFactory;
     }
 
@@ -64,5 +61,15 @@ class DialogProviderImpl implements IDialogProvider
         NewBranchDialog dialog = dialogFactory.createNewBranchDialog(pRepository, dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton);
         boolean pressedOk = dialogDisplayer.showDialog(dialog, "New Branch", false);
         return new DialogResult(pressedOk, dialog.getBranchName());
+    }
+
+    @Override
+    public DialogResult showResetDialog() {
+        ResetDialog resetDialog = dialogFactory.createResetDialog();
+        boolean pressedOk = dialogDisplayer.showDialog(resetDialog, "Reset", true);
+        if (pressedOk) {
+            return new DialogResult<>(true, null, resetDialog.getResetType());
+        }
+        return new DialogResult(false, null);
     }
 }
