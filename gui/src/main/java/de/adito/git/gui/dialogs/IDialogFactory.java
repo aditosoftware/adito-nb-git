@@ -22,4 +22,6 @@ interface IDialogFactory {
 
     DiffDialog createDiffDialog(List<IFileDiff> pDiffs);
 
+    ResetDialog createResetDialog();
+
 }

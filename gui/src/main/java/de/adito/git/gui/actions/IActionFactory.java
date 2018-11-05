@@ -38,4 +38,6 @@ interface IActionFactory {
     ShowAllCommitsAction createShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches);
 
     RevertWorkDirAction createRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+
+    ResetFilesAction createResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 }

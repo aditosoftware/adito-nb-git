@@ -14,15 +14,14 @@ import java.util.stream.Collectors;
 /**
  * @author m.kaspera 31.10.2018
  */
-class RevertWorkDirAction extends AbstractTableAction {
+class ResetFilesAction extends AbstractTableAction {
 
     private final IRepository repository;
     private final Observable<List<IFileChangeType>> selectedFilesObservable;
 
     @Inject
-    RevertWorkDirAction(@Assisted Observable<IRepository> pRepository,
-                        @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        super("Revert");
+    ResetFilesAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        super("Reset");
         repository = pRepository.blockingFirst();
         selectedFilesObservable = pSelectedFilesObservable;
     }
@@ -30,7 +29,7 @@ class RevertWorkDirAction extends AbstractTableAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
-            repository.revertWorkDir(selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
+            repository.reset(selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
         } catch (Exception e1) {
             e1.printStackTrace();
         }
