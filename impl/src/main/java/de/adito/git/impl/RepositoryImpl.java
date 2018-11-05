@@ -324,7 +324,7 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public void reset(@NotNull String identifier, EResetType resetType) throws Exception {
+    public void reset(@NotNull String identifier, @NotNull EResetType resetType) throws Exception {
         ResetCommand resetCommand = git.reset();
         resetCommand.setRef(identifier);
         if (resetType == EResetType.HARD)
@@ -393,6 +393,9 @@ public class RepositoryImpl implements IRepository {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void checkout(@NotNull IBranch branch) throws Exception {
         CheckoutCommand checkout = git.checkout().setName(branch.getName()).setCreateBranch(false).setStartPoint(branch.getName());
@@ -403,6 +406,9 @@ public class RepositoryImpl implements IRepository {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public List<IMergeDiff> getMergeConflicts() throws Exception {
         Set<String> conflictingFiles = status.blockingFirst().getConflicting();
         if (conflictingFiles.size() > 0) {
@@ -452,6 +458,10 @@ public class RepositoryImpl implements IRepository {
         return mergeConflicts;
     }
 
+    /**
+     * @param conflictingFile one of the Files with a conflict that were modified by git/JGit
+     * @return id of the branch that gets merged ("THEIRS" for merges)
+     */
     private String _getConflictingBranch(File conflictingFile) throws IOException {
         return Files.lines(conflictingFile.toPath()).filter(line -> line.startsWith(">>>>>>>>")).findFirst().map(s -> s.replace(">", "").trim()).orElse(null);
     }
@@ -585,6 +595,12 @@ public class RepositoryImpl implements IRepository {
     public String getDirectory() {
 
         return String.valueOf(git.getRepository().getDirectory());
+    }
+
+    @Nullable
+    @Override
+    public File getTopLevelDirectory() {
+        return git.getRepository().getDirectory().getParent() != null ? new File(git.getRepository().getDirectory().getParent()) : null;
     }
 
     /**

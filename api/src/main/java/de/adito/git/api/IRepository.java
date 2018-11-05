@@ -116,7 +116,7 @@ public interface IRepository {
      * @param identifier ID for the branch/commit to reset to
      * @param resetType  resetType which type of reset should be conducted {@see EResetType}
      */
-    void reset(@NotNull String identifier, EResetType resetType) throws Exception;
+    void reset(@NotNull String identifier, @NotNull EResetType resetType) throws Exception;
 
     /**
      * @param branchName String with the name of the branch
@@ -181,8 +181,12 @@ public interface IRepository {
     /**
      * @return the directory of the actual repository
      */
-
     String getDirectory();
+
+    /**
+     * @return the directory of the top-most directory covered by the VCS
+     */
+    File getTopLevelDirectory();
 
     /**
      *
