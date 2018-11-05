@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
@@ -88,6 +89,11 @@ class ActionProvider implements IActionProvider {
     @Override
     public Action getResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
         return actionFactory.createResetFilesAction(pRepository, pSelectedFilesObservable);
+    }
+
+    @Override
+    public Action getResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pCommitedFilesObservable) {
+        return actionFactory.createResetAction(pRepository, pCommitedFilesObservable);
     }
 
 }

@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
@@ -40,5 +41,7 @@ public interface IActionProvider {
     Action getRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
     Action getResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+
+    Action getResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pCommitedFilesObservable);
 
 }

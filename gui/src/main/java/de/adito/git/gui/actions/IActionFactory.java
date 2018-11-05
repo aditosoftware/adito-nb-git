@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
@@ -40,4 +41,6 @@ interface IActionFactory {
     RevertWorkDirAction createRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
     ResetFilesAction createResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+
+    ResetAction createResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pSelectedCommitsObservable);
 }
