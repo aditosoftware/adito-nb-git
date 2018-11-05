@@ -1,7 +1,6 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.dialogs.DialogResult;
@@ -17,7 +16,6 @@ import java.awt.event.ActionEvent;
  *
  * @author A.Arnold 18.10.2018
  */
-@Singleton
 class NewBranchAction extends AbstractAction {
     private final IDialogProvider dialogProvider;
     private Observable<IRepository> repository;

@@ -1,7 +1,6 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
@@ -16,7 +15,6 @@ import java.util.List;
  *
  * @author A.Arnold 18.10.2018
  */
-@Singleton
 class CheckoutAction extends AbstractTableAction {
     private Observable<IRepository> repository;
     private Observable<List<IBranch>> branchList;

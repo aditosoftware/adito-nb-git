@@ -9,14 +9,12 @@ import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
-import javax.inject.Singleton;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
 /**
  * @author m.kaspera 05.11.2018
  */
-@Singleton
 class ResetAction extends AbstractTableAction {
 
 

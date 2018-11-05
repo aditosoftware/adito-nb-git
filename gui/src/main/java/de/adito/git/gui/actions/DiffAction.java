@@ -1,7 +1,6 @@
 package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
 /**
  * @author m.kaspera 12.10.2018
  */
-@Singleton
 class DiffAction extends AbstractTableAction {
 
     private Observable<IRepository> repository;
