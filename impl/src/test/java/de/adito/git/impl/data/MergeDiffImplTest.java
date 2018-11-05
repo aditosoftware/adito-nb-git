@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * @author m.kaspera 19.10.2018
  */
-@SuppressWarnings("WeakerAccess")
-public class MergeDiffImplTest {
+class MergeDiffImplTest {
 
     private final int[] aStarts = {0, 5, 7, 15, 22, 28, 46};
     private final int[] aEnds = {5, 7, 15, 22, 28, 46, 54};
@@ -26,7 +25,7 @@ public class MergeDiffImplTest {
      * Test if the correct chunk indizes are returned when several chunks are affected by the change
      */
     @Test
-    public void testAffectedChunkIndizesSeveral(){
+    void testAffectedChunkIndizesSeveral() {
         List<IFileChangeChunk> changeChunks  = createFileChangeChunkList(aStarts, aEnds);
         IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(4, 9, 4, 11), "", "");
         List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndices(changeChunk, changeChunks);
@@ -38,7 +37,7 @@ public class MergeDiffImplTest {
      * Test if the correct chunk index is returned when exactly one chunk is affected
      */
     @Test
-    public void testAffectedChunkIndizesExactlyOne(){
+    void testAffectedChunkIndizesExactlyOne() {
         List<IFileChangeChunk> changeChunks  = createFileChangeChunkList(aStarts, aEnds);
         IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(5, 7, 4, 12), "", "");
         List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndices(changeChunk, changeChunks);
@@ -50,7 +49,7 @@ public class MergeDiffImplTest {
      * Test if the correct chunk index is returned when only part of one chunk is affected
      */
     @Test
-    public void testAffectedChunkIndizesPartsOfOne(){
+    void testAffectedChunkIndizesPartsOfOne() {
         List<IFileChangeChunk> changeChunks  = createFileChangeChunkList(aStarts, aEnds);
         IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(8, 10, 4, 11), "", "");
         List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndices(changeChunk, changeChunks);
@@ -62,7 +61,7 @@ public class MergeDiffImplTest {
      * Test if the correct chunk index is returned when only part of one chunk is affected
      */
     @Test
-    public void testAffectedChunkIndizesStartOnBoundary(){
+    void testAffectedChunkIndizesStartOnBoundary() {
         List<IFileChangeChunk> changeChunks  = createFileChangeChunkList(aStarts, aEnds);
         IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(8, 10, 4, 11), "", "");
         List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndices(changeChunk, changeChunks);
@@ -74,7 +73,7 @@ public class MergeDiffImplTest {
      * Test if the added lines (and thus higher/lower line numbers) are propagated through the list if lines were added
      */
     @Test
-    public void testPropagateAdditionalLinesPositive(){
+    void testPropagateAdditionalLinesPositive() {
         int indexFrom = 2;
         int numAddedLines = 5;
         List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
@@ -89,7 +88,7 @@ public class MergeDiffImplTest {
      * Test if the added lines (and thus higher/lower line numbers) are propagated through the list if lines were removed
      */
     @Test
-    public void testPropagateAdditionalLinesNegative(){
+    void testPropagateAdditionalLinesNegative() {
         int indexFrom = 2;
         int numAddedLines = -5;
         List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
@@ -105,7 +104,7 @@ public class MergeDiffImplTest {
      * This is almost certainly won't occur in reality, however as an edge case the reaction is tested here
      */
     @Test
-    public void testPropagateAdditionalLinesNeutral(){
+    void testPropagateAdditionalLinesNeutral() {
         int indexFrom = 2;
         int numAddedLines = 0;
         List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
@@ -120,7 +119,7 @@ public class MergeDiffImplTest {
      * Tests if the correct lines are inserted/removed when doing a replace operation that adds more lines than are removed
      */
     @Test
-    public void testApplyChangesReplaceMore(){
+    void testApplyChangesReplaceMore() {
         String linesBeforeChange = "ae\naf\nag\nah\nai\naj\nak\n";
         String linesAfterChange = "ax\nax\nax\nax\nax\nax\nax\nax\n";
         StringBuilder originalLines = new StringBuilder();
@@ -148,7 +147,7 @@ public class MergeDiffImplTest {
      * Tests if the correct lines are inserted/removed when doing a replace operation that removes more lines than are added
      */
     @Test
-    public void testApplyChangesReplaceLess(){
+    void testApplyChangesReplaceLess() {
         String linesBeforeChange = "ae\naf\nag\nah\nai\naj\nak\n";
         String linesAfterChange = "ax\nax\nax\nax\nax";
         StringBuilder originalLines = new StringBuilder();
@@ -176,7 +175,7 @@ public class MergeDiffImplTest {
      * Tests if the correct lines are inserted/removed when doing a replace operation one one line
      */
     @Test
-    public void testApplyChangesReplaceLine(){
+    void testApplyChangesReplaceLine() {
         String linesBeforeChange = "ae\n";
         String linesAfterChange = "ax\n";
         StringBuilder originalLines = new StringBuilder();
@@ -204,7 +203,7 @@ public class MergeDiffImplTest {
      * Tests if the correct lines are inserted/removed when doing an insert operation
      */
     @Test
-    public void testApplyChangesInsert(){
+    void testApplyChangesInsert() {
         String linesBeforeChange = "";
         String linesAfterChange = "ax\nax\nax\nax\nax\n";
         StringBuilder originalLines = new StringBuilder();
@@ -230,7 +229,7 @@ public class MergeDiffImplTest {
      * Tests if the correct lines are inserted/removed when doing a delete operation
      */
     @Test
-    public void testApplyChangesDelete(){
+    void testApplyChangesDelete() {
         String linesBeforeChange = "ae\naf\nag\nah\nai\naj\nak\n";
         String linesAfterChange = "";
         StringBuilder originalLines = new StringBuilder();
