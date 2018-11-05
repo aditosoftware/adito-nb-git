@@ -615,10 +615,22 @@ public class RepositoryImpl implements IRepository {
         if (refList.isEmpty()) {
             throw new Exception("This Branch doesn't exists: " + branchString);
         }
+
         Ref branch = refList.stream().filter(pBranch -> pBranch.getName().equals(branchString))
                 .collect(Collectors.toList()).get(0);
 
         return new BranchImpl(branch);
+    }
+
+    @Override
+    public String getCurrentBranch() throws Exception {
+        String branch;
+        try {
+            branch = git.getRepository().getFullBranch();
+        } catch (IOException e) {
+            throw new Exception("Can't get the current Branch");
+        }
+        return branch;
     }
 
     /**
