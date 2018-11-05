@@ -7,7 +7,6 @@ import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.IDialogDisplayer;
 import io.reactivex.Observable;
 
 import java.util.List;

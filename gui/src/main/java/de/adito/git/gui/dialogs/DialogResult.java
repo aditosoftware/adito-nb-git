@@ -7,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author a.arnold 31.10.2018
  */
-public class DialogResult {
 public class DialogResult<T> {
 
     private boolean pressedOk;
@@ -15,7 +14,6 @@ public class DialogResult<T> {
     private T information;
 
     DialogResult(boolean pPressedOk, @Nullable String pMessage) {
-    DialogResult(boolean pPressedOk, @Nullable String pMessage){
         this(pPressedOk, pMessage, null);
     }
 
