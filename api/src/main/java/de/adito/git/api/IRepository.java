@@ -197,6 +197,8 @@ public interface IRepository {
      */
     IBranch getBranch(String branchString) throws Exception;
 
+    String getCurrentBranch() throws Exception;
+
     /**
      * @return List of all IBranches in the repository
      */
