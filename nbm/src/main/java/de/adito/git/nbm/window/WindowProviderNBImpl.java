@@ -54,12 +54,12 @@ class WindowProviderNBImpl implements IWindowProvider {
 
     @Override
     public void showStatusWindow(Observable<IRepository> pRepository) {
-        throw new RuntimeException("de.adito.git.nbm.window.WindowProviderNBImpl.showStatusWindow"); //todo
+        _openTCinEDT(topComponentFactory.createStatusWindowTopComponent(pRepository));
     }
 
     /**
      * A helper class to open TopComponents in EDT
-     * @param pComponent
+     * @param pComponent The AbstractRepositoryTopComponent that should be displayed
      */
     private static void _openTCinEDT(@NotNull AbstractRepositoryTopComponent pComponent) {
         SwingUtilities.invokeLater(() -> {

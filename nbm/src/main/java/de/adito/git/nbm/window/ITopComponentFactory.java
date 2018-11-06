@@ -17,4 +17,6 @@ interface ITopComponentFactory {
 
     CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<IRepository> pRepository, List<ICommit> pCommits, String pDisplayableContext);
 
+    StatusWindowTopComponent createStatusWindowTopComponent(Observable<IRepository> pRepository);
+
 }
