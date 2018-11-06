@@ -18,6 +18,7 @@ import java.util.List;
  */
 class DiffDialog extends JPanel {
 
+    private final String backGroundTextColor = "nb.output.backgorund";
     private final static int SCROLL_SPEED_INCREMENT = 16;
     private List<IFileDiff> diffs;
 
@@ -40,11 +41,11 @@ class DiffDialog extends JPanel {
 
         try {
             for (IFileDiff fileDiff : diffs) {
-                TextHighlightUtil.insertText(oldVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.OLD) + "\n\n", Color.WHITE);
-                TextHighlightUtil.insertText(newVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.NEW) + "\n\n", Color.WHITE);
+                TextHighlightUtil.insertText(oldVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.OLD) + "\n\n", UIManager.getColor(backGroundTextColor));
+                TextHighlightUtil.insertText(newVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.NEW) + "\n\n", UIManager.getColor(backGroundTextColor));
                 TextHighlightUtil.insertChangeChunks(fileDiff.getFileChanges().getChangeChunks().blockingFirst(), oldVersionPane, newVersionPane, true);
-                TextHighlightUtil.insertText(oldVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
-                TextHighlightUtil.insertText(newVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", Color.WHITE);
+                TextHighlightUtil.insertText(oldVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", UIManager.getColor(backGroundTextColor));
+                TextHighlightUtil.insertText(newVersionPane.getStyledDocument(), "\n\n---------------------------------------------------------------------------\n\n", UIManager.getColor(backGroundTextColor));
             }
         } catch (BadLocationException e) {
             e.printStackTrace();
