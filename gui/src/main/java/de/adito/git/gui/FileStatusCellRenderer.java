@@ -20,19 +20,19 @@ public class FileStatusCellRenderer extends DefaultTableCellRenderer {
         JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (table.getModel().getValueAt(row, 2).equals(EChangeType.ADD)) {
             // Foreground  = text color
-            label.setForeground(Color.CYAN);
+            label.setForeground(new Color(106, 135, 89));
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.NEW)) {
-            label.setForeground(Color.GREEN);
+            label.setForeground(new Color(106, 135, 89));
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.MODIFY)) {
-            label.setForeground(Color.WHITE);
+            label.setForeground(new Color(77, 130, 184));
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.CHANGED)) {
-            label.setForeground(Color.YELLOW);
+            label.setForeground(new Color(77, 130, 184));
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.DELETE)) {
-            label.setForeground(Color.GRAY);
+            label.setForeground(new Color(204, 120, 50));
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.MISSING)) {
-            label.setForeground(Color.LIGHT_GRAY);
+            label.setForeground(new Color(204, 120, 50));
         } else if (table.getModel().getValueAt(row, 2).equals(EChangeType.CONFLICTING)) {
-            label.setForeground(Color.RED);
+            label.setForeground(new Color(230, 132, 151));
         } else {
             label.setForeground(Color.BLACK);
         }
