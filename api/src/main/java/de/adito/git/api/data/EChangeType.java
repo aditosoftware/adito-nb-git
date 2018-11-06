@@ -12,47 +12,77 @@ import java.awt.*;
  */
 public enum EChangeType {
 
-    /** Add a new file to the project, already in the index */
-    ADD("nb.versioning.added.color"),
+    /**
+     * Add a new file to the project, already in the index
+     */
+    ADD("nb.versioning.added.color", "nb.diff.added.color"),
 
-    /** new file in the project, file is not yet staged */
-    NEW("nb.versioning.added.color"),
+    /**
+     * new file in the project, file is not yet staged
+     */
+    NEW("nb.versioning.added.color", "nb.diff.added.color"),
 
-    /** Modify an existing file in the project (content and/or mode), changes are staged */
-    CHANGED("nb.versioning.modified.color"),
+    /**
+     * Modify an existing file in the project (content and/or mode), changes are staged
+     */
+    CHANGED("nb.versioning.modified.color", "nb.diff.changed.color"),
 
-    /** Modify an existing file in the project (content and/or mode), changes not in the index */
-    MODIFY("nb.versioning.modified.color"),
+    /**
+     * Modify an existing file in the project (content and/or mode), changes not in the index
+     */
+    MODIFY("nb.versioning.modified.color", "nb.diff.changed.color"),
 
-    /** Delete an existing file from the project */
-    DELETE("nb.versioning.deleted.color"),
+    /**
+     * Delete an existing file from the project
+     */
+    DELETE("nb.versioning.deleted.color", "nb.diff.deleted.color"),
 
-    /** File is in index but not on the local disk */
-    MISSING("nb.versioning.deleted.color"),
+    /**
+     * File is in index but not on the local disk
+     */
+    MISSING("nb.versioning.deleted.color", "nb.diff.deleted.color"),
 
-    /** Rename an existing file to a new location */
-    RENAME("nb.versioning.modified.color"),
+    /**
+     * Rename an existing file to a new location
+     */
+    RENAME("nb.versioning.modified.color", "nb.diff.changed.color"),
 
-    /** Copy an existing file to a new location, keeping the original */
-    COPY("nb.versioning.added.color"),
+    /**
+     * Copy an existing file to a new location, keeping the original
+     */
+    COPY("nb.versioning.added.color", "nb.diff.added.color"),
 
-    /** file is in a conflicting state towards (e.g what you get if you modify file that was modified by someone else in the meantime) */
-    CONFLICTING("nb.versioning.conflicted.color"),
+    /**
+     * file is in a conflicting state towards (e.g what you get if you modify file that was modified by someone else in the meantime)
+     */
+    CONFLICTING("nb.versioning.conflicted.color", "nb.diff.unresolved.color"),
 
-    /** Stayed the same, only used for LineChanges */
-    SAME(null);
+    /**
+     * Stayed the same, only used for LineChanges
+     */
+    SAME(null, null);
 
-    Color color;
+    Color statusColor;
+    Color diffColor;
 
-    EChangeType(String pUIManagerKey) {
-        if (pUIManagerKey != null)
-            color = UIManager.getColor(pUIManagerKey);
+    EChangeType(String pStatusUIManagerKey, String pDiffUIManagerKey) {
+        if (pStatusUIManagerKey != null)
+            statusColor = UIManager.getColor(pStatusUIManagerKey);
         else
-            color = null;
+            statusColor = null;
+        if (pDiffUIManagerKey != null)
+            diffColor = UIManager.getColor(pDiffUIManagerKey);
+        else
+            diffColor = null;
     }
 
     @Nullable
-    public Color getColor() {
-        return color;
+    public Color getStatusColor() {
+        return statusColor;
+    }
+
+    @Nullable
+    public Color getDiffColor() {
+        return diffColor;
     }
 }

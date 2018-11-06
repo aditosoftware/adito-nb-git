@@ -19,7 +19,7 @@ public class FileStatusCellRenderer extends DefaultTableCellRenderer {
         // Text in cells is always displayed as label
         JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (!isSelected) {
-            label.setForeground(((EChangeType) table.getModel().getValueAt(row, 2)).getColor());
+            label.setForeground(((EChangeType) table.getModel().getValueAt(row, 2)).getStatusColor());
         }
         return label;
     }
