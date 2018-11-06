@@ -18,6 +18,7 @@ import org.openide.awt.ActionRegistration;
 import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle;
 import org.openide.util.actions.NodeAction;
 
 import java.util.List;
@@ -77,7 +78,7 @@ public class AddNBAction extends NodeAction {
 
     @Override
     public String getName() {
-        return "Add";
+        return NbBundle.getMessage(AddNBAction.class, "LBL_AddNBAction_Name");
     }
 
     @Override
