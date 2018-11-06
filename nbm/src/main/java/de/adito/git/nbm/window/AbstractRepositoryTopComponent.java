@@ -18,13 +18,11 @@ abstract class AbstractRepositoryTopComponent extends TopComponent {
     /**
      * Abstract class to give all TopComponents
      *
-     * @param pRepository
+     * @param pRepository Observable of the Repository for the selected project
      */
     AbstractRepositoryTopComponent(Observable<IRepository> pRepository) {
         //Set the displayname in the TopComponent of NetBeans.
-        displayNameDisposable = pRepository.subscribe(pRepo -> SwingUtilities.invokeLater(() -> {
-            setDisplayName(getTopComponentName() + " - " + pRepo.getDirectory());
-        }));
+        displayNameDisposable = pRepository.subscribe(pRepo -> SwingUtilities.invokeLater(() -> setDisplayName(getTopComponentName() + " - " + pRepo.getDirectory())));
     }
 
     protected abstract String getInitialMode();
