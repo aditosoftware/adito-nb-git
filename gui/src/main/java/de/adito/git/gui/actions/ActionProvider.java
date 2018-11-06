@@ -144,4 +144,9 @@ class ActionProvider implements IActionProvider {
         return actionFactory.createResetAction(pRepository, pCommitedFilesObservable);
     }
 
+    @Override
+    public Action getShowStatusWindowAction(Observable<IRepository> pRepository) {
+        return actionFactory.createShowStatusWindowAction(pRepository);
+    }
+
 }

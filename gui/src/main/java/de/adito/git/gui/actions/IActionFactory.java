@@ -43,4 +43,6 @@ interface IActionFactory {
     ResetFilesAction createResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
     ResetAction createResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pSelectedCommitsObservable);
+
+    ShowStatusWindowAction createShowStatusWindowAction(Observable<IRepository> pRepository);
 }

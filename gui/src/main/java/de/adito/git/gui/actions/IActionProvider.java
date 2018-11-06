@@ -123,10 +123,16 @@ public interface IActionProvider {
     Action getResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
     /**
-     * @param pRepository                Observable with the current Repository
+     * @param pRepository Observable with the current Repository
      * @param pCommitedCommitsObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@see ObservableTable}
      * @return Action whose actionPerformed method resets the Index/Index + Head/Index + Head + working directory to the selected commit
      */
     Action getResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pCommitedCommitsObservable);
+
+    /**
+     * @param pRepository Observable with the current Repository
+     * @return Action whose actionPerformed method opens a window with a list of all changed files of the working copy with the type of change
+     */
+    Action getShowStatusWindowAction(Observable<IRepository> pRepository);
 
 }
