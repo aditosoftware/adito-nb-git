@@ -3,10 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
 import java.util.List;
@@ -63,12 +60,12 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult showResetDialog() {
+    public DialogResult<EResetType> showResetDialog() {
         ResetDialog resetDialog = dialogFactory.createResetDialog();
         boolean pressedOk = dialogDisplayer.showDialog(resetDialog, "Reset", true);
         if (pressedOk) {
             return new DialogResult<>(true, null, resetDialog.getResetType());
         }
-        return new DialogResult(false, null);
+        return new DialogResult<>(false, null);
     }
 }

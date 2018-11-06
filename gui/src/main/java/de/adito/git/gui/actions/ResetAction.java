@@ -32,15 +32,13 @@ class ResetAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        DialogResult dialogResult = dialogProvider.showResetDialog();
-        if (dialogResult.getInformation() instanceof EResetType) {
-            List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst();
-            if (selectedCommits.size() == 1) {
-                try {
-                    repository.blockingFirst().reset(selectedCommits.get(0).getId(), (EResetType) dialogResult.getInformation());
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
+        DialogResult<EResetType> dialogResult = dialogProvider.showResetDialog();
+        List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst();
+        if (selectedCommits.size() == 1) {
+            try {
+                repository.blockingFirst().reset(selectedCommits.get(0).getId(), dialogResult.getInformation());
+            } catch (Exception e1) {
+                e1.printStackTrace();
             }
         }
     }

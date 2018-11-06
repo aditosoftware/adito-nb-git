@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IMergeDiff;
@@ -23,6 +24,6 @@ public interface IDialogProvider {
 
     DialogResult showNewBranchDialog(Observable<IRepository> pRepository);
 
-    DialogResult showResetDialog();
+    DialogResult<EResetType> showResetDialog();
 
 }
