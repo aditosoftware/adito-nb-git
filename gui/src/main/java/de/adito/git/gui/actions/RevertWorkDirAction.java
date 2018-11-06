@@ -22,7 +22,7 @@ class RevertWorkDirAction extends AbstractTableAction {
     @Inject
     RevertWorkDirAction(@Assisted Observable<IRepository> pRepository,
                         @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        super("Revert");
+        super("Revert", getIsEnabledObservable(pSelectedFilesObservable));
         repository = pRepository;
         selectedFilesObservable = pSelectedFilesObservable;
     }
@@ -36,9 +36,8 @@ class RevertWorkDirAction extends AbstractTableAction {
         }
     }
 
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return selectedFilesObservable.map(selectedFiles -> selectedFiles
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles
                 .stream()
                 .noneMatch(fileChangeType -> fileChangeType.getChangeType().equals(EChangeType.SAME)));
     }

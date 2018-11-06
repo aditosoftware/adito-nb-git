@@ -25,7 +25,7 @@ class CheckoutAction extends AbstractTableAction {
      */
     @Inject
     CheckoutAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranchList) {
-        super("Checkout");
+        super("Checkout", getIsEnabledObservable(pBranchList));
         branchList = pBranchList;
         putValue(Action.NAME, "Checkout");
         putValue(Action.SHORT_DESCRIPTION, "Command to change the branch to another one");
@@ -48,13 +48,7 @@ class CheckoutAction extends AbstractTableAction {
      *
      * @return return true if the selected list has one element, else false
      */
-    @Override
-    public boolean isEnabled() {
-        return branchList.blockingFirst().size() == 1;
-    }
-
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return branchList.map(branches -> branches.size() == 1);
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IBranch>> pBranchList) {
+        return pBranchList.map(branches -> branches.size() == 1);
     }
 }

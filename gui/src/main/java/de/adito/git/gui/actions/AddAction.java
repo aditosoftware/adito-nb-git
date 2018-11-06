@@ -24,7 +24,7 @@ class AddAction extends AbstractTableAction {
 
     @Inject
     AddAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        super("Add");
+        super("Add", getIsEnabledObservable(pSelectedFilesObservable));
         selectedFilesObservable = pSelectedFilesObservable;
         repository = pRepository;
     }
@@ -43,9 +43,8 @@ class AddAction extends AbstractTableAction {
      * Not enabled if file is already in index (i.e. has status
      * MODIFY, ADD or DELETE
      */
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return selectedFilesObservable.map(selectedFiles -> selectedFiles.stream().anyMatch(row ->
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles.stream().anyMatch(row ->
                 EChangeType.CHANGED.equals(row.getChangeType())
                         || EChangeType.ADD.equals(row.getChangeType())
                         || EChangeType.DELETE.equals(row.getChangeType())));

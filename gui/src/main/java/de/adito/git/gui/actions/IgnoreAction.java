@@ -23,7 +23,7 @@ class IgnoreAction extends AbstractTableAction {
 
     @Inject
     IgnoreAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        super("Ignore");
+        super("Ignore", getIsEnabledObservable(pSelectedFilesObservable));
         selectedFilesObservable = pSelectedFilesObservable;
         repository = pRepository;
     }
@@ -42,9 +42,8 @@ class IgnoreAction extends AbstractTableAction {
      * Only enabled if all selected files are not in the index yet, i.e. have status
      * NEW, MODIFY or MISSING
      */
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return selectedFilesObservable.map(selectedFiles -> selectedFiles
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles
                 .stream()
                 .allMatch(row ->
                         row.getChangeType().equals(EChangeType.NEW)

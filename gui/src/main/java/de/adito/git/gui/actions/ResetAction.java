@@ -24,7 +24,7 @@ class ResetAction extends AbstractTableAction {
 
     @Inject
     ResetAction(IDialogProvider pDialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<ICommit>> pSelectedCommitObservable) {
-        super("Reset to here");
+        super("Reset to here", getIsEnabledObservable(pSelectedCommitObservable));
         dialogProvider = pDialogProvider;
         repository = pRepository;
         selectedCommitObservable = pSelectedCommitObservable;
@@ -45,9 +45,8 @@ class ResetAction extends AbstractTableAction {
         }
     }
 
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return selectedCommitObservable.map(selectedCommits -> selectedCommits.size() == 1);
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<ICommit>> pSelectedCommitObservable) {
+        return pSelectedCommitObservable.map(selectedCommits -> selectedCommits.size() == 1);
     }
 
 }

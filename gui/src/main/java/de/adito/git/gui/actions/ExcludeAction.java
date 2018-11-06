@@ -23,7 +23,7 @@ class ExcludeAction extends AbstractTableAction {
 
     @Inject
     ExcludeAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        super("Exclude");
+        super("Exclude", getIsEnabledObservable(pSelectedFilesObservable));
         repository = pRepository;
         selectedFilesObservable = pSelectedFilesObservable;
     }
@@ -38,9 +38,8 @@ class ExcludeAction extends AbstractTableAction {
         }
     }
 
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return selectedFilesObservable.map(selectedFiles -> selectedFiles
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles
                 .stream()
                 .allMatch(row ->
                 row.getChangeType().equals(EChangeType.NEW)

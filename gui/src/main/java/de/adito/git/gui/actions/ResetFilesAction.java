@@ -21,7 +21,7 @@ class ResetFilesAction extends AbstractTableAction {
 
     @Inject
     ResetFilesAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        super("Reset");
+        super("Reset", getIsEnabledObservable(pSelectedFilesObservable));
         repository = pRepository;
         selectedFilesObservable = pSelectedFilesObservable;
     }
@@ -35,9 +35,8 @@ class ResetFilesAction extends AbstractTableAction {
         }
     }
 
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return selectedFilesObservable.map(selectedFiles -> selectedFiles.stream()
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles.stream()
                 .noneMatch(fileChangeType -> fileChangeType.getChangeType().equals(EChangeType.SAME)));
     }
 

@@ -18,16 +18,12 @@ abstract class AbstractTableAction extends AbstractAction implements IDiscardabl
     /**
      *
      * @param name the title of the action (is displayed in a menu)
+     * @param isEnabledObservable an observable that indicates the current state of the action (dis/enabled)
      */
-    AbstractTableAction(String name){
+    AbstractTableAction(String name, Observable<Boolean> isEnabledObservable) {
         super(name);
-        disposable = getIsEnabledObservable().subscribe(this::setEnabled);
+        disposable = isEnabledObservable.subscribe(this::setEnabled);
     }
-
-    /**
-     * @return an observable that indicates the current state of the action (dis/enabled)
-     */
-    protected abstract Observable<Boolean> getIsEnabledObservable();
 
     @Override
     public void discard() {

@@ -27,7 +27,7 @@ class CommitAction extends AbstractTableAction {
     @Inject
     CommitAction(IDialogProvider pDialogProvider, @Assisted Observable<IRepository> pRepository,
                  @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        super("Commit");
+        super("Commit", getIsEnabledObservable(pSelectedFilesObservable));
         repository = pRepository;
         dialogProvider = pDialogProvider;
         selectedFilesObservable = pSelectedFilesObservable;
@@ -47,8 +47,7 @@ class CommitAction extends AbstractTableAction {
         }
     }
 
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return selectedFilesObservable.map(selectedFiles -> true);
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> true);
     }
 }

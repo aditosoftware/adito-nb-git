@@ -24,7 +24,7 @@ class ShowAllCommitsAction extends AbstractTableAction {
 
     @Inject
     ShowAllCommitsAction(IWindowProvider pWindowProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranches) {
-        super("Show Commits");
+        super("Show Commits", getIsEnabledObservable(pBranches));
         windowProvider = pWindowProvider;
         putValue(Action.NAME, "Show Commits");
         putValue(Action.SHORT_DESCRIPTION, "Get all commits of this Branch or file");
@@ -40,8 +40,7 @@ class ShowAllCommitsAction extends AbstractTableAction {
         branches.blockingFirst().forEach(pBranch -> windowProvider.showCommitHistoryWindow(repository, pBranch));
     }
 
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
-        return branches.map(branchList -> branchList.size() > 0);
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IBranch>> pBranches) {
+        return pBranches.map(branchList -> branchList.size() > 0);
     }
 }

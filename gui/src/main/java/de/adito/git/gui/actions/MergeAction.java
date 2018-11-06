@@ -23,7 +23,7 @@ class MergeAction extends AbstractTableAction {
 
     @Inject
     MergeAction(IDialogProvider dialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted("current") String pCurrentBranch, @Assisted("target") String pTargetBranch){
-        super("merge with");
+        super("merge with", getIsEnabledObservable());
         this.dialogProvider = dialogProvider;
         repositoryObservable = pRepository;
         currentBranch = pCurrentBranch;
@@ -42,8 +42,7 @@ class MergeAction extends AbstractTableAction {
         }
     }
 
-    @Override
-    protected Observable<Boolean> getIsEnabledObservable() {
+    private static Observable<Boolean> getIsEnabledObservable() {
         return BehaviorSubject.createDefault(false);
     }
 }
