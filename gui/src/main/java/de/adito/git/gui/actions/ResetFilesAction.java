@@ -8,6 +8,7 @@ import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,8 +29,13 @@ class ResetFilesAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        File repoTopLevel = repository.blockingFirst().getTopLevelDirectory();
         try {
-            repository.blockingFirst().reset(selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
+            repository.blockingFirst()
+                    .reset(selectedFilesObservable.blockingFirst()
+                            .stream()
+                            .map(iFileChangeType -> new File(repoTopLevel, iFileChangeType.getFile().getPath()))
+                            .collect(Collectors.toList()));
         } catch (Exception e1) {
             e1.printStackTrace();
         }

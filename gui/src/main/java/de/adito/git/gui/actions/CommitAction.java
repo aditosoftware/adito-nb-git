@@ -38,8 +38,12 @@ class CommitAction extends AbstractTableAction {
         DialogResult dialogResult = dialogProvider.showCommitDialog(selectedFilesObservable);
         // if user didn't cancel the dialogs
         if (dialogResult.isPressedOk()) {
+            File repoTopLevel = repository.blockingFirst().getTopLevelDirectory();
             try {
-                List<File> files = selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList());
+                List<File> files = selectedFilesObservable.blockingFirst()
+                        .stream()
+                        .map(iFileChangeType -> new File(repoTopLevel, iFileChangeType.getFile().getPath()))
+                        .collect(Collectors.toList());
                 repository.blockingFirst().commit(dialogResult.getMessage(), files);
             } catch (Exception e1) {
                 e1.printStackTrace();
