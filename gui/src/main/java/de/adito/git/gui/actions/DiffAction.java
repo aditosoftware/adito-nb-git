@@ -34,11 +34,10 @@ class DiffAction extends AbstractTableAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         List<IFileDiff> fileDiffs;
-        File repoTopLevel = repository.blockingFirst().getTopLevelDirectory();
         try {
             List<File> files = selectedFilesObservable.blockingFirst()
                     .stream()
-                    .map(iFileChangeType -> new File(repoTopLevel, iFileChangeType.getFile().getPath()))
+                    .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                     .collect(Collectors.toList());
             fileDiffs = repository.blockingFirst().diff(files);
             dialogProvider.showDiffDialog(fileDiffs);

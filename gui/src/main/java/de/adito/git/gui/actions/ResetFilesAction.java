@@ -29,12 +29,11 @@ class ResetFilesAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        File repoTopLevel = repository.blockingFirst().getTopLevelDirectory();
         try {
             repository.blockingFirst()
                     .reset(selectedFilesObservable.blockingFirst()
                             .stream()
-                            .map(iFileChangeType -> new File(repoTopLevel, iFileChangeType.getFile().getPath()))
+                            .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                             .collect(Collectors.toList()));
         } catch (Exception e1) {
             e1.printStackTrace();

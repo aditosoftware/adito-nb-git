@@ -31,11 +31,10 @@ class AddAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        File repoTopLevel = repository.blockingFirst().getTopLevelDirectory();
         try {
             List<File> files = selectedFilesObservable.blockingFirst()
                     .stream()
-                    .map(iFileChangeType -> new File(repoTopLevel, iFileChangeType.getFile().getPath()))
+                    .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                     .collect(Collectors.toList());
             repository.blockingFirst().add(files);
         } catch (Exception e1) {

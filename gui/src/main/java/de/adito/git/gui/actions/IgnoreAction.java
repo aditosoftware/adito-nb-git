@@ -30,10 +30,9 @@ class IgnoreAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        File repoTopLevel = repository.blockingFirst().getTopLevelDirectory();
         List<File> files = selectedFilesObservable.blockingFirst()
                 .stream()
-                .map(iFileChangeType -> new File(repoTopLevel, iFileChangeType.getFile().getPath()))
+                .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                 .collect(Collectors.toList());
         try {
             repository.blockingFirst().ignore(files);
