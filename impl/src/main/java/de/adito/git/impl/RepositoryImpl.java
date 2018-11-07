@@ -137,9 +137,11 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public boolean pull(@NotNull String targetId) throws Exception {
-        if (status.blockingFirst().hasUncommittedChanges())
+        if (status.blockingFirst().hasUncommittedChanges()) {
             //TODO: remove this once stashing is implemented and do stash -> pull -> un-stash
+            System.err.println("Not able to pull files from remote due to uncommitted, changed files. Either commit or revert them and try again");
             return false;
+        }
         if (targetId.equals("")) {
             targetId = "master";
         }
