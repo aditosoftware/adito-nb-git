@@ -24,7 +24,7 @@ class ResetAction extends AbstractTableAction {
 
     @Inject
     ResetAction(IDialogProvider pDialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<ICommit>> pSelectedCommitObservable) {
-        super("Reset to here", getIsEnabledObservable(pSelectedCommitObservable));
+        super("Reset current Branch to here", getIsEnabledObservable(pSelectedCommitObservable));
         dialogProvider = pDialogProvider;
         repository = pRepository;
         selectedCommitObservable = pSelectedCommitObservable;

@@ -16,6 +16,6 @@ public interface IWindowContentProvider {
 
     JComponent createBranchListWindowContent(Observable<IRepository> pRepository);
 
-    JComponent createCommitHistoryWindowContent(List<ICommit> pCommits);
+    JComponent createCommitHistoryWindowContent(Observable<IRepository> pRepository, List<ICommit> pCommits);
 
 }

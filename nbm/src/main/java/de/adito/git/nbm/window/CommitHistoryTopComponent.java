@@ -25,7 +25,7 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent {
         super(pRepository);
         displayableContext = pDisplayableContext;
         setLayout(new BorderLayout());
-        add(pWindowContentProvider.createCommitHistoryWindowContent(pCommits), BorderLayout.CENTER);
+        add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, pCommits), BorderLayout.CENTER);
     }
 
     @Override

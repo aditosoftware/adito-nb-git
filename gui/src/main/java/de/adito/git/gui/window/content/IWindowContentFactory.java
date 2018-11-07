@@ -15,6 +15,6 @@ interface IWindowContentFactory {
 
     BranchListWindowContent createBranchListWindowContent(Observable<IRepository> pRepository);
 
-    CommitHistoryWindowContent createCommitHistoryWindowContent(List<ICommit> pCommits);
+    CommitHistoryWindowContent createCommitHistoryWindowContent(Observable<IRepository> pRepository, List<ICommit> pCommits);
 
 }

@@ -34,7 +34,7 @@ class WindowProviderImpl implements IWindowProvider {
     public void showCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) {
         try {
             List<ICommit> commits = pRepository.blockingFirst().getCommits(pBranch);
-            _showInFrame(factory.createCommitHistoryWindowContent(commits));
+            _showInFrame(factory.createCommitHistoryWindowContent(pRepository, commits));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -44,7 +44,7 @@ class WindowProviderImpl implements IWindowProvider {
     public void showCommitHistoryWindow(Observable<IRepository> pRepository, File pFile) {
         try {
             List<ICommit> commits = pRepository.blockingFirst().getCommits(pFile);
-            _showInFrame(factory.createCommitHistoryWindowContent(commits));
+            _showInFrame(factory.createCommitHistoryWindowContent(pRepository, commits));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
