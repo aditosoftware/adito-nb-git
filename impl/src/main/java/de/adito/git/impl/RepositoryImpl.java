@@ -157,6 +157,22 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
+    public void fetch() throws Exception {
+        fetch(true);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void fetch(boolean prune) throws Exception {
+        git.fetch().setRemoveDeletedRefs(prune).call();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception {
         List<IFileDiff> listDiffImpl = new ArrayList<>();
 

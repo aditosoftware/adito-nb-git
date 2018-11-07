@@ -46,6 +46,20 @@ public interface IRepository {
     boolean pull(@NotNull String targetId) throws Exception;
 
     /**
+     * Fetches the current state of the remote and stores it internally. Does not affect the working directory.
+     * See also the "git fetch" command
+     */
+    void fetch() throws Exception;
+
+    /**
+     * Fetches the current state of the remote and stores it internally. Does not affect the working directory.
+     * See also the "git fetch" command
+     *
+     * @param prune whether references to branches/tags that no longer exist on the remote should be deleted or not
+     */
+    void fetch(boolean prune) throws Exception;
+
+    /**
      * @param original  the older ICommit
      * @param compareTo the later ICommit
      * @return IFileDiff that contains the differences between the two files
