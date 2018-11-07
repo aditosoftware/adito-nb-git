@@ -7,6 +7,7 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.StatusTableModel;
@@ -15,8 +16,6 @@ import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -80,7 +79,7 @@ class StatusWindowContent extends JPanel implements IDiscardable {
             popupMenu.add(actionProvider.getResetFilesAction(repository, selectionObservable));
         });
 
-        statusTable.addMouseListener(new _PopupMouseListener());
+        statusTable.addMouseListener(new PopupMouseListener(popupMenu));
         add(statusTable, BorderLayout.CENTER);
     }
 
@@ -88,34 +87,6 @@ class StatusWindowContent extends JPanel implements IDiscardable {
     public void discard() {
         ((StatusTableModel)statusTable.getModel()).discard();
         disposable.dispose();
-    }
-
-
-    /**
-     * Listener that displays the popup menu on right-click and notifies the actions which rows are selected
-     */
-    private class _PopupMouseListener extends MouseAdapter {
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            if (SwingUtilities.isRightMouseButton(e)) {
-                JTable source = (JTable) e.getSource();
-                int row = source.rowAtPoint(e.getPoint());
-                int column = source.columnAtPoint(e.getPoint());
-
-                // if the row the user right-clicked on is not selected -> set it selected
-                if (!source.isRowSelected(row))
-                    source.changeSelection(row, column, false, false);
-
-                if (popupMenu != null) {
-                    for (Component component : popupMenu.getComponents())
-                        component.setEnabled(component.isEnabled());
-
-                    popupMenu.show(statusTable, e.getX(), e.getY());
-                }
-
-            }
-        }
     }
 
 }
