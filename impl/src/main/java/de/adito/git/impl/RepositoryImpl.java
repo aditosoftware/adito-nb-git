@@ -137,6 +137,9 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public boolean pull(@NotNull String targetId) throws Exception {
+        if (status.blockingFirst().hasUncommittedChanges())
+            //TODO: remove this once stashing is implemented and do stash -> pull -> un-stash
+            return false;
         if (targetId.equals("")) {
             targetId = "master";
         }
