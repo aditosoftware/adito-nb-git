@@ -2,7 +2,6 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
@@ -22,7 +21,6 @@ import java.util.List;
  */
 class DiffDialog extends JPanel implements IDiscardable {
 
-    private final String backGroundTextColor = "nb.output.backgorund";
     private final static int SCROLL_SPEED_INCREMENT = 16;
     private final ObservableTable fileListTable = new ObservableTable();
     private final JTextPane oldVersionPane = new JTextPane();
@@ -43,8 +41,10 @@ class DiffDialog extends JPanel implements IDiscardable {
         setLayout(new BorderLayout());
         setMinimumSize(new Dimension(800, 600));
         setPreferredSize(new Dimension(1600, 900));
-//        oldVersionPane.setSelectionColor(new Color(1.0f, 1.0f, 1.0f, 0.0f));
-//        newVersionPane.setSelectionColor(new Color(1.0f, 1.0f, 1.0f, 0.0f));
+        // set contentType to text/html. Because for whatever reason that's the only way the whole line gets marked, not just the text
+        oldVersionPane.setContentType("text/html");
+        newVersionPane.setContentType("text/html");
+
         // Table on which to select which IFileDiff is displayed in the DiffPanel
         fileListTable.setModel(new DiffTableModel(diffs));
         fileListTable.setMinimumSize(new Dimension(200, 600));
@@ -63,27 +63,30 @@ class DiffDialog extends JPanel implements IDiscardable {
         JPanel newPanel = new JPanel(new BorderLayout());
         oldPanel.add(oldVersionPane, BorderLayout.CENTER);
         newPanel.add(newVersionPane, BorderLayout.CENTER);
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, oldPanel, newPanel);
+        JScrollPane oldVersionScrollPane = new JScrollPane(oldPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JScrollPane newVersionScrollPane = new JScrollPane(newPanel);
+        newVersionScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
+        // synchronize the two scrollPanes
+        oldVersionScrollPane.getVerticalScrollBar().setModel(newVersionScrollPane.getVerticalScrollBar().getModel());
+        oldVersionScrollPane.setWheelScrollingEnabled(false);
+        oldVersionScrollPane.addMouseWheelListener(newVersionScrollPane::dispatchEvent);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, oldVersionScrollPane, newVersionScrollPane);
         splitPane.setResizeWeight(0.5);
-        JScrollPane scrollPane = new JScrollPane(splitPane);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
 
         // add table and DiffPanel to the Panel
         add(fileListTable, BorderLayout.EAST);
-        add(scrollPane, BorderLayout.CENTER);
+        add(splitPane, BorderLayout.CENTER);
     }
 
     /**
      * @param fileDiff the IFileDiff that should be displayed in the Diff Panel
      */
     private void _updateDiffPanel(IFileDiff fileDiff) {
+        // clear text in textPanes
+        oldVersionPane.setText("");
+        newVersionPane.setText("");
+        // insert the text from the IFileDiffs
         try {
-            // clear text in textPanes
-            oldVersionPane.setText("");
-            newVersionPane.setText("");
-            // insert the text from the IFileDiffs
-            TextHighlightUtil.insertText(oldVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.OLD) + "\n\n", UIManager.getColor(backGroundTextColor));
-            TextHighlightUtil.insertText(newVersionPane.getStyledDocument(), fileDiff.getFilePath(EChangeSide.NEW) + "\n\n", UIManager.getColor(backGroundTextColor));
             TextHighlightUtil.insertChangeChunks(fileDiff.getFileChanges().getChangeChunks().blockingFirst(), oldVersionPane, newVersionPane, true);
             revalidate();
         } catch (BadLocationException e) {
