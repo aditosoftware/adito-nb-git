@@ -6,8 +6,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicTextUI;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.util.List;
 
@@ -82,42 +84,6 @@ public class TextHighlightUtil {
         StyleConstants.setBackground(attr, color);
         int offset = document.getLength();
         document.insertString(offset, message, attr);
-    }
-
-    /**
-     * @param oldVersionPane textPane for the A/Old side of the IFileChangeChunks
-     * @param newVersionPane textPane for the B/New side of the IFileChangeChunks
-     * @param changeChunks   List of FileChangeChunks that determine the coloring of the textPanes
-     * @throws BadLocationException if coloring outside the bounds is attempted
-     */
-    @Deprecated
-    public static void colorDiffText(JTextPane oldVersionPane, JTextPane newVersionPane, List<IFileChangeChunk> changeChunks) throws BadLocationException {
-        LineHighlighterDelegate oldVersionHighlighter = new LineHighlighterDelegate((BasicTextUI.BasicHighlighter) oldVersionPane.getHighlighter());
-        LineHighlighterDelegate newVersionHighlighter = new LineHighlighterDelegate((BasicTextUI.BasicHighlighter) newVersionPane.getHighlighter());
-        oldVersionPane.setHighlighter(oldVersionHighlighter);
-        newVersionPane.setHighlighter(newVersionHighlighter);
-        int currentOldIndex = 0;
-        int currentNewIndex = 0;
-        int currentOldLen;
-        int currentNewLen;
-        for (IFileChangeChunk changeChunk : changeChunks) {
-            currentOldLen = changeChunk.getALines().length() + changeChunk.getAParityLines().length();
-            currentNewLen = changeChunk.getBLines().length() + changeChunk.getBParityLines().length();
-            if (changeChunk.getChangeType() != EChangeType.SAME) {
-                DefaultHighlighter.DefaultHighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor()) {
-                    @Override
-                    public void paint(Graphics g, int offs0, int offs1, Shape bounds, JTextComponent c) {
-                        bounds.getBounds().width = c.getWidth();
-                        super.paint(g, offs0, offs1, bounds, c);
-                    }
-                };
-                oldVersionHighlighter.addBackgroundHighlight(currentOldIndex, currentOldIndex + currentOldLen, painter);
-                newVersionHighlighter.addBackgroundHighlight(currentNewIndex, currentNewIndex + currentNewLen, painter);
-            }
-            currentOldIndex += currentOldLen;
-            currentNewIndex += currentNewLen;
-        }
-
     }
 
 }
