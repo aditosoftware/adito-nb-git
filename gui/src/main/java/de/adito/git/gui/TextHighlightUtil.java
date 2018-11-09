@@ -41,27 +41,6 @@ public class TextHighlightUtil {
     }
 
     /**
-     * @param changeChunks        List of IFileChangeChunks whose text should be inserted
-     * @param oldTextPane         textPane for the A/Old side of the IFileChangeChunks
-     * @param newTextPane         textPane for the B/New side of the IFileChangeChunks
-     * @param insertParityStrings if true, the parity strings are inserted into the textPanes
-     */
-    public static void insertChangeChunkStrings(List<IFileChangeChunk> changeChunks, JTextPane oldTextPane, JTextPane newTextPane, boolean insertParityStrings) {
-        StringBuilder oldString = new StringBuilder();
-        StringBuilder newString = new StringBuilder();
-        changeChunks.forEach(changeChunk -> {
-            oldString.append(changeChunk.getALines());
-            newString.append(changeChunk.getBLines());
-            if (insertParityStrings) {
-                oldString.append(changeChunk.getAParityLines());
-                newString.append(changeChunk.getBParityLines());
-            }
-        });
-        oldTextPane.setText(oldString.toString());
-        newTextPane.setText(newString.toString());
-    }
-
-    /**
      * @param document   StyledDocument of the JTextPane for which to insert the message
      * @param message    String that should be inserted into the JTextPane
      * @param changeType ChangeType, determines the background color of the line/text

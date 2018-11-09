@@ -147,9 +147,9 @@ class MergeConflictResolutionDialog extends JPanel implements IDiscardable {
                     if (changeChunk.getChangeType() != EChangeType.SAME) {
                         _insertButtonsForChunk(buttonPanel, icon, changeChunk, insertCall, mergeDiff.getDiff(conflictSide).getFileChanges(), textPane.getFontMetrics(textPane.getFont()).getHeight());
                     }
-                    TextHighlightUtil.insertText(textPane.getStyledDocument(), changeChunk.getBLines(), changeChunk.getChangeType());
+                    TextHighlightUtil.appendText(textPane.getStyledDocument(), changeChunk.getBLines(), changeChunk.getChangeType());
                     if (conflictSide == IMergeDiff.CONFLICT_SIDE.YOURS)
-                        TextHighlightUtil.insertText(forkPointVersionPane.getStyledDocument(), changeChunk.getALines(), Color.WHITE);
+                        TextHighlightUtil.appendText(forkPointVersionPane.getStyledDocument(), changeChunk.getALines(), Color.WHITE);
                 }
             } finally {
                 forkPointVersionPane.setCaretPosition(caretPosition);
