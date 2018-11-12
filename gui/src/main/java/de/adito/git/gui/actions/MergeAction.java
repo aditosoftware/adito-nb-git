@@ -3,10 +3,10 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -18,22 +18,21 @@ class MergeAction extends AbstractTableAction {
 
     private final Observable<IRepository> repositoryObservable;
     private final IDialogProvider dialogProvider;
-    private String currentBranch;
-    private String targetBranch;
+    private Observable<List<IBranch>> targetBranch;
 
     @Inject
-    MergeAction(IDialogProvider dialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted("current") String pCurrentBranch, @Assisted("target") String pTargetBranch){
-        super("merge with", getIsEnabledObservable());
+    MergeAction(IDialogProvider dialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pTargetBranch) {
+        super("merge with", getIsEnabledObservable(pTargetBranch));
         this.dialogProvider = dialogProvider;
         repositoryObservable = pRepository;
-        currentBranch = pCurrentBranch;
         targetBranch = pTargetBranch;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        IRepository repository = repositoryObservable.blockingFirst();
         try {
-            List<IMergeDiff> mergeConflictDiffs = repositoryObservable.blockingFirst().merge(currentBranch, targetBranch);
+            List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch(), targetBranch.blockingFirst().get(0).getName());
             if(mergeConflictDiffs.size() > 0){
                 dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
             }
@@ -42,7 +41,7 @@ class MergeAction extends AbstractTableAction {
         }
     }
 
-    private static Observable<Boolean> getIsEnabledObservable() {
-        return BehaviorSubject.createDefault(false);
+    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IBranch>> pTargetBranch) {
+        return pTargetBranch.map(pTarget -> pTarget.size() == 1);
     }
 }

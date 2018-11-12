@@ -1,6 +1,5 @@
 package de.adito.git.gui.actions;
 
-import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
@@ -14,7 +13,7 @@ import java.util.List;
  */
 interface IActionFactory {
 
-    MergeAction createMergeAction(Observable<IRepository> pRepository, @Assisted("current") String pCurrentBranch, @Assisted("target") String pTargetBranch);
+    MergeAction createMergeAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pTargetBranch);
 
     CommitAction createCommitAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 

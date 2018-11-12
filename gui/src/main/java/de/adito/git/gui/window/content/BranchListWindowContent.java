@@ -91,7 +91,7 @@ class BranchListWindowContent extends JPanel {
     }
 
     /**
-     * A private helper class for the mousehandler and click options
+     * A private helper class for the mouse handler and click options
      */
     private class _PopupStarter extends MouseAdapter {
         JTable table;
@@ -110,6 +110,7 @@ class BranchListWindowContent extends JPanel {
                     JPopupMenu popupMenu = new JPopupMenu();
                     popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList));
                     popupMenu.add(actionProvider.getCheckoutAction(repository, branchList));
+                    popupMenu.add(actionProvider.getMergeAction(repository, branchList));
                     popupMenu.show(table, e.getX(), e.getY());
                 } else {
                     table.clearSelection();
