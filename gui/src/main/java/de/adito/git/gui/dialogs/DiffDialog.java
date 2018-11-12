@@ -2,7 +2,6 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.IDiscardable;
@@ -26,8 +25,8 @@ import java.util.List;
 class DiffDialog extends JPanel implements IDiscardable {
 
     private final ObservableTable fileListTable = new ObservableTable();
-    private final DiffPanel oldVersionPanel = new DiffPanel(EChangeSide.OLD);
-    private final DiffPanel newVersionPanel = new DiffPanel(EChangeSide.NEW);
+    private final DiffPanel oldVersionPanel = new DiffPanel(BorderLayout.EAST);
+    private final DiffPanel newVersionPanel = new DiffPanel(BorderLayout.WEST);
     private Disposable disposable;
     private List<IFileDiff> diffs;
 

@@ -1,7 +1,5 @@
 package de.adito.git.gui.dialogs.panels;
 
-import de.adito.git.api.data.EChangeSide;
-
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -14,14 +12,21 @@ import java.awt.*;
 public class DiffPanel extends JPanel {
 
     private final static int SCROLL_SPEED_INCREMENT = 16;
-    private final EChangeSide changeSide;
     private final JTextPane lineNumArea = new JTextPane();
     private final JTextPane textPane = new JTextPane();
     private final JScrollPane mainScrollPane = new JScrollPane();
     private final JScrollPane lineScrollPane = new JScrollPane();
+    private final String lineOrientation;
 
-    public DiffPanel(EChangeSide pChangeSide) {
-        changeSide = pChangeSide;
+    /**
+     * @param pLineOrientation The side on which the lineNumbers should be (BorderLayout.EAST or BorderLayout.WEST)
+     */
+    public DiffPanel(String pLineOrientation) {
+        if (!pLineOrientation.equals(BorderLayout.EAST) && !pLineOrientation.equals(BorderLayout.WEST)) {
+            lineOrientation = BorderLayout.EAST;
+        } else {
+            lineOrientation = pLineOrientation;
+        }
         _initGui();
     }
 
@@ -49,7 +54,7 @@ public class DiffPanel extends JPanel {
         _coupleScrollPanes(mainScrollPane, lineScrollPane);
 
         // add the parts to the DiffPanel
-        add(lineScrollPane, changeSide == EChangeSide.OLD ? BorderLayout.EAST : BorderLayout.WEST);
+        add(lineScrollPane, lineOrientation);
         add(mainScrollPane, BorderLayout.CENTER);
 
         // remove Borders from the parts and use the set Border to draw a border around the whole panel
