@@ -4,11 +4,13 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.gui.guice.GuiceUtil;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.IFileSystemObserverProvider;
+import de.adito.git.nbm.EditorKitProviderImpl;
 import de.adito.git.nbm.FileSystemObserverImpl;
 import de.adito.git.nbm.FileSystemObserverProviderImpl;
 import de.adito.git.nbm.dialogs.NBDialogsModule;
@@ -32,5 +34,6 @@ public class AditoNbmModule extends AbstractModule {
         bind(IRepositoryProviderFactory.class).to(RepositoryProviderFactory.class);
         bind(IFileSystemObserverProvider.class).to(FileSystemObserverProviderImpl.class);
         bind(IFileSystemObserverImplFactory.class).toProvider(FactoryProvider.newFactory(IFileSystemObserverImplFactory.class, FileSystemObserverImpl.class));
+        bind(IEditorKitProvider.class).to(EditorKitProviderImpl.class);
     }
 }
