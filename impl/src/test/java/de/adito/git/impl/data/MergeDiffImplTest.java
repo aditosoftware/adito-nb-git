@@ -61,6 +61,18 @@ class MergeDiffImplTest {
      * Test if the correct chunk index is returned when only part of one chunk is affected
      */
     @Test
+    void testAffectedChunkIndizesBeginningPartOfOne() {
+        List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
+        IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(5, 6, 4, 11), "", "");
+        List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndices(changeChunk, changeChunks);
+        Assertions.assertTrue(affectedIndizes.contains(1));
+        Assertions.assertEquals(1, affectedIndizes.size());
+    }
+
+    /**
+     * Test if the correct chunk index is returned when only part of one chunk is affected
+     */
+    @Test
     void testAffectedChunkIndizesStartOnBoundary() {
         List<IFileChangeChunk> changeChunks  = createFileChangeChunkList(aStarts, aEnds);
         IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(8, 10, 4, 11), "", "");
@@ -165,7 +177,37 @@ class MergeDiffImplTest {
             changedLines.append(chunk.getALines());
         }
         Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
-        Assertions.assertFalse(changedLines.toString().contains(linesBeforeChange));
+        Assertions.assertFalse(Arrays.stream(linesBeforeChange.split("\n")).anyMatch(partFromBefore -> changedLines.toString().contains(partFromBefore)));
+        Assertions.assertEquals(originalLines.toString().split("\n").length
+                        + (linesAfterChange.split("\n").length - linesBeforeChange.split("\n").length),
+                changedLines.toString().split("\n").length);
+    }
+
+    /**
+     * Tests if the correct lines are inserted/removed when doing a replace operation that removes more lines than are added
+     * in one chunk instead of two/several like in testApplyChangesReplaceLess
+     */
+    @Test
+    void testApplyChangesReplaceLessOneChunk() {
+        String linesBeforeChange = "ah\nai\naj\nak\n";
+        String linesAfterChange = "ax\nax\nax\nax\nax";
+        StringBuilder originalLines = new StringBuilder();
+        StringBuilder changedLines = new StringBuilder();
+        List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds, aLines);
+        IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(7, 11, 4, 9), linesBeforeChange, linesAfterChange);
+        List<Integer> affectedIndizes = MergeDiffImpl._affectedChunkIndices(changeChunk, changeChunks);
+        for (Integer num : affectedIndizes) {
+            changeChunks.set(num, MergeDiffImpl._applyChange(changeChunk, changeChunks.get(num)));
+        }
+        for (String originalLine : aLines) {
+            originalLines.append(originalLine);
+        }
+        for (IFileChangeChunk chunk : changeChunks) {
+            changedLines.append(chunk.getALines());
+        }
+        Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
+        System.out.println(changedLines.toString());
+        Assertions.assertFalse(Arrays.stream(linesBeforeChange.split("\n")).anyMatch(partFromBefore -> changedLines.toString().contains(partFromBefore)));
         Assertions.assertEquals(originalLines.toString().split("\n").length
                         + (linesAfterChange.split("\n").length - linesBeforeChange.split("\n").length),
                 changedLines.toString().split("\n").length);
