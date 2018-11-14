@@ -186,7 +186,7 @@ public class MergeDiffImpl implements IMergeDiff {
         for (Integer num : affectedIndizes) {
             fileChangeChunkList.set(num, MergeDiffImpl._applyChange(toInsert, fileChangeChunkList.get(num)));
         }
-        MergeDiffImpl._propagateAdditionalLines(fileChangeChunkList, affectedIndizes.get(affectedIndizes.size() - 1), (toInsert.getBEnd() - toInsert.getBStart()) - (toInsert.getAEnd() - toInsert.getAStart()));
+        MergeDiffImpl._propagateAdditionalLines(fileChangeChunkList, affectedIndizes.get(affectedIndizes.size() - 1) + 1, (toInsert.getBEnd() - toInsert.getBStart()) - (toInsert.getAEnd() - toInsert.getAStart()));
     }
 
     /**
@@ -221,15 +221,16 @@ public class MergeDiffImpl implements IMergeDiff {
         String[] toInsertLines = toInsert.getBLines().split("\n");
         String[] toChangeLines = toChange.getALines().split("\n");
         StringBuilder toChangeResult = new StringBuilder();
+        // start accumulate lines before the affected part ------------------------------------------------------------------------------------------------------------
         /*
             count the number of lines that this chunk now has, so the edit can be changed accordingly
             start at -1, since in the end, one line means that aStart and aEnd are the same (with one line added, numLines goes to 0)
          */
-        int numLines = -1;
+        int numLines = 0;
         // Insert the lines that come before the change (if toChange chunk starts before toInsert chunk)
         if (toInsert.getChangeType() == EChangeType.ADD) {
             // collect all lines before the changed part, if the change is an insert the last line has to be added as well
-            for (int index = 0; index <= toInsert.getAStart() - toChange.getAStart(); index++) {
+            for (int index = 0; index < toInsert.getAStart() - toChange.getAStart(); index++) {
                 toChangeResult.append(toChangeLines[index]).append("\n");
                 numLines++;
             }
@@ -240,6 +241,8 @@ public class MergeDiffImpl implements IMergeDiff {
                 numLines++;
             }
         }
+        // end accumulate lines before the affected part --------------------------------------------------------------------------------------------------------------
+        // start accumulate changed lines -----------------------------------------------------------------------------------------------------------------------------
         // the last index of the changed part, depends on which chunk ends sooner
         int terminateAt;
         if (toInsert.getChangeType() == EChangeType.MODIFY) {
@@ -249,7 +252,7 @@ public class MergeDiffImpl implements IMergeDiff {
                 if the chunk in which to insert the change is longer, terminateAt is the number of lines in the change minus the lines processed in previous chunks
                 else it is the length of this chunk
               */
-            terminateAt = toChange.getAEnd() > toInsert.getAEnd() ? toInsertLines.length - indexOffset : toChange.getAEnd() - toInsert.getAStart() - 1;
+            terminateAt = toChange.getAEnd() >= toInsert.getAEnd() ? toInsertLines.length - indexOffset : toChange.getAEnd() - toInsert.getAStart() - 1;
             // if the change starts on the last line of this chunk, we have to add that line. Without this, the line is not added
             if (toChange.getAEnd() == toInsert.getAStart() + 1) {
                 terminateAt = 1;
@@ -270,18 +273,18 @@ public class MergeDiffImpl implements IMergeDiff {
                 numLines++;
             }
         }
+        // end accumulate changed lines -------------------------------------------------------------------------------------------------------------------------------
+        // start accumulate lines after changed part ------------------------------------------------------------------------------------------------------------------
         // if the chunk at which to insert the changes ends later than the changed part
         if (toChange.getAEnd() > toInsert.getAEnd()) {
             // If the toChange chunk contains lines after the change, append these
             int startIndex = toInsert.getAEnd() - toChange.getAStart();
-            if (toInsert.getChangeType() == EChangeType.ADD) {
-                startIndex += 1;
-            }
             for (int index = startIndex; index < toChangeLines.length; index++) {
                 toChangeResult.append(toChangeLines[index]).append("\n");
                 numLines++;
             }
         }
+        // end accumulate lines after changed part --------------------------------------------------------------------------------------------------------------------
         return new FileChangeChunkImpl(new Edit(toChange.getAStart(), toChange.getAStart() + numLines, toChange.getBStart(), toChange.getBEnd()),
                 toChangeResult.toString(),
                 toChange.getBLines(),
