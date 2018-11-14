@@ -185,7 +185,7 @@ public class TextHighlightUtil {
     }
 
     private static void _colorHighlights(JTextPane pTextPane, List<_Highlight> pHighlightSpots) {
-        LineHighlighterDelegate highlighter = new LineHighlighterDelegate();
+        LineHighlighter highlighter = new LineHighlighter();
         pTextPane.setHighlighter(highlighter);
         try {
             for (_Highlight highlight : pHighlightSpots) {
