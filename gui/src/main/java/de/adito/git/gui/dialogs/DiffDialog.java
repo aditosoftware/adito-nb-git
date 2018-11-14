@@ -2,18 +2,16 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.TextHighlightUtil;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.DiffPanel;
 import de.adito.git.gui.rxjava.ObservableTable;
 import de.adito.git.gui.tableModels.DiffTableModel;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.util.List;
 
@@ -25,13 +23,15 @@ import java.util.List;
 class DiffDialog extends JPanel implements IDiscardable {
 
     private final ObservableTable fileListTable = new ObservableTable();
-    private final DiffPanel oldVersionPanel = new DiffPanel(BorderLayout.EAST);
-    private final DiffPanel newVersionPanel = new DiffPanel(BorderLayout.WEST);
+    private final DiffPanel oldVersionPanel = new DiffPanel(BorderLayout.EAST, EChangeSide.OLD, null, true);
+    private final DiffPanel newVersionPanel = new DiffPanel(BorderLayout.WEST, EChangeSide.NEW, null, true);
     private Disposable disposable;
+    private final IEditorKitProvider editorKitProvider;
     private List<IFileDiff> diffs;
 
     @Inject
-    public DiffDialog(@Assisted List<IFileDiff> pDiffs) {
+    public DiffDialog(IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs) {
+        editorKitProvider = pEditorKitProvider;
         this.diffs = pDiffs;
         _initGui();
     }
@@ -72,65 +72,10 @@ class DiffDialog extends JPanel implements IDiscardable {
      * @param fileDiff the IFileDiff that should be displayed in the Diff Panel
      */
     private void _updateDiffPanel(IFileDiff fileDiff) {
-        List<IFileChangeChunk> changeChunkList = fileDiff.getFileChanges().getChangeChunks().blockingFirst();
-        // clear text in textPanes
-        oldVersionPanel.getTextPane().setText("");
-        oldVersionPanel.getLineNumArea().setText("");
-        newVersionPanel.getTextPane().setText("");
-        newVersionPanel.getLineNumArea().setText("");
-        // insert the text from the IFileDiffs
-        try {
-            TextHighlightUtil.insertChangeChunks(changeChunkList, oldVersionPanel.getTextPane(), newVersionPanel.getTextPane(), true);
-            _writeLineNums(changeChunkList);
-            revalidate();
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * writes the lineNumbers for both panels
-     *
-     * @param pChangeChunkList List of IFileChangeChunks from which the line numbering is extracted
-     */
-    private void _writeLineNums(List<IFileChangeChunk> pChangeChunkList) {
-        Color bgColor = new JLabel().getBackground();
-        int oldVersionLineNum = 1;
-        int newVersionLineNum = 1;
-        int numNewLines;
-        try {
-            for (IFileChangeChunk changeChunk : pChangeChunkList) {
-                numNewLines = changeChunk.getAEnd() - changeChunk.getAStart();
-                TextHighlightUtil.appendText(oldVersionPanel.getLineNumArea().getStyledDocument(), _getLineNumString(oldVersionLineNum, numNewLines), changeChunk.getChangeType());
-                oldVersionLineNum += numNewLines;
-                numNewLines = changeChunk.getBEnd() - changeChunk.getBStart();
-                // numbers on the right DiffPanel should be right-aligned
-                TextHighlightUtil.appendText(
-                        newVersionPanel.getLineNumArea().getStyledDocument(),
-                        _getLineNumString(newVersionLineNum, numNewLines),
-                        changeChunk.getChangeType().getDiffColor(),
-                        StyleConstants.ALIGN_RIGHT);
-                newVersionLineNum += numNewLines;
-                // parity lines should only contain newlines anyway, so no filtering or counting newlines should be necessary
-                TextHighlightUtil.appendText(oldVersionPanel.getLineNumArea().getStyledDocument(), changeChunk.getAParityLines(), bgColor);
-                TextHighlightUtil.appendText(newVersionPanel.getLineNumArea().getStyledDocument(), changeChunk.getBParityLines(), bgColor);
-            }
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * @param pStart number of the first line
-     * @param pCount number of lines
-     * @return String with the lineNumbers from pStart to pStart + pCount
-     */
-    private String _getLineNumString(int pStart, int pCount) {
-        StringBuilder lineNumStringBuilder = new StringBuilder();
-        for (int index = 0; index < pCount; index++) {
-            lineNumStringBuilder.append(pStart + index).append("\n");
-        }
-        return lineNumStringBuilder.toString();
+//        oldVersionPanel.getTextPane().setEditorKit(editorKitProvider.getEditorKit("text/javascript"));
+//        newVersionPanel.getTextPane().setEditorKit(editorKitProvider.getEditorKit("text/javascript"));
+        oldVersionPanel.setContent(fileDiff.getFileChanges().getChangeChunks());
+        newVersionPanel.setContent(fileDiff.getFileChanges().getChangeChunks());
     }
 
     @Override
