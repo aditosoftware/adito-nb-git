@@ -1,106 +1,227 @@
 package de.adito.git.gui;
 
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
-import java.awt.*;
+import javax.swing.text.DefaultHighlighter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
+ * Handles inserting lists of IFileChangeChunks into textPanes and highlighting parts of the text
+ * The highlighted parts are determined by the IFileChangeChunks, and the highlighting is done
+ * in a layered manner, so text selection is still possible
+ *
  * @author m.kaspera 22.10.2018
  */
 public class TextHighlightUtil {
 
     /**
-     * @param changeChunks        List with IFileChangeChunk that describe the changes
-     * @param aTextPane           JTextPane for the "old" side of the diff
-     * @param bTextPane           JTextPane for the "new" side of the diff
-     * @param insertParityStrings if true, the parity strings are inserted into the textPanes as well
-     * @throws BadLocationException if the message is getting inserted out of bounds
+     *
+     * @param pTextPane JTextPane that should be filled with text and colored
+     * @param pFileChangeChunks IFileChangeChunks determining the text and highlighting
+     * @param pChangeSide which part of the IFileChangeChunks (A-/B-lines) should be used
+     * @param pInsertParityStrings use parity Strings of the IFileChangeChunks to keep two Panels equal length
      */
-    public static void insertChangeChunks(List<IFileChangeChunk> changeChunks, JTextPane aTextPane,
-                                          JTextPane bTextPane, boolean insertParityStrings) throws BadLocationException {
-        StyledDocument aDocument = aTextPane.getStyledDocument();
-        StyledDocument bDocument = bTextPane.getStyledDocument();
-        for (IFileChangeChunk changeChunk : changeChunks) {
-            // Background color according to the EChangeType
-            TextHighlightUtil.appendText(aDocument, changeChunk.getALines(), changeChunk.getChangeType().getDiffColor());
-            TextHighlightUtil.appendText(bDocument, changeChunk.getBLines(), changeChunk.getChangeType().getDiffColor());
-            if (insertParityStrings) {
-                TextHighlightUtil.appendText(aDocument, changeChunk.getAParityLines(), changeChunk.getChangeType().getDiffColor());
-                TextHighlightUtil.appendText(bDocument, changeChunk.getBParityLines(), changeChunk.getChangeType().getDiffColor());
+    public static void insertColoredText(JTextPane pTextPane, List<IFileChangeChunk> pFileChangeChunks, EChangeSide pChangeSide, boolean pInsertParityStrings) {
+        Function<IFileChangeChunk, String> getLines;
+        Function<IFileChangeChunk, String> getParityLines;
+        if (pChangeSide == EChangeSide.NEW) {
+            getLines = IFileChangeChunk::getBLines;
+            getParityLines = IFileChangeChunk::getBParityLines;
+        } else {
+            getLines = IFileChangeChunk::getALines;
+            getParityLines = IFileChangeChunk::getAParityLines;
+        }
+        _insertColoredText(pTextPane, pFileChangeChunks, getLines, getParityLines, pInsertParityStrings, new ArrayList<>());
+    }
+
+    /**
+     * Combines the highlighting of two List of IFileChangeChunks, text is assumed to be identical
+     *
+     * @param pTextPane              JTextPane that should be filled with text and colored
+     * @param pYourFileChangeChunks  IFileChangeChunks determining the text and highlighting
+     * @param pTheirFileChangeChunks IFileChangeChunks determining the text and highlighting
+     * @param pChangeSide            which part of the IFileChangeChunks (A-/B-lines) should be used
+     * @param pInsertParityStrings   use parity Strings of the IFileChangeChunks to keep two Panels equal length
+     */
+    public static void insertColoredText(JTextPane pTextPane, List<IFileChangeChunk> pYourFileChangeChunks, List<IFileChangeChunk> pTheirFileChangeChunks,
+                                         EChangeSide pChangeSide, boolean pInsertParityStrings) {
+        Function<IFileChangeChunk, String> getLines;
+        Function<IFileChangeChunk, String> getParityLines;
+        if (pChangeSide == EChangeSide.NEW) {
+            getLines = IFileChangeChunk::getBLines;
+            getParityLines = IFileChangeChunk::getBParityLines;
+        } else {
+            getLines = IFileChangeChunk::getALines;
+            getParityLines = IFileChangeChunk::getAParityLines;
+        }
+        _insertColoredText(pTextPane, pYourFileChangeChunks, getLines, getParityLines, pInsertParityStrings, _getHighlightSpots(pTheirFileChangeChunks, getLines, getParityLines, pInsertParityStrings));
+    }
+
+    /**
+     * @param pFileChangeChunks    List of IFileChangeChunks for which the highlighted areas should be determined
+     * @param getLines             Function that retrieves the normal lines for an IFileChangeChunk
+     * @param getParityLines       Function that retrieves the parity lines for an IFileChangeChunk
+     * @param pInsertParityStrings use parity Strings of the IFileChangeChunks to keep two Panels equal length
+     * @return List of _Highlight
+     */
+    private static List<_Highlight> _getHighlightSpots(List<IFileChangeChunk> pFileChangeChunks, Function<IFileChangeChunk, String> getLines,
+                                                       Function<IFileChangeChunk, String> getParityLines, boolean pInsertParityStrings) {
+        List<_Highlight> highlightSpots = new ArrayList<>();
+        int currentIndex = 0;
+        int currentLen;
+        for (IFileChangeChunk changeChunk : pFileChangeChunks) {
+            currentLen = getLines.apply(changeChunk).length();
+            if (pInsertParityStrings) {
+                currentLen += getParityLines.apply(changeChunk).length();
             }
+            if (changeChunk.getChangeType() != EChangeType.SAME) {
+                highlightSpots.add(new _Highlight(currentIndex, currentIndex + currentLen, new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
+            }
+            currentIndex += currentLen;
+        }
+        return highlightSpots;
+    }
+
+    /**
+     * @param pTextPane            JTextPane that should be filled with text and colored
+     * @param pFileChangeChunks    List of IFileChangeChunks providing the text and the information about which areas to highlight
+     * @param getLines             Function that retrieves the normal lines for an IFileChangeChunk
+     * @param getParityLines       Function that retrieves the parity lines for an IFileChangeChunk
+     * @param pInsertParityStrings use parity Strings of the IFileChangeChunks to keep two Panels equal length
+     * @param highlightSpots       List of _Highlight determining which areas get colored and the color of the areas
+     */
+    private static void _insertColoredText(JTextPane pTextPane, List<IFileChangeChunk> pFileChangeChunks, Function<IFileChangeChunk, String> getLines,
+                                           Function<IFileChangeChunk, String> getParityLines, boolean pInsertParityStrings, List<_Highlight> highlightSpots) {
+        StringBuilder paneContentBuilder = new StringBuilder();
+        int currentIndex = 0;
+        int currentLen;
+        for (IFileChangeChunk changeChunk : pFileChangeChunks) {
+            paneContentBuilder.append(getLines.apply(changeChunk));
+            currentLen = getLines.apply(changeChunk).length();
+            if (pInsertParityStrings) {
+                paneContentBuilder.append(getParityLines.apply(changeChunk));
+                currentLen += getParityLines.apply(changeChunk).length();
+            }
+            if (changeChunk.getChangeType() != EChangeType.SAME) {
+                highlightSpots.add(new _Highlight(currentIndex, currentIndex + currentLen, new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
+            }
+            currentIndex += currentLen;
+        }
+        pTextPane.setText(paneContentBuilder.toString());
+        _colorHighlights(pTextPane, highlightSpots);
+    }
+
+    /**
+     * @param pLineNumberingPane JTextPane that should display the line numbers
+     * @param pChangeChunkList   List of IFileChangeChunks determining the line numbers and colored areas
+     * @param pChangeSide        which part of the IFileChangeChunks (A-/B-lines) should be used
+     * @param pUseParityLines    use parity Strings of the IFileChangeChunks to keep two Panels equal length
+     */
+    public static void insertColoredLineNumbers(JTextPane pLineNumberingPane, List<IFileChangeChunk> pChangeChunkList, EChangeSide pChangeSide, boolean pUseParityLines) {
+        Function<IFileChangeChunk, Integer> getNumLines;
+        Function<IFileChangeChunk, String> getParityLines;
+        if (pChangeSide == EChangeSide.NEW) {
+            getNumLines = (pIFileChangeChunk) -> pIFileChangeChunk.getBEnd() - pIFileChangeChunk.getBStart();
+            getParityLines = IFileChangeChunk::getBParityLines;
+        } else {
+            getNumLines = (pIFileChangeChunk) -> pIFileChangeChunk.getAEnd() - pIFileChangeChunk.getAStart();
+            getParityLines = IFileChangeChunk::getAParityLines;
+        }
+        _insertColoredLineNumbers(pLineNumberingPane, pChangeChunkList, getNumLines, getParityLines, pUseParityLines);
+
+    }
+
+    /**
+     * @param pLineNumberingPane JTextPane that should display the line numbers
+     * @param pChangeChunkList   List of IFileChangeChunks determining the line numbers and colored areas
+     * @param getNumLines        Function that retrieves the normal lines for an IFileChangeChunk
+     * @param getParityLines     Function that retrieves the parity lines for an IFileChangeChunk
+     * @param pUseParityLines    use parity Strings of the IFileChangeChunks to keep two Panels equal length
+     */
+    private static void _insertColoredLineNumbers(JTextPane pLineNumberingPane, List<IFileChangeChunk> pChangeChunkList, Function<IFileChangeChunk, Integer> getNumLines,
+                                                  Function<IFileChangeChunk, String> getParityLines, boolean pUseParityLines) {
+        List<_Highlight> highlightSpots = new ArrayList<>();
+        StringBuilder lineNumberingBuilder = new StringBuilder();
+        int lineNum = 1;
+        int currentIndex = 0;
+        int numNewLines, currentLen;
+        for (IFileChangeChunk changeChunk : pChangeChunkList) {
+            numNewLines = getNumLines.apply(changeChunk);
+            String lineNums = _getLineNumString(lineNum, numNewLines);
+            lineNumberingBuilder.append(lineNums);
+            currentLen = lineNums.length();
+            lineNum += numNewLines;
+            if (pUseParityLines) {
+                // parity lines should only contain newlines anyway, so no filtering or counting newlines should be necessary
+                lineNumberingBuilder.append(getParityLines.apply(changeChunk));
+                currentLen += getParityLines.apply(changeChunk).length();
+            }
+            if (changeChunk.getChangeType() != EChangeType.SAME) {
+                highlightSpots.add(new _Highlight(currentIndex, currentIndex + currentLen, new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
+            }
+            currentIndex += currentLen;
+        }
+        pLineNumberingPane.setText(lineNumberingBuilder.toString());
+        _colorHighlights(pLineNumberingPane, highlightSpots);
+    }
+
+    /**
+     * @param pStart number of the first line
+     * @param pCount number of lines
+     * @return String with the lineNumbers from pStart to pStart + pCount
+     */
+    private static String _getLineNumString(int pStart, int pCount) {
+        StringBuilder lineNumStringBuilder = new StringBuilder();
+        for (int index = 0; index < pCount; index++) {
+            lineNumStringBuilder.append(pStart + index).append("\n");
+        }
+        return lineNumStringBuilder.toString();
+    }
+
+    private static void _colorHighlights(JTextPane pTextPane, List<_Highlight> pHighlightSpots) {
+        LineHighlighterDelegate highlighter = new LineHighlighterDelegate();
+        pTextPane.setHighlighter(highlighter);
+        try {
+            for (_Highlight highlight : pHighlightSpots) {
+                highlighter.addBackgroundHighlight(highlight.getStartIndex(), highlight.getEndOffset(), highlight.getPainter());
+            }
+        } catch (BadLocationException e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
-     * @param document   StyledDocument of the JTextPane for which to insert the message
-     * @param message    String that should be inserted into the JTextPane
-     * @param changeType ChangeType, determines the background color of the line/text
-     * @throws BadLocationException if the message is getting inserted out of bounds
+     * class to store the diverse spots that should be highlighted after
+     * the IFileChangeChunks are inserted.
      */
-    public static void appendText(StyledDocument document, String message, EChangeType changeType) throws BadLocationException {
-        appendText(document, message, changeType.getDiffColor());
-    }
+    private static class _Highlight {
 
-    /**
-     * @param document StyledDocument of the JTextPane for which to insert the message
-     * @param message  String that should be inserted into the JTextPane
-     * @param bgColor  The Background color for the Text getting inserted
-     * @throws BadLocationException if the message is getting inserted out of bounds
-     */
-    public static void appendText(@NotNull StyledDocument document, @NotNull String message, @Nullable Color bgColor) throws BadLocationException {
-        appendText(document, message, bgColor, new JLabel().getForeground());
-    }
+        private final int startIndex;
+        private final int endOffset;
+        private final DefaultHighlighter.DefaultHighlightPainter painter;
 
-    /**
-     * @param document  StyledDocument of the JTextPane for which to insert the message
-     * @param message   String that should be inserted into the JTextPane
-     * @param bgColor   The Background color for the Text getting inserted
-     * @param alignment which alignment the text should have, default is left-aligned (0)
-     * @throws BadLocationException if the message is getting inserted out of bounds
-     */
-    public static void appendText(@NotNull StyledDocument document, @NotNull String message, @Nullable Color bgColor, int alignment) throws BadLocationException {
-        appendText(document, message, bgColor, new JLabel().getForeground(), alignment);
-    }
+        _Highlight(int startIndex, int endOffset, DefaultHighlighter.DefaultHighlightPainter painter) {
+            this.startIndex = startIndex;
+            this.endOffset = endOffset;
+            this.painter = painter;
+        }
 
-    /**
-     * @param document  StyledDocument of the JTextPane for which to insert the message
-     * @param message   String that should be inserted into the JTextPane
-     * @param bgColor   The Background color for the Text getting inserted
-     * @param textColor The color that the text is drawn in
-     * @throws BadLocationException if the message is getting inserted out of bounds
-     */
-    private static void appendText(@NotNull StyledDocument document, @NotNull String message, @Nullable Color bgColor, @Nullable Color textColor) throws BadLocationException {
-        appendText(document, message, bgColor, textColor, StyleConstants.ALIGN_LEFT);
-    }
+        int getStartIndex() {
+            return startIndex;
+        }
 
-    /**
-     * @param document  StyledDocument of the JTextPane for which to insert the message
-     * @param message   String that should be inserted into the JTextPane
-     * @param bgColor   The Background color for the Text getting inserted
-     * @param textColor The color that the text is drawn in
-     * @param alignment which alignment the text should have, default is left-aligned (0)
-     * @throws BadLocationException if the message is getting inserted out of bounds
-     */
-    private static void appendText(@NotNull StyledDocument document, @NotNull String message, @Nullable Color bgColor, @Nullable Color textColor, int alignment) throws BadLocationException {
-        if (bgColor == null)
-            bgColor = new JLabel().getBackground();
-        if (textColor == null)
-            textColor = new JLabel().getForeground();
-        SimpleAttributeSet attr = new SimpleAttributeSet();
-        StyleConstants.setBackground(attr, bgColor);
-        StyleConstants.setForeground(attr, textColor);
-        StyleConstants.setAlignment(attr, alignment);
-        int offset = document.getLength();
-        document.insertString(offset, message, attr);
-    }
+        int getEndOffset() {
+            return endOffset;
+        }
 
+        DefaultHighlighter.DefaultHighlightPainter getPainter() {
+            return painter;
+        }
+    }
 }
