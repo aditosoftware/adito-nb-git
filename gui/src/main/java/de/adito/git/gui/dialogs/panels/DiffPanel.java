@@ -1,67 +1,50 @@
 package de.adito.git.gui.dialogs.panels;
 
+import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.TextHighlightUtil;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.util.List;
+
+import static de.adito.git.gui.Constants.SCROLL_SPEED_INCREMENT;
 
 /**
  * Class to handle the basic layout of the two panels that display the differences between two files
  *
  * @author m.kaspera 12.11.2018
  */
-public class DiffPanel extends JPanel {
+public class DiffPanel extends ChangeDisplayPanel implements IDiscardable {
 
-    private final static int SCROLL_SPEED_INCREMENT = 16;
-    private final JTextPane lineNumArea = new JTextPane();
-    private final JTextPane textPane = new JTextPane();
+    private final JTextPane lineNumbering = new JTextPane();
+    private final JTextPane textPane = super._createNonWrappingTextPane();
     private final JScrollPane mainScrollPane = new JScrollPane();
-    private final JScrollPane lineScrollPane = new JScrollPane();
+    private final JScrollPane lineNumberingScrollPane = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     private final String lineOrientation;
+    private final EChangeSide changeSide;
+    private final boolean useParityLines;
+    private Disposable disposable;
 
     /**
      * @param pLineOrientation The side on which the lineNumbers should be (BorderLayout.EAST or BorderLayout.WEST)
      */
-    public DiffPanel(String pLineOrientation) {
+    public DiffPanel(String pLineOrientation, EChangeSide pChangeSide, Observable<List<IFileChangeChunk>> pChangeChunkList, boolean pUseParityLines) {
+        super(pChangeSide);
+        changeSide = pChangeSide;
+        useParityLines = pUseParityLines;
         if (!pLineOrientation.equals(BorderLayout.EAST) && !pLineOrientation.equals(BorderLayout.WEST)) {
             lineOrientation = BorderLayout.EAST;
         } else {
             lineOrientation = pLineOrientation;
         }
         _initGui();
-    }
-
-    private void _initGui() {
-        setLayout(new BorderLayout());
-
-        // set contentType to text/html. Because for whatever reason that's the only way the whole line gets marked, not just the text
-        textPane.setContentType("text/html");
-        lineNumArea.setContentType("text/html");
-
-        // textPane should no be editable, but the text should still be normal
-        textPane.setEditable(false);
-
-        // text here should look disabled/grey and not be editable
-        lineNumArea.setEnabled(false);
-
-        // ScrollPane setup
-        mainScrollPane.add(textPane);
-        mainScrollPane.setViewportView(textPane);
-        mainScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
-        lineScrollPane.add(lineNumArea);
-        lineScrollPane.setViewportView(lineNumArea);
-        lineScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        lineScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-        _coupleScrollPanes(mainScrollPane, lineScrollPane);
-
-        // add the parts to the DiffPanel
-        add(lineScrollPane, lineOrientation);
-        add(mainScrollPane, BorderLayout.CENTER);
-
-        // remove Borders from the parts and use the set Border to draw a border around the whole panel
-        Border usedBorder = lineScrollPane.getBorder();
-        lineScrollPane.setBorder(null);
-        mainScrollPane.setBorder(null);
-        setBorder(usedBorder);
+        if (pChangeChunkList != null)
+            setContent(pChangeChunkList);
     }
 
     /**
@@ -70,8 +53,8 @@ public class DiffPanel extends JPanel {
      * @param pScrollPane JScrollPane that should determine the scrolling of the textPane and the lineNumbers of this DiffPanel
      */
     public void coupleToScrollPane(JScrollPane pScrollPane) {
-        _coupleScrollPanes(pScrollPane, mainScrollPane);
-        _coupleScrollPanes(pScrollPane, lineScrollPane);
+        super.coupleScrollPanes(pScrollPane, mainScrollPane);
+        super.coupleScrollPanes(pScrollPane, lineNumberingScrollPane);
     }
 
     /**
@@ -84,27 +67,59 @@ public class DiffPanel extends JPanel {
     /**
      * @return the JTextPane that contains the diff-text
      */
-    public JTextPane getTextPane() {
+    JTextPane getTextPane() {
         return textPane;
     }
 
     /**
-     * @return JTextPane that contains only the line-numbering
+     * disposes of the currently subscribed Observable (if that exists) and subscribes to the passed one
+     *
+     * @param pChangeChunkList Observable<List<IFileChangeChunk>> detailing the changes to the text in this panel
      */
-    public JTextPane getLineNumArea() {
-        return lineNumArea;
+    public void setContent(Observable<List<IFileChangeChunk>> pChangeChunkList) {
+        if (disposable != null)
+            disposable.dispose();
+        disposable = pChangeChunkList.subscribe(this::_textChanged);
+        textPane.setCaretPosition(0);
     }
 
-    /**
-     * Makes the masterScrollPane determine the scrolling behaviour/speed of the slaveScrollPane.
-     * Both Panes are then  intertwined and cannot be scrolled independently
-     *
-     * @param masterScrollPane ScrollPane that will control scrolling behaviour. Is notified when the slave scrolls and does scroll then, too
-     * @param slaveScrollPane  ScrollPane that is linked to the master. Scrolling in the master also means scrolling in the slave, and vice versa
-     */
-    private void _coupleScrollPanes(JScrollPane masterScrollPane, JScrollPane slaveScrollPane) {
-        slaveScrollPane.getVerticalScrollBar().setModel(masterScrollPane.getVerticalScrollBar().getModel());
-        slaveScrollPane.setWheelScrollingEnabled(false);
-        slaveScrollPane.addMouseWheelListener(masterScrollPane::dispatchEvent);
+    private void _textChanged(List<IFileChangeChunk> pChangeChunkList) {
+        final int caretPosition = textPane.getCaretPosition();
+        // insert the text from the IFileDiffs
+        TextHighlightUtil.insertColoredText(textPane, pChangeChunkList, changeSide, true);
+        super.writeLineNums(lineNumbering, pChangeChunkList, useParityLines);
+        textPane.setCaretPosition(caretPosition);
+        revalidate();
+    }
+
+    private void _initGui() {
+        setLayout(new BorderLayout());
+
+        // textPane should no be editable, but the text should still be normal
+        textPane.setEditable(false);
+
+        // text here should look disabled/grey and not be editable
+        lineNumbering.setEnabled(false);
+
+        // ScrollPane setup
+        mainScrollPane.setViewportView(textPane);
+        mainScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
+        lineNumberingScrollPane.setViewportView(lineNumbering);
+        super.coupleScrollPanes(mainScrollPane, lineNumberingScrollPane);
+
+        // add the parts to the DiffPanel
+        add(mainScrollPane, BorderLayout.CENTER);
+        add(lineNumberingScrollPane, lineOrientation);
+
+        // remove Borders from the parts and use the set Border to draw a border around the whole panel
+        Border usedBorder = lineNumberingScrollPane.getBorder();
+        lineNumberingScrollPane.setBorder(null);
+        mainScrollPane.setBorder(null);
+        setBorder(usedBorder);
+    }
+
+    @Override
+    public void discard() {
+        disposable.dispose();
     }
 }
