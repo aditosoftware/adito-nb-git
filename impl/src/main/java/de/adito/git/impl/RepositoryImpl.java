@@ -196,13 +196,13 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public @NotNull List<IFileDiff> diff(@Nullable List<File> filesToDiff) throws Exception {
+    public @NotNull List<IFileDiff> diff(@Nullable List<File> filesToDiff, @Nullable ICommit compareWith) throws Exception {
         List<IFileDiff> returnList = new ArrayList<>();
 
         // prepare the TreeIterators for the local working copy and the files in HEAD
         FileTreeIterator fileTreeIterator = new FileTreeIterator(git.getRepository());
-        ObjectId lastCommitId = git.getRepository().resolve(Constants.HEAD);
-        CanonicalTreeParser treeParser = prepareTreeParser(git.getRepository(), lastCommitId);
+        ObjectId compareWithId = git.getRepository().resolve(compareWith == null ? Constants.HEAD : compareWith.getId());
+        CanonicalTreeParser treeParser = prepareTreeParser(git.getRepository(), compareWithId);
 
         // Use the DiffFormatter to retrieve a list of changes
         DiffFormatter diffFormatter = new DiffFormatter(null);
@@ -222,7 +222,7 @@ public class RepositoryImpl implements IRepository {
                     StringBuilder newFileLines = new StringBuilder();
                     if (!diffEntry.getNewPath().equals("/dev/null"))
                         Files.lines(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
-                    String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(lastCommitId), diffEntry.getOldPath()));
+                    String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
                     returnList.add(new FileDiffImpl(diffEntry, fileHeader,
                             oldFileContents, newFileLines.toString()));
                 }

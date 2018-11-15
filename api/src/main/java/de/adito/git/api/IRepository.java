@@ -76,13 +76,14 @@ public interface IRepository {
     @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws Exception;
 
     /**
-     * performs a diff of the working copy of the provided files with their version as it is in HEAD
+     * performs a diff of the working copy of the provided files with their version as it is in compareWith
      *
      * @param fileToDiff List of Files that should be diff'd with HEAD. pass null if all changes should be displayed
-     * @return List of IFileDiff describing the differences of the files in the working copy and HEAD
+     * @param compareWith ICommit giving the version that the files should be compared with. If null files are compared to the HEAD
+     * @return List of IFileDiff describing the differences of the files in the working copy and compareWith (or HEAD if compareWith == null)
      * @throws Exception if an error occurs
      */
-    @NotNull List<IFileDiff> diff(@Nullable List<File> fileToDiff) throws Exception;
+    @NotNull List<IFileDiff> diff(@Nullable List<File> fileToDiff, @Nullable ICommit compareWith) throws Exception;
 
     /**
      * @param identifier String identifying the specific version of the file

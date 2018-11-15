@@ -39,7 +39,7 @@ class DiffAction extends AbstractTableAction {
                     .stream()
                     .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                     .collect(Collectors.toList());
-            fileDiffs = repository.blockingFirst().diff(files);
+            fileDiffs = repository.blockingFirst().diff(files, null);
             dialogProvider.showDiffDialog(fileDiffs);
         } catch (Exception e1) {
             e1.printStackTrace();
