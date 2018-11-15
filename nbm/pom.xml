@@ -105,7 +105,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
-                <version>4.1</version>
+                <version>4.2-adito-SNAPSHOT</version>
                 <extensions>true</extensions>
                 <configuration>
                     <sourceManifestFile>${project.basedir}/src/nbm/manifest.mf</sourceManifestFile>
