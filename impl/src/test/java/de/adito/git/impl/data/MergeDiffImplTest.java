@@ -206,7 +206,6 @@ class MergeDiffImplTest {
             changedLines.append(chunk.getALines());
         }
         Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
-        System.out.println(changedLines.toString());
         Assertions.assertFalse(Arrays.stream(linesBeforeChange.split("\n")).anyMatch(partFromBefore -> changedLines.toString().contains(partFromBefore)));
         Assertions.assertEquals(originalLines.toString().split("\n").length
                         + (linesAfterChange.split("\n").length - linesBeforeChange.split("\n").length),
