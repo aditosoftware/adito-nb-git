@@ -23,7 +23,7 @@ public interface IActionProvider {
 
     /**
      * @param pRepository              Observable with the current Repository
-     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method commits the selected files to HEAD
      */
     Action getCommitAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
@@ -31,7 +31,7 @@ public interface IActionProvider {
     /**
      *
      * @param pRepository Observable with the current Repository
-     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method performs a diff on the selected files and shows the changes between working copy and HEAD
      */
     Action getDiffAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
@@ -39,7 +39,7 @@ public interface IActionProvider {
     /**
      *
      * @param pRepository Observable with the current Repository
-     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method adds the passed files to the .gitignore
      */
     Action getIgnoreAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
@@ -47,7 +47,7 @@ public interface IActionProvider {
     /**
      *
      * @param pRepository Observable with the current Repository
-     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method adds a file/changes in a file to the staging. Also {@link de.adito.git.gui.actions.ResetFilesAction}
      */
     Action getAddAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
@@ -55,7 +55,7 @@ public interface IActionProvider {
     /**
      *
      * @param pRepository Observable with the current Repository
-     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method excludes a file (like git ignore, but does not show up in the .gitignore)
      */
     Action getExcludeAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
@@ -108,7 +108,7 @@ public interface IActionProvider {
     /**
      *
      * @param pRepository Observable with the current Repository
-     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method reverts the selected files in the working directory to the state of HEAD. (performs a checkout on the files)
      */
     Action getRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
@@ -116,14 +116,14 @@ public interface IActionProvider {
     /**
      *
      * @param pRepository Observable with the current Repository
-     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method resets the selected files from staging (i.e. the opposite of add)
      */
     Action getResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
     /**
      * @param pRepository Observable with the current Repository
-     * @param pCommitedCommitsObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableTable}
+     * @param pCommitedCommitsObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
      * @return Action whose actionPerformed method resets the Index/Index + Head/Index + Head + working directory to the selected commit
      */
     Action getResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pCommitedCommitsObservable);

@@ -6,7 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.rxjava.ObservableTable;
+import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.CommitListTableModel;
 import io.reactivex.Observable;
 
@@ -23,7 +23,7 @@ import java.util.List;
 class CommitHistoryWindowContent extends JPanel {
 
     private final static int SCROLL_SPEED_INCREMENT = 16;
-    private final ObservableTable commitTable = new ObservableTable();
+    private final JTable commitTable = new JTable();
     private final IActionProvider actionProvider;
     private final Observable<IRepository> repository;
     private final Observable<List<ICommit>> selectionObservable;
@@ -31,9 +31,11 @@ class CommitHistoryWindowContent extends JPanel {
 
     @Inject
     CommitHistoryWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository, @Assisted List<ICommit> pCommits) {
+        ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
+        commitTable.setSelectionModel(observableListSelectionModel);
         actionProvider = pActionProvider;
         repository = pRepository;
-        selectionObservable = commitTable.selectedRows().map(selectedRows -> {
+        selectionObservable = observableListSelectionModel.selectedRows().map(selectedRows -> {
             List<ICommit> selectedCommits = new ArrayList<>();
             for (int selectedRow : selectedRows) {
                 selectedCommits.add(pCommits.get(selectedRow));

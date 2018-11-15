@@ -6,7 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.rxjava.ObservableTable;
+import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.BranchListTableModel;
 import io.reactivex.Observable;
 
@@ -27,9 +27,12 @@ import java.util.stream.Stream;
 class BranchListWindowContent extends JPanel {
     private final static int SCROLL_SPEED_INCREMENT = 16;
     private final IActionProvider actionProvider;
-    private Observable<IRepository> repository;
-    private ObservableTable localStatusTable = new ObservableTable();
-    private ObservableTable remoteStatusTable = new ObservableTable();
+    private final Observable<IRepository> repository;
+    private final JTable localStatusTable = new JTable();
+    private final JTable remoteStatusTable = new JTable();
+    private final ObservableListSelectionModel localSelectionModel;
+    private final ObservableListSelectionModel remoteSelectionModel;
+
 
     /**
      * BranchListWindowContent gives the GUI all branches in two lists back. The two lists are the local and the remote refs.
@@ -38,6 +41,10 @@ class BranchListWindowContent extends JPanel {
      */
     @Inject
     BranchListWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
+        localSelectionModel = new ObservableListSelectionModel(localStatusTable.getSelectionModel());
+        localStatusTable.setSelectionModel(localSelectionModel);
+        remoteSelectionModel = new ObservableListSelectionModel(remoteStatusTable.getSelectionModel());
+        remoteStatusTable.setSelectionModel(remoteSelectionModel);
         actionProvider = pActionProvider;
         repository = pRepository;
         _initGui();
@@ -51,7 +58,7 @@ class BranchListWindowContent extends JPanel {
         Observable<List<IBranch>> branchObservable = repository.flatMap(IRepository::getBranches);
 
         //the local Status Table
-        Observable<List<IBranch>> localSelectionObservable = Observable.combineLatest(localStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
+        Observable<List<IBranch>> localSelectionObservable = Observable.combineLatest(localSelectionModel.selectedRows(), branchObservable, (pSelected, pBranches) -> {
             if (pSelected == null || pBranches == null)
                 return Collections.emptyList();
             return Stream.of(pSelected)
@@ -68,7 +75,7 @@ class BranchListWindowContent extends JPanel {
 
 
         //the remote Status Table
-        Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(remoteStatusTable.selectedRows(), branchObservable, (pSelected, pBranches) -> {
+        Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(remoteSelectionModel.selectedRows(), branchObservable, (pSelected, pBranches) -> {
             if (pSelected == null || pBranches == null)
                 return Collections.emptyList();
             return Stream.of(pSelected)

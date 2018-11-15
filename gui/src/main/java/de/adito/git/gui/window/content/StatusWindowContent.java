@@ -9,7 +9,7 @@ import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.rxjava.ObservableTable;
+import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -33,7 +33,7 @@ class StatusWindowContent extends JPanel implements IDiscardable {
     private final Observable<IRepository> repository;
     private IActionProvider actionProvider;
     private final Observable<List<IFileChangeType>> selectionObservable;
-    private final ObservableTable statusTable = new ObservableTable();
+    private final JTable statusTable = new JTable();
     private Disposable disposable;
     private JPopupMenu popupMenu;
 
@@ -41,9 +41,11 @@ class StatusWindowContent extends JPanel implements IDiscardable {
     StatusWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
         repository = pRepository;
         actionProvider = pActionProvider;
+        ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());
+        statusTable.setSelectionModel(observableListSelectionModel);
         status = repository
                 .flatMap(IRepository::getStatus);
-        selectionObservable = Observable.combineLatest(statusTable.selectedRows(), status, (pSelected, pStatus) -> {
+        selectionObservable = Observable.combineLatest(observableListSelectionModel.selectedRows(), status, (pSelected, pStatus) -> {
             if (pSelected == null || pStatus == null)
                 return Collections.emptyList();
             List<IFileChangeType> uncommittedListCached = pStatus.getUncommitted();

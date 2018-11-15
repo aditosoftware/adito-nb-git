@@ -7,7 +7,7 @@ import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.rxjava.ObservableTable;
+import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.MergeDiffStatusModel;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -32,19 +32,21 @@ class MergeConflictDialog extends JPanel {
     private Observable<IRepository> repository;
     private final Subject<List<IMergeDiff>> mergeConflictDiffs;
     private final Observable<List<IMergeDiff>> mergeDiffListObservable;
-    private final ObservableTable mergeConflictTable = new ObservableTable();
+    private final JTable mergeConflictTable = new JTable();
     private final Observable<Optional<IMergeDiff>> selectedMergeDiffObservable;
 
     @Inject
     MergeConflictDialog(IDialogProvider pDialogFactory, @Assisted Observable<IRepository> pRepository, @Assisted List<IMergeDiff> pMergeConflictDiffs) {
         dialogFactory = pDialogFactory;
         repository = pRepository;
+        ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
+        mergeConflictTable.setSelectionModel(observableListSelectionModel);
         mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
         Observable<IFileStatus> obs = pRepository.flatMap(IRepository::getStatus);
         mergeDiffListObservable = Observable.combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
                 .filter(pMergeDiff -> pStatus.getConflicting().contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
                 .collect(Collectors.toList()));
-        selectedMergeDiffObservable = Observable.combineLatest(mergeConflictTable.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
+        selectedMergeDiffObservable = Observable.combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
             // if either the list or selection is null, more than one element is selected or the list has 0 elements
             if (pSelectedRows == null || pMergeDiffList == null || pSelectedRows.length != 1 || pMergeDiffList.size() == 0) {
                 return Optional.empty();

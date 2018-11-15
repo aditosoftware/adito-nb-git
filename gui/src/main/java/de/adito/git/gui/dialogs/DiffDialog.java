@@ -7,7 +7,7 @@ import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.DiffPanel;
-import de.adito.git.gui.rxjava.ObservableTable;
+import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.DiffTableModel;
 import io.reactivex.disposables.Disposable;
 
@@ -22,7 +22,8 @@ import java.util.List;
  */
 class DiffDialog extends JPanel implements IDiscardable {
 
-    private final ObservableTable fileListTable = new ObservableTable();
+    private final JTable fileListTable = new JTable();
+    private final ObservableListSelectionModel observableListSelectionModel;
     private final DiffPanel oldVersionPanel = new DiffPanel(BorderLayout.EAST, EChangeSide.OLD, null, true);
     private final DiffPanel newVersionPanel = new DiffPanel(BorderLayout.WEST, EChangeSide.NEW, null, true);
     private Disposable disposable;
@@ -31,6 +32,8 @@ class DiffDialog extends JPanel implements IDiscardable {
 
     @Inject
     public DiffDialog(IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs) {
+        observableListSelectionModel = new ObservableListSelectionModel(fileListTable.getSelectionModel());
+        fileListTable.setSelectionModel(observableListSelectionModel);
         editorKitProvider = pEditorKitProvider;
         this.diffs = pDiffs;
         _initGui();
@@ -52,7 +55,7 @@ class DiffDialog extends JPanel implements IDiscardable {
         if (diffs.size() >= 1)
             _updateDiffPanel(diffs.get(0));
         // pSelectedRows[0] because with SINGLE_SELECTION only one row can be selected
-        disposable = fileListTable.selectedRows().subscribe(pSelectedRows -> {
+        disposable = observableListSelectionModel.selectedRows().subscribe(pSelectedRows -> {
             if (pSelectedRows != null && pSelectedRows.length == 1)
                 _updateDiffPanel(diffs.get(pSelectedRows[0]));
         });
