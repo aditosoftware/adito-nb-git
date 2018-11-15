@@ -3,7 +3,7 @@ package de.adito.git.api.data;
 /**
  * Interface for a chunk of a file that was changed, i.e.:
  * INSERT (3,3), (3,4) "" "this line was inserted"
- * -> insert the line "this line was inserted" after line 3 on the B file
+ * {@code -> insert the line "this line was inserted" after line 3 on the B file}
  * INSERT                       getChangeType
  * (3,3)                        getAStart, getAEnd
  * (3,4)                        getBStart, getBEnd

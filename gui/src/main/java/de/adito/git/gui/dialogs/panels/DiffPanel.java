@@ -32,6 +32,9 @@ public class DiffPanel extends ChangeDisplayPanel implements IDiscardable {
 
     /**
      * @param pLineOrientation The side on which the lineNumbers should be (BorderLayout.EAST or BorderLayout.WEST)
+     * @param pChangeSide which side of the IFileChangeDiff should be used for retrieving the lines
+     * @param pChangeChunkList Observable for a list of IFileChangeChunks which always contains the IFileChangeChunks that should currently be displayed
+     * @param pUseParityLines if parity lines from the IFileChangeChunks should be used
      */
     public DiffPanel(String pLineOrientation, EChangeSide pChangeSide, Observable<List<IFileChangeChunk>> pChangeChunkList, boolean pUseParityLines) {
         super(pChangeSide);
@@ -74,7 +77,7 @@ public class DiffPanel extends ChangeDisplayPanel implements IDiscardable {
     /**
      * disposes of the currently subscribed Observable (if that exists) and subscribes to the passed one
      *
-     * @param pChangeChunkList Observable<List<IFileChangeChunk>> detailing the changes to the text in this panel
+     * @param pChangeChunkList {@code Observable<List<IFileChangeChunk>>} detailing the changes to the text in this panel
      */
     public void setContent(Observable<List<IFileChangeChunk>> pChangeChunkList) {
         if (disposable != null)
