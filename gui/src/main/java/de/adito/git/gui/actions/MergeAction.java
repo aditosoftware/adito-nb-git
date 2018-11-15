@@ -32,6 +32,9 @@ class MergeAction extends AbstractTableAction {
     public void actionPerformed(ActionEvent e) {
         IRepository repository = repositoryObservable.blockingFirst();
         try {
+            if (repository.getStatus().blockingFirst().hasUncommittedChanges()) {
+                throw new RuntimeException("Un-committed files detected while trying to merge: Implement stashing or commit/undo changes");
+            }
             List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch(), targetBranch.blockingFirst().get(0).getName());
             if(mergeConflictDiffs.size() > 0){
                 dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
