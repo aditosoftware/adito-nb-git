@@ -770,18 +770,13 @@ public class RepositoryImpl implements IRepository {
         @NotNull
         @Override
         protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pListenableValue, @NotNull Consumer<IFileStatus> pOnNext) {
-            IFileSystemChangeListener listener = () -> {
-                pOnNext.accept(_status());
-                System.out.println("set");
-            };
+            IFileSystemChangeListener listener = () -> pOnNext.accept(_status());
             pListenableValue.addListener(listener);
-            System.out.println("added listener");
             return listener;
         }
 
         @Override
         protected void removeListener(@NotNull IFileSystemObserver pListenableValue, @NotNull IFileSystemChangeListener pLISTENER) {
-            System.out.println("removed listener");
             pListenableValue.removeListener(pLISTENER);
         }
     }
