@@ -31,8 +31,6 @@ import java.util.List;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.AddNBAction")
 @ActionRegistration(displayName = "LBL_AddNBAction_Name")
 @ActionReferences({
-        //Reference for the toolbar
-        @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 100),
         //Reference for the menu
         @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100)
 })
