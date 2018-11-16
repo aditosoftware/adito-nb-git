@@ -217,6 +217,12 @@ public interface IRepository {
     List<ICommit> getCommits(File forFile) throws Exception;
 
     /**
+     * @param commits List of commits for which the CommitHistoryTreeList should be created
+     * @return List of CommitHistoryTreeListItems
+     */
+    List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits);
+
+    /**
      * @return the directory of the actual repository
      */
     String getDirectory();
