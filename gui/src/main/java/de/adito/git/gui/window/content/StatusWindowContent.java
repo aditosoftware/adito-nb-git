@@ -29,11 +29,10 @@ import java.util.stream.Stream;
  */
 class StatusWindowContent extends JPanel implements IDiscardable {
 
-    private final Observable<IFileStatus> status;
     private final Observable<IRepository> repository;
     private IActionProvider actionProvider;
     private final Observable<List<IFileChangeType>> selectionObservable;
-    private final JTable statusTable = new JTable();
+    private final JTable statusTable;
     private Disposable disposable;
     private JPopupMenu popupMenu;
 
@@ -41,10 +40,11 @@ class StatusWindowContent extends JPanel implements IDiscardable {
     StatusWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
         repository = pRepository;
         actionProvider = pActionProvider;
+        Observable<IFileStatus> status = repository
+                .flatMap(IRepository::getStatus);
+        statusTable = new JTable(new StatusTableModel(status));
         ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());
         statusTable.setSelectionModel(observableListSelectionModel);
-        status = repository
-                .flatMap(IRepository::getStatus);
         selectionObservable = Observable.combineLatest(observableListSelectionModel.selectedRows(), status, (pSelected, pStatus) -> {
             if (pSelected == null || pStatus == null)
                 return Collections.emptyList();
@@ -58,10 +58,8 @@ class StatusWindowContent extends JPanel implements IDiscardable {
 
     private void _initGui() {
         setLayout(new BorderLayout());
-        statusTable.setModel(new StatusTableModel(status));
-        statusTable.getColumnModel().getColumn(0).setMinWidth(150);
-        statusTable.getColumnModel().getColumn(1).setMinWidth(250);
-        statusTable.getColumnModel().getColumn(2).setMinWidth(50);
+        // Do not show the row with the EChangeTypes, they are represented by the color of the text of the files
+        statusTable.getColumnModel().removeColumn(statusTable.getColumn(StatusTableModel.columnNames[2]));
         statusTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         // CellRenderer so the files are colored according to their EChangeType
         for (int index = 0; index < statusTable.getColumnModel().getColumnCount(); index++) {

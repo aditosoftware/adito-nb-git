@@ -38,6 +38,11 @@ public class StatusTableModel extends AbstractTableModel implements IDiscardable
     }
 
     @Override
+    public String getColumnName(int column) {
+        return StatusTableModel.columnNames[column];
+    }
+
+    @Override
     public Class<?> getColumnClass(int columnIndex) {
         return String.class;
     }
