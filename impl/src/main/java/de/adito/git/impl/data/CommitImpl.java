@@ -4,7 +4,10 @@ import de.adito.git.api.data.ICommit;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera 25.09.2018
@@ -78,5 +81,22 @@ public class CommitImpl implements ICommit {
     @Override
     public String getId() {
         return ObjectId.toString(revCommit.getId());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ICommit> getParents() {
+        return Arrays.stream(revCommit.getParents()).map(CommitImpl::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        else if (!(obj instanceof ICommit))
+            return false;
+        else return ((ICommit) obj).getId().equals(getId());
     }
 }

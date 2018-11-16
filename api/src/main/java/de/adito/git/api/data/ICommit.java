@@ -1,6 +1,7 @@
 package de.adito.git.api.data;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Interface for the functionality of a Object that has the details of a commit
@@ -50,4 +51,9 @@ public interface ICommit {
      * @return the ID of the Commit as String
      */
     String getId();
+
+    /**
+     * @return List of ICommits that form the parents of this ICommit
+     */
+    List<ICommit> getParents();
 }
