@@ -4,7 +4,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.util.RepositoryUtility;
@@ -14,6 +13,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle;
 import org.openide.util.actions.NodeAction;
 
 /**
@@ -61,7 +61,7 @@ public class AllBranchNBAction extends NodeAction {
      */
     @Override
     public String getName() {
-        return "Show All branches";
+        return NbBundle.getMessage(AllBranchNBAction.class, "LBL_ShowALlBranchesNBAction_Name");
     }
 
     @Override

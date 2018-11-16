@@ -13,6 +13,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle;
 import org.openide.util.actions.NodeAction;
 
 /**
@@ -63,7 +64,7 @@ public class PullNBAction extends NodeAction {
 
     @Override
     public String getName() {
-        return "Push";
+        return NbBundle.getMessage(PullNBAction.class, "LBL_PullNBAction_Name");
     }
 
     @Override

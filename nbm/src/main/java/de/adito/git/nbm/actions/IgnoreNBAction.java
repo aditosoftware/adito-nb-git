@@ -16,6 +16,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle;
 import org.openide.util.actions.NodeAction;
 
 import javax.tools.FileObject;
@@ -80,7 +81,7 @@ public class IgnoreNBAction extends NodeAction {
 
     @Override
     public String getName() {
-        return "Ignore";
+        return NbBundle.getMessage(IgnoreNBAction.class, "LBL_IgnoreAction_Name");
     }
 
     @Override

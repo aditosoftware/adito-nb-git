@@ -17,6 +17,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.NbBundle;
 import org.openide.util.actions.NodeAction;
 
 import java.util.List;
@@ -67,7 +68,6 @@ public class CommitNBAction extends NodeAction {
     @Override
     protected boolean enable(Node[] activatedNodes) {
         if (activatedNodes != null) {
-            System.out.println("DEBUG: CommitNBAction");
             if (RepositoryUtility.findOneRepositoryFromNode(activatedNodes) != null) {
                 return !RepositoryUtility.getUncommitedFilesOfNodes(activatedNodes).isEmpty();
             }
@@ -83,7 +83,7 @@ public class CommitNBAction extends NodeAction {
 
     @Override
     public String getName() {
-        return "Commit";
+        return NbBundle.getMessage(CommitNBAction.class, "LBL_CommitNBAction_Name");
     }
 
     @Override
