@@ -7,7 +7,6 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
@@ -16,9 +15,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
 
 import java.util.List;
 
@@ -34,7 +31,7 @@ import java.util.List;
         @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 700)
 })
 
-public class CommitNBAction extends NodeAction {
+public class CommitNBAction extends NBAction {
 
     public CommitNBAction() {
     }
@@ -46,7 +43,7 @@ public class CommitNBAction extends NodeAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
         Subject<List<IFileChangeType>> listNodes;
@@ -55,7 +52,7 @@ public class CommitNBAction extends NodeAction {
             if (activatedNodes.length == 0) {
                 listNodes = BehaviorSubject.createDefault(repository.blockingFirst().getStatus().blockingFirst().getUncommitted());
             } else {
-                listNodes = BehaviorSubject.createDefault(RepositoryUtility.getUncommitedFilesOfNodes(activatedNodes));
+                listNodes = BehaviorSubject.createDefault(getUncommittedFilesOfNodes(activatedNodes, repository));
             }
             actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
         }
@@ -68,8 +65,9 @@ public class CommitNBAction extends NodeAction {
     @Override
     protected boolean enable(Node[] activatedNodes) {
         if (activatedNodes != null) {
-            if (RepositoryUtility.findOneRepositoryFromNode(activatedNodes) != null) {
-                return !RepositoryUtility.getUncommitedFilesOfNodes(activatedNodes).isEmpty();
+            Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
+            if (repository != null) {
+                return !getUncommittedFilesOfNodes(activatedNodes, repository).isEmpty();
             }
             return false;
         }
@@ -77,17 +75,7 @@ public class CommitNBAction extends NodeAction {
     }
 
     @Override
-    protected boolean asynchronous() {
-        return false;
-    }
-
-    @Override
     public String getName() {
         return NbBundle.getMessage(CommitNBAction.class, "LBL_CommitNBAction_Name");
-    }
-
-    @Override
-    public HelpCtx getHelpCtx() {
-        return null;
     }
 }

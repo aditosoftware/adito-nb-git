@@ -7,15 +7,14 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
 
 import java.util.List;
 
@@ -27,27 +26,25 @@ import java.util.List;
 @ActionRegistration(displayName = "LBL_RevertNBAction_Name")
 //Reference for the menu
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 200)
+public class RevertNBAction extends NBAction {
 
-public class RevertNBAction extends NodeAction {
+    private final Subject<List<IFileChangeType>> selectedFiles = BehaviorSubject.create();
+
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
-        List<IFileChangeType> uncommitedFilesOfNodes = RepositoryUtility.getUncommitedFilesOfNodes(activatedNodes);
 
-//        actionProvider.getRevertWorkDirAction(repository, uncommitedFilesOfNodes);
+        selectedFiles.onNext(getUncommittedFilesOfNodes(activatedNodes, repository));
+
+        actionProvider.getRevertWorkDirAction(repository, selectedFiles);
 
     }
 
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return !RepositoryUtility.getUncommitedFilesOfNodes(activatedNodes).isEmpty();
-    }
-
-    @Override
-    protected boolean asynchronous() {
-        return false;
+        return getUncommittedFilesOfNodes(activatedNodes, findOneRepositoryFromNode(activatedNodes)).size() > 0;
     }
 
     @Override
@@ -55,8 +52,4 @@ public class RevertNBAction extends NodeAction {
         return NbBundle.getMessage(RevertNBAction.class, "LBL_RevertNBAction_Name");
     }
 
-    @Override
-    public HelpCtx getHelpCtx() {
-        return null;
-    }
 }

@@ -14,7 +14,7 @@ import org.openide.util.Lookup;
  *
  * @author a.arnold, 22.10.2018
  */
-class ProjectUtility {
+public class ProjectUtility {
 
     /**
      * Find a project for a {@link Node} component
@@ -23,7 +23,7 @@ class ProjectUtility {
      * @return The project of a {@link Node}
      */
     @Nullable
-    static Project findProject(@NotNull Node pNode) {
+    public static Project findProject(@NotNull Node pNode) {
         return findProject(pNode.getLookup());
     }
 

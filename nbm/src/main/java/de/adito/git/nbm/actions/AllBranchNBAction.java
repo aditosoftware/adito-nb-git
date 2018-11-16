@@ -6,7 +6,6 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -31,7 +30,7 @@ public class AllBranchNBAction extends NodeAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
         if (repository != null) {
             Injector injector = Guice.createInjector(new AditoNbmModule());
             IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
@@ -48,7 +47,7 @@ public class AllBranchNBAction extends NodeAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return RepositoryUtility.findOneRepositoryFromNode(activatedNodes) != null;
+        return NBAction.findOneRepositoryFromNode(activatedNodes) != null;
     }
 
     @Override

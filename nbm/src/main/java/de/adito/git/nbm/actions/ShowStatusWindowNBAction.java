@@ -6,16 +6,13 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
 
 /**
  * @author m.kaspera 06.11.2018
@@ -27,10 +24,11 @@ import org.openide.util.actions.NodeAction;
         //Reference for the menu
         @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 600)
 })
-public class ShowStatusWindowNBAction extends NodeAction {
+public class ShowStatusWindowNBAction extends NBAction {
+
     @Override
     protected void performAction(Node[] activeNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activeNodes);
+        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activeNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
         actionProvider.getShowStatusWindowAction(repository).actionPerformed(null);
@@ -38,16 +36,11 @@ public class ShowStatusWindowNBAction extends NodeAction {
 
     @Override
     protected boolean enable(Node[] activeNodes) {
-        return RepositoryUtility.findOneRepositoryFromNode(activeNodes) != null;
+        return NBAction.findOneRepositoryFromNode(activeNodes) != null;
     }
 
     @Override
     public String getName() {
         return NbBundle.getMessage(ShowStatusWindowNBAction.class, "LBL_ShowStatusWindowNBAction_Name");
-    }
-
-    @Override
-    public HelpCtx getHelpCtx() {
-        return null;
     }
 }

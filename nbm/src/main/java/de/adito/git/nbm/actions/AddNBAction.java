@@ -7,7 +7,6 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
@@ -17,9 +16,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
 
 import java.util.List;
 
@@ -34,15 +31,15 @@ import java.util.List;
         //Reference for the menu
         @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100)
 })
-public class AddNBAction extends NodeAction {
+public class AddNBAction extends NBAction {
 
     /**
      * @param activatedNodes the activated nodes in Netbeans
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
-        Subject<List<IFileChangeType>> listFiles = BehaviorSubject.createDefault(RepositoryUtility.getUncommitedFilesOfNodes(activatedNodes));
+        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
+        Subject<List<IFileChangeType>> listFiles = BehaviorSubject.createDefault(NBAction.getUncommittedFilesOfNodes(activatedNodes, repository));
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
@@ -56,8 +53,9 @@ public class AddNBAction extends NodeAction {
     @Override
     protected boolean enable(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            if (RepositoryUtility.findOneRepositoryFromNode(activatedNodes) != null) {
-                if (RepositoryUtility.getUncommitedFilesOfNodes(activatedNodes).isEmpty()) {
+            final Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
+            if (repository != null) {
+                if (getUncommittedFilesOfNodes(activatedNodes, repository).isEmpty()) {
                     return false;
                 }
                 if (node.getLookup().lookup(FileObject.class) != null) {
@@ -70,17 +68,8 @@ public class AddNBAction extends NodeAction {
     }
 
     @Override
-    protected boolean asynchronous() {
-        return false;
-    }
-
-    @Override
     public String getName() {
         return NbBundle.getMessage(AddNBAction.class, "LBL_AddNBAction_Name");
     }
 
-    @Override
-    public HelpCtx getHelpCtx() {
-        return null;
-    }
 }

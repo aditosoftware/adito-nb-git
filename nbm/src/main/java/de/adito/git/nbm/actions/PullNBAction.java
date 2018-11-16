@@ -6,15 +6,12 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
 
 /**
  * An action class to pull the commits of a repository
@@ -26,7 +23,7 @@ import org.openide.util.actions.NodeAction;
 @ActionRegistration(displayName = "LBL_PullNBAction_Name")
 //Reference for the menu
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100)
-public class PullNBAction extends NodeAction {
+public class PullNBAction extends NBAction {
 
     /**
      * get the actual repository and pull the current branch.
@@ -35,7 +32,7 @@ public class PullNBAction extends NodeAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
@@ -54,12 +51,7 @@ public class PullNBAction extends NodeAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return RepositoryUtility.findOneRepositoryFromNode(activatedNodes) != null;
-    }
-
-    @Override
-    protected boolean asynchronous() {
-        return false;
+        return findOneRepositoryFromNode(activatedNodes) != null;
     }
 
     @Override
@@ -67,8 +59,4 @@ public class PullNBAction extends NodeAction {
         return NbBundle.getMessage(PullNBAction.class, "LBL_PullNBAction_Name");
     }
 
-    @Override
-    public HelpCtx getHelpCtx() {
-        return null;
-    }
 }

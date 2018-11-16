@@ -8,20 +8,19 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
+import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
 
-import javax.tools.FileObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * An action class for NeBeans which ignore files for the version control system
@@ -32,7 +31,9 @@ import java.util.List;
 @ActionRegistration(displayName = "LBL_IgnoreAction_Name")
 //Reference for the menu
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 500)
-public class IgnoreNBAction extends NodeAction {
+public class IgnoreNBAction extends NBAction {
+
+    private final Subject<List<IFileChangeType>> filesToIgnore = BehaviorSubject.create();
 
     /**
      * Ignore files in the version control system
@@ -41,14 +42,27 @@ public class IgnoreNBAction extends NodeAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
         if (repository != null) {
             List<IFileChangeType> untrackedFiles = repository.blockingFirst().getStatus().blockingFirst().getUntracked();
-            Observable<List<IFileChangeType>> fileList = BehaviorSubject.createDefault(untrackedFiles);
-            actionProvider.getIgnoreAction(repository, fileList);
+            List<FileObject> selectedFiles = new ArrayList<>();
+            for (Node node : activatedNodes) {
+                if (node.getLookup().lookup(FileObject.class) != null) {
+                    selectedFiles.add(node.getLookup().lookup(FileObject.class));
+                }
+            }
+            final List<IFileChangeType> untrackedSelectedFiles = untrackedFiles
+                    .stream()
+                    .filter(untrackedFile -> selectedFiles
+                            .stream()
+                            .anyMatch(selectedFile -> selectedFile.toURI()
+                                    .equals(untrackedFile.getFile().toURI())))
+                    .collect(Collectors.toList());
+            filesToIgnore.onNext(untrackedSelectedFiles);
+            actionProvider.getIgnoreAction(repository, filesToIgnore);
         }
     }
 
@@ -58,7 +72,7 @@ public class IgnoreNBAction extends NodeAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
         List<IFileChangeType> untrackedFiles = new ArrayList<>();
         if (repository != null) {
             untrackedFiles = repository.blockingFirst().getStatus().blockingFirst().getUntracked();
@@ -75,17 +89,8 @@ public class IgnoreNBAction extends NodeAction {
     }
 
     @Override
-    protected boolean asynchronous() {
-        return false;
-    }
-
-    @Override
     public String getName() {
         return NbBundle.getMessage(IgnoreNBAction.class, "LBL_IgnoreAction_Name");
     }
 
-    @Override
-    public HelpCtx getHelpCtx() {
-        return null;
-    }
 }

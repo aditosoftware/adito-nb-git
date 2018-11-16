@@ -6,16 +6,13 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.NodeAction;
 
 /**
  * An action class to push all current commits
@@ -30,14 +27,14 @@ import org.openide.util.actions.NodeAction;
         //Reference for the menu
         @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 200)
 })
-public class PushNBAction extends NodeAction {
+public class PushNBAction extends NBAction {
 
     /**
      * @param activatedNodes The activated nodes in NetBeans
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
@@ -52,12 +49,7 @@ public class PushNBAction extends NodeAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return RepositoryUtility.findOneRepositoryFromNode(activatedNodes) != null;
-    }
-
-    @Override
-    protected boolean asynchronous() {
-        return false;
+        return findOneRepositoryFromNode(activatedNodes) != null;
     }
 
     @Override
@@ -65,8 +57,4 @@ public class PushNBAction extends NodeAction {
         return NbBundle.getMessage(PushNBAction.class, "LBL_PushNBAction_Name");
     }
 
-    @Override
-    public HelpCtx getHelpCtx() {
-        return null;
-    }
 }

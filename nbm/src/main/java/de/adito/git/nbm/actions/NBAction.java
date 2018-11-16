@@ -1,15 +1,17 @@
-package de.adito.git.nbm.util;
+package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.nbm.repo.RepositoryCache;
+import de.adito.git.nbm.util.ProjectUtility;
 import io.reactivex.Observable;
-import io.reactivex.annotations.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
+import org.openide.util.HelpCtx;
+import org.openide.util.actions.NodeAction;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -21,24 +23,20 @@ import java.util.stream.Collectors;
  *
  * @author a.arnold, 25.10.2018
  */
-public class RepositoryUtility {
+abstract class NBAction extends NodeAction {
 
     @NotNull
-    public static List<IFileChangeType> getUncommitedFilesOfNodes(Node[] activatedNodes) {
-        Observable<IRepository> repository = RepositoryUtility.findOneRepositoryFromNode(activatedNodes);
+    static List<IFileChangeType> getUncommittedFilesOfNodes(@NotNull Node[] activatedNodes, @Nullable Observable<IRepository> pRepository) {
         List<IFileChangeType> fileList = new ArrayList<>();
         List<File> files = allFilesofNodes(activatedNodes);
         List<IFileChangeType> uncommittedFiles = new ArrayList<>();
 
-        if (repository != null) {
-            uncommittedFiles = repository.blockingFirst().getStatus().blockingFirst().getUncommitted();
-            if (files == null) {
-                return fileList;
-            }
+        if (pRepository != null) {
+            uncommittedFiles = pRepository.blockingFirst().getStatus().blockingFirst().getUncommitted();
         }
         for (File file : files) {
             uncommittedFiles.stream()
-                    .filter(uncommitFile -> uncommitFile.getFile().getAbsolutePath()
+                    .filter(uncommittedFile -> uncommittedFile.getFile().getAbsolutePath()
                             .equals(file.getAbsolutePath()))
                     .collect(Collectors.toCollection(() -> fileList));
         }
@@ -49,8 +47,8 @@ public class RepositoryUtility {
      * @param activatedNodes the active nodes from NetBeans
      * @return a list of Files from activeNodes.
      */
-    @NonNull
-    private static List<File> allFilesofNodes(Node[] activatedNodes) {
+    @NotNull
+    private static List<File> allFilesofNodes(@NotNull Node[] activatedNodes) {
         List<File> fileList = new ArrayList<>();
         for (Node node : activatedNodes) {
             if (node.getLookup().lookup(FileObject.class) != null) {
@@ -67,7 +65,7 @@ public class RepositoryUtility {
      * @return The repository of the node
      */
     @Nullable
-    public static Observable<IRepository> findOneRepositoryFromNode(Node[] activatedNodes) {
+    static Observable<IRepository> findOneRepositoryFromNode(@NotNull Node[] activatedNodes) {
         Observable<IRepository> repository;
         Project project = null;
         for (Node node : activatedNodes) {
@@ -84,5 +82,24 @@ public class RepositoryUtility {
 
         repository = RepositoryCache.getInstance().findRepository(project);
         return repository;
+    }
+
+    @Override
+    protected abstract void performAction(Node[] nodes);
+
+    @Override
+    protected abstract boolean enable(Node[] nodes);
+
+    @Override
+    public abstract String getName();
+
+    @Override
+    protected boolean asynchronous() {
+        return false;
+    }
+
+    @Override
+    public HelpCtx getHelpCtx() {
+        return null;
     }
 }
