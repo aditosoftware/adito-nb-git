@@ -16,6 +16,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,13 +68,15 @@ class BranchListWindowContent extends JPanel {
                     .filter(pBranch -> pBranch.getType() == EBranchType.LOCAL)
                     .collect(Collectors.toList());
         });
+
+        localStatusTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         localStatusTable.setModel(new BranchListTableModel(branchObservable, EBranchType.LOCAL));
         localStatusTable.getTableHeader().setReorderingAllowed(false);
         localStatusTable.addMouseListener(new _PopupStarter(localSelectionObservable, localStatusTable));
         localStatusTable.removeColumn(localStatusTable.getColumn("branchID"));
-        JScrollPane localScrollPane = new JScrollPane(localStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane localScrollPane = new JScrollPane(localStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         localScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
-
 
         //the remote Status Table
         Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(remoteSelectionModel.selectedRows(), branchObservable, (pSelected, pBranches) -> {
@@ -87,7 +91,8 @@ class BranchListWindowContent extends JPanel {
         remoteStatusTable.getTableHeader().setReorderingAllowed(false);
         remoteStatusTable.addMouseListener(new _PopupStarter(remoteSelectionObservable, remoteStatusTable));
         remoteStatusTable.removeColumn(remoteStatusTable.getColumn("branchID"));
-        JScrollPane remoteScrollPane = new JScrollPane(remoteStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane remoteScrollPane = new JScrollPane(remoteStatusTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         remoteScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
 
         //the mainPanel & tabbedPanel
@@ -112,11 +117,19 @@ class BranchListWindowContent extends JPanel {
         @Override
         public void mouseReleased(MouseEvent e) {
             if (SwingUtilities.isRightMouseButton(e)) {
+
+
                 int row = table.rowAtPoint(e.getPoint());
                 if (row >= 0) {
+
                     JPopupMenu popupMenu = new JPopupMenu();
                     popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList));
-                    popupMenu.add(actionProvider.getCheckoutAction(repository, branchList));
+                    Function<List<IBranch>, Optional<IBranch>> mapping = pBranches -> {
+                        if (pBranches.isEmpty()) {
+                            return Optional.empty();
+                        } else return Optional.of(pBranches.get(0));
+                    };
+                    popupMenu.add(actionProvider.getCheckoutAction(repository, branchList.map(mapping::apply)));
                     popupMenu.add(actionProvider.getMergeAction(repository, branchList));
                     popupMenu.show(table, e.getX(), e.getY());
                 } else {

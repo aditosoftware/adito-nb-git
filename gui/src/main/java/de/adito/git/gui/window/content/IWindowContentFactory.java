@@ -17,4 +17,6 @@ interface IWindowContentFactory {
 
     CommitHistoryWindowContent createCommitHistoryWindowContent(Observable<IRepository> pRepository, List<ICommit> pCommits);
 
+    StatusLineWindowContent createStatusLineWindowContent(Observable<IRepository> pRepository);
+
 }

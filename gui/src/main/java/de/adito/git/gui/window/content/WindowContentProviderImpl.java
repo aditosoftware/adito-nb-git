@@ -35,4 +35,9 @@ public class WindowContentProviderImpl implements IWindowContentProvider {
         return windowContentFactory.createCommitHistoryWindowContent(pRepository, pCommits);
     }
 
+    @Override
+    public JComponent createStatusLineWindowContent(Observable<IRepository> pRepository){
+        return windowContentFactory.createStatusLineWindowContent(pRepository);
+    }
+
 }

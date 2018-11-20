@@ -18,4 +18,6 @@ public interface IWindowContentProvider {
 
     JComponent createCommitHistoryWindowContent(Observable<IRepository> pRepository, List<ICommit> pCommits);
 
+    JComponent createStatusLineWindowContent(Observable<IRepository> pRepository);
+
 }

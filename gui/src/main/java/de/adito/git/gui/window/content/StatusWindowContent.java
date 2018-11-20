@@ -85,7 +85,7 @@ class StatusWindowContent extends JPanel implements IDiscardable {
 
     @Override
     public void discard() {
-        ((StatusTableModel)statusTable.getModel()).discard();
+        ((StatusTableModel) statusTable.getModel()).discard();
         disposable.dispose();
     }
 
