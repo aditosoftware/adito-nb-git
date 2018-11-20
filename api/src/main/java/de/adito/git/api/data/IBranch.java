@@ -5,6 +5,8 @@ package de.adito.git.api.data;
  */
 public interface IBranch {
 
+    IBranch EMPTY = new EmptyBranch();
+
     /**
      *
      * @return the name of the Branch in clear text, as String

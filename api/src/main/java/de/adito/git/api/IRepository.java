@@ -14,6 +14,8 @@ import java.util.List;
  */
 public interface IRepository {
 
+    IRepository EMPTY = new EmptyRepository();
+
     /**
      * @param addList List of files to add to staging
      * @throws Exception if an error occurs
@@ -180,12 +182,12 @@ public interface IRepository {
     List<IMergeDiff> getMergeConflicts() throws Exception;
 
     /**
-     * @param sourceName String with identifier of source branch
-     * @param targetName String with identifier of target branch
+     * @param sourceBranch The source branch
+     * @param targetBranch The target branch
      * @return List of IMergeDiffs, the list is empty if no merge conflict happened, else the list of IMergeDiffs describe the merge conflicts
      * @throws Exception if an error occurs
      */
-    List<IMergeDiff> merge(@NotNull String sourceName, @NotNull String targetName) throws Exception;
+    List<IMergeDiff> merge(@NotNull IBranch sourceBranch, @NotNull IBranch targetBranch) throws Exception;
 
     /**
      * @param commitId Id of the commit for which the changed files should be retrieved
@@ -246,7 +248,11 @@ public interface IRepository {
      */
     IBranch getBranch(String branchString) throws Exception;
 
-    String getCurrentBranch() throws Exception;
+    /**
+     * @return the current branch
+     * @throws Exception if an error occurs
+     */
+    Observable<IBranch> getCurrentBranch() throws Exception;
 
     /**
      * @return List of all IBranches in the repository
@@ -254,5 +260,4 @@ public interface IRepository {
      */
     @NotNull
     Observable<List<IBranch>> getBranches() throws Exception;
-
 }
