@@ -39,6 +39,8 @@ public class CommitHistoryTreeListItem {
                     for (AncestryLine childLine : oldAncestryLine.getChildLines()) {
                         updatedAncestryLines.add(new AncestryLine(childLine.getParent(), childLine.getColor()));
                     }
+                } else {
+                    ColorRoulette.returnColor(oldAncestryLine.getColor());
                 }
             } else {
                 updatedAncestryLines.add(oldAncestryLine);

@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -71,30 +70,11 @@ public class AncestryLine {
             childLines.add(new AncestryLine(parent.getParents().get(0), color, LineType.INFANT));
             if (parent.getParents().size() > 1) {
                 for (ICommit grandParent : parent.getParents().subList(1, parent.getParents().size())) {
-                    childLines.add(new AncestryLine(grandParent, ColorRoulette.get(), LineType.INFANT));
+                    Color lineColor = ColorRoulette.get();
+                    childLines.add(new AncestryLine(grandParent, lineColor == null ? Color.green : lineColor, LineType.INFANT));
                 }
             }
         }
-    }
-
-    /**
-     * class for picking a new Color, rotates the gathered colors in cyclic manner
-     */
-    private static class ColorRoulette {
-
-        private static List<Color> colors = new ArrayList<>(Arrays.asList(Color.ORANGE, Color.magenta, Color.YELLOW, Color.red, Color.green));
-        private static int currentIndex = 0;
-
-        static Color get() {
-            int index = currentIndex;
-            if (currentIndex == colors.size() - 1) {
-                currentIndex = 0;
-            } else {
-                currentIndex++;
-            }
-            return colors.get(index);
-        }
-
     }
 
 }
