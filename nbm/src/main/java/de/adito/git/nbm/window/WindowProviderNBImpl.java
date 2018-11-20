@@ -56,7 +56,6 @@ class WindowProviderNBImpl implements IWindowProvider {
     public void showStatusWindow(Observable<IRepository> pRepository) {
         _openTCinEDT(topComponentFactory.createStatusWindowTopComponent(pRepository));
     }
-
     /**
      * A helper class to open TopComponents in EDT
      * @param pComponent The AbstractRepositoryTopComponent that should be displayed

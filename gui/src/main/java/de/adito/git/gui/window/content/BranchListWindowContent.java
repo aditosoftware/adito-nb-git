@@ -116,19 +116,16 @@ class BranchListWindowContent extends JPanel {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (SwingUtilities.isRightMouseButton(e)) {
-
-
+            if (e.isPopupTrigger()) {
                 int row = table.rowAtPoint(e.getPoint());
                 if (row >= 0) {
-
                     JPopupMenu popupMenu = new JPopupMenu();
-                    popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList));
                     Function<List<IBranch>, Optional<IBranch>> mapping = pBranches -> {
                         if (pBranches.isEmpty()) {
                             return Optional.empty();
                         } else return Optional.of(pBranches.get(0));
                     };
+                    popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList));
                     popupMenu.add(actionProvider.getCheckoutAction(repository, branchList.map(mapping::apply)));
                     popupMenu.add(actionProvider.getMergeAction(repository, branchList));
                     popupMenu.show(table, e.getX(), e.getY());
