@@ -29,7 +29,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -582,7 +582,7 @@ public class RepositoryImpl implements IRepository {
         List<ICommit> commitList = new ArrayList<>();
         Iterable<RevCommit> refCommits;
         LogCommand logCommand = git.log().add(git.getRepository().resolve(sourceBranch.getName()));
-
+        logCommand.setMaxCount(250);
         try {
             refCommits = logCommand.call();
         } catch (GitAPIException e) {
@@ -622,24 +622,12 @@ public class RepositoryImpl implements IRepository {
         List<CommitHistoryTreeListItem> commitHistoryTreeList = new ArrayList<>();
         for (ICommit commit : commits) {
             if (!commitHistoryTreeList.isEmpty()) {
-                final CommitHistoryTreeListItem lastHistoryTreeListItem = commitHistoryTreeList.get(commitHistoryTreeList.size() - 1);
-                List<AncestryLine> newAncestryLines = new ArrayList<>();
-                for (AncestryLine ancestryLine : lastHistoryTreeListItem.getAncestryLines()) {
-                    if (!ancestryLine.getParent().equals(lastHistoryTreeListItem.getCommit())) {
-                        newAncestryLines.add(ancestryLine);
-                    }
-                }
-                for (ICommit commitParent : commit.getParents()) {
-                    if (newAncestryLines.stream().noneMatch(ancestryLine -> ancestryLine.getParent().equals(commitParent))) {
-                        newAncestryLines.add(new AncestryLine(commitParent, Color.green));
-                    }
-                }
-                commitHistoryTreeList.add(new CommitHistoryTreeListItem(commit, newAncestryLines));
+                // get the latest commitHistoryTreeListItem
+                commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commit));
             } else {
                 List<AncestryLine> ancestryLines = new ArrayList<>();
-                for (ICommit commitParent : commit.getParents()) {
-                    ancestryLines.add(new AncestryLine(commitParent, Color.green));
-                }
+                ancestryLines.add(new AncestryLine(commit, Color.green));
+                CommitHistoryTreeListItem.setMaxWidth(ancestryLines.size());
                 commitHistoryTreeList.add(new CommitHistoryTreeListItem(commit, ancestryLines));
             }
         }
