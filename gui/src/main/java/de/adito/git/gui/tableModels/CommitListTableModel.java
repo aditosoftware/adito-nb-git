@@ -1,6 +1,6 @@
 package de.adito.git.gui.tableModels;
 
-import de.adito.git.api.data.CommitHistoryTreeListItem;
+import de.adito.git.api.CommitHistoryTreeListItem;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;

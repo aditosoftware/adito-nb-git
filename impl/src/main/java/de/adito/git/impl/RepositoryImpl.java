@@ -2,9 +2,7 @@ package de.adito.git.impl;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IFileSystemChangeListener;
-import de.adito.git.api.IFileSystemObserver;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.rxjava.AbstractListenerObservable;

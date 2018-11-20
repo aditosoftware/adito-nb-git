@@ -1,6 +1,7 @@
-package de.adito.git.api.data;
+package de.adito.git.api;
 
 
+import de.adito.git.api.data.ICommit;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;

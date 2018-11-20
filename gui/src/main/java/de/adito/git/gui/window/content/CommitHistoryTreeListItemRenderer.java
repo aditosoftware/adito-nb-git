@@ -1,7 +1,7 @@
 package de.adito.git.gui.window.content;
 
-import de.adito.git.api.data.AncestryLine;
-import de.adito.git.api.data.CommitHistoryTreeListItem;
+import de.adito.git.api.AncestryLine;
+import de.adito.git.api.CommitHistoryTreeListItem;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

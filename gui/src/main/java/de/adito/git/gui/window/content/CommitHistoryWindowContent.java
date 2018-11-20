@@ -2,8 +2,8 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.CommitHistoryTreeListItem;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
