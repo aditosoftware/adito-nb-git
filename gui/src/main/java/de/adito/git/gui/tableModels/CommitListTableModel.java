@@ -1,35 +1,33 @@
 package de.adito.git.gui.tableModels;
 
-import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.CommitHistoryTreeListItem;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The table model for the commits
+ *
  * @author A.Arnold 02.10.2018
  */
 
 public class CommitListTableModel extends AbstractTableModel {
 
-    private List<ICommit> commitList;
-    private final int MESSAGE = 0;
-    private final int AUTHOR = 1;
-    private final int TIME = 2;
+    private List<CommitHistoryTreeListItem> commitList;
+    private static final int BRANCHING = 0;
+    private static final int MESSAGE = 1;
+    private static final int AUTHOR = 2;
+    private static final int TIME = 3;
 
-    private Map<Integer, String> columnNames = new HashMap<>();
+    private static final List<String> columnNames = new ArrayList<>(Arrays.asList("Branches", "Message", "Author", "Time"));
 
     /**
-     *
      * @param pCommitList the list of commits to show
      */
-    public CommitListTableModel(List<ICommit> pCommitList) {
+    public CommitListTableModel(List<CommitHistoryTreeListItem> pCommitList) {
         commitList = pCommitList;
-        columnNames.put(MESSAGE, "Message");
-        columnNames.put(AUTHOR, "Author");
-        columnNames.put(TIME, "Time");
     }
 
     @Override
@@ -48,17 +46,36 @@ public class CommitListTableModel extends AbstractTableModel {
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        ICommit commit = commitList.get(rowIndex);
+    public Class<?> getColumnClass(int columnIndex) {
         switch (columnIndex) {
+            case BRANCHING:
+                return CommitHistoryTreeListItem.class;
             case MESSAGE:
-                return commit.getShortMessage();
+                return String.class;
             case AUTHOR:
-                return commit.getAuthor();
+                return String.class;
             case TIME:
-                return commit.getTime();
+                return String.class;
+            default:
+                return null;
         }
-        return null;
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+        CommitHistoryTreeListItem commitHistoryTreeListItem = commitList.get(rowIndex);
+        switch (columnIndex) {
+            case BRANCHING:
+                return commitHistoryTreeListItem;
+            case MESSAGE:
+                return commitHistoryTreeListItem.getCommit().getShortMessage();
+            case AUTHOR:
+                return commitHistoryTreeListItem.getCommit().getAuthor();
+            case TIME:
+                return commitHistoryTreeListItem.getCommit().getTime();
+            default:
+                return null;
+        }
     }
 
 }
