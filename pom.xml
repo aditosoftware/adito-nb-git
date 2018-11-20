@@ -150,6 +150,12 @@
         </dependency>
 
         <dependency>
+            <groupId>de.adito.util</groupId>
+            <artifactId>reactive</artifactId>
+            <version>1.0.2-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-assistedinject</artifactId>
             <version>4.2.0</version>

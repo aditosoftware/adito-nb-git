@@ -38,7 +38,7 @@ public class PullNBAction extends NBAction {
 
         if (repository != null) {
             try {
-                actionProvider.getPullAction(repository, repository.blockingFirst().getCurrentBranch());
+                actionProvider.getPullAction(repository, repository.blockingFirst().getCurrentBranch().blockingFirst().getId());
             } catch (Exception e) {
                 e.printStackTrace();
             }

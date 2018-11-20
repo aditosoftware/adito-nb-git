@@ -52,6 +52,7 @@ public class RepositoryImpl implements IRepository {
     private Git git;
     private final Observable<List<IBranch>> branchList;
     private final Observable<IFileStatus> status;
+    private final BehaviorSubject<IBranch> currentBranch;
 
     @Inject
     public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException {
@@ -61,6 +62,10 @@ public class RepositoryImpl implements IRepository {
         // listen for changes in the fileSystem for the status command
         status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
                 .subscribeWith(BehaviorSubject.createDefault(_status()));
+
+        // Current Branch
+        IBranch curBranch = _currentBranch();
+        currentBranch = BehaviorSubject.createDefault(curBranch == null ? IBranch.EMPTY : curBranch);
     }
 
     /**
@@ -406,13 +411,7 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public void checkout(@NotNull String branchName) throws Exception {
-        CheckoutCommand checkout = git.checkout();
-        checkout.setName(branchName).setStartPoint(branchName).setCreateBranch(false);
-        try {
-            checkout.call();
-        } catch (GitAPIException e) {
-            throw new Exception("Unable to checkout Branch: " + branchName, e);
-        }
+        checkout(getBranch(branchName));
     }
 
     /**
@@ -423,6 +422,7 @@ public class RepositoryImpl implements IRepository {
         CheckoutCommand checkout = git.checkout().setName(branch.getName()).setCreateBranch(false).setStartPoint(branch.getName());
         try {
             checkout.call();
+            currentBranch.onNext(branch);
         } catch (GitAPIException e) {
             throw new Exception("Unable to checkout Branch " + branch.getName(), e);
         }
@@ -446,23 +446,24 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<IMergeDiff> merge(@NotNull String parentBranch, @NotNull String branchToMerge) throws
-            Exception {
+    public List<IMergeDiff> merge(@NotNull IBranch parentBranch, @NotNull IBranch branchToMerge) throws Exception {
+        String parentID = parentBranch.getId();
+        String toMergeID = branchToMerge.getId();
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
         if (status.blockingFirst().getConflicting().size() > 0) {
-            RevCommit forkCommit = _findForkPoint(parentBranch, branchToMerge);
-            mergeConflicts = _getMergeConflicts(parentBranch, branchToMerge, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
+            RevCommit forkCommit = _findForkPoint(parentID, toMergeID);
+            mergeConflicts = _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
         }
         try {
-            checkout(parentBranch);
+            checkout(parentID);
         } catch (Exception e) {
-            throw new Exception("Unable to checkout the parentBranch: " + parentBranch + " at the merge command", e);
+            throw new Exception("Unable to checkout the parentBranch: " + parentID + " at the merge command", e);
         }
         ObjectId mergeBase;
         try {
-            mergeBase = git.getRepository().resolve(branchToMerge);
+            mergeBase = git.getRepository().resolve(toMergeID);
         } catch (IOException e) {
-            throw new Exception("Unable to merge the branch " + branchToMerge + " and " + parentBranch, e);
+            throw new Exception("Unable to merge the branch " + toMergeID + " and " + parentID, e);
         }
         try {
             MergeResult mergeResult = git.merge()
@@ -470,12 +471,12 @@ public class RepositoryImpl implements IRepository {
                     .setCommit(false)
                     .setFastForward(MergeCommand.FastForwardMode.NO_FF).call();
             if (mergeResult.getConflicts() != null) {
-                RevCommit forkCommit = _findForkPoint(parentBranch, branchToMerge);
+                RevCommit forkCommit = _findForkPoint(parentID, toMergeID);
                 if (forkCommit != null)
-                    mergeConflicts = _getMergeConflicts(parentBranch, branchToMerge, new CommitImpl(forkCommit), mergeResult.getConflicts().keySet());
+                    mergeConflicts = _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), mergeResult.getConflicts().keySet());
             }
         } catch (GitAPIException e) {
-            throw new Exception("Unable to execute the merge command: " + parentBranch + "and " + branchToMerge, e);
+            throw new Exception("Unable to execute the merge command: " + parentID + "and " + toMergeID, e);
         }
         return mergeConflicts;
     }
@@ -686,21 +687,22 @@ public class RepositoryImpl implements IRepository {
             throw new Exception("This Branch doesn't exists: " + branchString);
         }
 
-        Ref branch = refList.stream().filter(pBranch -> pBranch.getName().equals(branchString))
-                .collect(Collectors.toList()).get(0);
+        Ref branch = git.getRepository().getRefDatabase().getRef(branchString);
 
-        return new BranchImpl(branch);
+        List<Ref> list = refList.stream()
+                .filter(pBranch -> pBranch.getName()
+                        .equals(branch.getName()))
+                .collect(Collectors.toList());
+
+        if (list.isEmpty()) {
+            throw new Exception("There is no element in the branch list");
+        }
+        return new BranchImpl(list.get(0));
     }
 
     @Override
-    public String getCurrentBranch() throws Exception {
-        String branch;
-        try {
-            branch = git.getRepository().getFullBranch();
-        } catch (IOException e) {
-            throw new Exception("Can't get the current Branch");
-        }
-        return branch;
+    public Observable<IBranch> getCurrentBranch(){
+        return currentBranch;
     }
 
     /**
@@ -765,6 +767,16 @@ public class RepositoryImpl implements IRepository {
             e.printStackTrace();
         }
         return new FileStatusImpl(currentStatus, git.getRepository().getDirectory());
+    }
+
+    private IBranch _currentBranch() {
+        try {
+            String branch = git.getRepository().getFullBranch();
+            return getBranch(branch);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
