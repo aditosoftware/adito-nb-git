@@ -3,6 +3,7 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.CommitHistoryTreeListItem;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
@@ -11,7 +12,8 @@ import de.adito.git.gui.tableModels.CommitListTableModel;
 import io.reactivex.Observable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +49,10 @@ class CommitHistoryWindowContent extends JPanel {
 
     private void _initGUI(List<ICommit> pCommits) {
         setLayout(new BorderLayout());
-        commitTable.setModel(new CommitListTableModel(pCommits));
+        commitTable.setModel(new CommitListTableModel(repository.blockingFirst().getCommitHistoryTreeList(pCommits)));
+        commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
+        commitTable.getColumnModel().getColumn(0).setMinWidth(CommitHistoryTreeListItem.getMaxWidth() * 20 + 10);
+        commitTable.getColumnModel().getColumn(0).setMaxWidth(CommitHistoryTreeListItem.getMaxWidth() * 20 + 10);
         commitTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         commitTable.getTableHeader().setReorderingAllowed(false);
 
