@@ -58,4 +58,12 @@ public class BranchImpl implements IBranch {
     public EBranchType getType() {
         return branchType;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        return branchRef.getName();
+    }
 }
