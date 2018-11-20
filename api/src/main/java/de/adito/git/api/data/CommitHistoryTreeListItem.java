@@ -1,5 +1,6 @@
 package de.adito.git.api.data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,6 +18,32 @@ public class CommitHistoryTreeListItem {
     public CommitHistoryTreeListItem(ICommit commit, List<AncestryLine> ancestryLines) {
         this.commit = commit;
         this.ancestryLines = ancestryLines;
+    }
+
+    /**
+     * Provided with the next commit in the List, this method calculates the
+     * CommitHistoryTreeListItem following this CommitHistoryTreeListItem
+     *
+     * @param pNext ICommit that follows the ICommit of this CommitHistoryTreeListItem in the log
+     * @return ICommitHistoryTreeListItem that has the information for the next ICommit in the log
+     */
+    public CommitHistoryTreeListItem nextItem(ICommit pNext) {
+        List<AncestryLine> updatedAncestryLines = new ArrayList<>();
+        boolean processedChildren = false;
+        for (AncestryLine oldAncestryLine : ancestryLines) {
+            if (oldAncestryLine.getParent().equals(commit)) {
+                if (!processedChildren) {
+                    processedChildren = true;
+                    for (AncestryLine childLine : oldAncestryLine.getChildLines()) {
+                        updatedAncestryLines.add(new AncestryLine(childLine.getParent(), childLine.getColor()));
+                    }
+                }
+            } else {
+                updatedAncestryLines.add(oldAncestryLine);
+            }
+        }
+        CommitHistoryTreeListItem.setMaxWidth(updatedAncestryLines.size());
+        return new CommitHistoryTreeListItem(pNext, updatedAncestryLines);
     }
 
     /**
