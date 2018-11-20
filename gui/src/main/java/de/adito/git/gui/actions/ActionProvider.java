@@ -10,6 +10,7 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -76,8 +77,8 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public CheckoutAction getCheckoutAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranchList) {
-        return actionFactory.createCheckoutAction(pRepository, pBranchList);
+    public CheckoutAction getCheckoutAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pBranch) {
+        return actionFactory.createCheckoutAction(pRepository, pBranch);
     }
 
     /**

@@ -7,6 +7,7 @@ import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -25,7 +26,7 @@ interface IActionFactory {
 
     ExcludeAction createExcludeAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 
-    CheckoutAction createCheckoutAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranchList);
+    CheckoutAction createCheckoutAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pBranch);
 
     NewBranchAction createNewBranchAction(Observable<IRepository> pRepository);
 

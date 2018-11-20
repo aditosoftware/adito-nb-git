@@ -5,10 +5,11 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * An action class to checkout to another branch.
@@ -17,16 +18,16 @@ import java.util.List;
  */
 class CheckoutAction extends AbstractTableAction {
     private Observable<IRepository> repository;
-    private Observable<List<IBranch>> branchList;
+    private Observable<Optional<IBranch>> branch;
 
     /**
      * @param pRepository The repository where the branch is
-     * @param pBranchList the branch list of selected branches
+     * @param pBranch     the branch list of selected branches
      */
     @Inject
-    CheckoutAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranchList) {
-        super("Checkout", getIsEnabledObservable(pBranchList));
-        branchList = pBranchList;
+    CheckoutAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<Optional<IBranch>> pBranch) {
+        super("Checkout", getIsEnabledObservable());
+        branch = pBranch;
         putValue(Action.NAME, "Checkout");
         putValue(Action.SHORT_DESCRIPTION, "Command to change the branch to another one");
         repository = pRepository;
@@ -34,12 +35,14 @@ class CheckoutAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        IBranch branch = branchList.blockingFirst().get(0);
-        try {
-            repository.blockingFirst().checkout(branch);
-            System.out.println("Checkout to: " + branch);
-        } catch (Exception e1) {
-            e1.printStackTrace();
+        if (branch.blockingFirst().isPresent()) {
+            IBranch branchImpl = branch.blockingFirst().get();
+            try {
+                repository.blockingFirst().checkout(branchImpl);
+                System.out.println("Checkout to: " + branch);
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
         }
     }
 
@@ -48,7 +51,7 @@ class CheckoutAction extends AbstractTableAction {
      *
      * @return return true if the selected list has one element, else false
      */
-    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IBranch>> pBranchList) {
-        return pBranchList.map(branches -> branches.size() == 1);
+    private static Observable<Boolean> getIsEnabledObservable() {
+        return BehaviorSubject.createDefault(true);
     }
 }
