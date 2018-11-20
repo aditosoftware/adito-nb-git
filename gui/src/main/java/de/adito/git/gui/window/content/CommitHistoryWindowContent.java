@@ -51,8 +51,6 @@ class CommitHistoryWindowContent extends JPanel {
         setLayout(new BorderLayout());
         commitTable.setModel(new CommitListTableModel(repository.blockingFirst().getCommitHistoryTreeList(pCommits)));
         commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
-        commitTable.getColumnModel().getColumn(0).setMinWidth(CommitHistoryTreeListItem.getMaxWidth() * 20 + 10);
-        commitTable.getColumnModel().getColumn(0).setMaxWidth(CommitHistoryTreeListItem.getMaxWidth() * 20 + 10);
         commitTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         commitTable.getTableHeader().setReorderingAllowed(false);
 

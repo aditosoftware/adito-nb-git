@@ -5,7 +5,9 @@ import de.adito.git.api.CommitHistoryTreeListItem;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 
 /**
@@ -21,11 +23,15 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer 
                                                    boolean hasFocus, int row, int column) {
         Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (value instanceof CommitHistoryTreeListItem) {
-            JComponent container = new CommitHistoryTreeListItemComponent((CommitHistoryTreeListItem) value);
+            CommitHistoryTreeListItem itemVal = (CommitHistoryTreeListItem) value;
+            JPanel field = new JPanel(new BorderLayout());
+            JComponent container = new CommitHistoryTreeListItemComponent(itemVal);
             container.setBackground(comp.getBackground());
             container.setForeground(comp.getForeground());
             container.setFont(comp.getFont());
-            return container;
+            field.add(container, BorderLayout.WEST);
+            field.add(new JLabel(itemVal.getCommit().getShortMessage()), BorderLayout.CENTER);
+            return field;
         }
         return comp;
     }
@@ -42,6 +48,24 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer 
         CommitHistoryTreeListItemComponent(CommitHistoryTreeListItem pCommitHistoryTreeListItem) {
             commitHistoryTreeListItem = pCommitHistoryTreeListItem;
             setOpaque(true);
+            setPreferredSize(new Dimension(_getNumLinesDrawn() * 20 + 10, getHeight()));
+        }
+
+        private int _getNumLinesDrawn() {
+            int counter = 0;
+            boolean encounteredCommit = false;
+            for (int index = 0; index < commitHistoryTreeListItem.getAncestryLines().size(); index++) {
+                if (commitHistoryTreeListItem.getAncestryLines().get(index).getParent().equals(commitHistoryTreeListItem.getCommit())) {
+                    if (!encounteredCommit) {
+                        counter += commitHistoryTreeListItem.getAncestryLines().get(index).getChildLines().size();
+                    }
+                    encounteredCommit = true;
+                    counter++;
+                } else {
+                    counter++;
+                }
+            }
+            return counter;
         }
 
         @Override

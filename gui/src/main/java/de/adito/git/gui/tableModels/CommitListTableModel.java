@@ -17,11 +17,10 @@ public class CommitListTableModel extends AbstractTableModel {
 
     private List<CommitHistoryTreeListItem> commitList;
     private static final int BRANCHING = 0;
-    private static final int MESSAGE = 1;
-    private static final int AUTHOR = 2;
-    private static final int TIME = 3;
+    private static final int AUTHOR = 1;
+    private static final int TIME = 2;
 
-    private static final List<String> columnNames = new ArrayList<>(Arrays.asList("Branches", "Message", "Author", "Time"));
+    private static final List<String> columnNames = new ArrayList<>(Arrays.asList("Branches", "Author", "Time"));
 
     /**
      * @param pCommitList the list of commits to show
@@ -50,8 +49,6 @@ public class CommitListTableModel extends AbstractTableModel {
         switch (columnIndex) {
             case BRANCHING:
                 return CommitHistoryTreeListItem.class;
-            case MESSAGE:
-                return String.class;
             case AUTHOR:
                 return String.class;
             case TIME:
@@ -67,8 +64,6 @@ public class CommitListTableModel extends AbstractTableModel {
         switch (columnIndex) {
             case BRANCHING:
                 return commitHistoryTreeListItem;
-            case MESSAGE:
-                return commitHistoryTreeListItem.getCommit().getShortMessage();
             case AUTHOR:
                 return commitHistoryTreeListItem.getCommit().getAuthor();
             case TIME:
