@@ -19,8 +19,17 @@ public class AncestryLine {
     private final ICommit parent;
     private final Color color;
     private final List<AncestryLine> childLines = new ArrayList<>();
+    private final LineType lineType;
+    private double stillBornMeetingIndex = 0;
 
-    private enum LineType {FULL, INFANT}
+    /**
+     * FULL: active line
+     * INFANT: line that has yet to spawn
+     * STILLBORN: line that will spawn and be gone in the very next line (usually a merge, but not all merges are STILLBORN)
+     */
+    public enum LineType {
+        FULL, INFANT, STILLBORN
+    }
 
     /**
      * @param pParent ICommit that is the next commit in the line symbolized by this class
@@ -30,19 +39,28 @@ public class AncestryLine {
         this(pParent, pColor, LineType.FULL);
     }
 
+    AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType, double pStillBornMeetingIndex) {
+        this(pParent, pColor, pLineType);
+        stillBornMeetingIndex = pStillBornMeetingIndex;
+    }
+
     /**
      * @param pParent   ICommit that is the next commit in the line symbolized by this class
      * @param pColor    Color of the line
      * @param pLineType LineType, INFANT for unborn lines, FULL for lines that are already active in the row of parent
      */
-    private AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, LineType pLineType) {
+    private AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType) {
         parent = pParent;
         color = pColor;
+        lineType = pLineType;
         if (pLineType == LineType.FULL) {
             _initChildLines();
         }
     }
 
+    /**
+     * @return List of all AncestryLines that will spawn from this line/continue it. the returned lines will all have type INFANT or STILLBORN
+     */
     public List<AncestryLine> getChildLines() {
         return childLines;
     }
@@ -62,6 +80,51 @@ public class AncestryLine {
     }
 
     /**
+     *
+     * @return LineType, FULL for an already active line, INFANT for an yet unborn line and STILLBORN for a line
+     *                   will spawn and be gone in the very next row
+     */
+    public LineType getLineType() {
+        return lineType;
+    }
+
+    /**
+     * @return index where the two parts of a stillborn line meet. 0 for all other types of AncestryLines
+     */
+    public double getStillBornMeetingIndex() {
+        return stillBornMeetingIndex;
+    }
+
+    /**
+     * checks if any of the children of this AncestryLine are stillborn children (and changes their type if they indeed are)
+     * NOTE: "current commit" in the following does not necessarily mean the parent of this line. It is possible that is the
+     * case, but it does not have to be
+     *
+     * @param pAfterNext            ICommit following the parent of the current ICommit
+     * @param pCurrentAncestryLines List of all AncestryLines in the current row/for the current commit
+     * @param pParentLineNumber     the index of this AncestryLine in the list of all AncestryLines for the current commit
+     */
+    void hasStillbornChildren(ICommit pAfterNext, List<AncestryLine> pCurrentAncestryLines, int pParentLineNumber) {
+        // if we only have one child the line cannot be stillborn
+        if (!childLines.isEmpty() && childLines.size() > 1) {
+            // first line will continue the line, so only lines with index >= 1 can be stillborn
+            for (int childIndex = 1; childIndex < childLines.size(); childIndex++) {
+                // if parent of childLine is the next commit the line will lead to the index, however that may still mean it is the only line that does (and thus not STILLBORN)
+                if (pAfterNext.equals(childLines.get(childIndex).getParent())) {
+                    for (int lineIndex = 0; lineIndex < pCurrentAncestryLines.size(); lineIndex++) {
+                        // only if another line leads to next commit as well (or several, we're only interested in the first) the line is of type STILLBORN
+                        if (pCurrentAncestryLines.get(lineIndex).getParent().equals(pAfterNext)) {
+                            stillBornMeetingIndex = (double) (lineIndex + (pParentLineNumber + childIndex - 1)) / 2;
+                            Color lineColor = ColorRoulette.get();
+                            childLines.set(childIndex, new AncestryLine(childLines.get(childIndex).getParent(), lineColor == null ? Color.green : lineColor, LineType.STILLBORN, stillBornMeetingIndex));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * calculates the lines that form the parent (in the log: following) lines of the ICommit parent. Since those lines
      * are not active in the row of parent but only in the next, they have the LineType INFANT
      */
@@ -69,9 +132,9 @@ public class AncestryLine {
         if (!parent.getParents().isEmpty()) {
             childLines.add(new AncestryLine(parent.getParents().get(0), color, LineType.INFANT));
             if (parent.getParents().size() > 1) {
-                for (ICommit grandParent : parent.getParents().subList(1, parent.getParents().size())) {
-                    Color lineColor = ColorRoulette.get();
-                    childLines.add(new AncestryLine(grandParent, lineColor == null ? Color.green : lineColor, LineType.INFANT));
+                for (int parentIndex = 1; parentIndex < parent.getParents().size(); parentIndex++) {
+                    Color color = ColorRoulette.get();
+                    childLines.add(new AncestryLine(parent.getParents().get(parentIndex), color == null ? Color.green : color, LineType.INFANT));
                 }
             }
         }
