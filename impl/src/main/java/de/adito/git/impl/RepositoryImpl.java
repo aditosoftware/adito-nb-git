@@ -580,7 +580,7 @@ public class RepositoryImpl implements IRepository {
         List<ICommit> commitList = new ArrayList<>();
         Iterable<RevCommit> refCommits;
         LogCommand logCommand = git.log().add(git.getRepository().resolve(sourceBranch.getName()));
-        logCommand.setMaxCount(250);
+        logCommand.setMaxCount(300);
         try {
             refCommits = logCommand.call();
         } catch (GitAPIException e) {
@@ -618,15 +618,18 @@ public class RepositoryImpl implements IRepository {
     @NotNull
     public List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits) {
         List<CommitHistoryTreeListItem> commitHistoryTreeList = new ArrayList<>();
-        for (ICommit commit : commits) {
-            if (!commitHistoryTreeList.isEmpty()) {
-                // get the latest commitHistoryTreeListItem
-                commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commit));
-            } else {
-                List<AncestryLine> ancestryLines = new ArrayList<>();
-                ancestryLines.add(new AncestryLine(commit, Color.green));
-                CommitHistoryTreeListItem.setMaxWidth(ancestryLines.size());
-                commitHistoryTreeList.add(new CommitHistoryTreeListItem(commit, ancestryLines));
+        if (!commits.isEmpty()) {
+            // special case for first item
+            List<AncestryLine> ancestryLines = new ArrayList<>();
+            ancestryLines.add(new AncestryLine(commits.get(0), Color.green));
+            commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines));
+            // main loop iterating over the commits
+            for (int index = 1; index < commits.size() - 2; index++) {
+                commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commits.get(index), commits.get(index + 1)));
+            }
+            // special case for the last item in the list, only needed if more than one item in the list
+            if (commits.size() > 1) {
+                commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commits.get(commits.size() - 1), null));
             }
         }
         return commitHistoryTreeList;
