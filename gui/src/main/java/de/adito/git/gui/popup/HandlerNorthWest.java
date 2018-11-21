@@ -17,6 +17,6 @@ class HandlerNorthWest extends MouseDragHandler {
     protected Rectangle calc(MouseEvent e) {
         WindowBefore windowBefore = getWindowBefore();
         Point distance = getDistance(e);
-        return new Rectangle(windowBefore.x + distance.x, windowBefore.y + distance.x, windowBefore.width - distance.x, windowBefore.height - distance.y);
+        return new Rectangle(windowBefore.x + distance.x, windowBefore.y + distance.y, windowBefore.width - distance.x, windowBefore.height - distance.y);
     }
 }

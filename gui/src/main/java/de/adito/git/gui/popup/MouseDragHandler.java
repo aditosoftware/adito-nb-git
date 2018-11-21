@@ -10,30 +10,22 @@ import java.awt.event.MouseEvent;
  * @author a.arnold, 15.11.2018
  */
 abstract class MouseDragHandler extends MouseAdapter {
-
     private final PopupWindow window;
     private final int cursorType;
     private final Point mouseBefore;
     private WindowBefore windowBefore;
+    private Dimension minDimension;
 
     public MouseDragHandler(PopupWindow pWindow, int pCursorType) {
-
         window = pWindow;
+        minDimension = new Dimension(125, 200);
         cursorType = pCursorType;
         mouseBefore = new Point();
-        Dimension distance = new Dimension();
         windowBefore = new WindowBefore(new Point(), new Dimension());
     }
 
     WindowBefore getWindowBefore() {
         return windowBefore;
-    }
-
-    Point getMouseBefore(MouseEvent e) {
-        Point p = new Point();
-        p.x = e.getLocationOnScreen().x;
-        p.y = e.getLocationOnScreen().y;
-        return p;
     }
 
     Point getDistance(MouseEvent e) {
@@ -65,9 +57,16 @@ abstract class MouseDragHandler extends MouseAdapter {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        Rectangle calculateedRec = calc(e);
-
-        window.setBounds(calculateedRec);
+        Rectangle calculatedRec = calc(e);
+        if(calculatedRec.getWidth() < minDimension.width){
+            calculatedRec.setSize(minDimension.width, calculatedRec.height);
+            calculatedRec.setLocation(window.getX(), calculatedRec.y);
+        }
+        if(calculatedRec.getHeight() < minDimension.height) {
+            calculatedRec.setSize(calculatedRec.width, minDimension.height);
+            calculatedRec.setLocation(calculatedRec.x, window.getY());
+        }
+        window.setBounds(calculatedRec);
     }
 
     protected abstract Rectangle calc(MouseEvent e);

@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * Creates the content of the branch menu.
@@ -60,7 +59,7 @@ public class StatusLineWindowContent extends JPanel {
         //room between the components
         final double gap = 12;
 
-        double[] cols = {16, pref};
+        double[] cols = {16, TableLayout.FILL};
         double[] rows = {
                 pref,
                 gap,
@@ -102,6 +101,7 @@ public class StatusLineWindowContent extends JPanel {
      */
     private JComponent _createListLocalBranches() {
         JList<IBranch> localBranches = new JList<>();
+        localBranches.setCellRenderer(new BranchCellRenderer());
         localBranches.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         localBranches.addMouseListener(new _BranchMouseListener(localBranches));
         localBranches.setSelectionModel(new ObservableListSelectionModel(localBranches.getSelectionModel()));
@@ -121,6 +121,7 @@ public class StatusLineWindowContent extends JPanel {
      */
     private JComponent _createListRemoteBranches() {
         JList<IBranch> remoteBranches = new JList<>();
+        remoteBranches.setCellRenderer(new BranchCellRenderer());
         remoteBranches.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         remoteBranches.addMouseListener(new _BranchMouseListener(remoteBranches));
         remoteBranches.setSelectionModel(new ObservableListSelectionModel(remoteBranches.getSelectionModel()));
@@ -146,6 +147,9 @@ public class StatusLineWindowContent extends JPanel {
 
         @Override
         public void mousePressed(MouseEvent e) {
+            JList branchList = (JList) e.getSource();
+            int selectedIndex = branchList.getSelectedIndex();
+
             //clear the last selection
             branchLists.forEach(listComponent -> {
                         if (!listComponent.equals(actualBranches)) {
@@ -154,28 +158,48 @@ public class StatusLineWindowContent extends JPanel {
                     }
             );
 
-            Supplier<Integer> selectionIndexSupplier = () -> ((JList) e.getSource()).getSelectedIndex();
-
-            // TODO: 19.11.2018 get y axis for cell positioning
-//            Integer integer = selectionIndexSupplier.get();
-//            integer = actualBranches.getComponent(integer).getParent().getY() + actualBranches.getComponent(integer).getY();
-
+            //get selected branch as optional
             Observable<Optional<IBranch>> selectedBranch = branchObservable.map(pBranches -> {
                 if (pBranches == null) {
                     return Optional.empty();
                 } else {
-                    return Optional.of(pBranches.get(selectionIndexSupplier.get()));
+                    return Optional.of(pBranches.get(selectedIndex));
                 }
             });
 
-
             Action checkoutAction = actionProvider.getCheckoutAction(repository, selectedBranch);
-            Action showAllCommitsAction = actionProvider.getShowAllCommitsAction(repository, branchObservable.map(pBranch -> Collections.singletonList(pBranch.get(selectionIndexSupplier.get()))));
+            Action showAllCommitsAction = actionProvider.getShowAllCommitsAction(repository, branchObservable.map(pBranch -> Collections.singletonList(pBranch.get(selectedIndex))));
 //            actionProvider.getMergeAction(repository, selectedBranch, repository.blockingFirst().getCurrentBranch())
             JPopupMenu innerPopup = new JPopupMenu();
             innerPopup.add(new _DisposeAction(checkoutAction));
             innerPopup.add(new _DisposeAction(showAllCommitsAction));
-            innerPopup.show(actualBranches, -100, e.getY() + 15);
+
+            Point location = _calculateInnerPopupPosition(branchList);
+            innerPopup.show(branchList, location.x - innerPopup.getPreferredSize().width, location.y);
+        }
+
+        private JScrollPane findScrollPane(JList<IBranch> actualBranches) {
+
+            Container parent = actualBranches.getParent();
+            while (parent != null) {
+                if (parent instanceof JScrollPane) {
+                    return (JScrollPane) parent;
+                }
+                parent = parent.getParent();
+            }
+            return null;
+        }
+
+        private Point _calculateInnerPopupPosition(JList pBranchList) {
+            Point pScr = pBranchList.getLocationOnScreen();
+            SwingUtilities.convertPointFromScreen(pScr, pBranchList);
+            Point index = pBranchList.indexToLocation(pBranchList.getSelectedIndex());
+            pScr.y += index.y;
+            JRootPane rp = SwingUtilities.getRootPane(pBranchList);
+            Point rpScreen = rp.getLocationOnScreen();
+            SwingUtilities.convertPointFromScreen(rpScreen, rp);
+            Point point = SwingUtilities.convertPoint(rp, rp.getX(), rp.getY(), pBranchList);
+            return new Point(point.x, pScr.y);
         }
     }
 

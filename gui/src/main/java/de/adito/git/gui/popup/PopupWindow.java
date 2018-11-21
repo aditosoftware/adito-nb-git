@@ -71,7 +71,6 @@ public class PopupWindow extends JWindow {
         contentScrollPane.setViewportBorder(null);
         contentScrollPane.getViewport().setBorder(null);
         contentScrollPane.setBorder(null);
-        contentScrollPane.setLayout(new ScrollPaneLayout());
         return contentScrollPane;
     }
 
@@ -79,12 +78,7 @@ public class PopupWindow extends JWindow {
     public void setVisible(boolean b) {
         pack();
         super.setVisible(b);
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                Toolkit.getDefaultToolkit().addAWTEventListener(windowDisposer, AWTEvent.WINDOW_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
-            }
-        });
+        SwingUtilities.invokeLater(() -> Toolkit.getDefaultToolkit().addAWTEventListener(windowDisposer, AWTEvent.WINDOW_EVENT_MASK | AWTEvent.KEY_EVENT_MASK));
     }
 
     private class _WindowDisposer implements AWTEventListener {
@@ -92,7 +86,7 @@ public class PopupWindow extends JWindow {
         @Override
         public void eventDispatched(AWTEvent event) {
             if (event.getID() != WindowEvent.WINDOW_OPENED) {
-                if (event.getSource() != PopupWindow.this || !((WindowEvent) event).getWindow().getType().name().equals("POPUP")) {
+                if (event.getSource() != PopupWindow.this || !((WindowEvent) event).getWindow().getType().equals(Type.POPUP)) {
                     Toolkit.getDefaultToolkit().removeAWTEventListener(this);
                     dispose();
                 }
