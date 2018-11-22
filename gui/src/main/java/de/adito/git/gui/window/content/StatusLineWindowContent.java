@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Creates the content of the branch menu.
+ * Creates the content for the branch menu.
  *
  * @author a.arnold, 08.11.2018
  */
@@ -46,20 +46,10 @@ public class StatusLineWindowContent extends JPanel {
      * A method to initialize the GUI
      */
     private void _initGUI() {
-        double pref = TableLayout.PREFERRED;
-        JLabel labelLocalBranch = new JLabel("Local Branches");
-        JLabel labelRemoteBranch = new JLabel("Remote Branches");
-
-        //boldFont for headings
-        Font font = labelLocalBranch.getFont();
-        Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
-        labelLocalBranch.setFont(boldFont);
-        labelRemoteBranch.setFont(boldFont);
-
         //room between the components
-        final double gap = 12;
-
-        double[] cols = {16, TableLayout.FILL};
+        final double gap = 8;
+        double pref = TableLayout.PREFERRED;
+        double[] cols = {TableLayout.FILL};
         double[] rows = {
                 pref,
                 gap,
@@ -71,16 +61,27 @@ public class StatusLineWindowContent extends JPanel {
 
         setLayout(new TableLayout(cols, rows));
         TableLayoutUtil tlu = new TableLayoutUtil(this);
-        tlu.add(0, 0, 1, 0, _createNewBranch());
-        tlu.add(0, 2, 1, 2, labelLocalBranch);
-        tlu.add(1, 3, _createListLocalBranches());
-        tlu.add(0, 5, 1, 5, labelRemoteBranch);
-        tlu.add(1, 6, _createListRemoteBranches());
-
+        tlu.add(0, 0, _createNewBranch());
+        tlu.add(0, 2, _createLabel("Local Branch"));
+        tlu.add(0, 3, _createListBranches(EBranchType.LOCAL));
+        tlu.add(0, 5, _createLabel("Remote Branch"));
+        tlu.add(0, 6, _createListBranches(EBranchType.REMOTE));
     }
 
-    private JComponent _createNewBranch() {
+    private JLabel _createLabel(String pString){
+        JLabel jLabel = new JLabel(pString);
+        jLabel.setFont(jLabel.getFont().deriveFont(Font.BOLD));
+        return  jLabel;
+    }
+
+    /**
+     * a clickable lable to create a new Branch at the actual repository
+     * @return return a label for the new branch action
+     */
+    private JLabel _createNewBranch() {
         JLabel label = new JLabel("+ New Branch...");
+        label.addMouseMotionListener(new _HoverMouseListener());
+        label.addMouseListener(new _HoverMouseListener());
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -89,62 +90,41 @@ public class StatusLineWindowContent extends JPanel {
                 popupWindow.dispose();
             }
         });
-
         return label;
     }
 
-
     /**
-     * Create and fill a list of local branches
+     * Create and fill a list of branches
      *
-     * @return the list of local branches
+     * @param type the {@link EBranchType} of the branches
+     * @return a branchlist
      */
-    private JComponent _createListLocalBranches() {
-        JList<IBranch> localBranches = new JList<>();
-        localBranches.setCellRenderer(new BranchCellRenderer());
-        localBranches.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        localBranches.addMouseListener(new _BranchMouseListener(localBranches));
-        localBranches.setSelectionModel(new ObservableListSelectionModel(localBranches.getSelectionModel()));
-        branchLists.add(localBranches);
+    private JComponent _createListBranches(EBranchType type) {
+        _HoverMouseListener hoverMouseListener = new _HoverMouseListener();
+        JList<IBranch> branchList = new JList<>();
+        branchList.setSelectionModel(new ObservableListSelectionModel(branchList.getSelectionModel()));
+        branchList.setCellRenderer(new BranchCellRenderer());
+        branchList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        branchList.addMouseListener(new _BranchMouseListener());
+        branchList.addMouseListener(hoverMouseListener);
+        branchList.addMouseMotionListener(hoverMouseListener);
+        branchLists.add(branchList);
 
-        branchObservable.subscribe(pBranches -> localBranches.setListData(pBranches
+        branchObservable.subscribe(pBranches -> branchList.setListData(pBranches
                 .stream()
-                .filter(pBranch -> pBranch.getType().equals(EBranchType.LOCAL))
+                .filter(pBranch -> pBranch.getType().equals(type))
                 .toArray(IBranch[]::new)));
-        return localBranches;
-    }
-
-    /**
-     * Create and fill a list of remote Branches
-     *
-     * @return the list of remote branches
-     */
-    private JComponent _createListRemoteBranches() {
-        JList<IBranch> remoteBranches = new JList<>();
-        remoteBranches.setCellRenderer(new BranchCellRenderer());
-        remoteBranches.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        remoteBranches.addMouseListener(new _BranchMouseListener(remoteBranches));
-        remoteBranches.setSelectionModel(new ObservableListSelectionModel(remoteBranches.getSelectionModel()));
-        branchLists.add(remoteBranches);
-
-        branchObservable.subscribe(pBranches -> remoteBranches.setListData(pBranches
-                .stream()
-                .filter(pBranch -> pBranch.getType().equals(EBranchType.REMOTE))
-                .toArray(IBranch[]::new)));
-        return remoteBranches;
+        return branchList;
     }
 
     public void setParentWindow(PopupWindow pPopupWindow) {
         popupWindow = pPopupWindow;
     }
 
+    /**
+     * add a {@link MouseAdapter} to the second popup menu at the clicked branch.
+     */
     private class _BranchMouseListener extends MouseAdapter {
-        private final JList<IBranch> actualBranches;
-
-        _BranchMouseListener(JList<IBranch> pActualBranches) {
-            actualBranches = pActualBranches;
-        }
-
         @Override
         public void mousePressed(MouseEvent e) {
             JList branchList = (JList) e.getSource();
@@ -152,7 +132,7 @@ public class StatusLineWindowContent extends JPanel {
 
             //clear the last selection
             branchLists.forEach(listComponent -> {
-                        if (!listComponent.equals(actualBranches)) {
+                        if (!listComponent.equals(branchList)) {
                             listComponent.clearSelection();
                         }
                     }
@@ -160,34 +140,24 @@ public class StatusLineWindowContent extends JPanel {
 
             //get selected branch as optional
             Observable<Optional<IBranch>> selectedBranch = branchObservable.map(pBranches -> {
-                if (pBranches == null) {
+                if (pBranches == null || selectedIndex == -1) {
                     return Optional.empty();
                 } else {
-                    return Optional.of(pBranches.get(selectedIndex));
+                    return Optional.ofNullable(pBranches.get(selectedIndex));
                 }
             });
 
             Action checkoutAction = actionProvider.getCheckoutAction(repository, selectedBranch);
             Action showAllCommitsAction = actionProvider.getShowAllCommitsAction(repository, branchObservable.map(pBranch -> Collections.singletonList(pBranch.get(selectedIndex))));
-//            actionProvider.getMergeAction(repository, selectedBranch, repository.blockingFirst().getCurrentBranch())
+            Action mergeAction = actionProvider.getMergeAction(repository, selectedBranch);
+
             JPopupMenu innerPopup = new JPopupMenu();
             innerPopup.add(new _DisposeAction(checkoutAction));
             innerPopup.add(new _DisposeAction(showAllCommitsAction));
+            innerPopup.add(new _DisposeAction(mergeAction));
 
             Point location = _calculateInnerPopupPosition(branchList);
             innerPopup.show(branchList, location.x - innerPopup.getPreferredSize().width, location.y);
-        }
-
-        private JScrollPane findScrollPane(JList<IBranch> actualBranches) {
-
-            Container parent = actualBranches.getParent();
-            while (parent != null) {
-                if (parent instanceof JScrollPane) {
-                    return (JScrollPane) parent;
-                }
-                parent = parent.getParent();
-            }
-            return null;
         }
 
         private Point _calculateInnerPopupPosition(JList pBranchList) {
@@ -200,6 +170,49 @@ public class StatusLineWindowContent extends JPanel {
             SwingUtilities.convertPointFromScreen(rpScreen, rp);
             Point point = SwingUtilities.convertPoint(rp, rp.getX(), rp.getY(), pBranchList);
             return new Point(point.x, pScr.y);
+        }
+    }
+
+    /**
+     * A {@link MouseAdapter} who checks the entry and exit point of a {@link JList}/{@link JLabel} and set at the hover
+     * mouse state the look and feel hover color
+     */
+    private class _HoverMouseListener extends MouseAdapter {
+        Color hoverColor;
+
+        _HoverMouseListener() {
+            hoverColor = UIManager.getColor("List.selectionBackground");
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            Object source = e.getSource();
+            if (source instanceof JList) {
+                JList list = (JList) source;
+                list.clearSelection();
+            }
+            if (source instanceof JLabel) {
+                JLabel label = (JLabel) source;
+                label.setOpaque(false);
+                label.repaint();
+            }
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            Object source = e.getSource();
+            if (source instanceof JList) {
+                JList list = (JList) source;
+                list.clearSelection();
+                int i = list.locationToIndex(e.getPoint());
+                list.setSelectedIndex(i);
+            }
+            if (source instanceof JLabel) {
+                JLabel label = (JLabel) source;
+                label.setOpaque(true);
+                label.setBackground(hoverColor);
+                label.repaint();
+            }
         }
     }
 

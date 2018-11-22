@@ -2,10 +2,13 @@ package de.adito.git.gui.window.content;
 
 import de.adito.git.api.data.IBranch;
 import de.adito.git.gui.TableLayoutUtil;
+import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static de.adito.git.gui.Constants.ARROW_RIGHT;
 
 /**
  * This renderer is for the popup window.
@@ -19,7 +22,7 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch> {
     private JLabel leftLabel = new JLabel();
 
     BranchCellRenderer() {
-        double[] cols = {TableLayout.FILL, 16};
+        double[] cols = {TableLayout.FILL, 10};
         double[] rows = {TableLayout.PREFERRED};
 
         setLayout(new TableLayout(cols, rows));
@@ -31,43 +34,20 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch> {
     @Override
     public Component getListCellRendererComponent(JList<? extends IBranch> list, IBranch branch, int index, boolean isSelected, boolean cellHasFocus) {
         setComponentOrientation(list.getComponentOrientation());
-        Color bg = null;
-        Color fg = null;
-
-        JList.DropLocation dropLocation = list.getDropLocation();
-        if (dropLocation != null
-                && !dropLocation.isInsert()
-                && dropLocation.getIndex() == index) {
-
-            bg = UIManager.getColor("List.dropCellBackground");
-            fg = UIManager.getColor("List.dropCellForeground");
-            isSelected = true;
-        }
 
         if (isSelected) {
-            setBackground(bg == null ? list.getSelectionBackground() : bg);
-            setForeground(fg == null ? list.getSelectionForeground() : fg);
+            setBackground(list.getSelectionBackground());
+            setForeground(list.getSelectionForeground());
         } else {
             setBackground(list.getBackground());
             setForeground(list.getForeground());
         }
         setEnabled(list.isEnabled());
 
-//        Border border = null;
-//        if (cellHasFocus) {
-//            if (isSelected) {
-////                border = UIManager.getBorder("List.focusSelectedCellHighlightBorder");
-//            }
-//            if (border == null) {
-//                border = UIManager.getBorder("List.focusCellHighlightBorder");
-//            }
-//        } else {
-//            border = UIManager.getBorder("List.cellNoFocusBorder");
-//        }
-//        setBorder(border);
 
+        SwingIconLoaderImpl swingIconLoader = new SwingIconLoaderImpl();
+        rightLabel.setIcon(swingIconLoader.getIcon(ARROW_RIGHT));
         leftLabel.setText(branch.getName());
-        rightLabel.setText("▶");
         return this;
     }
 

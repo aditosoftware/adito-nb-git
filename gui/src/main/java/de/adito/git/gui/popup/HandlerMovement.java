@@ -9,8 +9,8 @@ import java.awt.event.MouseEvent;
  * @author a.arnold, 15.11.2018
  */
 class HandlerMovement extends MouseDragHandler {
-    public HandlerMovement(PopupWindow pWindow) {
-        super(pWindow, Cursor.HAND_CURSOR);
+    HandlerMovement(PopupWindow pWindow) {
+        super(pWindow, Cursor.getDefaultCursor().getType());
     }
 
     @Override
