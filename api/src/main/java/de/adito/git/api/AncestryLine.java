@@ -20,6 +20,7 @@ public class AncestryLine {
     private final Color color;
     private final List<AncestryLine> childLines = new ArrayList<>();
     private final LineType lineType;
+    private final ColorRoulette colorRoulette;
     private double stillBornMeetingIndex = 0;
 
     /**
@@ -35,12 +36,12 @@ public class AncestryLine {
      * @param pParent ICommit that is the next commit in the line symbolized by this class
      * @param pColor  Color of the line
      */
-    public AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor) {
-        this(pParent, pColor, LineType.FULL);
+    public AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull ColorRoulette pColorRoulette) {
+        this(pParent, pColor, LineType.FULL, pColorRoulette);
     }
 
-    AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType, double pStillBornMeetingIndex) {
-        this(pParent, pColor, pLineType);
+    AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType, double pStillBornMeetingIndex, @NotNull ColorRoulette pColorRoulette) {
+        this(pParent, pColor, pLineType, pColorRoulette);
         stillBornMeetingIndex = pStillBornMeetingIndex;
     }
 
@@ -49,7 +50,8 @@ public class AncestryLine {
      * @param pColor    Color of the line
      * @param pLineType LineType, INFANT for unborn lines, FULL for lines that are already active in the row of parent
      */
-    private AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType) {
+    private AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType, @NotNull ColorRoulette pColorRoulette) {
+        colorRoulette = pColorRoulette;
         parent = pParent;
         color = pColor;
         lineType = pLineType;
@@ -80,9 +82,8 @@ public class AncestryLine {
     }
 
     /**
-     *
      * @return LineType, FULL for an already active line, INFANT for an yet unborn line and STILLBORN for a line
-     *                   will spawn and be gone in the very next row
+     * will spawn and be gone in the very next row
      */
     public LineType getLineType() {
         return lineType;
@@ -115,8 +116,9 @@ public class AncestryLine {
                         // only if another line leads to next commit as well (or several, we're only interested in the first) the line is of type STILLBORN
                         if (pCurrentAncestryLines.get(lineIndex).getParent().equals(pAfterNext)) {
                             stillBornMeetingIndex = (double) (lineIndex + (pParentLineNumber + childIndex - 1)) / 2;
-                            Color lineColor = ColorRoulette.get();
-                            childLines.set(childIndex, new AncestryLine(childLines.get(childIndex).getParent(), lineColor == null ? Color.green : lineColor, LineType.STILLBORN, stillBornMeetingIndex));
+                            Color lineColor = colorRoulette.get();
+                            childLines.set(childIndex, new AncestryLine(childLines.get(childIndex).getParent(),
+                                    lineColor == null ? Color.green : lineColor, LineType.STILLBORN, stillBornMeetingIndex, colorRoulette));
                         }
                     }
                 }
@@ -130,11 +132,11 @@ public class AncestryLine {
      */
     private void _initChildLines() {
         if (!parent.getParents().isEmpty()) {
-            childLines.add(new AncestryLine(parent.getParents().get(0), color, LineType.INFANT));
+            childLines.add(new AncestryLine(parent.getParents().get(0), color, LineType.INFANT, colorRoulette));
             if (parent.getParents().size() > 1) {
                 for (int parentIndex = 1; parentIndex < parent.getParents().size(); parentIndex++) {
-                    Color color = ColorRoulette.get();
-                    childLines.add(new AncestryLine(parent.getParents().get(parentIndex), color == null ? Color.green : color, LineType.INFANT));
+                    Color color = colorRoulette.get();
+                    childLines.add(new AncestryLine(parent.getParents().get(parentIndex), color == null ? Color.green : color, LineType.INFANT, colorRoulette));
                 }
             }
         }

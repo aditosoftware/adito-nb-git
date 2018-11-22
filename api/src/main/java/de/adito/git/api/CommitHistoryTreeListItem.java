@@ -19,10 +19,12 @@ public class CommitHistoryTreeListItem {
 
     private final ICommit commit;
     private final List<AncestryLine> ancestryLines;
+    private final ColorRoulette colorRoulette;
 
-    public CommitHistoryTreeListItem(ICommit commit, List<AncestryLine> ancestryLines) {
+    public CommitHistoryTreeListItem(@NotNull ICommit commit, @NotNull List<AncestryLine> ancestryLines, @NotNull ColorRoulette pColorRoulette) {
         this.commit = commit;
         this.ancestryLines = ancestryLines;
+        colorRoulette = pColorRoulette;
     }
 
     /**
@@ -57,9 +59,10 @@ public class CommitHistoryTreeListItem {
                         processedChildren = true;
                         for (AncestryLine childLine : oldAncestryLine.getChildLines()) {
                             if (childLine.getLineType() == AncestryLine.LineType.STILLBORN) {
-                                updatedAncestryLines.add(new AncestryLine(childLine.getParent(), childLine.getColor(), AncestryLine.LineType.STILLBORN, childLine.getStillBornMeetingIndex()));
+                                updatedAncestryLines.add(new AncestryLine(childLine.getParent(),
+                                        childLine.getColor(), AncestryLine.LineType.STILLBORN, childLine.getStillBornMeetingIndex(), colorRoulette));
                             } else {
-                                AncestryLine newAncestryLine = new AncestryLine(childLine.getParent(), childLine.getColor());
+                                AncestryLine newAncestryLine = new AncestryLine(childLine.getParent(), childLine.getColor(), colorRoulette);
                                 // check again for parent matching the next commit here, since if the parent being the current commit can hide the next commit being the parent of the child line
                                 if (newAncestryLine.getParent().equals(pNext))
                                     checkForStillborns.put(counter, newAncestryLine);
@@ -67,11 +70,13 @@ public class CommitHistoryTreeListItem {
                             }
                         }
                     } else {
-                        ColorRoulette.returnColor(oldAncestryLine.getColor());
+                        colorRoulette.returnColor(oldAncestryLine.getColor());
                     }
                 } else {
                     updatedAncestryLines.add(oldAncestryLine);
                 }
+            } else {
+                colorRoulette.returnColor(oldAncestryLine.getColor());
             }
             counter++;
         }
@@ -79,7 +84,7 @@ public class CommitHistoryTreeListItem {
         for (Integer index : checkForStillborns.keySet()) {
             checkForStillborns.get(index).hasStillbornChildren(pAfterNext, updatedAncestryLines, index);
         }
-        return new CommitHistoryTreeListItem(pNext, updatedAncestryLines);
+        return new CommitHistoryTreeListItem(pNext, updatedAncestryLines, colorRoulette);
     }
 
     /**

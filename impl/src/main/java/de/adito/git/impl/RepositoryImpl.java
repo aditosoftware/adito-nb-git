@@ -51,9 +51,11 @@ public class RepositoryImpl implements IRepository {
     private final Observable<List<IBranch>> branchList;
     private final Observable<IFileStatus> status;
     private final BehaviorSubject<IBranch> currentBranch;
+    private final ColorRoulette colorRoulette;
 
     @Inject
-    public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException {
+    public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException {
+        colorRoulette = pColorRoulette;
         git = new Git(GitRepositoryProvider.get(pRepositoryDescription));
         branchList = BehaviorSubject.createDefault(_branchList());
 
@@ -621,8 +623,9 @@ public class RepositoryImpl implements IRepository {
         if (!commits.isEmpty()) {
             // special case for first item
             List<AncestryLine> ancestryLines = new ArrayList<>();
-            ancestryLines.add(new AncestryLine(commits.get(0), Color.green));
-            commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines));
+            Color firstColor = colorRoulette.get();
+            ancestryLines.add(new AncestryLine(commits.get(0), firstColor == null ? Color.green : firstColor, colorRoulette));
+            commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines, colorRoulette));
             // main loop iterating over the commits
             for (int index = 1; index < commits.size() - 2; index++) {
                 commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commits.get(index), commits.get(index + 1)));
@@ -632,6 +635,7 @@ public class RepositoryImpl implements IRepository {
                 commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commits.get(commits.size() - 1), null));
             }
         }
+        colorRoulette.reset();
         return commitHistoryTreeList;
     }
 

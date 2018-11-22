@@ -5,18 +5,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
 
 /**
  * Queue-backed list of colors that delivers colors/takes them back. Operates on FIFO principle
  *
  * @author m.kaspera 20.11.2018
  */
-class ColorRoulette {
+public class ColorRoulette {
 
-    private static final List<Color> initialColors = Arrays.asList(
+    ColorRoulette() {
+        availableColors.addAll(initialColors);
+    }
+
+    private final List<Color> initialColors = Arrays.asList(
             new Color(0, 255, 0),
             new Color(0, 255, 255),
             new Color(255, 255, 0),
@@ -31,27 +35,29 @@ class ColorRoulette {
             new Color(0, 100, 200),
             new Color(100, 255, 255)
     );
-    private static final BlockingQueue<Color> availableColors = new ArrayBlockingQueue<>(initialColors.size());
+    private final Queue<Color> availableColors = new LinkedList<>();
 
     /**
      * @return the next Color in the queue or null if an error occurs/the queue is empty
      */
     @Nullable
-    static Color get() {
-        if (availableColors.isEmpty())
-            availableColors.addAll(initialColors);
-        try {
-            return availableColors.take();
-        } catch (InterruptedException e) {
-            return null;
-        }
+    public Color get() {
+        return availableColors.remove();
     }
 
     /**
      * @param color the Color that should be returned to the queue
      */
-    static void returnColor(@NotNull Color color) {
+    void returnColor(@NotNull Color color) {
         availableColors.offer(color);
+    }
+
+    /**
+     * resets the contents of the Queue back to its original state
+     */
+    public void reset() {
+        availableColors.clear();
+        availableColors.addAll(initialColors);
     }
 
 }
