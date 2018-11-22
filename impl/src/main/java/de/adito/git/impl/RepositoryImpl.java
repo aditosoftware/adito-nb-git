@@ -627,7 +627,7 @@ public class RepositoryImpl implements IRepository {
             ancestryLines.add(new AncestryLine(commits.get(0), firstColor == null ? Color.green : firstColor, colorRoulette));
             commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines, colorRoulette));
             // main loop iterating over the commits
-            for (int index = 1; index < commits.size() - 2; index++) {
+            for (int index = 1; index < commits.size() - 1; index++) {
                 commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commits.get(index), commits.get(index + 1)));
             }
             // special case for the last item in the list, only needed if more than one item in the list
