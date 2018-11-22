@@ -3,6 +3,7 @@ package de.adito.git.api;
 
 import de.adito.git.api.data.ICommit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -105,13 +106,13 @@ public class AncestryLine {
      * @param pCurrentAncestryLines List of all AncestryLines in the current row/for the current commit
      * @param pParentLineNumber     the index of this AncestryLine in the list of all AncestryLines for the current commit
      */
-    void hasStillbornChildren(ICommit pAfterNext, List<AncestryLine> pCurrentAncestryLines, int pParentLineNumber) {
+    void hasStillbornChildren(@Nullable ICommit pAfterNext, List<AncestryLine> pCurrentAncestryLines, int pParentLineNumber) {
         // if we only have one child the line cannot be stillborn
         if (!childLines.isEmpty() && childLines.size() > 1) {
             // first line will continue the line, so only lines with index >= 1 can be stillborn
             for (int childIndex = 1; childIndex < childLines.size(); childIndex++) {
                 // if parent of childLine is the next commit the line will lead to the index, however that may still mean it is the only line that does (and thus not STILLBORN)
-                if (pAfterNext.equals(childLines.get(childIndex).getParent())) {
+                if (pAfterNext != null && pAfterNext.equals(childLines.get(childIndex).getParent())) {
                     for (int lineIndex = 0; lineIndex < pCurrentAncestryLines.size(); lineIndex++) {
                         // only if another line leads to next commit as well (or several, we're only interested in the first) the line is of type STILLBORN
                         if (pCurrentAncestryLines.get(lineIndex).getParent().equals(pAfterNext)) {
