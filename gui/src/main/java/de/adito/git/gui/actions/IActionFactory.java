@@ -14,7 +14,7 @@ import java.util.Optional;
  */
 interface IActionFactory {
 
-    MergeAction createMergeAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pTargetBranch);
+    MergeAction createMergeAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pTargetBranch);
 
     CommitAction createCommitAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
 

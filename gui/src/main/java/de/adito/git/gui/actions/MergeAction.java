@@ -10,6 +10,7 @@ import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 24.10.2018
@@ -18,11 +19,11 @@ class MergeAction extends AbstractTableAction {
 
     private final Observable<IRepository> repositoryObservable;
     private final IDialogProvider dialogProvider;
-    private Observable<List<IBranch>> targetBranch;
+    private Observable<Optional<IBranch>> targetBranch;
 
     @Inject
-    MergeAction(IDialogProvider dialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pTargetBranch) {
-        super("merge with", getIsEnabledObservable(pTargetBranch));
+    MergeAction(IDialogProvider dialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<Optional<IBranch>> pTargetBranch) {
+        super("Merge into Current", getIsEnabledObservable(pTargetBranch));
         this.dialogProvider = dialogProvider;
         repositoryObservable = pRepository;
         targetBranch = pTargetBranch;
@@ -35,16 +36,20 @@ class MergeAction extends AbstractTableAction {
             if (repository.getStatus().blockingFirst().hasUncommittedChanges()) {
                 throw new RuntimeException("Un-committed files detected while trying to merge: Implement stashing or commit/undo changes");
             }
-            List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst(), targetBranch.blockingFirst().get(0));
+            Optional<IBranch> selectedBranch = targetBranch.blockingFirst();
+            if (!selectedBranch.isPresent()) {
+                throw new RuntimeException();
+            }
+            List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst(), selectedBranch.get());
             if (mergeConflictDiffs.size() > 0) {
                 dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
             }
         } catch (Exception e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 
-    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IBranch>> pTargetBranch) {
-        return pTargetBranch.map(pTarget -> pTarget.size() == 1);
+    private static Observable<Boolean> getIsEnabledObservable(Observable<Optional<IBranch>> pTargetBranch) {
+        return pTargetBranch.map(Optional::isPresent);
     }
 }

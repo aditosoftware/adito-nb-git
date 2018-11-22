@@ -17,10 +17,10 @@ public interface IActionProvider {
 
     /**
      * @param pRepository   Observable with the current Repository
-     * @param pTargetBranch Observable with list of size 1 that contains the currently selected branch
+     * @param pTargetBranch Observable that contains the currently selected branch
      * @return Action whose actionPerformed method merges the two branches
      */
-    Action getMergeAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pTargetBranch);
+    Action getMergeAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pTargetBranch);
 
     /**
      * @param pRepository              Observable with the current Repository

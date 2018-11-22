@@ -29,7 +29,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public MergeAction getMergeAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pTargetBranch) {
+    public MergeAction getMergeAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pTargetBranch) {
         return actionFactory.createMergeAction(pRepository, pTargetBranch);
     }
 
