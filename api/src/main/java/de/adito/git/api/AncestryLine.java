@@ -117,9 +117,8 @@ public class AncestryLine {
                         // only if another line leads to next commit as well (or several, we're only interested in the first) the line is of type STILLBORN
                         if (pCurrentAncestryLines.get(lineIndex).getParent().equals(pAfterNext)) {
                             stillBornMeetingIndex = (double) (lineIndex + (pParentLineNumber + childIndex - 1)) / 2;
-                            Color lineColor = colorRoulette.get();
                             childLines.set(childIndex, new AncestryLine(childLines.get(childIndex).getParent(),
-                                    lineColor == null ? Color.green : lineColor, LineType.STILLBORN, stillBornMeetingIndex, colorRoulette));
+                                    childLines.get(childIndex).getColor(), LineType.STILLBORN, stillBornMeetingIndex, colorRoulette));
                         }
                     }
                 }
@@ -136,8 +135,7 @@ public class AncestryLine {
             childLines.add(new AncestryLine(parent.getParents().get(0), color, LineType.INFANT, colorRoulette));
             if (parent.getParents().size() > 1) {
                 for (int parentIndex = 1; parentIndex < parent.getParents().size(); parentIndex++) {
-                    Color color = colorRoulette.get();
-                    childLines.add(new AncestryLine(parent.getParents().get(parentIndex), color == null ? Color.green : color, LineType.INFANT, colorRoulette));
+                    childLines.add(new AncestryLine(parent.getParents().get(parentIndex), colorRoulette.get(), LineType.INFANT, colorRoulette));
                 }
             }
         }

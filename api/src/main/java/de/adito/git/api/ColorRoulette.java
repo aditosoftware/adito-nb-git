@@ -1,13 +1,12 @@
 package de.adito.git.api;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.NoSuchElementException;
 
 /**
  * Queue-backed list of colors that delivers colors/takes them back. Operates on FIFO principle
@@ -35,21 +34,29 @@ public class ColorRoulette {
             new Color(0, 100, 200),
             new Color(100, 255, 255)
     );
-    private final Queue<Color> availableColors = new LinkedList<>();
+    private final LinkedList<Color> availableColors = new LinkedList<>();
 
     /**
      * @return the next Color in the queue or null if an error occurs/the queue is empty
      */
-    @Nullable
+    @NotNull
     public Color get() {
-        return availableColors.remove();
+        System.out.println("taking color " + availableColors.peek());
+        try {
+            return availableColors.remove();
+        } catch (NoSuchElementException e) {
+            return Color.red;
+        }
     }
 
     /**
      * @param color the Color that should be returned to the queue
      */
     void returnColor(@NotNull Color color) {
-        availableColors.offer(color);
+        if (!availableColors.contains(color)) {
+            System.out.println("returned color " + color + ", num Entries: " + availableColors.size());
+            availableColors.add(color);
+        }
     }
 
     /**

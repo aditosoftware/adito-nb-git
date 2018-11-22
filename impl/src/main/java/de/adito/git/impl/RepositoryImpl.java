@@ -27,7 +27,6 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -623,8 +622,7 @@ public class RepositoryImpl implements IRepository {
         if (!commits.isEmpty()) {
             // special case for first item
             List<AncestryLine> ancestryLines = new ArrayList<>();
-            Color firstColor = colorRoulette.get();
-            ancestryLines.add(new AncestryLine(commits.get(0), firstColor == null ? Color.green : firstColor, colorRoulette));
+            ancestryLines.add(new AncestryLine(commits.get(0), colorRoulette.get(), colorRoulette));
             commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines, colorRoulette));
             // main loop iterating over the commits
             for (int index = 1; index < commits.size() - 1; index++) {
