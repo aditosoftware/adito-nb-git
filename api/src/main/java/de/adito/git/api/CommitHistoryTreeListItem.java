@@ -70,6 +70,9 @@ public class CommitHistoryTreeListItem {
                             }
                         }
                     } else {
+                        for (AncestryLine childLine : oldAncestryLine.getChildLines()) {
+                            colorRoulette.returnColor(childLine.getColor());
+                        }
                         colorRoulette.returnColor(oldAncestryLine.getColor());
                     }
                 } else {
