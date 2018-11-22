@@ -41,7 +41,6 @@ public class ColorRoulette {
      */
     @NotNull
     public Color get() {
-        System.out.println("taking color " + availableColors.peek());
         try {
             return availableColors.remove();
         } catch (NoSuchElementException e) {
@@ -54,7 +53,6 @@ public class ColorRoulette {
      */
     void returnColor(@NotNull Color color) {
         if (!availableColors.contains(color)) {
-            System.out.println("returned color " + color + ", num Entries: " + availableColors.size());
             availableColors.add(color);
         }
     }
