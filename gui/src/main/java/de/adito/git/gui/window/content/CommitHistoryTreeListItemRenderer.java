@@ -136,7 +136,7 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer 
                             // reset color since it could have been changed by the childLines
                             g.setColor(commitHistoryTreeListItem.getAncestryLines().get(index).getColor());
                             // draw line from top of the cell (at the incoming point of the line) to the dot/knot on the line that this particular commit is on
-                            _paintUpperLine(g, index, knotIndex);
+                            _paintUpperLine(g, index - numStillBorn, knotIndex);
                         }
                     }
                 } else {
