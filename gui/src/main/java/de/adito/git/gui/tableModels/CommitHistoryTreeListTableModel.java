@@ -13,7 +13,7 @@ import java.util.List;
  * @author A.Arnold 02.10.2018
  */
 
-public class CommitListTableModel extends AbstractTableModel {
+public class CommitHistoryTreeListTableModel extends AbstractTableModel {
 
     private List<CommitHistoryTreeListItem> commitList;
     private static final int BRANCHING = 0;
@@ -25,8 +25,13 @@ public class CommitListTableModel extends AbstractTableModel {
     /**
      * @param pCommitList the list of commits to show
      */
-    public CommitListTableModel(List<CommitHistoryTreeListItem> pCommitList) {
+    public CommitHistoryTreeListTableModel(List<CommitHistoryTreeListItem> pCommitList) {
         commitList = pCommitList;
+    }
+
+    public void addData(List<CommitHistoryTreeListItem> toAdd) {
+        commitList.addAll(toAdd);
+        fireTableDataChanged();
     }
 
     @Override
