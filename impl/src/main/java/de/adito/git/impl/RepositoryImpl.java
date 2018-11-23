@@ -577,11 +577,20 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<ICommit> getCommits(IBranch sourceBranch) throws Exception {
+    public List<ICommit> getCommits(IBranch sourceBranch, int numCommits) throws Exception {
+        return getCommits(sourceBranch, 0, numCommits);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ICommit> getCommits(IBranch sourceBranch, int indexFrom, int numCommits) throws Exception {
         List<ICommit> commitList = new ArrayList<>();
         Iterable<RevCommit> refCommits;
         LogCommand logCommand = git.log().add(git.getRepository().resolve(sourceBranch.getName()));
-        logCommand.setMaxCount(300);
+        logCommand.setSkip(indexFrom);
+        logCommand.setMaxCount(numCommits);
         try {
             refCommits = logCommand.call();
         } catch (GitAPIException e) {
@@ -599,7 +608,15 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<ICommit> getCommits(File file) throws Exception {
+    public List<ICommit> getCommits(File file, int numCommits) throws Exception {
+        return getCommits(file, 0, numCommits);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ICommit> getCommits(File file, int indexFrom, int numCommits) throws Exception {
         List<ICommit> commitList = new ArrayList<>();
         Iterable<RevCommit> logs;
         LogCommand logCommand = git.log().addPath(getRelativePath(file, git));
@@ -617,13 +634,17 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @NotNull
-    public List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits) {
+    public List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits, @Nullable CommitHistoryTreeListItem startCHTLI) {
         List<CommitHistoryTreeListItem> commitHistoryTreeList = new ArrayList<>();
         if (!commits.isEmpty()) {
             // special case for first item
-            List<AncestryLine> ancestryLines = new ArrayList<>();
-            ancestryLines.add(new AncestryLine(commits.get(0), colorRoulette.get(), colorRoulette));
-            commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines, colorRoulette));
+            if (startCHTLI != null) {
+                commitHistoryTreeList.add(startCHTLI.nextItem(commits.get(0), commits.size() > 1 ? commits.get(1) : null));
+            } else {
+                List<AncestryLine> ancestryLines = new ArrayList<>();
+                ancestryLines.add(new AncestryLine(commits.get(0), colorRoulette.get(), colorRoulette));
+                commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines, colorRoulette));
+            }
             // main loop iterating over the commits
             for (int index = 1; index < commits.size() - 1; index++) {
                 commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(commits.get(index), commits.get(index + 1)));
