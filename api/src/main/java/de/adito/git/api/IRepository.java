@@ -80,7 +80,7 @@ public interface IRepository {
     /**
      * performs a diff of the working copy of the provided files with their version as it is in compareWith
      *
-     * @param fileToDiff List of Files that should be diff'd with HEAD. pass null if all changes should be displayed
+     * @param fileToDiff  List of Files that should be diff'd with HEAD. pass null if all changes should be displayed
      * @param compareWith ICommit giving the version that the files should be compared with. If null files are compared to the HEAD
      * @return List of IFileDiff describing the differences of the files in the working copy and compareWith (or HEAD if compareWith == null)
      * @throws Exception if an error occurs
@@ -142,9 +142,8 @@ public interface IRepository {
     void reset(@NotNull List<File> files) throws Exception;
 
     /**
-     *
      * @param identifier ID for the branch/commit to reset to
-     * @param resetType resetType which type of reset should be conducted
+     * @param resetType  resetType which type of reset should be conducted
      * @throws Exception if an error occurs
      */
     void reset(@NotNull String identifier, @NotNull EResetType resetType) throws Exception;
@@ -206,23 +205,44 @@ public interface IRepository {
 
     /**
      * @param sourceBranch IBranch for which all commits should be retrieved
+     * @param numCommits   how many commits should be loaded
      * @return List with all ICommits in the sourceBranch
      * @throws Exception if an error occurs
      */
-    List<ICommit> getCommits(IBranch sourceBranch) throws Exception;
+    List<ICommit> getCommits(IBranch sourceBranch, int numCommits) throws Exception;
 
     /**
-     * @param forFile File for which all commits should be retrieved
+     * @param sourceBranch IBranch for which all commits should be retrieved
+     * @param indexFrom    how many commits should be skipped
+     * @param numCommits   how many commits should be loaded
+     * @return List with all ICommits in the sourceBranch
+     * @throws Exception if an error occurs
+     */
+    List<ICommit> getCommits(IBranch sourceBranch, int indexFrom, int numCommits) throws Exception;
+
+    /**
+     * @param forFile    File for which all commits should be retrieved
+     * @param numCommits how many commits should be loaded
      * @return List with ICommits that contains all commits that affected the file
      * @throws Exception if an error occurs
      */
-    List<ICommit> getCommits(File forFile) throws Exception;
+    List<ICommit> getCommits(File forFile, int numCommits) throws Exception;
 
     /**
-     * @param commits List of commits for which the CommitHistoryTreeList should be created
+     * @param forFile    File for which all commits should be retrieved
+     * @param indexFrom  how many commits should be skipped
+     * @param numCommits how many commits should be loaded
+     * @return List with ICommits that contains all commits that affected the file
+     * @throws Exception if an error occurs
+     */
+    List<ICommit> getCommits(File forFile, int indexFrom, int numCommits) throws Exception;
+
+    /**
+     * @param commits    List of commits for which the CommitHistoryTreeList should be created
+     * @param startCHTLI If the List of commits is an extension of a list, pass the last CommitHistoryTreeListItem of that list here
      * @return List of CommitHistoryTreeListItems
      */
-    List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits);
+    List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits, @Nullable CommitHistoryTreeListItem startCHTLI);
 
     /**
      * @return the directory of the actual repository
