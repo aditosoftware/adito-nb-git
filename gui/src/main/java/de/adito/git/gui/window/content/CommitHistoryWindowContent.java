@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.IUserPreferences;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
@@ -29,10 +30,13 @@ class CommitHistoryWindowContent extends JPanel {
     private final IActionProvider actionProvider;
     private final Observable<IRepository> repository;
     private final Observable<List<ICommit>> selectionObservable;
+    private final IUserPreferences userPreferences;
     private JPopupMenu popupMenu;
 
     @Inject
-    CommitHistoryWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository, @Assisted TableModel pTableModel, @Assisted Runnable pLoadMoreCallback) {
+    CommitHistoryWindowContent(IActionProvider pActionProvider, IUserPreferences pUserPreferences, @Assisted Observable<IRepository> pRepository,
+                               @Assisted TableModel pTableModel, @Assisted Runnable pLoadMoreCallback) {
+        userPreferences = pUserPreferences;
         ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
         commitTable.setSelectionModel(observableListSelectionModel);
         actionProvider = pActionProvider;
@@ -59,7 +63,7 @@ class CommitHistoryWindowContent extends JPanel {
 
         commitTable.addMouseListener(new PopupMouseListener(popupMenu));
 
-        JButton loadMoreButton = new JButton("load 1000 more entries");
+        JButton loadMoreButton = new JButton("load " + userPreferences.getNumLoadAdditionalCHEntries() + " more entries");
         loadMoreButton.addActionListener(e -> pLoadMoreCallback.run());
 
         JPanel commitHistoryPanel = new JPanel(new BorderLayout());
