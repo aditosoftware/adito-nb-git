@@ -16,14 +16,14 @@ import java.util.List;
  *
  * @author A.Arnold 04.10.2018
  */
-class ShowAllCommitsAction extends AbstractTableAction {
+class ShowCommitsForBranchesAction extends AbstractTableAction {
 
     private final IWindowProvider windowProvider;
     private final Observable<List<IBranch>> branches;
     private final Observable<IRepository> repository;
 
     @Inject
-    ShowAllCommitsAction(IWindowProvider pWindowProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranches) {
+    ShowCommitsForBranchesAction(IWindowProvider pWindowProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranches) {
         super("Show Commits", getIsEnabledObservable(pBranches));
         windowProvider = pWindowProvider;
         putValue(Action.NAME, "Show Commits");

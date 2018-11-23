@@ -117,7 +117,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public ShowAllCommitsAction getShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches) {
+    public ShowCommitsForBranchesAction getShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches) {
         return actionFactory.createShowAllCommitsAction(pRepository, pBranches);
     }
 
