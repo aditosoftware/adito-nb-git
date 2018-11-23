@@ -5,6 +5,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -88,7 +89,9 @@ public class CommitImpl implements ICommit {
      */
     @Override
     public List<ICommit> getParents() {
-        return Arrays.stream(revCommit.getParents()).map(CommitImpl::new).collect(Collectors.toList());
+        if (revCommit.getParents() != null)
+            return Arrays.stream(revCommit.getParents()).map(CommitImpl::new).collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
     @Override
