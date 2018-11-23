@@ -204,34 +204,48 @@ public interface IRepository {
     ICommit getCommit(@NotNull String identifier) throws Exception;
 
     /**
-     * @param sourceBranch IBranch for which all commits should be retrieved
-     * @param numCommits   how many commits should be loaded
+     * @param sourceBranch IBranch for which all commits should be retrieved. Pass NULL for all commits
+     * @return List with all ICommits in the sourceBranch
+     * @throws Exception if an error occurs
+     */
+    List<ICommit> getCommits(IBranch sourceBranch) throws Exception;
+
+    /**
+     * @param sourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
+     * @param numCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
      * @return List with all ICommits in the sourceBranch
      * @throws Exception if an error occurs
      */
     List<ICommit> getCommits(IBranch sourceBranch, int numCommits) throws Exception;
 
     /**
-     * @param sourceBranch IBranch for which all commits should be retrieved
-     * @param indexFrom    how many commits should be skipped
-     * @param numCommits   how many commits should be loaded
+     * @param sourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
+     * @param indexFrom    how many commits should be skipped. Pass -1 if the parameter should be ignored
+     * @param numCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
      * @return List with all ICommits in the sourceBranch
      * @throws Exception if an error occurs
      */
     List<ICommit> getCommits(IBranch sourceBranch, int indexFrom, int numCommits) throws Exception;
 
     /**
-     * @param forFile    File for which all commits should be retrieved
-     * @param numCommits how many commits should be loaded
+     * @param forFile File for which all commits should be retrieved. Pass NULL for all commits
+     * @return List with ICommits that contains all commits that affected the file
+     * @throws Exception if an error occurs
+     */
+    List<ICommit> getCommits(File forFile) throws Exception;
+
+    /**
+     * @param forFile    File for which commits should be retrieved. Pass NULL for all commits
+     * @param numCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
      * @return List with ICommits that contains all commits that affected the file
      * @throws Exception if an error occurs
      */
     List<ICommit> getCommits(File forFile, int numCommits) throws Exception;
 
     /**
-     * @param forFile    File for which all commits should be retrieved
-     * @param indexFrom  how many commits should be skipped
-     * @param numCommits how many commits should be loaded
+     * @param forFile    File for which commits should be retrieved. Pass NULL for all commits
+     * @param indexFrom  how many commits should be skipped. Pass -1 if the parameter should be ignored
+     * @param numCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
      * @return List with ICommits that contains all commits that affected the file
      * @throws Exception if an error occurs
      */
@@ -253,13 +267,6 @@ public interface IRepository {
      * @return the directory of the top-most directory covered by the VCS
      */
     File getTopLevelDirectory();
-
-    /**
-     * @return List of all Commits in the repository
-     * @throws Exception An Error occurred while calling JGit
-     * @throws Exception if an error occurs
-     */
-    List<ICommit> getAllCommits() throws Exception;
 
     /**
      * @param branchString String with the string of the targeted branch

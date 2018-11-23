@@ -577,56 +577,84 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<ICommit> getCommits(IBranch sourceBranch, int numCommits) throws Exception {
-        return getCommits(sourceBranch, 0, numCommits);
+    public List<ICommit> getCommits(@Nullable IBranch sourceBranch) throws Exception {
+        return getCommits(sourceBranch, -1);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<ICommit> getCommits(IBranch sourceBranch, int indexFrom, int numCommits) throws Exception {
+    public List<ICommit> getCommits(@Nullable IBranch sourceBranch, int numCommits) throws Exception {
+        return getCommits(sourceBranch, -1, numCommits);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ICommit> getCommits(@Nullable IBranch sourceBranch, int indexFrom, int numCommits) throws Exception {
+        return getCommits(sourceBranch, null, indexFrom, numCommits);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ICommit> getCommits(@Nullable File forFile) throws Exception {
+        return getCommits(forFile, -1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ICommit> getCommits(@Nullable File file, int numCommits) throws Exception {
+        return getCommits(file, -1, numCommits);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ICommit> getCommits(@Nullable File file, int indexFrom, int numCommits) throws Exception {
+        return getCommits(null, file, indexFrom, numCommits);
+    }
+
+    /**
+     * @param sourceBranch IBranch that the retrieved commits should be from
+     * @param file         File that is affected by all commits that are retrieved
+     * @param indexFrom    number of (matching) commits to skip before retrieving commits from the log
+     * @param numCommits   number of (matching) commits to retrieve
+     * @return List of ICommits matching the provided criteria
+     * @throws Exception if JGit throws an exception/returns null
+     */
+    private List<ICommit> getCommits(@Nullable IBranch sourceBranch, @Nullable File file, int indexFrom, int numCommits) throws Exception {
         List<ICommit> commitList = new ArrayList<>();
         Iterable<RevCommit> refCommits;
-        LogCommand logCommand = git.log().add(git.getRepository().resolve(sourceBranch.getName()));
-        logCommand.setSkip(indexFrom);
-        logCommand.setMaxCount(numCommits);
+        LogCommand logCommand = git.log();
+        if (sourceBranch != null) {
+            logCommand.add(git.getRepository().resolve(sourceBranch.getName()));
+        }
+        if (file != null) {
+            logCommand.addPath(getRelativePath(file, git));
+        }
+        if (indexFrom >= 0) {
+            logCommand.setSkip(indexFrom);
+        }
+        if (numCommits >= 0) {
+            logCommand.setMaxCount(numCommits);
+        }
         try {
             refCommits = logCommand.call();
         } catch (GitAPIException e) {
-            throw new Exception("Unable to check the commits of one branch: " + sourceBranch, e);
+            throw new Exception("Unable to check the commits of one branch and/or file. Branch: " + sourceBranch + ", File: " + file, e);
         }
         if (refCommits != null) {
             refCommits.forEach(commit -> commitList.add(new CommitImpl(commit)));
         } else {
-            throw new Exception("The branch can't be empty: " + sourceBranch);
+            throw new Exception("Object returned by JGit was null while trying to retrieve commits. Branch: " + sourceBranch + ", File: " + file);
         }
-        return commitList;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ICommit> getCommits(File file, int numCommits) throws Exception {
-        return getCommits(file, 0, numCommits);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ICommit> getCommits(File file, int indexFrom, int numCommits) throws Exception {
-        List<ICommit> commitList = new ArrayList<>();
-        Iterable<RevCommit> logs;
-        LogCommand logCommand = git.log().addPath(getRelativePath(file, git));
-
-        try {
-            logs = logCommand.call();
-        } catch (GitAPIException e) {
-            throw new Exception("Unable to check the Commits of the File: " + file, e);
-        }
-        logs.forEach(log -> commitList.add(new CommitImpl(log)));
         return commitList;
     }
 
@@ -668,25 +696,6 @@ public class RepositoryImpl implements IRepository {
     @Override
     public File getTopLevelDirectory() {
         return git.getRepository().getDirectory().getParent() != null ? new File(git.getRepository().getDirectory().getParent()) : null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ICommit> getAllCommits() throws Exception {
-        List<ICommit> commits = new ArrayList<>();
-        Iterable<RevCommit> implCommits;
-        LogCommand logCommand = git.log().all();
-        try {
-            implCommits = logCommand.call();
-        } catch (GitAPIException e) {
-            throw new Exception("Can't check the comments.", e);
-        }
-        if (implCommits != null) {
-            implCommits.forEach(commit -> commits.add(new CommitImpl(commit)));
-        }
-        return commits;
     }
 
     /**
