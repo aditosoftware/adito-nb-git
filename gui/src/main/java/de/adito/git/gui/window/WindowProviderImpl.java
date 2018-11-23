@@ -1,9 +1,11 @@
 package de.adito.git.gui.window;
 
 import com.google.inject.Inject;
+import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 
@@ -12,7 +14,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * A provider for all windows (not dialogs). This class only display the windows
+ * A provider for all windows (not dialogs). This class only displays the windows
  *
  * @author a.arnold, 31.10.2018
  */
@@ -33,8 +35,20 @@ class WindowProviderImpl implements IWindowProvider {
     @Override
     public void showCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) {
         try {
-            List<ICommit> commits = pRepository.blockingFirst().getCommits(pBranch);
-            _showInFrame(factory.createCommitHistoryWindowContent(pRepository, commits));
+            IRepository repo = pRepository.blockingFirst();
+            List<ICommit> commits = repo.getCommits(pBranch, 0, 1000);
+            CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
+            Runnable loadMoreCallBack = () -> {
+                try {
+                    tableModel.addData(
+                            repo.getCommitHistoryTreeList(
+                                    repo.getCommits(pBranch, tableModel.getRowCount(), 1000),
+                                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+            _showInFrame(factory.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallBack));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -43,8 +57,20 @@ class WindowProviderImpl implements IWindowProvider {
     @Override
     public void showCommitHistoryWindow(Observable<IRepository> pRepository, File pFile) {
         try {
-            List<ICommit> commits = pRepository.blockingFirst().getCommits(pFile);
-            _showInFrame(factory.createCommitHistoryWindowContent(pRepository, commits));
+            IRepository repo = pRepository.blockingFirst();
+            List<ICommit> commits = repo.getCommits(pFile, 1000);
+            CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
+            Runnable loadMoreCallBack = () -> {
+                try {
+                    tableModel.addData(
+                            repo.getCommitHistoryTreeList(
+                                    repo.getCommits(pFile, tableModel.getRowCount(), 1000),
+                                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+            _showInFrame(factory.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallBack));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

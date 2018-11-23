@@ -3,12 +3,11 @@ package de.adito.git.nbm.window;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 
-import java.awt.*;
-import java.util.List;
+import javax.swing.table.TableModel;
+import java.awt.BorderLayout;
 
 /**
  * A {@link AbstractRepositoryTopComponent} that shows the commit history window
@@ -21,11 +20,11 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent {
 
     @Inject
     CommitHistoryTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<IRepository> pRepository,
-                              @Assisted List<ICommit> pCommits, @Assisted String pDisplayableContext) {
+                              @Assisted TableModel tableModel, @Assisted Runnable loadMoreCallback, @Assisted String pDisplayableContext) {
         super(pRepository);
         displayableContext = pDisplayableContext;
         setLayout(new BorderLayout());
-        add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, pCommits), BorderLayout.CENTER);
+        add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallback), BorderLayout.CENTER);
     }
 
     @Override

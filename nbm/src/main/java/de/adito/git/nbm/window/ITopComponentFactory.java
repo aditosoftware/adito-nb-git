@@ -1,10 +1,9 @@
 package de.adito.git.nbm.window;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.ICommit;
 import io.reactivex.Observable;
 
-import java.util.List;
+import javax.swing.table.TableModel;
 
 /**
  * An interface to create all topComponents in NetBeans
@@ -15,7 +14,7 @@ interface ITopComponentFactory {
 
     AllBranchTopComponent createAllBranchTopComponent(Observable<IRepository> pRepository);
 
-    CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<IRepository> pRepository, List<ICommit> pCommits, String pDisplayableContext);
+    CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<IRepository> pRepository, TableModel tableModel, Runnable loadMoreCallback, String pDisplayableContext);
 
     StatusWindowTopComponent createStatusWindowTopComponent(Observable<IRepository> pRepository);
 

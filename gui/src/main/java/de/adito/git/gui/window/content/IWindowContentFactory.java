@@ -1,10 +1,9 @@
 package de.adito.git.gui.window.content;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.ICommit;
 import io.reactivex.Observable;
 
-import java.util.List;
+import javax.swing.table.TableModel;
 
 /**
  * @author m.kaspera 29.10.2018
@@ -15,7 +14,7 @@ interface IWindowContentFactory {
 
     BranchListWindowContent createBranchListWindowContent(Observable<IRepository> pRepository);
 
-    CommitHistoryWindowContent createCommitHistoryWindowContent(Observable<IRepository> pRepository, List<ICommit> pCommits);
+    CommitHistoryWindowContent createCommitHistoryWindowContent(Observable<IRepository> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback);
 
     StatusLineWindowContent createStatusLineWindowContent(Observable<IRepository> pRepository);
 

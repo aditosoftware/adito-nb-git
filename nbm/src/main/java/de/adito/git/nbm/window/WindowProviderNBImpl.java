@@ -1,9 +1,11 @@
 package de.adito.git.nbm.window;
 
 import com.google.inject.Inject;
+import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import de.adito.git.gui.window.IWindowProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +36,21 @@ class WindowProviderNBImpl implements IWindowProvider {
 
     @Override
     public void showCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) {
+        IRepository repo = pRepository.blockingFirst();
         try {
-            List<ICommit> commits = pRepository.blockingFirst().getCommits(pBranch);
-            _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, commits, pBranch.getSimpleName()));
+            List<ICommit> commits = repo.getCommits(pBranch, 1000);
+            CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
+            Runnable loadMoreCallBack = () -> {
+                try {
+                    tableModel.addData(
+                            repo.getCommitHistoryTreeList(
+                                    repo.getCommits(pBranch, tableModel.getRowCount(), 1000),
+                                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+            _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, pBranch.getSimpleName()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -44,9 +58,21 @@ class WindowProviderNBImpl implements IWindowProvider {
 
     @Override
     public void showCommitHistoryWindow(Observable<IRepository> pRepository, File pFile) {
+        IRepository repo = pRepository.blockingFirst();
         try {
-            List<ICommit> commits = pRepository.blockingFirst().getCommits(pFile);
-            _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, commits, pFile.getAbsolutePath()));
+            List<ICommit> commits = repo.getCommits(pFile, 1000);
+            CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
+            Runnable loadMoreCallBack = () -> {
+                try {
+                    tableModel.addData(
+                            repo.getCommitHistoryTreeList(
+                                    repo.getCommits(pFile, tableModel.getRowCount(), 1000),
+                                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+            _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, pFile.getAbsolutePath()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
