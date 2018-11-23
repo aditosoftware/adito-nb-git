@@ -131,6 +131,8 @@ public class CommitHistoryTreeListItem {
      */
     private void _processChildren(boolean pProcessedChildren, AncestryLine pOldAncestryLine, List<AncestryLine> pUpdatedAncestryLines, ICommit pNext, Map<Integer, AncestryLine> pCheckForStillBorns, int pCounter) {
         if (!pProcessedChildren) {
+            if (pOldAncestryLine.getChildLines().isEmpty())
+                pOldAncestryLine.reInitChildLines(commit);
             for (AncestryLine childLine : pOldAncestryLine.getChildLines()) {
                 if (childLine.getLineType() == AncestryLine.LineType.STILLBORN) {
                     pUpdatedAncestryLines.add(new AncestryLine(childLine.getParent(),

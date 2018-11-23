@@ -17,12 +17,12 @@ import java.util.List;
  */
 public class AncestryLine {
 
-    private final ICommit parent;
     private final Color color;
     private final List<AncestryLine> childLines = new ArrayList<>();
     private final LineType lineType;
     private final ColorRoulette colorRoulette;
     private double stillBornMeetingIndex = 0;
+    private ICommit parent;
 
     /**
      * FULL: active line
@@ -64,21 +64,21 @@ public class AncestryLine {
     /**
      * @return List of all AncestryLines that will spawn from this line/continue it. the returned lines will all have type INFANT or STILLBORN
      */
-    public List<AncestryLine> getChildLines() {
+    List<AncestryLine> getChildLines() {
         return childLines;
     }
 
     /**
      * @return the next ICommit in the line
      */
-    public ICommit getParent() {
+    ICommit getParent() {
         return parent;
     }
 
     /**
      * @return the color of the line
      */
-    public Color getColor() {
+    Color getColor() {
         return color;
     }
 
@@ -86,14 +86,14 @@ public class AncestryLine {
      * @return LineType, FULL for an already active line, INFANT for an yet unborn line and STILLBORN for a line
      * will spawn and be gone in the very next row
      */
-    public LineType getLineType() {
+    LineType getLineType() {
         return lineType;
     }
 
     /**
      * @return index where the two parts of a stillborn line meet. 0 for all other types of AncestryLines
      */
-    public double getStillBornMeetingIndex() {
+    double getStillBornMeetingIndex() {
         return stillBornMeetingIndex;
     }
 
@@ -120,10 +120,28 @@ public class AncestryLine {
                             childLines.set(childIndex, new AncestryLine(childLines.get(childIndex).getParent(),
                                     childLines.get(childIndex).getColor(), LineType.STILLBORN, stillBornMeetingIndex, colorRoulette));
                         }
+
                     }
                 }
             }
         }
+    }
+
+    /**
+     * When loading only parts of the log, the last ICommits don't get their parents set,
+     * and as such the last AncestryLines may have faulty information about their child lines
+     * (aka the AncestryLine saying there are none, while in reality there are)
+     * If you pass the freshly loaded commit from the new parts of the logs here, the child lines
+     * are re-evaluated (and possibly fixed).
+     * Only call this when the child lines are suspicious, such as when there are none (as this would
+     * only ever be the case by the very first commit in a repository)
+     *
+     * @param pParent ICommit that is the next commit in the line symbolized by this class
+     */
+    void reInitChildLines(ICommit pParent) {
+        childLines.clear();
+        parent = pParent;
+        _initChildLines();
     }
 
     /**
