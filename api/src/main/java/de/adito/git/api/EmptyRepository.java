@@ -144,18 +144,28 @@ class EmptyRepository implements IRepository {
     }
 
     @Override
-    public List<ICommit> getCommits(IBranch sourceBranch) {
-        throw new RuntimeException();
+    public List<ICommit> getCommits(IBranch sourceBranch, int numCommits) {
+        return Collections.emptyList();
     }
 
     @Override
-    public List<ICommit> getCommits(File forFile) {
-        throw new RuntimeException();
+    public List<ICommit> getCommits(IBranch sourceBranch, int indexFrom, int numCommits) {
+        return Collections.emptyList();
     }
 
     @Override
-    public List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits) {
-        return null;
+    public List<ICommit> getCommits(File forFile, int numCommits) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<ICommit> getCommits(File forFile, int indexFrom, int numCommits) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits, @Nullable CommitHistoryTreeListItem startCHTLI) {
+        return Collections.emptyList();
     }
 
     @Override
