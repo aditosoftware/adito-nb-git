@@ -3,6 +3,7 @@ package de.adito.git.impl;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.EFileType;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.lib.FileMode;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +53,44 @@ public class EnumMappings {
                 return DiffEntry.ChangeType.RENAME;
             case COPY:
                 return DiffEntry.ChangeType.COPY;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
+     * @return translated {@link EChangeType}
+     */
+    static EChangeType _toEChangeType(@NotNull Edit.Type pChangeType) {
+        switch (pChangeType) {
+            case INSERT:
+                return EChangeType.ADD;
+            case DELETE:
+                return EChangeType.DELETE;
+            case REPLACE:
+                return EChangeType.MODIFY;
+            case EMPTY:
+                return EChangeType.SAME;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
+     * @return translated {@link EChangeType}
+     */
+    public static Edit.Type _typeFromEChangeType(@NotNull EChangeType pChangeType) {
+        switch (pChangeType) {
+            case ADD:
+                return Edit.Type.INSERT;
+            case DELETE:
+                return Edit.Type.DELETE;
+            case MODIFY:
+                return Edit.Type.REPLACE;
+            case SAME:
+                return Edit.Type.EMPTY;
             default:
                 return null;
         }
