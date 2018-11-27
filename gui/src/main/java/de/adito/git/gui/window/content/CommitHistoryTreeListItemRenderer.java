@@ -4,10 +4,7 @@ import de.adito.git.api.CommitHistoryTreeListItem;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.*;
 
 /**
  * Class that retrieves the component for the rendering of the CommitHistoryTreeListItems that form the
@@ -60,6 +57,9 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer 
         protected void paintComponent(Graphics g) {
             // call this for a working selection marker
             super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setStroke(new BasicStroke(CommitHistoryTreeListItem.ColoredLineCoordinates.LINE_WIDTH));
             // draw all the lines that belong to the CommitHistoryTreeListItem
             for (CommitHistoryTreeListItem.ColoredLineCoordinates coloredLineCoordinate : commitHistoryTreeListItem.getLinesToDraw()) {
                 g.setColor(coloredLineCoordinate.getColor());
