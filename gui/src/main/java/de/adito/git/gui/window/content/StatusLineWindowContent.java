@@ -160,7 +160,7 @@ public class StatusLineWindowContent extends JPanel implements IDiscardable {
             });
 
             Action checkoutAction = actionProvider.getCheckoutAction(repository, selectedBranch);
-            Action showAllCommitsAction = actionProvider.getShowAllCommitsAction(repository, branchObservable.map(pBranch ->
+            Action showAllCommitsAction = actionProvider.getShowAllCommitsForBranchAction(repository, branchObservable.map(pBranch ->
                     pBranch.map(iBranches -> Collections.singletonList(iBranches.get(selectedIndex)))));
             Action mergeAction = actionProvider.getMergeAction(repository, selectedBranch);
 

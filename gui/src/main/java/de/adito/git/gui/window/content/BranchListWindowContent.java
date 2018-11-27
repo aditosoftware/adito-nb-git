@@ -130,7 +130,7 @@ class BranchListWindowContent extends JPanel {
                             return Optional.empty();
                         } else return Optional.of(pBranches.get(0));
                     };
-                    popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList.map(Optional::of)));
+                    popupMenu.add(actionProvider.getShowAllCommitsForBranchAction(repository, branchList.map(Optional::of)));
                     popupMenu.add(actionProvider.getCheckoutAction(repository, branchList.map(optionalSingleBranch::apply)));
                     popupMenu.add(actionProvider.getMergeAction(repository, branchList.map(optionalSingleBranch::apply)));
                     popupMenu.show(table, e.getX(), e.getY());
