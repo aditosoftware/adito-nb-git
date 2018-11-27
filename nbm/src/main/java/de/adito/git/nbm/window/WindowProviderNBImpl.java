@@ -54,7 +54,7 @@ class WindowProviderNBImpl implements IWindowProvider {
                     throw new RuntimeException(e);
                 }
             };
-            _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, pBranch.getSimpleName()));
+            _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, pBranch != null ? pBranch.getSimpleName() : "Commits in Project"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
