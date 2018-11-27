@@ -6,6 +6,7 @@ import io.reactivex.disposables.Disposable;
 import org.openide.windows.TopComponent;
 
 import javax.swing.*;
+import java.util.Optional;
 
 /**
  * An abstract class to show the topComponents in NetBeans
@@ -20,9 +21,13 @@ abstract class AbstractRepositoryTopComponent extends TopComponent {
      *
      * @param pRepository Observable of the Repository for the selected project
      */
-    AbstractRepositoryTopComponent(Observable<IRepository> pRepository) {
+    AbstractRepositoryTopComponent(Observable<Optional<IRepository>> pRepository) {
         //Set the displayname in the TopComponent of NetBeans.
-        displayNameDisposable = pRepository.subscribe(pRepo -> SwingUtilities.invokeLater(() -> setDisplayName(getTopComponentName() + " - " + pRepo.getDirectory())));
+        displayNameDisposable = pRepository
+                .subscribe(pRepo -> SwingUtilities.invokeLater(() -> setDisplayName(getTopComponentName() + " - "
+                        + pRepo
+                        .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                        .getDirectory())));
     }
 
     protected abstract String getInitialMode();

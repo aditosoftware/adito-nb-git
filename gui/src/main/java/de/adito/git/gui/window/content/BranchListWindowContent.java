@@ -11,7 +11,8 @@ import de.adito.git.gui.tableModels.BranchListTableModel;
 import io.reactivex.Observable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
@@ -29,7 +30,7 @@ import java.util.stream.Stream;
 class BranchListWindowContent extends JPanel {
     private final static int SCROLL_SPEED_INCREMENT = 16;
     private final IActionProvider actionProvider;
-    private final Observable<IRepository> repository;
+    private final Observable<Optional<IRepository>> repository;
     private final JTable localStatusTable = new JTable();
     private final JTable remoteStatusTable = new JTable();
     private final ObservableListSelectionModel localSelectionModel;
@@ -42,7 +43,7 @@ class BranchListWindowContent extends JPanel {
      * @param pRepository the repository for checking all branches
      */
     @Inject
-    BranchListWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
+    BranchListWindowContent(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         localSelectionModel = new ObservableListSelectionModel(localStatusTable.getSelectionModel());
         localStatusTable.setSelectionModel(localSelectionModel);
         remoteSelectionModel = new ObservableListSelectionModel(remoteStatusTable.getSelectionModel());
@@ -57,14 +58,15 @@ class BranchListWindowContent extends JPanel {
      */
     private void _initGui() {
         setLayout(new BorderLayout());
-        Observable<List<IBranch>> branchObservable = repository.flatMap(IRepository::getBranches);
+        Observable<Optional<List<IBranch>>> branchObservable = repository.flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException("no valid repository found")).getBranches());
 
         //the local Status Table
         Observable<List<IBranch>> localSelectionObservable = Observable.combineLatest(localSelectionModel.selectedRows(), branchObservable, (pSelected, pBranches) -> {
-            if (pSelected == null || pBranches == null)
+            List<IBranch> branches = pBranches.orElse(Collections.emptyList());
+            if (pSelected == null)
                 return Collections.emptyList();
             return Stream.of(pSelected)
-                    .map(pBranches::get)
+                    .map(branches::get)
                     .filter(pBranch -> pBranch.getType() == EBranchType.LOCAL)
                     .collect(Collectors.toList());
         });
@@ -80,10 +82,11 @@ class BranchListWindowContent extends JPanel {
 
         //the remote Status Table
         Observable<List<IBranch>> remoteSelectionObservable = Observable.combineLatest(remoteSelectionModel.selectedRows(), branchObservable, (pSelected, pBranches) -> {
-            if (pSelected == null || pBranches == null)
+            List<IBranch> branches = pBranches.orElse(Collections.emptyList());
+            if (pSelected == null)
                 return Collections.emptyList();
             return Stream.of(pSelected)
-                    .map(pBranches::get)
+                    .map(branches::get)
                     .filter(pBranch -> pBranch.getType() == EBranchType.REMOTE)
                     .collect(Collectors.toList());
         });
@@ -127,7 +130,7 @@ class BranchListWindowContent extends JPanel {
                             return Optional.empty();
                         } else return Optional.of(pBranches.get(0));
                     };
-                    popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList));
+                    popupMenu.add(actionProvider.getShowAllCommitsAction(repository, branchList.map(Optional::of)));
                     popupMenu.add(actionProvider.getCheckoutAction(repository, branchList.map(optionalSingleBranch::apply)));
                     popupMenu.add(actionProvider.getMergeAction(repository, branchList.map(optionalSingleBranch::apply)));
                     popupMenu.show(table, e.getX(), e.getY());

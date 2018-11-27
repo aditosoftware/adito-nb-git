@@ -9,6 +9,7 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Optional;
 
 /**
  * This action class creates a newBranchWindow.
@@ -18,14 +19,14 @@ import java.awt.event.ActionEvent;
  */
 class NewBranchAction extends AbstractAction {
     private final IDialogProvider dialogProvider;
-    private Observable<IRepository> repository;
+    private Observable<Optional<IRepository>> repository;
 
     /**
      * @param pDialogProvider The Interface to provide functionality of giving an overlying framework
      * @param pRepository     The repository where the new branch should exists
      */
     @Inject
-    NewBranchAction(IDialogProvider pDialogProvider, @Assisted Observable<IRepository> pRepository) {
+    NewBranchAction(IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         dialogProvider = pDialogProvider;
         repository = pRepository;
         putValue(Action.NAME, "New Branch");
@@ -37,7 +38,7 @@ class NewBranchAction extends AbstractAction {
         try {
             DialogResult result = dialogProvider.showNewBranchDialog(repository);
             if (result.isPressedOk())
-                repository.blockingFirst().createBranch(result.getMessage(), true); //todo checkout via dialogs
+                repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).createBranch(result.getMessage(), true); //todo checkout via dialogs
         } catch (Exception e1) {
             e1.printStackTrace();
         }

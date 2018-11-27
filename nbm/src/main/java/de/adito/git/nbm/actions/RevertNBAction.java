@@ -16,7 +16,9 @@ import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author a.arnold, 31.10.2018
@@ -28,11 +30,11 @@ import java.util.List;
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 200)
 public class RevertNBAction extends NBAction {
 
-    private final Subject<List<IFileChangeType>> selectedFiles = BehaviorSubject.create();
+    private final Subject<Optional<List<IFileChangeType>>> selectedFiles = BehaviorSubject.create();
 
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
+        Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
@@ -44,7 +46,7 @@ public class RevertNBAction extends NBAction {
 
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return getUncommittedFilesOfNodes(activatedNodes, findOneRepositoryFromNode(activatedNodes)).size() > 0;
+        return getUncommittedFilesOfNodes(activatedNodes, findOneRepositoryFromNode(activatedNodes)).orElse(Collections.emptyList()).size() > 0;
     }
 
     @Override

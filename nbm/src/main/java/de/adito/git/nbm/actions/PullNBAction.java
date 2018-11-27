@@ -13,6 +13,8 @@ import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.util.Optional;
+
 /**
  * An action class to pull the commits of a repository
  *
@@ -32,16 +34,20 @@ public class PullNBAction extends NBAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
+        Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
-        if (repository != null) {
-            try {
-                actionProvider.getPullAction(repository, repository.blockingFirst().getCurrentBranch().blockingFirst().getId());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            actionProvider.getPullAction(repository, repository
+                    .blockingFirst()
+                    .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                    .getCurrentBranch()
+                    .blockingFirst()
+                    .orElseThrow(() -> new RuntimeException("could not find current branch"))
+                    .getId());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -51,7 +57,7 @@ public class PullNBAction extends NBAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return findOneRepositoryFromNode(activatedNodes) != null;
+        return findOneRepositoryFromNode(activatedNodes).blockingFirst().isPresent();
     }
 
     @Override

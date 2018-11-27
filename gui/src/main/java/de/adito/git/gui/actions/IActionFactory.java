@@ -14,35 +14,35 @@ import java.util.Optional;
  */
 interface IActionFactory {
 
-    MergeAction createMergeAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pTargetBranch);
+    MergeAction createMergeAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pTargetBranch);
 
-    CommitAction createCommitAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    CommitAction createCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-    DiffAction createDiffAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    DiffAction createDiffAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-    IgnoreAction createIgnoreAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    IgnoreAction createIgnoreAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-    AddAction createAddAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    AddAction createAddAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-    ExcludeAction createExcludeAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    ExcludeAction createExcludeAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-    CheckoutAction createCheckoutAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pBranch);
+    CheckoutAction createCheckoutAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pBranch);
 
-    NewBranchAction createNewBranchAction(Observable<IRepository> pRepository);
+    NewBranchAction createNewBranchAction(Observable<Optional<IRepository>> pRepository);
 
-    PullAction createPullAction(Observable<IRepository> pRepository, String pTargetId);
+    PullAction createPullAction(Observable<Optional<IRepository>> pRepository, String pTargetId);
 
-    PushAction createPushAction(Observable<IRepository> pRepository);
+    PushAction createPushAction(Observable<Optional<IRepository>> pRepository);
 
-    ShowAllBranchesAction createShowAllBranchesAction(Observable<IRepository> pRepository);
+    ShowAllBranchesAction createShowAllBranchesAction(Observable<Optional<IRepository>> pRepository);
 
-    ShowCommitsForBranchesAction createShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches);
+    ShowCommitsForBranchesAction createShowAllCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IBranch>>> pBranches);
 
-    RevertWorkDirAction createRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    RevertWorkDirAction createRevertWorkDirAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-    ResetFilesAction createResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable);
+    ResetFilesAction createResetFilesAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-    ResetAction createResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pSelectedCommitsObservable);
+    ResetAction createResetAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
-    ShowStatusWindowAction createShowStatusWindowAction(Observable<IRepository> pRepository);
+    ShowStatusWindowAction createShowStatusWindowAction(Observable<Optional<IRepository>> pRepository);
 }

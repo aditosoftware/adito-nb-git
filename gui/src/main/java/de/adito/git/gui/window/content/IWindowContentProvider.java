@@ -5,18 +5,19 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
+import java.util.Optional;
 
 /**
  * @author a.arnold, 31.10.2018
  */
 public interface IWindowContentProvider {
 
-    JComponent createStatusWindowContent(Observable<IRepository> pRepository);
+    JComponent createStatusWindowContent(Observable<Optional<IRepository>> pRepository);
 
-    JComponent createBranchListWindowContent(Observable<IRepository> pRepository);
+    JComponent createBranchListWindowContent(Observable<Optional<IRepository>> pRepository);
 
-    JComponent createCommitHistoryWindowContent(Observable<IRepository> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback);
+    JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback);
 
-    JComponent createStatusLineWindowContent(Observable<IRepository> pRepository);
+    JComponent createStatusLineWindowContent(Observable<Optional<IRepository>> pRepository);
 
 }

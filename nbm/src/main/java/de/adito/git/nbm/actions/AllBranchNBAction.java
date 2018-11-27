@@ -15,6 +15,8 @@ import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.NodeAction;
 
+import java.util.Optional;
+
 /**
  * An action class for NetBeans to show all branches.
  *
@@ -30,13 +32,11 @@ public class AllBranchNBAction extends NodeAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
-        if (repository != null) {
-            Injector injector = Guice.createInjector(new AditoNbmModule());
-            IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
+        Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
+        Injector injector = Guice.createInjector(new AditoNbmModule());
+        IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
-            actionProvider.getShowAllBranchesAction(repository).actionPerformed(null);
-        }
+        actionProvider.getShowAllBranchesAction(repository).actionPerformed(null);
     }
 
     /**
@@ -47,7 +47,7 @@ public class AllBranchNBAction extends NodeAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return NBAction.findOneRepositoryFromNode(activatedNodes) != null;
+        return NBAction.findOneRepositoryFromNode(activatedNodes).blockingFirst().isPresent();
     }
 
     @Override

@@ -14,12 +14,14 @@ import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Optional;
 
 /**
  * Create a popup for all branches in one repository in the status line.
+ *
  * @author a.arnold, 05.11.2018
  */
 
@@ -28,7 +30,7 @@ public class StatusLineElementImpl implements StatusLineElementProvider {
     private IWindowContentProvider windowContentProvider = IGitConstants.INJECTOR.getInstance(IWindowContentProvider.class);
     private IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
     private JLabel label = new JLabel("not initialized...");
-    private Observable<IRepository> repository;
+    private Observable<Optional<IRepository>> repository;
     private PopupWindow popupWindow;
 
     public StatusLineElementImpl() {
@@ -36,7 +38,7 @@ public class StatusLineElementImpl implements StatusLineElementProvider {
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(repository == null){
+                if (repository == null) {
                     return;
                 }
                 _initPopup();
@@ -58,16 +60,9 @@ public class StatusLineElementImpl implements StatusLineElementProvider {
                             repository = RepositoryUtility.findOneRepositoryFromNode(pTopComponent.getActivatedNodes());
                             return repository;
                         })
-                        .orElse(Observable.just(IRepository.EMPTY)))
-                .flatMap(pRepo -> {
-                    if (pRepo == IRepository.EMPTY)
-                        return Observable.just(IBranch.EMPTY);
-                    return pRepo.getCurrentBranch();
-                })
-                .subscribe(pBranch -> {
-
-                    label.setText(pBranch == IBranch.EMPTY ? "<no branch>" : pBranch.getSimpleName());
-                });
+                        .orElse(Observable.just(Optional.empty())))
+                .flatMap(pRepo -> (Observable<Optional<IBranch>>) (pRepo.isPresent() ? pRepo.get().getCurrentBranch() : Observable.just(Optional.empty())))
+                .subscribe(pBranch -> label.setText(pBranch.isPresent() ? pBranch.get().getSimpleName() : "<no branch>"));
     }
 
     private void _initPopup() {
@@ -81,7 +76,6 @@ public class StatusLineElementImpl implements StatusLineElementProvider {
         _setStatusLineName();
         return label;
     }
-
 
 
 }

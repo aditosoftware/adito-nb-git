@@ -5,13 +5,12 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.gui.IDiscardable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -29,10 +28,10 @@ public class BranchListTableModel extends AbstractTableModel implements IDiscard
      * @param pBranches   The List of Branches to show
      * @param pBranchType The BranchType for the Branch
      */
-    public BranchListTableModel(Observable<List<IBranch>> pBranches, @NotNull EBranchType pBranchType) {
+    public BranchListTableModel(Observable<Optional<List<IBranch>>> pBranches, @NotNull EBranchType pBranchType) {
         branchType = pBranchType;
         branchesDisposable = pBranches.subscribe(pBranchList -> {
-            branches = pBranchList.stream()
+            branches = pBranchList.orElse(Collections.emptyList()).stream()
                     .filter(pBranch -> pBranch.getType() == branchType)
                     .collect(Collectors.toList());
             fireTableDataChanged();

@@ -6,7 +6,8 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.util.Optional;
 
 /**
  * A {@link AbstractRepositoryTopComponent} that shows all branches of one repository
@@ -19,7 +20,7 @@ class AllBranchTopComponent extends AbstractRepositoryTopComponent {
      * @param pRepository The repository of which all branches should be shown
      */
     @Inject
-    AllBranchTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<IRepository> pRepository) {
+    AllBranchTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         super(pRepository);
         setLayout(new BorderLayout());
         add(pWindowContentProvider.createBranchListWindowContent(pRepository), BorderLayout.CENTER);

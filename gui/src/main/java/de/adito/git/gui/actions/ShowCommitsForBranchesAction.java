@@ -9,7 +9,9 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Action class to show all commits of one branch
@@ -19,11 +21,11 @@ import java.util.List;
 class ShowCommitsForBranchesAction extends AbstractTableAction {
 
     private final IWindowProvider windowProvider;
-    private final Observable<List<IBranch>> branches;
-    private final Observable<IRepository> repository;
+    private final Observable<Optional<List<IBranch>>> branches;
+    private final Observable<Optional<IRepository>> repository;
 
     @Inject
-    ShowCommitsForBranchesAction(IWindowProvider pWindowProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IBranch>> pBranches) {
+    ShowCommitsForBranchesAction(IWindowProvider pWindowProvider, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IBranch>>> pBranches) {
         super("Show Commits", getIsEnabledObservable(pBranches));
         windowProvider = pWindowProvider;
         putValue(Action.NAME, "Show Commits");
@@ -37,10 +39,12 @@ class ShowCommitsForBranchesAction extends AbstractTableAction {
      */
     @Override
     public void actionPerformed(ActionEvent event) {
-        branches.blockingFirst().forEach(pBranch -> windowProvider.showCommitHistoryWindow(repository, pBranch));
+        branches.blockingFirst()
+                .orElse(Collections.emptyList())
+                .forEach(pBranch -> windowProvider.showCommitHistoryWindow(repository, pBranch));
     }
 
-    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IBranch>> pBranches) {
-        return pBranches.map(branchList -> branchList.size() > 0);
+    private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IBranch>>> pBranches) {
+        return pBranches.map(branchList -> Optional.of(branchList.orElse(Collections.emptyList()).size() > 0));
     }
 }

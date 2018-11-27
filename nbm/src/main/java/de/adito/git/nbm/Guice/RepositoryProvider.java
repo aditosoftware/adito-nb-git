@@ -9,6 +9,8 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
 
+import java.util.Optional;
+
 /**
  * Gets the Repository object injected and forms the central place to get it from
  *
@@ -16,13 +18,13 @@ import io.reactivex.subjects.Subject;
  */
 public class RepositoryProvider implements IRepositoryProvider {
 
-    private final Subject<IRepository> git;
+    private final Subject<Optional<IRepository>> git;
     private IRepositoryFactory gitFactory;
 
     @Inject
     RepositoryProvider(IRepositoryFactory pGitFactory, @Assisted IRepositoryDescription pDescription){
         gitFactory = pGitFactory;
-        git = BehaviorSubject.createDefault(pGitFactory.create(pDescription));
+        git = BehaviorSubject.createDefault(Optional.of(pGitFactory.create(pDescription)));
     }
 
     /**
@@ -30,12 +32,12 @@ public class RepositoryProvider implements IRepositoryProvider {
      * @return IRepository implementation of the IRepository interface
      */
     @Override
-    public Observable<IRepository> getRepositoryImpl(){
+    public Observable<Optional<IRepository>> getRepositoryImpl() {
         return git;
     }
 
     public void setRepositoryDescription(IRepositoryDescription pDescription){
-        git.onNext(gitFactory.create(pDescription));
+        git.onNext(Optional.of(gitFactory.create(pDescription)));
     }
 
 }

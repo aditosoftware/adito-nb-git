@@ -8,8 +8,8 @@ import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.Guice.IRepositoryProvider;
 import de.adito.git.nbm.Guice.IRepositoryProviderFactory;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 
@@ -30,7 +30,7 @@ public class RepositoryCache {
     private static final Logger LOGGER = Logger.getLogger(RepositoryCache.class.getName());
     private static RepositoryCache INSTANCE;
     private PropertyChangeListener pcl = new _OpenProjectListener();
-    private boolean inited = false;
+    private boolean initiated = false;
     private Injector INJECTOR = Guice.createInjector(new AditoNbmModule());
     private IRepositoryProviderFactory repositoryProviderFactory = INJECTOR.getInstance(IRepositoryProviderFactory.class);
     private Map<Project, IRepositoryProvider> REPOSITORYCACHE = new HashMap<>();
@@ -51,7 +51,7 @@ public class RepositoryCache {
      */
     public void init() {
         OpenProjects.getDefault().addPropertyChangeListener(pcl);
-        inited = true;
+        initiated = true;
     }
 
     /**
@@ -59,21 +59,21 @@ public class RepositoryCache {
      */
     public void clear() {
         OpenProjects.getDefault().removePropertyChangeListener(pcl);
-        inited = false;
+        initiated = false;
     }
 
     /**
      * @param pProject The Project for which the repository should be returned
      * @return The repository of the project
      */
-    @Nullable
-    public Observable<IRepository> findRepository(@NotNull Project pProject) {
-        if (!inited)
+    @NotNull
+    public Observable<Optional<IRepository>> findRepository(@NotNull Project pProject) {
+        if (!initiated)
             throw new RuntimeException("Repository Cache not initialized yet!");
 
         IRepositoryProvider provider = REPOSITORYCACHE.get(pProject);
         if (provider == null)
-            return null;
+            return BehaviorSubject.createDefault(Optional.empty());
         return provider.getRepositoryImpl();
     }
 

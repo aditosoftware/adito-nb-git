@@ -29,7 +29,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public MergeAction getMergeAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pTargetBranch) {
+    public MergeAction getMergeAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pTargetBranch) {
         return actionFactory.createMergeAction(pRepository, pTargetBranch);
     }
 
@@ -37,7 +37,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public CommitAction getCommitAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    public CommitAction getCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         return actionFactory.createCommitAction(pRepository, pSelectedFilesObservable);
     }
 
@@ -45,7 +45,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public DiffAction getDiffAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    public DiffAction getDiffAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         return actionFactory.createDiffAction(pRepository, pSelectedFilesObservable);
     }
 
@@ -53,7 +53,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public IgnoreAction getIgnoreAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    public IgnoreAction getIgnoreAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         return actionFactory.createIgnoreAction(pRepository, pSelectedFilesObservable);
     }
 
@@ -61,7 +61,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public AddAction getAddAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    public AddAction getAddAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         return actionFactory.createAddAction(pRepository, pSelectedFilesObservable);
     }
 
@@ -69,7 +69,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public ExcludeAction getExcludeAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    public ExcludeAction getExcludeAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         return actionFactory.createExcludeAction(pRepository, pSelectedFilesObservable);
     }
 
@@ -77,7 +77,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public CheckoutAction getCheckoutAction(Observable<IRepository> pRepository, Observable<Optional<IBranch>> pBranch) {
+    public CheckoutAction getCheckoutAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pBranch) {
         return actionFactory.createCheckoutAction(pRepository, pBranch);
     }
 
@@ -85,7 +85,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public NewBranchAction getNewBranchAction(Observable<IRepository> pRepository) {
+    public NewBranchAction getNewBranchAction(Observable<Optional<IRepository>> pRepository) {
         return actionFactory.createNewBranchAction(pRepository);
     }
 
@@ -93,7 +93,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public PullAction getPullAction(Observable<IRepository> pRepository, String pTargetId) {
+    public PullAction getPullAction(Observable<Optional<IRepository>> pRepository, String pTargetId) {
         return actionFactory.createPullAction(pRepository, pTargetId);
     }
 
@@ -101,7 +101,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public PushAction getPushAction(Observable<IRepository> pRepository) {
+    public PushAction getPushAction(Observable<Optional<IRepository>> pRepository) {
         return actionFactory.createPushAction(pRepository);
     }
 
@@ -109,7 +109,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public ShowAllBranchesAction getShowAllBranchesAction(Observable<IRepository> pRepository) {
+    public ShowAllBranchesAction getShowAllBranchesAction(Observable<Optional<IRepository>> pRepository) {
         return actionFactory.createShowAllBranchesAction(pRepository);
     }
 
@@ -117,7 +117,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public ShowCommitsForBranchesAction getShowAllCommitsAction(Observable<IRepository> pRepository, Observable<List<IBranch>> pBranches) {
+    public ShowCommitsForBranchesAction getShowAllCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IBranch>>> pBranches) {
         return actionFactory.createShowAllCommitsAction(pRepository, pBranches);
     }
 
@@ -125,7 +125,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public Action getRevertWorkDirAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    public Action getRevertWorkDirAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         return actionFactory.createRevertWorkDirAction(pRepository, pSelectedFilesObservable);
     }
 
@@ -133,7 +133,7 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public Action getResetFilesAction(Observable<IRepository> pRepository, Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    public Action getResetFilesAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         return actionFactory.createResetFilesAction(pRepository, pSelectedFilesObservable);
     }
 
@@ -141,12 +141,12 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public Action getResetAction(Observable<IRepository> pRepository, Observable<List<ICommit>> pCommitedFilesObservable) {
-        return actionFactory.createResetAction(pRepository, pCommitedFilesObservable);
+    public Action getResetAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pCommittedFilesObservable) {
+        return actionFactory.createResetAction(pRepository, pCommittedFilesObservable);
     }
 
     @Override
-    public Action getShowStatusWindowAction(Observable<IRepository> pRepository) {
+    public Action getShowStatusWindowAction(Observable<Optional<IRepository>> pRepository) {
         return actionFactory.createShowStatusWindowAction(pRepository);
     }
 

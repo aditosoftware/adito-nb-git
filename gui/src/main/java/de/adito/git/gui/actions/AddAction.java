@@ -9,7 +9,9 @@ import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -19,11 +21,11 @@ import java.util.stream.Collectors;
  */
 class AddAction extends AbstractTableAction {
 
-    private Observable<IRepository> repository;
-    private Observable<List<IFileChangeType>> selectedFilesObservable;
+    private Observable<Optional<IRepository>> repository;
+    private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
     @Inject
-    AddAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    AddAction(@Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         super("Add", getIsEnabledObservable(pSelectedFilesObservable));
         selectedFilesObservable = pSelectedFilesObservable;
         repository = pRepository;
@@ -33,10 +35,11 @@ class AddAction extends AbstractTableAction {
     public void actionPerformed(ActionEvent e) {
         try {
             List<File> files = selectedFilesObservable.blockingFirst()
+                    .orElse(Collections.emptyList())
                     .stream()
                     .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                     .collect(Collectors.toList());
-            repository.blockingFirst().add(files);
+            repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).add(files);
         } catch (Exception e1) {
             e1.printStackTrace();
         }
@@ -46,11 +49,13 @@ class AddAction extends AbstractTableAction {
      * Not enabled if file is already in index (i.e. has status
      * MODIFY, ADD or DELETE
      */
-    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles.stream().anyMatch(row ->
+    private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles
+                .orElse(Collections.emptyList())
+                .stream().anyMatch(row ->
                 EChangeType.CHANGED.equals(row.getChangeType())
                         || EChangeType.ADD.equals(row.getChangeType())
-                        || EChangeType.DELETE.equals(row.getChangeType())));
+                        || EChangeType.DELETE.equals(row.getChangeType()))));
     }
 
 }

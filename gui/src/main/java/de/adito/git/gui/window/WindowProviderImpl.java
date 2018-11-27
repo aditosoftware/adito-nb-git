@@ -13,6 +13,7 @@ import io.reactivex.Observable;
 import javax.swing.*;
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A provider for all windows (not dialogs). This class only displays the windows
@@ -31,14 +32,14 @@ class WindowProviderImpl implements IWindowProvider {
     }
 
     @Override
-    public void showBranchListWindow(Observable<IRepository> pRepository) {
+    public void showBranchListWindow(Observable<Optional<IRepository>> pRepository) {
         _showInFrame(factory.createBranchListWindowContent(pRepository));
     }
 
     @Override
-    public void showCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) {
+    public void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch) {
         try {
-            IRepository repo = pRepository.blockingFirst();
+            IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("No valid repository found"));
             List<ICommit> commits = repo.getCommits(pBranch, 0, userPreferences.getNumLoadAdditionalCHEntries());
             CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
             Runnable loadMoreCallBack = () -> {
@@ -58,9 +59,9 @@ class WindowProviderImpl implements IWindowProvider {
     }
 
     @Override
-    public void showCommitHistoryWindow(Observable<IRepository> pRepository, File pFile) {
+    public void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile) {
         try {
-            IRepository repo = pRepository.blockingFirst();
+            IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("No valid repository found"));
             List<ICommit> commits = repo.getCommits(pFile, userPreferences.getNumLoadAdditionalCHEntries());
             CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
             Runnable loadMoreCallBack = () -> {
@@ -80,7 +81,7 @@ class WindowProviderImpl implements IWindowProvider {
     }
 
     @Override
-    public void showStatusWindow(Observable<IRepository> pRepository) {
+    public void showStatusWindow(Observable<Optional<IRepository>> pRepository) {
         _showInFrame(factory.createStatusWindowContent(pRepository));
     }
 

@@ -15,6 +15,7 @@ import org.openide.windows.WindowManager;
 import javax.swing.*;
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A provider for all Windows in NetBeans
@@ -33,13 +34,13 @@ class WindowProviderNBImpl implements IWindowProvider {
     }
 
     @Override
-    public void showBranchListWindow(Observable<IRepository> pRepository) {
+    public void showBranchListWindow(Observable<Optional<IRepository>> pRepository) {
         _openTCinEDT(topComponentFactory.createAllBranchTopComponent(pRepository));
     }
 
     @Override
-    public void showCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch) {
-        IRepository repo = pRepository.blockingFirst();
+    public void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch) {
+        IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
         try {
             List<ICommit> commits = repo.getCommits(pBranch, userPreferences.getNumLoadAdditionalCHEntries());
             CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
@@ -60,8 +61,8 @@ class WindowProviderNBImpl implements IWindowProvider {
     }
 
     @Override
-    public void showCommitHistoryWindow(Observable<IRepository> pRepository, File pFile) {
-        IRepository repo = pRepository.blockingFirst();
+    public void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile) {
+        IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
         try {
             List<ICommit> commits = repo.getCommits(pFile, userPreferences.getNumLoadAdditionalCHEntries());
             CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
@@ -82,7 +83,7 @@ class WindowProviderNBImpl implements IWindowProvider {
     }
 
     @Override
-    public void showStatusWindow(Observable<IRepository> pRepository) {
+    public void showStatusWindow(Observable<Optional<IRepository>> pRepository) {
         _openTCinEDT(topComponentFactory.createStatusWindowTopComponent(pRepository));
     }
     /**

@@ -13,8 +13,11 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Commit window
@@ -25,11 +28,11 @@ class CommitDialog extends JPanel {
 
     private final Runnable enableOk;
     private final Runnable disableOK;
-    private Observable<List<IFileChangeType>> filesToCommit;
+    private Observable<Optional<List<IFileChangeType>>> filesToCommit;
     private JEditorPane messagePane;
 
     @Inject
-    public CommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOK, @Assisted Observable<List<IFileChangeType>> pFilesToCommit) {
+    public CommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOK, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
         enableOk = pEnableOk;
         disableOK = pDisableOK;
         filesToCommit = pFilesToCommit;
@@ -73,8 +76,8 @@ class CommitDialog extends JPanel {
         private Disposable disposable;
         private List<IFileChangeType> fileList;
 
-        _CommitTableModel(Observable<List<IFileChangeType>> pFilesToCommit) {
-            disposable = pFilesToCommit.subscribe(fileToCommit -> fileList = fileToCommit);
+        _CommitTableModel(Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
+            disposable = pFilesToCommit.subscribe(fileToCommit -> fileList = fileToCommit.orElse(Collections.emptyList()));
         }
 
         @Override

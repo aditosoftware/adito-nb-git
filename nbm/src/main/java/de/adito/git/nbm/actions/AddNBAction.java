@@ -18,7 +18,9 @@ import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * An action class for NetBeans which adds data to the index
@@ -38,8 +40,8 @@ public class AddNBAction extends NBAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
-        Subject<List<IFileChangeType>> listFiles = BehaviorSubject.createDefault(NBAction.getUncommittedFilesOfNodes(activatedNodes, repository));
+        Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
+        Subject<Optional<List<IFileChangeType>>> listFiles = BehaviorSubject.createDefault(getUncommittedFilesOfNodes(activatedNodes, repository));
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
@@ -53,14 +55,12 @@ public class AddNBAction extends NBAction {
     @Override
     protected boolean enable(Node[] activatedNodes) {
         for (Node node : activatedNodes) {
-            final Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
-            if (repository != null) {
-                if (getUncommittedFilesOfNodes(activatedNodes, repository).isEmpty()) {
-                    return false;
-                }
-                if (node.getLookup().lookup(FileObject.class) != null) {
-                    return true;
-                }
+            final Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
+            if (getUncommittedFilesOfNodes(activatedNodes, repository).orElse(Collections.emptyList()).isEmpty()) {
+                return false;
+            }
+            if (node.getLookup().lookup(FileObject.class) != null) {
+                return true;
             }
         }
 

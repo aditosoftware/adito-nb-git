@@ -32,10 +32,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -47,16 +44,16 @@ import static de.adito.git.impl.Util.getRelativePath;
 public class RepositoryImpl implements IRepository {
 
     private Git git;
-    private final Observable<List<IBranch>> branchList;
+    private final Observable<Optional<List<IBranch>>> branchList;
     private final Observable<IFileStatus> status;
-    private final BehaviorSubject<IBranch> currentBranch;
+    private final BehaviorSubject<Optional<IBranch>> currentBranch;
     private final ColorRoulette colorRoulette;
 
     @Inject
     public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException {
         colorRoulette = pColorRoulette;
         git = new Git(GitRepositoryProvider.get(pRepositoryDescription));
-        branchList = BehaviorSubject.createDefault(_branchList());
+        branchList = BehaviorSubject.createDefault(Optional.of(_branchList()));
 
         // listen for changes in the fileSystem for the status command
         status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
@@ -64,7 +61,7 @@ public class RepositoryImpl implements IRepository {
 
         // Current Branch
         IBranch curBranch = _currentBranch();
-        currentBranch = BehaviorSubject.createDefault(curBranch == null ? IBranch.EMPTY : curBranch);
+        currentBranch = BehaviorSubject.createDefault(curBranch == null ? Optional.empty() : Optional.of(curBranch));
     }
 
     /**
@@ -421,7 +418,7 @@ public class RepositoryImpl implements IRepository {
         CheckoutCommand checkout = git.checkout().setName(branch.getName()).setCreateBranch(false).setStartPoint(branch.getName());
         try {
             checkout.call();
-            currentBranch.onNext(branch);
+            currentBranch.onNext(Optional.of(branch));
         } catch (GitAPIException e) {
             throw new Exception("Unable to checkout Branch " + branch.getName(), e);
         }
@@ -722,7 +719,7 @@ public class RepositoryImpl implements IRepository {
     }
 
     @Override
-    public Observable<IBranch> getCurrentBranch(){
+    public Observable<Optional<IBranch>> getCurrentBranch() {
         return currentBranch;
     }
 
@@ -731,7 +728,7 @@ public class RepositoryImpl implements IRepository {
      */
     @NotNull
     @Override
-    public Observable<List<IBranch>> getBranches() {
+    public Observable<Optional<List<IBranch>>> getBranches() {
         return branchList;
     }
 

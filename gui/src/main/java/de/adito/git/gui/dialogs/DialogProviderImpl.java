@@ -7,6 +7,7 @@ import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -24,7 +25,7 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult showMergeConflictDialog(Observable<IRepository> pRepository, List<IMergeDiff> pMergeConflictDiffs) {
+    public DialogResult showMergeConflictDialog(Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs) {
         boolean pressedOk = dialogDisplayer.showDialog(dialogFactory.create(pRepository, pMergeConflictDiffs), "Merge Conflicts", true);
         return new DialogResult(pressedOk, null);
     }
@@ -42,7 +43,7 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult showCommitDialog(Observable<List<IFileChangeType>> pFilesToCommit) {
+    public DialogResult showCommitDialog(Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
         String commitMessage = null;
         CommitDialog commitDialog = dialogFactory.createCommitDialog(dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton, pFilesToCommit);
         boolean pressedOk = dialogDisplayer.showDialog(commitDialog, "Commit", false);
@@ -53,7 +54,7 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult showNewBranchDialog(Observable<IRepository> pRepository) {
+    public DialogResult showNewBranchDialog(Observable<Optional<IRepository>> pRepository) {
         NewBranchDialog dialog = dialogFactory.createNewBranchDialog(pRepository, dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton);
         boolean pressedOk = dialogDisplayer.showDialog(dialog, "New Branch", false);
         return new DialogResult(pressedOk, dialog.getBranchName());

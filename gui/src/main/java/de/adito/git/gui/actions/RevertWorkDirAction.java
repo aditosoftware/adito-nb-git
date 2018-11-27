@@ -8,7 +8,9 @@ import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -16,12 +18,12 @@ import java.util.stream.Collectors;
  */
 class RevertWorkDirAction extends AbstractTableAction {
 
-    private final Observable<IRepository> repository;
-    private final Observable<List<IFileChangeType>> selectedFilesObservable;
+    private final Observable<Optional<IRepository>> repository;
+    private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
     @Inject
-    RevertWorkDirAction(@Assisted Observable<IRepository> pRepository,
-                        @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    RevertWorkDirAction(@Assisted Observable<Optional<IRepository>> pRepository,
+                        @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         super("Revert", getIsEnabledObservable(pSelectedFilesObservable));
         repository = pRepository;
         selectedFilesObservable = pSelectedFilesObservable;
@@ -30,15 +32,22 @@ class RevertWorkDirAction extends AbstractTableAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
-            repository.blockingFirst().revertWorkDir(selectedFilesObservable.blockingFirst().stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
+            repository.blockingFirst()
+                    .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                    .revertWorkDir(selectedFilesObservable.blockingFirst()
+                            .orElse(Collections.emptyList())
+                            .stream()
+                            .map(IFileChangeType::getFile)
+                            .collect(Collectors.toList()));
         } catch (Exception e1) {
             e1.printStackTrace();
         }
     }
 
-    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles
+    private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles
+                .orElse(Collections.emptyList())
                 .stream()
-                .noneMatch(fileChangeType -> fileChangeType.getChangeType().equals(EChangeType.SAME)));
+                .noneMatch(fileChangeType -> fileChangeType.getChangeType().equals(EChangeType.SAME))));
     }
 }

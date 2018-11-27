@@ -14,6 +14,8 @@ import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.util.Optional;
+
 /**
  * @author m.kaspera 06.11.2018
  */
@@ -28,7 +30,7 @@ public class ShowStatusWindowNBAction extends NBAction {
 
     @Override
     protected void performAction(Node[] activeNodes) {
-        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activeNodes);
+        Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(activeNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
         actionProvider.getShowStatusWindowAction(repository).actionPerformed(null);
@@ -36,7 +38,7 @@ public class ShowStatusWindowNBAction extends NBAction {
 
     @Override
     protected boolean enable(Node[] activeNodes) {
-        return NBAction.findOneRepositoryFromNode(activeNodes) != null;
+        return NBAction.findOneRepositoryFromNode(activeNodes).blockingFirst().isPresent();
     }
 
     @Override

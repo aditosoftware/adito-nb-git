@@ -7,6 +7,7 @@ import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 
 import javax.swing.*;
+import java.util.Optional;
 
 /**
  * @author a.arnold, 07.11.2018
@@ -14,7 +15,7 @@ import javax.swing.*;
 public class NBStatusLineWindow extends JPanel {
 
     @Inject
-    public NBStatusLineWindow(IWindowContentProvider pWindowContentProvider, @Assisted Observable<IRepository> pRepository) {
+    public NBStatusLineWindow(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         JComponent statusLineWindowContent = pWindowContentProvider.createStatusLineWindowContent(pRepository);
         add(statusLineWindowContent);
     }

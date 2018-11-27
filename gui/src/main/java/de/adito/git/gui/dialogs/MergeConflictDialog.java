@@ -14,7 +14,7 @@ import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -29,20 +29,20 @@ import java.util.stream.Collectors;
 class MergeConflictDialog extends JPanel {
 
     private final IDialogProvider dialogFactory;
-    private Observable<IRepository> repository;
+    private Observable<Optional<IRepository>> repository;
     private final Subject<List<IMergeDiff>> mergeConflictDiffs;
     private final Observable<List<IMergeDiff>> mergeDiffListObservable;
     private final JTable mergeConflictTable = new JTable();
     private final Observable<Optional<IMergeDiff>> selectedMergeDiffObservable;
 
     @Inject
-    MergeConflictDialog(IDialogProvider pDialogFactory, @Assisted Observable<IRepository> pRepository, @Assisted List<IMergeDiff> pMergeConflictDiffs) {
+    MergeConflictDialog(IDialogProvider pDialogFactory, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeDiff> pMergeConflictDiffs) {
         dialogFactory = pDialogFactory;
         repository = pRepository;
         ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
         mergeConflictTable.setSelectionModel(observableListSelectionModel);
         mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
-        Observable<IFileStatus> obs = pRepository.flatMap(IRepository::getStatus);
+        Observable<IFileStatus> obs = pRepository.flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException("no valid repository found")).getStatus());
         mergeDiffListObservable = Observable.combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
                 .filter(pMergeDiff -> pStatus.getConflicting().contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
                 .collect(Collectors.toList()));
@@ -88,7 +88,10 @@ class MergeConflictDialog extends JPanel {
         Optional<IMergeDiff> mergeDiffOptional = pSelectedMergeDiff.blockingFirst();
         if (mergeDiffOptional.isPresent()) {
             IMergeDiff selectedMergeDiff = mergeDiffOptional.get();
-            File selectedFile = new File(repository.blockingFirst().getTopLevelDirectory(), selectedMergeDiff.getDiff(conflictSide).getFilePath(EChangeSide.NEW));
+            File selectedFile = new File(repository
+                    .blockingFirst()
+                    .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                    .getTopLevelDirectory(), selectedMergeDiff.getDiff(conflictSide).getFilePath(EChangeSide.NEW));
             StringBuilder fileContents = new StringBuilder();
             for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst()) {
                 // BLines is always the "new" version of the file, in comparison to the fork point
@@ -99,7 +102,10 @@ class MergeConflictDialog extends JPanel {
     }
 
     private void _acceptManualVersion(IMergeDiff iMergeDiff) {
-        File selectedFile = new File(repository.blockingFirst().getTopLevelDirectory(), iMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW));
+        File selectedFile = new File(repository
+                .blockingFirst()
+                .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                .getTopLevelDirectory(), iMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW));
         StringBuilder fileContents = new StringBuilder();
         for (IFileChangeChunk changeChunk : iMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks().blockingFirst()) {
             // BLines is always the "new" version of the file, in comparison to the fork point
@@ -114,7 +120,10 @@ class MergeConflictDialog extends JPanel {
             List<IMergeDiff> mergeDiffs = mergeConflictDiffs.blockingFirst();
             mergeDiffs.remove(selectedMergeDiff);
             mergeConflictDiffs.onNext(mergeDiffs);
-            repository.blockingFirst().add(Collections.singletonList(pSelectedFile));
+            repository
+                    .blockingFirst()
+                    .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                    .add(Collections.singletonList(pSelectedFile));
         } catch (Exception e) {
             e.printStackTrace();
         }

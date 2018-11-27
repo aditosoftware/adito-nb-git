@@ -8,6 +8,7 @@ import org.netbeans.api.project.Project;
 import org.openide.nodes.Node;
 
 import java.util.HashSet;
+import java.util.Optional;
 
 /**
  * @author a.arnold, 20.11.2018
@@ -21,9 +22,11 @@ public class RepositoryUtility {
      * @return The repository of the node
      */
     @Nullable
-    public static Observable<IRepository> findOneRepositoryFromNode(Node[] activatedNodes) {
-        HashSet<Observable<IRepository>> repositorySet = new HashSet<>();
-
+    public static Observable<Optional<IRepository>> findOneRepositoryFromNode(Node[] activatedNodes) {
+        HashSet<Observable<Optional<IRepository>>> repositorySet = new HashSet<>();
+        if (activatedNodes == null) {
+            return Observable.just(Optional.empty());
+        }
         for (Node node : activatedNodes) {
             Project currProject = ProjectUtility.findProject(node);
             if (currProject != null) {
@@ -31,7 +34,7 @@ public class RepositoryUtility {
             }
         }
         if (repositorySet.size() != 1) {
-            return null;
+            return Observable.just(Optional.empty());
         }
         return repositorySet.iterator().next();
     }

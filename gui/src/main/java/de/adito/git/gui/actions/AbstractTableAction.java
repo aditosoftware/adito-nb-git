@@ -5,6 +5,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
+import java.util.Optional;
 
 /**
  * Super-class for all actions that can have several rows selected
@@ -20,9 +21,9 @@ abstract class AbstractTableAction extends AbstractAction implements IDiscardabl
      * @param name the title of the action (is displayed in a menu)
      * @param isEnabledObservable an observable that indicates the current state of the action (dis/enabled)
      */
-    AbstractTableAction(String name, Observable<Boolean> isEnabledObservable) {
+    AbstractTableAction(String name, Observable<Optional<Boolean>> isEnabledObservable) {
         super(name);
-        disposable = isEnabledObservable.subscribe(this::setEnabled);
+        disposable = isEnabledObservable.subscribe(isEnabled -> setEnabled(isEnabled.orElse(false)));
     }
 
     @Override

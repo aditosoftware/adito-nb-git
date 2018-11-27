@@ -17,7 +17,9 @@ import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * An action class which open the commit dialog
@@ -43,19 +45,21 @@ public class CommitNBAction extends NBAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
+        Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
-        Subject<List<IFileChangeType>> listNodes;
+        Subject<Optional<List<IFileChangeType>>> listNodes;
 
-        if (repository != null) {
-            if (activatedNodes.length == 0) {
-                listNodes = BehaviorSubject.createDefault(repository.blockingFirst().getStatus().blockingFirst().getUncommitted());
-            } else {
-                listNodes = BehaviorSubject.createDefault(getUncommittedFilesOfNodes(activatedNodes, repository));
-            }
-            actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
+        if (activatedNodes.length == 0) {
+            listNodes = BehaviorSubject.createDefault(Optional.of(repository.blockingFirst()
+                    .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                    .getStatus()
+                    .blockingFirst()
+                    .getUncommitted()));
+        } else {
+            listNodes = BehaviorSubject.createDefault(getUncommittedFilesOfNodes(activatedNodes, repository));
         }
+        actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
     }
 
     /**
@@ -65,11 +69,8 @@ public class CommitNBAction extends NBAction {
     @Override
     protected boolean enable(Node[] activatedNodes) {
         if (activatedNodes != null) {
-            Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
-            if (repository != null) {
-                return !getUncommittedFilesOfNodes(activatedNodes, repository).isEmpty();
-            }
-            return false;
+            Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
+            return !getUncommittedFilesOfNodes(activatedNodes, repository).orElse(Collections.emptyList()).isEmpty();
         }
         return false;
     }

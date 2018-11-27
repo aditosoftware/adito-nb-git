@@ -8,6 +8,7 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Optional;
 
 /**
  * Action class to show all branches
@@ -15,7 +16,7 @@ import java.awt.event.ActionEvent;
  * @author A.Arnold 16.10.2018
  */
 class ShowAllBranchesAction extends AbstractAction {
-    private Observable<IRepository> repository;
+    private Observable<Optional<IRepository>> repository;
     private IWindowProvider windowProvider;
 
     /**
@@ -24,7 +25,7 @@ class ShowAllBranchesAction extends AbstractAction {
      * @param pRepository The observable repository to show all branches
      */
     @Inject
-    ShowAllBranchesAction(IWindowProvider pWindowProvider, @Assisted Observable<IRepository> pRepository) {
+    ShowAllBranchesAction(IWindowProvider pWindowProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         windowProvider = pWindowProvider;
         repository = pRepository;
         putValue(Action.NAME, "Show Branches");

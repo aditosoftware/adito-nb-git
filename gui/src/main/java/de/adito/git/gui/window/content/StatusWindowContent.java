@@ -15,9 +15,10 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,29 +30,29 @@ import java.util.stream.Stream;
  */
 class StatusWindowContent extends JPanel implements IDiscardable {
 
-    private final Observable<IRepository> repository;
+    private final Observable<Optional<IRepository>> repository;
     private IActionProvider actionProvider;
-    private final Observable<List<IFileChangeType>> selectionObservable;
+    private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
     private final JTable statusTable;
     private Disposable disposable;
     private JPopupMenu popupMenu;
 
     @Inject
-    StatusWindowContent(IActionProvider pActionProvider, @Assisted Observable<IRepository> pRepository) {
+    StatusWindowContent(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         repository = pRepository;
         actionProvider = pActionProvider;
         Observable<IFileStatus> status = repository
-                .flatMap(IRepository::getStatus);
+                .flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException("no valid repository found")).getStatus());
         statusTable = new JTable(new StatusTableModel(status));
         ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());
         statusTable.setSelectionModel(observableListSelectionModel);
         selectionObservable = Observable.combineLatest(observableListSelectionModel.selectedRows(), status, (pSelected, pStatus) -> {
             if (pSelected == null || pStatus == null)
-                return Collections.emptyList();
+                return Optional.of(Collections.emptyList());
             List<IFileChangeType> uncommittedListCached = pStatus.getUncommitted();
-            return Stream.of(pSelected)
+            return Optional.of(Stream.of(pSelected)
                     .map(uncommittedListCached::get)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         });
         _initGui();
     }

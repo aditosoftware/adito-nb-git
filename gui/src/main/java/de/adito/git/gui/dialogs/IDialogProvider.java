@@ -8,21 +8,22 @@ import de.adito.git.api.data.IMergeDiff;
 import io.reactivex.Observable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
  */
 public interface IDialogProvider {
 
-    DialogResult showMergeConflictDialog(Observable<IRepository> pRepository, List<IMergeDiff> pMergeConflictDiffs);
+    DialogResult showMergeConflictDialog(Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs);
 
     DialogResult showMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
 
     DialogResult showDiffDialog(List<IFileDiff> fileDiffs);
 
-    DialogResult showCommitDialog(Observable<List<IFileChangeType>> pFilesToCommit);
+    DialogResult showCommitDialog(Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
 
-    DialogResult showNewBranchDialog(Observable<IRepository> pRepository);
+    DialogResult showNewBranchDialog(Observable<Optional<IRepository>> pRepository);
 
     DialogResult<EResetType> showResetDialog();
 

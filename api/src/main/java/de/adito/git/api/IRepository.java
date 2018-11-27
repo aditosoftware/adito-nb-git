@@ -8,13 +8,12 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 20.09.2018
  */
 public interface IRepository {
-
-    IRepository EMPTY = new EmptyRepository();
 
     /**
      * @param addList List of files to add to staging
@@ -279,12 +278,12 @@ public interface IRepository {
      * @return the current branch
      * @throws Exception if an error occurs
      */
-    Observable<IBranch> getCurrentBranch() throws Exception;
+    Observable<Optional<IBranch>> getCurrentBranch() throws Exception;
 
     /**
      * @return List of all IBranches in the repository
      * @throws Exception if an error occurs
      */
     @NotNull
-    Observable<List<IBranch>> getBranches() throws Exception;
+    Observable<Optional<List<IBranch>>> getBranches() throws Exception;
 }

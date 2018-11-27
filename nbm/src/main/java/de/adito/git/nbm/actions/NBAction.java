@@ -5,8 +5,8 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.git.nbm.util.ProjectUtility;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
@@ -16,6 +16,7 @@ import org.openide.util.actions.NodeAction;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -26,21 +27,23 @@ import java.util.stream.Collectors;
 abstract class NBAction extends NodeAction {
 
     @NotNull
-    static List<IFileChangeType> getUncommittedFilesOfNodes(@NotNull Node[] activatedNodes, @Nullable Observable<IRepository> pRepository) {
-        List<IFileChangeType> fileList = new ArrayList<>();
+    static Optional<List<IFileChangeType>> getUncommittedFilesOfNodes(@NotNull Node[] activatedNodes, @NotNull Observable<Optional<IRepository>> pRepository) {
         List<File> files = allFilesofNodes(activatedNodes);
-        List<IFileChangeType> uncommittedFiles = new ArrayList<>();
+        List<IFileChangeType> uncommittedFiles;
 
-        if (pRepository != null) {
-            uncommittedFiles = pRepository.blockingFirst().getStatus().blockingFirst().getUncommitted();
-        }
-        for (File file : files) {
-            uncommittedFiles.stream()
-                    .filter(uncommittedFile -> uncommittedFile.getFile().getAbsolutePath()
-                            .equals(file.getAbsolutePath()))
-                    .collect(Collectors.toCollection(() -> fileList));
-        }
-        return fileList;
+        IRepository repository = pRepository.blockingFirst().orElse(null);
+        if (repository == null)
+            return Optional.empty();
+        uncommittedFiles = repository
+                .getStatus()
+                .blockingFirst()
+                .getUncommitted();
+        return Optional.of(uncommittedFiles
+                .stream()
+                .filter(pUncommittedFile -> files
+                        .stream()
+                        .anyMatch(pFile -> pUncommittedFile.getFile().getAbsolutePath().equals(pFile.getAbsolutePath())))
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -64,20 +67,20 @@ abstract class NBAction extends NodeAction {
      * @param activatedNodes The nodes to check the repository
      * @return The repository of the node
      */
-    @Nullable
-    static Observable<IRepository> findOneRepositoryFromNode(@NotNull Node[] activatedNodes) {
-        Observable<IRepository> repository;
+    @NotNull
+    static Observable<Optional<IRepository>> findOneRepositoryFromNode(@NotNull Node[] activatedNodes) {
+        Observable<Optional<IRepository>> repository;
         Project project = null;
         for (Node node : activatedNodes) {
             Project currProject = ProjectUtility.findProject(node);
             if (project != null && currProject != null && !(currProject.equals(project)))
-                return null;
+                return BehaviorSubject.createDefault(Optional.empty());
             else
                 project = currProject;
         }
 
         if (project == null) {
-            return null;
+            return BehaviorSubject.createDefault(Optional.empty());
         }
 
         repository = RepositoryCache.getInstance().findRepository(project);

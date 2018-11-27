@@ -13,9 +13,12 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Panel for the NewBranchAction
@@ -36,8 +39,8 @@ class NewBranchDialog extends JPanel {
      * @param pRepository The repository where the new branch has to be
      */
     @Inject
-    public NewBranchDialog(@Assisted Observable<IRepository> pRepository, @Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk) throws Exception {
-        branchList = pRepository.blockingFirst().getBranches().blockingFirst();
+    public NewBranchDialog(@Assisted Observable<Optional<IRepository>> pRepository, @Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk) throws Exception {
+        branchList = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).getBranches().blockingFirst().orElse(Collections.emptyList());
         enableOk = pEnableOk;
         disableOk = pDisableOk;
         checkbox.setSelected(true);

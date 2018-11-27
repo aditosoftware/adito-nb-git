@@ -6,7 +6,8 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.util.Optional;
 
 /**
  * A {@link AbstractRepositoryTopComponent} that shows the status of changed files in the project
@@ -16,7 +17,7 @@ import java.awt.*;
 public class StatusWindowTopComponent extends AbstractRepositoryTopComponent {
 
     @Inject
-    StatusWindowTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<IRepository> pRepository) {
+    StatusWindowTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         super(pRepository);
         setLayout(new BorderLayout());
         add(pWindowContentProvider.createStatusWindowContent(pRepository));

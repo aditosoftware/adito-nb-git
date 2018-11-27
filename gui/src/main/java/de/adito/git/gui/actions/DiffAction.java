@@ -10,7 +10,9 @@ import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -18,13 +20,13 @@ import java.util.stream.Collectors;
  */
 class DiffAction extends AbstractTableAction {
 
-    private Observable<IRepository> repository;
+    private Observable<Optional<IRepository>> repository;
     private IDialogProvider dialogProvider;
-    private Observable<List<IFileChangeType>> selectedFilesObservable;
+    private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
     @Inject
-    DiffAction(@Assisted Observable<IRepository> pRepository, IDialogProvider pDialogProvider,
-                      @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable){
+    DiffAction(@Assisted Observable<Optional<IRepository>> pRepository, IDialogProvider pDialogProvider,
+               @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         super("Show Diff", getIsEnabledObservable(pSelectedFilesObservable));
         repository = pRepository;
         dialogProvider = pDialogProvider;
@@ -36,17 +38,18 @@ class DiffAction extends AbstractTableAction {
         List<IFileDiff> fileDiffs;
         try {
             List<File> files = selectedFilesObservable.blockingFirst()
+                    .orElse(Collections.emptyList())
                     .stream()
                     .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                     .collect(Collectors.toList());
-            fileDiffs = repository.blockingFirst().diff(files, null);
+            fileDiffs = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).diff(files, null);
             dialogProvider.showDiffDialog(fileDiffs);
         } catch (Exception e1) {
             e1.printStackTrace();
         }
     }
 
-    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        return pSelectedFilesObservable.map(selectedFiles -> true);
+    private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> Optional.of(true));
     }
 }

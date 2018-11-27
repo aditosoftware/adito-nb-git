@@ -14,6 +14,8 @@ import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.util.Optional;
+
 /**
  * An action class to push all current commits
  *
@@ -34,13 +36,11 @@ public class PushNBAction extends NBAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
+        Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
-        if (repository != null) {
-            actionProvider.getPushAction(repository).actionPerformed(null);
-        }
+        actionProvider.getPushAction(repository).actionPerformed(null);
     }
 
     /**
@@ -49,7 +49,7 @@ public class PushNBAction extends NBAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        return findOneRepositoryFromNode(activatedNodes) != null;
+        return findOneRepositoryFromNode(activatedNodes).blockingFirst().isPresent();
     }
 
     @Override

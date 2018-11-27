@@ -5,15 +5,19 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TableLayoutUtil;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -27,18 +31,19 @@ import java.util.Optional;
  *
  * @author a.arnold, 08.11.2018
  */
-public class StatusLineWindowContent extends JPanel {
+public class StatusLineWindowContent extends JPanel implements IDiscardable {
     private final IActionProvider actionProvider;
-    private final Observable<IRepository> repository;
-    private final Observable<List<IBranch>> branchObservable;
+    private final Observable<Optional<IRepository>> repository;
+    private final Observable<Optional<List<IBranch>>> branchObservable;
     private List<JList<IBranch>> branchLists = new ArrayList<>();
+    private Disposable disposable;
     private PopupWindow popupWindow;
 
     @Inject
-    public StatusLineWindowContent(IActionProvider pProvider, @Assisted Observable<IRepository> pRepository) {
+    public StatusLineWindowContent(IActionProvider pProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         actionProvider = pProvider;
         repository = pRepository;
-        branchObservable = repository.flatMap(IRepository::getBranches);
+        branchObservable = repository.flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException("no valid repository found")).getBranches());
         _initGUI();
     }
 
@@ -75,7 +80,7 @@ public class StatusLineWindowContent extends JPanel {
     }
 
     /**
-     * a clickable lable to create a new Branch at the actual repository
+     * a click-able label to create a new Branch at the actual repository
      * @return return a label for the new branch action
      */
     private JLabel _createNewBranch() {
@@ -97,7 +102,7 @@ public class StatusLineWindowContent extends JPanel {
      * Create and fill a list of branches
      *
      * @param type the {@link EBranchType} of the branches
-     * @return a branchlist
+     * @return a branchList
      */
     private JComponent _createListBranches(EBranchType type) {
         _HoverMouseListener hoverMouseListener = new _HoverMouseListener();
@@ -110,7 +115,8 @@ public class StatusLineWindowContent extends JPanel {
         branchList.addMouseMotionListener(hoverMouseListener);
         branchLists.add(branchList);
 
-        branchObservable.subscribe(pBranches -> branchList.setListData(pBranches
+        disposable = branchObservable.subscribe(pBranches -> branchList.setListData(
+                pBranches.orElse(Collections.emptyList())
                 .stream()
                 .filter(pBranch -> pBranch.getType().equals(type))
                 .toArray(IBranch[]::new)));
@@ -119,6 +125,12 @@ public class StatusLineWindowContent extends JPanel {
 
     public void setParentWindow(PopupWindow pPopupWindow) {
         popupWindow = pPopupWindow;
+    }
+
+    @Override
+    public void discard() {
+        if (disposable != null)
+            disposable.dispose();
     }
 
     /**
@@ -140,15 +152,16 @@ public class StatusLineWindowContent extends JPanel {
 
             //get selected branch as optional
             Observable<Optional<IBranch>> selectedBranch = branchObservable.map(pBranches -> {
-                if (pBranches == null || selectedIndex == -1) {
+                if (selectedIndex == -1) {
                     return Optional.empty();
                 } else {
-                    return Optional.ofNullable(pBranches.get(selectedIndex));
+                    return Optional.of(pBranches.orElseThrow().get(selectedIndex));
                 }
             });
 
             Action checkoutAction = actionProvider.getCheckoutAction(repository, selectedBranch);
-            Action showAllCommitsAction = actionProvider.getShowAllCommitsAction(repository, branchObservable.map(pBranch -> Collections.singletonList(pBranch.get(selectedIndex))));
+            Action showAllCommitsAction = actionProvider.getShowAllCommitsAction(repository, branchObservable.map(pBranch ->
+                    pBranch.map(iBranches -> Collections.singletonList(iBranches.get(selectedIndex)))));
             Action mergeAction = actionProvider.getMergeAction(repository, selectedBranch);
 
             JPopupMenu innerPopup = new JPopupMenu();

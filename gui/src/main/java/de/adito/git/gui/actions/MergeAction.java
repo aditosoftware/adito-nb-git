@@ -17,12 +17,12 @@ import java.util.Optional;
  */
 class MergeAction extends AbstractTableAction {
 
-    private final Observable<IRepository> repositoryObservable;
+    private final Observable<Optional<IRepository>> repositoryObservable;
     private final IDialogProvider dialogProvider;
     private Observable<Optional<IBranch>> targetBranch;
 
     @Inject
-    MergeAction(IDialogProvider dialogProvider, @Assisted Observable<IRepository> pRepository, @Assisted Observable<Optional<IBranch>> pTargetBranch) {
+    MergeAction(IDialogProvider dialogProvider, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pTargetBranch) {
         super("Merge into Current", getIsEnabledObservable(pTargetBranch));
         this.dialogProvider = dialogProvider;
         repositoryObservable = pRepository;
@@ -31,7 +31,7 @@ class MergeAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        IRepository repository = repositoryObservable.blockingFirst();
+        IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
         try {
             if (repository.getStatus().blockingFirst().hasUncommittedChanges()) {
                 throw new RuntimeException("Un-committed files detected while trying to merge: Implement stashing or commit/undo changes");
@@ -40,7 +40,7 @@ class MergeAction extends AbstractTableAction {
             if (!selectedBranch.isPresent()) {
                 throw new RuntimeException();
             }
-            List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst(), selectedBranch.get());
+            List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst().orElseThrow(), selectedBranch.get());
             if (mergeConflictDiffs.size() > 0) {
                 dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
             }
@@ -49,7 +49,7 @@ class MergeAction extends AbstractTableAction {
         }
     }
 
-    private static Observable<Boolean> getIsEnabledObservable(Observable<Optional<IBranch>> pTargetBranch) {
-        return pTargetBranch.map(Optional::isPresent);
+    private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<IBranch>> pTargetBranch) {
+        return pTargetBranch.map(pBranch -> Optional.of(pBranch.isPresent()));
     }
 }

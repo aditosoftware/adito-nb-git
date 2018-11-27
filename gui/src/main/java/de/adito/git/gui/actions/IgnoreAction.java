@@ -10,7 +10,9 @@ import io.reactivex.Observable;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -18,11 +20,11 @@ import java.util.stream.Collectors;
  */
 class IgnoreAction extends AbstractTableAction {
 
-    private Observable<IRepository> repository;
-    private Observable<List<IFileChangeType>> selectedFilesObservable;
+    private Observable<Optional<IRepository>> repository;
+    private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
     @Inject
-    IgnoreAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<List<IFileChangeType>> pSelectedFilesObservable) {
+    IgnoreAction(@Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
         super("Ignore", getIsEnabledObservable(pSelectedFilesObservable));
         selectedFilesObservable = pSelectedFilesObservable;
         repository = pRepository;
@@ -31,11 +33,12 @@ class IgnoreAction extends AbstractTableAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         List<File> files = selectedFilesObservable.blockingFirst()
+                .orElse(Collections.emptyList())
                 .stream()
                 .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                 .collect(Collectors.toList());
         try {
-            repository.blockingFirst().ignore(files);
+            repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).ignore(files);
         } catch (IOException e1) {
             e1.printStackTrace();
         }
@@ -45,12 +48,13 @@ class IgnoreAction extends AbstractTableAction {
      * Only enabled if all selected files are not in the index yet, i.e. have status
      * NEW, MODIFY or MISSING
      */
-    private static Observable<Boolean> getIsEnabledObservable(Observable<List<IFileChangeType>> pSelectedFilesObservable) {
-        return pSelectedFilesObservable.map(selectedFiles -> selectedFiles
+    private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
+        return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles
+                .orElse(Collections.emptyList())
                 .stream()
                 .allMatch(row ->
                         row.getChangeType().equals(EChangeType.NEW)
                                 || row.getChangeType().equals(EChangeType.MODIFY)
-                                || row.getChangeType().equals(EChangeType.MISSING)));
+                                || row.getChangeType().equals(EChangeType.MISSING))));
     }
 }

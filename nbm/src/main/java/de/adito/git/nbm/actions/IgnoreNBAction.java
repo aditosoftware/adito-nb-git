@@ -20,10 +20,11 @@ import org.openide.util.NbBundle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * An action class for NeBeans which ignore files for the version control system
+ * An action class for NetBeans which ignores files for the version control system
  *
  * @author a.arnold, 31.10.2018
  */
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 500)
 public class IgnoreNBAction extends NBAction {
 
-    private final Subject<List<IFileChangeType>> filesToIgnore = BehaviorSubject.create();
+    private final Subject<Optional<List<IFileChangeType>>> filesToIgnore = BehaviorSubject.create();
 
     /**
      * Ignore files in the version control system
@@ -42,28 +43,31 @@ public class IgnoreNBAction extends NBAction {
      */
     @Override
     protected void performAction(Node[] activatedNodes) {
-        Observable<IRepository> repository = findOneRepositoryFromNode(activatedNodes);
+        Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = Guice.createInjector(new AditoGitModule(), new AditoNbmModule());
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
-        if (repository != null) {
-            List<IFileChangeType> untrackedFiles = repository.blockingFirst().getStatus().blockingFirst().getUntracked();
-            List<FileObject> selectedFiles = new ArrayList<>();
-            for (Node node : activatedNodes) {
-                if (node.getLookup().lookup(FileObject.class) != null) {
-                    selectedFiles.add(node.getLookup().lookup(FileObject.class));
-                }
+        List<IFileChangeType> untrackedFiles = repository
+                .blockingFirst()
+                .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                .getStatus()
+                .blockingFirst()
+                .getUntracked();
+        List<FileObject> selectedFiles = new ArrayList<>();
+        for (Node node : activatedNodes) {
+            if (node.getLookup().lookup(FileObject.class) != null) {
+                selectedFiles.add(node.getLookup().lookup(FileObject.class));
             }
-            final List<IFileChangeType> untrackedSelectedFiles = untrackedFiles
-                    .stream()
-                    .filter(untrackedFile -> selectedFiles
-                            .stream()
-                            .anyMatch(selectedFile -> selectedFile.toURI()
-                                    .equals(untrackedFile.getFile().toURI())))
-                    .collect(Collectors.toList());
-            filesToIgnore.onNext(untrackedSelectedFiles);
-            actionProvider.getIgnoreAction(repository, filesToIgnore);
         }
+        final Optional<List<IFileChangeType>> untrackedSelectedFiles = Optional.of(untrackedFiles
+                .stream()
+                .filter(untrackedFile -> selectedFiles
+                        .stream()
+                        .anyMatch(selectedFile -> selectedFile.toURI()
+                                .equals(untrackedFile.getFile().toURI())))
+                .collect(Collectors.toList()));
+        filesToIgnore.onNext(untrackedSelectedFiles);
+        actionProvider.getIgnoreAction(repository, filesToIgnore);
     }
 
     /**
@@ -72,14 +76,15 @@ public class IgnoreNBAction extends NBAction {
      */
     @Override
     protected boolean enable(Node[] activatedNodes) {
-        Observable<IRepository> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
-        List<IFileChangeType> untrackedFiles = new ArrayList<>();
-        if (repository != null) {
-            untrackedFiles = repository.blockingFirst().getStatus().blockingFirst().getUntracked();
-        }
-        if (untrackedFiles.isEmpty()) {
+        Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(activatedNodes);
+        if (repository
+                .blockingFirst()
+                .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                .getStatus()
+                .blockingFirst()
+                .getUntracked()
+                .isEmpty())
             return false;
-        }
         for (Node node : activatedNodes) {
             if (node.getLookup().lookup(FileObject.class) != null) {
                 return true;

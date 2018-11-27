@@ -17,6 +17,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Class to display all commits
@@ -28,13 +29,13 @@ class CommitHistoryWindowContent extends JPanel {
     private final static int SCROLL_SPEED_INCREMENT = 16;
     private final JTable commitTable = new JTable();
     private final IActionProvider actionProvider;
-    private final Observable<IRepository> repository;
-    private final Observable<List<ICommit>> selectionObservable;
+    private final Observable<Optional<IRepository>> repository;
+    private final Observable<Optional<List<ICommit>>> selectionObservable;
     private final IUserPreferences userPreferences;
     private JPopupMenu popupMenu;
 
     @Inject
-    CommitHistoryWindowContent(IActionProvider pActionProvider, IUserPreferences pUserPreferences, @Assisted Observable<IRepository> pRepository,
+    CommitHistoryWindowContent(IActionProvider pActionProvider, IUserPreferences pUserPreferences, @Assisted Observable<Optional<IRepository>> pRepository,
                                @Assisted TableModel pTableModel, @Assisted Runnable pLoadMoreCallback) {
         userPreferences = pUserPreferences;
         ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
@@ -47,7 +48,7 @@ class CommitHistoryWindowContent extends JPanel {
             for (int selectedRow : selectedRows) {
                 selectedCommits.add(((CommitHistoryTreeListItem) commitTable.getValueAt(selectedRow, 0)).getCommit());
             }
-            return selectedCommits;
+            return Optional.of(selectedCommits);
         });
         _initGUI(pLoadMoreCallback);
     }

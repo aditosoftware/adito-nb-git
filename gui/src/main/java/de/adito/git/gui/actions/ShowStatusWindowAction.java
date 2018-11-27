@@ -8,6 +8,7 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 06.11.2018
@@ -15,10 +16,10 @@ import java.awt.event.ActionEvent;
 public class ShowStatusWindowAction extends AbstractAction {
 
     private final IWindowProvider windowProvider;
-    private final Observable<IRepository> repository;
+    private final Observable<Optional<IRepository>> repository;
 
     @Inject
-    ShowStatusWindowAction(IWindowProvider pWindowProvider, @Assisted Observable<IRepository> pRepository) {
+    ShowStatusWindowAction(IWindowProvider pWindowProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
         putValue(Action.NAME, "Show Status Window");
         putValue(Action.SHORT_DESCRIPTION, "Shows all changed files of the working copy with the type of change");
         windowProvider = pWindowProvider;

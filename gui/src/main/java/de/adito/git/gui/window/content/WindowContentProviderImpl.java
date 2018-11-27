@@ -6,6 +6,7 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
+import java.util.Optional;
 
 /**
  * @author a.arnold, 31.10.2018
@@ -20,22 +21,22 @@ public class WindowContentProviderImpl implements IWindowContentProvider {
     }
 
     @Override
-    public JComponent createStatusWindowContent(Observable<IRepository> pRepository) {
+    public JComponent createStatusWindowContent(Observable<Optional<IRepository>> pRepository) {
         return windowContentFactory.createStatusWindowContent(pRepository);
     }
 
     @Override
-    public JComponent createBranchListWindowContent(Observable<IRepository> pRepository) {
+    public JComponent createBranchListWindowContent(Observable<Optional<IRepository>> pRepository) {
         return windowContentFactory.createBranchListWindowContent(pRepository);
     }
 
     @Override
-    public JComponent createCommitHistoryWindowContent(Observable<IRepository> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback) {
+    public JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback) {
         return windowContentFactory.createCommitHistoryWindowContent(pRepository, pTableModel, pLoadMoreCallback);
     }
 
     @Override
-    public JComponent createStatusLineWindowContent(Observable<IRepository> pRepository){
+    public JComponent createStatusLineWindowContent(Observable<Optional<IRepository>> pRepository) {
         return windowContentFactory.createStatusLineWindowContent(pRepository);
     }
 

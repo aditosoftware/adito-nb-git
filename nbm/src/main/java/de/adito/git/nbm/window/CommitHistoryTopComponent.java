@@ -8,6 +8,7 @@ import io.reactivex.Observable;
 
 import javax.swing.table.TableModel;
 import java.awt.BorderLayout;
+import java.util.Optional;
 
 /**
  * A {@link AbstractRepositoryTopComponent} that shows the commit history window
@@ -19,7 +20,7 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent {
     private final String displayableContext;
 
     @Inject
-    CommitHistoryTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<IRepository> pRepository,
+    CommitHistoryTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                               @Assisted TableModel tableModel, @Assisted Runnable loadMoreCallback, @Assisted String pDisplayableContext) {
         super(pRepository);
         displayableContext = pDisplayableContext;

@@ -7,6 +7,7 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Optional;
 
 /**
  * pushAction to push all commits to the actual chosen branch.
@@ -15,13 +16,13 @@ import java.awt.event.ActionEvent;
  * @author A.Arnold 11.10.2018
  */
 class PushAction extends AbstractAction {
-    private Observable<IRepository> repository;
+    private Observable<Optional<IRepository>> repository;
 
     /**
      * @param pRepository The repository to push
      */
     @Inject
-    PushAction(@Assisted Observable<IRepository> pRepository) {
+    PushAction(@Assisted Observable<Optional<IRepository>> pRepository) {
         putValue(Action.NAME, "Push");
         putValue(Action.SHORT_DESCRIPTION, "Pull all added files to one Branch or Master Branch");
         repository = pRepository;
@@ -33,7 +34,7 @@ class PushAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
-            repository.blockingFirst().push();
+            repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).push();
         } catch (Exception e1) {
             e1.printStackTrace();
         }

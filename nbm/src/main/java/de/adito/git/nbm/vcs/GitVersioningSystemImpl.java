@@ -10,6 +10,7 @@ import org.netbeans.modules.versioning.spi.VersioningSystem;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,28 +37,25 @@ public class GitVersioningSystemImpl extends VersioningSystem {
     public File getTopmostManagedAncestor(File file) {
         Project project = FileOwnerQuery.getOwner(file.toURI());
         if (!projectCache.contains(project)) {
-            if(_initForProject(project))
+            if (_initForProject(project))
                 projectCache.add(project);
         }
 
-        if(project == null)
+        if (project == null)
             return null;
 
         return new File(project.getProjectDirectory().toURI());
     }
 
     private boolean _initForProject(Project pProject) {
-        Observable<IRepository> repo = RepositoryCache.getInstance().findRepository(pProject);
-        if (repo != null) {
-            repo.flatMap(IRepository::getStatus)
-                    .subscribe(pStatus -> {
-                        fireStatusChanged(pStatus.getChanged().stream()
-                                .map(File::new)
-                                .collect(Collectors.toSet()));
-                    });
-            return true;
-        }
-        return false;
+        Observable<Optional<IRepository>> repo = RepositoryCache.getInstance().findRepository(pProject);
+        if (!repo.blockingFirst().isPresent())
+            return false;
+        repo.flatMap(pRepo -> pRepo.get().getStatus())
+                .subscribe(pStatus -> fireStatusChanged(pStatus.getChanged().stream()
+                        .map(File::new)
+                        .collect(Collectors.toSet())));
+        return true;
     }
 
 }

@@ -17,7 +17,7 @@ import java.util.Optional;
  * @author A.Arnold 18.10.2018
  */
 class CheckoutAction extends AbstractTableAction {
-    private Observable<IRepository> repository;
+    private Observable<Optional<IRepository>> repository;
     private Observable<Optional<IBranch>> branch;
 
     /**
@@ -25,7 +25,7 @@ class CheckoutAction extends AbstractTableAction {
      * @param pBranch     the branch list of selected branches
      */
     @Inject
-    CheckoutAction(@Assisted Observable<IRepository> pRepository, @Assisted Observable<Optional<IBranch>> pBranch) {
+    CheckoutAction(@Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch) {
         super("Checkout", getIsEnabledObservable());
         branch = pBranch;
         putValue(Action.NAME, "Checkout");
@@ -38,7 +38,7 @@ class CheckoutAction extends AbstractTableAction {
         if (branch.blockingFirst().isPresent()) {
             IBranch branchImpl = branch.blockingFirst().get();
             try {
-                repository.blockingFirst().checkout(branchImpl);
+                repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).checkout(branchImpl);
                 System.out.println("Checkout to: " + branch);
             } catch (Exception e1) {
                 e1.printStackTrace();
@@ -51,7 +51,7 @@ class CheckoutAction extends AbstractTableAction {
      *
      * @return return true if the selected list has one element, else false
      */
-    private static Observable<Boolean> getIsEnabledObservable() {
-        return BehaviorSubject.createDefault(true);
+    private static Observable<Optional<Boolean>> getIsEnabledObservable() {
+        return BehaviorSubject.createDefault(Optional.of(true));
     }
 }

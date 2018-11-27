@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
 
 import javax.swing.table.TableModel;
+import java.util.Optional;
 
 /**
  * An interface to create all topComponents in NetBeans
@@ -12,10 +13,10 @@ import javax.swing.table.TableModel;
  */
 interface ITopComponentFactory {
 
-    AllBranchTopComponent createAllBranchTopComponent(Observable<IRepository> pRepository);
+    AllBranchTopComponent createAllBranchTopComponent(Observable<Optional<IRepository>> pRepository);
 
-    CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<IRepository> pRepository, TableModel tableModel, Runnable loadMoreCallback, String pDisplayableContext);
+    CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<Optional<IRepository>> pRepository, TableModel tableModel, Runnable loadMoreCallback, String pDisplayableContext);
 
-    StatusWindowTopComponent createStatusWindowTopComponent(Observable<IRepository> pRepository);
+    StatusWindowTopComponent createStatusWindowTopComponent(Observable<Optional<IRepository>> pRepository);
 
 }

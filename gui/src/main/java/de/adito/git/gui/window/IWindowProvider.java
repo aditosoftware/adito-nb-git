@@ -5,6 +5,7 @@ import de.adito.git.api.data.IBranch;
 import io.reactivex.Observable;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * An interface provider class for the windows
@@ -13,12 +14,12 @@ import java.io.File;
  */
 public interface IWindowProvider {
 
-    void showBranchListWindow(Observable<IRepository> pRepository);
+    void showBranchListWindow(Observable<Optional<IRepository>> pRepository);
 
-    void showCommitHistoryWindow(Observable<IRepository> pRepository, IBranch pBranch);
+    void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch);
 
-    void showCommitHistoryWindow(Observable<IRepository> pRepository, File pFile);
+    void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile);
 
-    void showStatusWindow(Observable<IRepository> pRepository);
+    void showStatusWindow(Observable<Optional<IRepository>> pRepository);
 
 }
