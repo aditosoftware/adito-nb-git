@@ -669,7 +669,7 @@ public class RepositoryImpl implements IRepository {
                 commitHistoryTreeList.add(startCHTLI.nextItem(commits.get(0), commits.size() > 1 ? commits.get(1) : null));
             } else {
                 List<AncestryLine> ancestryLines = new ArrayList<>();
-                ancestryLines.add(new AncestryLine(commits.get(0), colorRoulette.get(), colorRoulette));
+                ancestryLines.add(new AncestryLine(commits.get(0), colorRoulette.get(), colorRoulette, true));
                 commitHistoryTreeList.add(new CommitHistoryTreeListItem(commits.get(0), ancestryLines, colorRoulette));
             }
             // main loop iterating over the commits

@@ -113,6 +113,11 @@ public class CommitHistoryTreeListItem {
             }
             counter++;
         }
+        if (updatedAncestryLines.stream().noneMatch(pAncestryLine -> pAncestryLine.getParent().equals(pNext))) {
+            AncestryLine branchHeadAncestryLine = new AncestryLine(pNext, colorRoulette.get(), colorRoulette, true);
+            checkForStillborns.put(counter + 1, branchHeadAncestryLine);
+            updatedAncestryLines.add(branchHeadAncestryLine);
+        }
         // All new AncestryLines are known now, so the candidates for being STILLBORN can now be verified
         for (Integer index : checkForStillborns.keySet()) {
             checkForStillborns.get(index).hasStillbornChildren(pAfterNext, updatedAncestryLines, index);
@@ -173,8 +178,12 @@ public class CommitHistoryTreeListItem {
                         numStillBorn++;
                     } else {
                         knotIndex = index - numStillBorn;
-                        knotCoordinates = new KnotCoordinates(ColoredLineCoordinates.LEFT_OFFSET + (knotIndex * ColoredLineCoordinates.LINE_SEPARATION) - KnotCoordinates.RADIUS / 2
-                                , currentAncestryLine.getColor());
+                        knotCoordinates = new KnotCoordinates(
+                                ColoredLineCoordinates.LEFT_OFFSET + (knotIndex * ColoredLineCoordinates.LINE_SEPARATION) - KnotCoordinates.RADIUS / 2,
+                                currentAncestryLine.getColor());
+                        // draw line from top of the cell (at the incoming point of the line) to the dot/knot on the line that this particular commit is on
+                        if (!currentAncestryLine.isBranchHead())
+                            linesToDraw.add(_getCoordinatesForIndices(knotIndex, knotIndex, true, currentAncestryLine.getColor()));
                         numOfChildren = _doChildLines(knotIndex, numOfChildren, currentAncestryLine);
                     }
                 } else {
@@ -225,8 +234,6 @@ public class CommitHistoryTreeListItem {
                 numOfChildren++;
             }
         }
-        // draw line from top of the cell (at the incoming point of the line) to the dot/knot on the line that this particular commit is on
-        linesToDraw.add(_getCoordinatesForIndices(knotIndex, knotIndex, true, pCurrentAncestryLine.getColor()));
         return numOfChildren;
     }
 
@@ -257,7 +264,7 @@ public class CommitHistoryTreeListItem {
      */
     public static class KnotCoordinates {
 
-        public final static int RADIUS = 7;
+        public final static int RADIUS = 8;
         private final int xCoordinate;
         private final Color color;
 
@@ -289,6 +296,7 @@ public class CommitHistoryTreeListItem {
      */
     public static class ColoredLineCoordinates {
 
+        public final static int LINE_WIDTH = 2;
         private final static int LEFT_OFFSET = 10;
         private final static int LINE_SEPARATION = 20;
 

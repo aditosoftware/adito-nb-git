@@ -22,6 +22,7 @@ public class AncestryLine {
     private final LineType lineType;
     private final ColorRoulette colorRoulette;
     private double stillBornMeetingIndex = 0;
+    private final boolean isBranchHead;
     private ICommit parent;
 
     /**
@@ -37,12 +38,21 @@ public class AncestryLine {
      * @param pParent ICommit that is the next commit in the line symbolized by this class
      * @param pColor  Color of the line
      */
-    public AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull ColorRoulette pColorRoulette) {
-        this(pParent, pColor, LineType.FULL, pColorRoulette);
+    AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull ColorRoulette pColorRoulette) {
+        this(pParent, pColor, LineType.FULL, pColorRoulette, false);
+    }
+
+    /**
+     * @param pParent ICommit that is the next commit in the line symbolized by this class
+     * @param pColor  Color of the line
+     */
+    public AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull ColorRoulette pColorRoulette, boolean pIsBranchHead) {
+        this(pParent, pColor, LineType.FULL, pColorRoulette, pIsBranchHead);
+
     }
 
     AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType, double pStillBornMeetingIndex, @NotNull ColorRoulette pColorRoulette) {
-        this(pParent, pColor, pLineType, pColorRoulette);
+        this(pParent, pColor, pLineType, pColorRoulette, false);
         stillBornMeetingIndex = pStillBornMeetingIndex;
     }
 
@@ -51,11 +61,12 @@ public class AncestryLine {
      * @param pColor    Color of the line
      * @param pLineType LineType, INFANT for unborn lines, FULL for lines that are already active in the row of parent
      */
-    private AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType, @NotNull ColorRoulette pColorRoulette) {
+    private AncestryLine(@NotNull ICommit pParent, @NotNull Color pColor, @NotNull LineType pLineType, @NotNull ColorRoulette pColorRoulette, boolean pIsBranchHead) {
         colorRoulette = pColorRoulette;
         parent = pParent;
         color = pColor;
         lineType = pLineType;
+        isBranchHead = pIsBranchHead;
         if (pLineType == LineType.FULL) {
             _initChildLines();
         }
@@ -88,6 +99,13 @@ public class AncestryLine {
      */
     LineType getLineType() {
         return lineType;
+    }
+
+    /**
+     * @return if the current parent is the very first commit in this line/branch
+     */
+    boolean isBranchHead() {
+        return isBranchHead;
     }
 
     /**
@@ -150,10 +168,10 @@ public class AncestryLine {
      */
     private void _initChildLines() {
         if (!parent.getParents().isEmpty()) {
-            childLines.add(new AncestryLine(parent.getParents().get(0), color, LineType.INFANT, colorRoulette));
+            childLines.add(new AncestryLine(parent.getParents().get(0), color, LineType.INFANT, colorRoulette, false));
             if (parent.getParents().size() > 1) {
                 for (int parentIndex = 1; parentIndex < parent.getParents().size(); parentIndex++) {
-                    childLines.add(new AncestryLine(parent.getParents().get(parentIndex), colorRoulette.get(), LineType.INFANT, colorRoulette));
+                    childLines.add(new AncestryLine(parent.getParents().get(parentIndex), colorRoulette.get(), LineType.INFANT, colorRoulette, false));
                 }
             }
         }
