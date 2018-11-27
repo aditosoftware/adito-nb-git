@@ -94,7 +94,13 @@ public interface IActionProvider {
      * @param pBranches   the branch/es for whom to display the commits in a window
      * @return Action whose actionPerformed method opens a window with a list of all commits that belong to the selected branch/es
      */
-    Action getShowAllCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IBranch>>> pBranches);
+    Action getShowAllCommitsForBranchAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IBranch>>> pBranches);
+
+    /**
+     * @param pRepository Observable with the current Repository
+     * @return Action whose actionPerformed method opens a window with a list of all commits that belong to the project
+     */
+    Action getShowAllCommitsAction(Observable<Optional<IRepository>> pRepository);
 
     /**
      * @param pRepository              Observable with the current Repository
