@@ -264,7 +264,7 @@ public class CommitHistoryTreeListItem {
      */
     public static class KnotCoordinates {
 
-        public final static int RADIUS = 8;
+        public final static int RADIUS = 9;
         private final int xCoordinate;
         private final Color color;
 
