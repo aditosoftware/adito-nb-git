@@ -632,6 +632,8 @@ public class RepositoryImpl implements IRepository {
         LogCommand logCommand = git.log();
         if (sourceBranch != null) {
             logCommand.add(git.getRepository().resolve(sourceBranch.getName()));
+        } else {
+            logCommand.all();
         }
         if (file != null) {
             logCommand.addPath(getRelativePath(file, git));
