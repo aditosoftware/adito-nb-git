@@ -11,9 +11,7 @@ import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -171,6 +169,19 @@ public class RepositoryImpl implements IRepository {
     @Override
     public void fetch(boolean prune) throws Exception {
         git.fetch().setRemoveDeletedRefs(prune).call();
+    }
+
+    @Override
+    public List<IFileChangeChunk> diff(@NotNull String fileContents, File compareWith) throws IOException {
+        String headId = ObjectId.toString(git.getRepository().resolve(Constants.HEAD));
+        RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(compareWith, git))).getBytes());
+        RawText currentFileContents = new RawText(fileContents.getBytes());
+        EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, headFileContents, currentFileContents);
+        List<IFileChangeChunk> changeChunks = new ArrayList<>();
+        for (Edit edit : linesChanged) {
+            changeChunks.add(new FileChangeChunkImpl(edit, "", "", EnumMappings._toEChangeType(edit.getType())));
+        }
+        return changeChunks;
     }
 
     /**

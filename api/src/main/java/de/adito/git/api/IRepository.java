@@ -68,6 +68,8 @@ public interface IRepository {
      */
     void fetch(boolean prune) throws Exception;
 
+    List<IFileChangeChunk> diff(@NotNull String fileContents, File compareWith) throws IOException;
+
     /**
      * @param original  the older ICommit
      * @param compareTo the later ICommit
