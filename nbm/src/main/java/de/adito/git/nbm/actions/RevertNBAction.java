@@ -1,11 +1,9 @@
 package de.adito.git.nbm.actions;
 
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.nbm.Guice.AditoNbmModule;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -35,7 +33,7 @@ public class RevertNBAction extends NBAction {
     @Override
     protected void performAction(Node[] activatedNodes) {
         Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
-        Injector injector = Guice.createInjector(new AditoNbmModule());
+        Injector injector = IGitConstants.INJECTOR;
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
         selectedFiles.onNext(getUncommittedFilesOfNodes(activatedNodes, repository));

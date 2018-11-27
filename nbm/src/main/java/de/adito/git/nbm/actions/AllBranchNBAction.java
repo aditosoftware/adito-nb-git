@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author a.arnold, 22.10.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.AllBranchNBAction")
-@ActionRegistration(displayName = "LBL_ShowALlBranchesNBAction_Name")
+@ActionRegistration(displayName = "LBL_ShowAllBranchesNBAction_Name")
 @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 500)
 public class AllBranchNBAction extends NodeAction {
 
@@ -60,7 +60,7 @@ public class AllBranchNBAction extends NodeAction {
      */
     @Override
     public String getName() {
-        return NbBundle.getMessage(AllBranchNBAction.class, "LBL_ShowALlBranchesNBAction_Name");
+        return NbBundle.getMessage(AllBranchNBAction.class, "LBL_ShowAllBranchesNBAction_Name");
     }
 
     @Override
