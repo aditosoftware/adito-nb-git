@@ -21,7 +21,9 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.OrTreeFilter;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.treewalk.filter.TreeFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -221,6 +223,17 @@ public class RepositoryImpl implements IRepository {
         DiffFormatter diffFormatter = new DiffFormatter(null);
         diffFormatter.setRepository(git.getRepository());
         diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_TRAILING);
+        List<TreeFilter> pathFilters = new ArrayList<>();
+        if (filesToDiff != null) {
+            for (File fileToDiff : filesToDiff) {
+                pathFilters.add(PathFilter.create(Util.getRelativePath(fileToDiff, git)));
+            }
+            if (pathFilters.size() > 1) {
+                diffFormatter.setPathFilter(OrTreeFilter.create(pathFilters));
+            } else {
+                diffFormatter.setPathFilter(pathFilters.get(0));
+            }
+        }
         List<DiffEntry> diffList = diffFormatter.scan(treeParser, fileTreeIterator);
 
         for (DiffEntry diffEntry : diffList) {
@@ -229,16 +242,13 @@ public class RepositoryImpl implements IRepository {
                     || filesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getNewPath()))
                     || filesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getOldPath()))) {
                 FileHeader fileHeader = diffFormatter.toFileHeader(diffEntry);
-                // remark: there seems to always be only one Hunk in the file header
-                if (fileHeader.getHunks().get(0).toEditList().size() > 0) {
-                    // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
-                    StringBuilder newFileLines = new StringBuilder();
-                    if (!diffEntry.getNewPath().equals("/dev/null"))
-                        Files.lines(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
-                    String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
-                    returnList.add(new FileDiffImpl(diffEntry, fileHeader,
-                            oldFileContents, newFileLines.toString()));
-                }
+                // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
+                StringBuilder newFileLines = new StringBuilder();
+                if (!diffEntry.getNewPath().equals("/dev/null"))
+                    Files.lines(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath()).forEach(line -> newFileLines.append(line).append("\n"));
+                String oldFileContents = diffEntry.getOldPath().equals("/dev/null") ? "" : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
+                returnList.add(new FileDiffImpl(diffEntry, fileHeader,
+                        oldFileContents, newFileLines.toString()));
             }
         }
         return returnList;
