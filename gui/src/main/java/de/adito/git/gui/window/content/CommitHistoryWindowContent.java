@@ -13,8 +13,7 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +56,6 @@ class CommitHistoryWindowContent extends JPanel {
         setLayout(new BorderLayout());
         commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
         commitTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        commitTable.getTableHeader().setReorderingAllowed(false);
 
         popupMenu = new JPopupMenu();
         popupMenu.add(actionProvider.getResetAction(repository, selectionObservable));
@@ -68,6 +66,7 @@ class CommitHistoryWindowContent extends JPanel {
         loadMoreButton.addActionListener(e -> pLoadMoreCallback.run());
 
         JPanel commitHistoryPanel = new JPanel(new BorderLayout());
+        commitHistoryPanel.add(commitTable.getTableHeader(), BorderLayout.NORTH);
         commitHistoryPanel.add(commitTable, BorderLayout.CENTER);
         commitHistoryPanel.add(loadMoreButton, BorderLayout.SOUTH);
 
