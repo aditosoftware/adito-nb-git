@@ -3,6 +3,8 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.IEditorKitProvider;
@@ -26,6 +28,7 @@ class DiffDialog extends JPanel implements IDiscardable {
     private final ObservableListSelectionModel observableListSelectionModel;
     private final DiffPanel oldVersionPanel = new DiffPanel(BorderLayout.EAST, EChangeSide.OLD, null, true);
     private final DiffPanel newVersionPanel = new DiffPanel(BorderLayout.WEST, EChangeSide.NEW, null, true);
+    private final JTextPane notificationArea = new JTextPane();
     private Disposable disposable;
     private final IEditorKitProvider editorKitProvider;
     private List<IFileDiff> diffs;
@@ -67,6 +70,9 @@ class DiffDialog extends JPanel implements IDiscardable {
         splitPane.setResizeWeight(0.5);
 
         // add table and DiffPanel to the Panel
+        notificationArea.setEnabled(false);
+        notificationArea.setForeground(UIManager.getColor("infoText"));
+        add(notificationArea, BorderLayout.NORTH);
         add(fileListTable, BorderLayout.EAST);
         add(splitPane, BorderLayout.CENTER);
     }
@@ -75,6 +81,12 @@ class DiffDialog extends JPanel implements IDiscardable {
      * @param fileDiff the IFileDiff that should be displayed in the Diff Panel
      */
     private void _updateDiffPanel(IFileDiff fileDiff) {
+        List<IFileChangeChunk> newChangeChunks = fileDiff.getFileChanges().getChangeChunks().blockingFirst();
+        if (newChangeChunks.size() == 1 && newChangeChunks.get(0).getChangeType() == EChangeType.SAME) {
+            notificationArea.setText("Files do not differ in content, only trailing whitespaces can be different");
+        } else {
+            notificationArea.setText("");
+        }
 //        oldVersionPanel.getTextPane().setEditorKit(editorKitProvider.getEditorKit("text/javascript"));
 //        newVersionPanel.getTextPane().setEditorKit(editorKitProvider.getEditorKit("text/javascript"));
         oldVersionPanel.setContent(fileDiff.getFileChanges().getChangeChunks());
