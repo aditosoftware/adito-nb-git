@@ -15,7 +15,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -81,7 +81,8 @@ class StatusWindowContent extends JPanel implements IDiscardable {
         });
 
         statusTable.addMouseListener(new PopupMouseListener(popupMenu));
-        add(statusTable, BorderLayout.CENTER);
+        JScrollPane tableScrollPane = new JScrollPane(statusTable);
+        add(tableScrollPane, BorderLayout.CENTER);
     }
 
     @Override
