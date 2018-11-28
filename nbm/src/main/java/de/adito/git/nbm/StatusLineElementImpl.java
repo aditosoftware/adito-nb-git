@@ -14,7 +14,7 @@ import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
 import javax.swing.*;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Optional;
@@ -24,7 +24,7 @@ import java.util.Optional;
  *
  * @author a.arnold, 05.11.2018
  */
-
+@SuppressWarnings("unused") //NetBeans service
 @ServiceProvider(service = StatusLineElementProvider.class)
 public class StatusLineElementImpl implements StatusLineElementProvider {
     private IWindowContentProvider windowContentProvider = IGitConstants.INJECTOR.getInstance(IWindowContentProvider.class);
@@ -34,19 +34,20 @@ public class StatusLineElementImpl implements StatusLineElementProvider {
     private PopupWindow popupWindow;
 
     public StatusLineElementImpl() {
-
-        label.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (repository == null) {
-                    return;
+        EventQueue.invokeLater(() -> {
+            label.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (repository == null) {
+                        return;
+                    }
+                    _initPopup();
+                    popupWindow.setVisible(true);
+                    popupWindow.setLocation(e.getLocationOnScreen().x - popupWindow.getWidth(), e.getLocationOnScreen().y - popupWindow.getHeight());
                 }
-                _initPopup();
-                popupWindow.setVisible(true);
-                popupWindow.setLocation(e.getLocationOnScreen().x - popupWindow.getWidth(), e.getLocationOnScreen().y - popupWindow.getHeight());
-            }
+            });
+            _setStatusLineName();
         });
-        _setStatusLineName();
     }
 
     /**
@@ -76,6 +77,4 @@ public class StatusLineElementImpl implements StatusLineElementProvider {
         _setStatusLineName();
         return label;
     }
-
-
 }
