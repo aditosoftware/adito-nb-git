@@ -31,16 +31,22 @@ public class FileChangesImpl implements IFileChanges {
         // combine the lineChanges with the information from editList and build chunks
         originalLines = pOriginalFileContents.split("\n", -1);
         newLines = pNewFileContents.split("\n", -1);
-        // from beginning of the file to the first chunk
-        changeChunkList.add(_getUnchangedChunk(null, editList.get(0)));
-        // first chunk extra, since the index in the for loop starts at 0
-        changeChunkList.add(_getChangedChunk(editList.get(0)));
-        for (int index = 1; index < editList.size(); index++) {
-            changeChunkList.add(_getUnchangedChunk(editList.get(index - 1), editList.get(index)));
-            changeChunkList.add(_getChangedChunk(editList.get(index)));
+        if (editList.size() != 0) {
+            // from beginning of the file to the first chunk
+            changeChunkList.add(_getUnchangedChunk(null, editList.get(0)));
+            // first chunk extra, since the index in the for loop starts at 0
+            changeChunkList.add(_getChangedChunk(editList.get(0)));
+            for (int index = 1; index < editList.size(); index++) {
+                changeChunkList.add(_getUnchangedChunk(editList.get(index - 1), editList.get(index)));
+                changeChunkList.add(_getChangedChunk(editList.get(index)));
+            }
+            // from last chunk to end of file
+            changeChunkList.add(_getUnchangedChunk(editList.get(editList.size() - 1), null));
         }
-        // from last chunk to end of file
-        changeChunkList.add(_getUnchangedChunk(editList.get(editList.size() - 1), null));
+        {
+            Edit edit = new Edit(0, originalLines.length, 0, newLines.length);
+            changeChunkList.add(new FileChangeChunkImpl(edit, pNewFileContents, pNewFileContents, EChangeType.SAME));
+        }
         changeChunks = BehaviorSubject.createDefault(changeChunkList);
     }
 
