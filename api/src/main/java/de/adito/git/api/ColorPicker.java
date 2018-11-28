@@ -22,7 +22,10 @@ public class ColorPicker {
     @NotNull
     private static Color getColor(String key) {
         Color colorForKey = UIManager.getColor(key);
-        if (colorForKey == null && defaultColors != null) {
+        if (defaultColors == null) {
+            _initDefaultColors();
+        }
+        if (colorForKey == null) {
             colorForKey = defaultColors.get(key);
         }
         if (colorForKey == null) {
@@ -31,17 +34,21 @@ public class ColorPicker {
         return colorForKey;
     }
 
-    private final static Map<String, Color> defaultColors = Map.ofEntries(
-            Map.entry("infoText", new Color(187, 187, 187)),
-            Map.entry("nb.versioning.added.color", new Color(73, 210, 73)),
-            Map.entry("nb.diff.added.color", new Color(43, 85, 43)),
-            Map.entry("nb.versioning.modified.color", new Color(26, 184, 255)),
-            Map.entry("nb.diff.changed.color", new Color(40, 85, 112)),
-            Map.entry("nb.versioning.deleted.color", new Color(255, 175, 175)),
-            Map.entry("nb.diff.deleted.color", new Color(85, 43, 43)),
-            Map.entry("nb.versioning.conflicted.color", new Color(255, 100, 100)),
-            Map.entry("nb.diff.unresolved.color", new Color(130, 30, 30)),
-            Map.entry("List.selectionBackground", new Color(52, 152, 219))
-    );
+    private static Map<String, Color> defaultColors;
+
+    private static void _initDefaultColors() {
+        defaultColors = Map.ofEntries(
+                Map.entry("infoText", new Color(187, 187, 187)),
+                Map.entry("nb.versioning.added.color", new Color(73, 210, 73)),
+                Map.entry("nb.diff.added.color", new Color(43, 85, 43)),
+                Map.entry("nb.versioning.modified.color", new Color(26, 184, 255)),
+                Map.entry("nb.diff.changed.color", new Color(40, 85, 112)),
+                Map.entry("nb.versioning.deleted.color", new Color(255, 175, 175)),
+                Map.entry("nb.diff.deleted.color", new Color(85, 43, 43)),
+                Map.entry("nb.versioning.conflicted.color", new Color(255, 100, 100)),
+                Map.entry("nb.diff.unresolved.color", new Color(130, 30, 30)),
+                Map.entry("List.selectionBackground", new Color(52, 152, 219))
+        );
+    }
 
 }

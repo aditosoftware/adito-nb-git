@@ -62,8 +62,8 @@ public enum EChangeType {
      */
     SAME(null, null);
 
-    Color statusColor;
-    Color diffColor;
+    final Color statusColor;
+    final Color diffColor;
 
     EChangeType(@Nullable Color pStatusColor, @Nullable Color pDiffColor) {
         statusColor = pStatusColor;
