@@ -56,6 +56,8 @@ class CommitHistoryWindowContent extends JPanel {
         setLayout(new BorderLayout());
         commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
         commitTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        commitTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+        commitTable.getColumnModel().getColumn(2).setPreferredWidth(120);
 
         popupMenu = new JPopupMenu();
         popupMenu.add(actionProvider.getResetAction(repository, selectionObservable));
@@ -66,13 +68,13 @@ class CommitHistoryWindowContent extends JPanel {
         loadMoreButton.addActionListener(e -> pLoadMoreCallback.run());
 
         JPanel commitHistoryPanel = new JPanel(new BorderLayout());
-        commitHistoryPanel.add(commitTable.getTableHeader(), BorderLayout.NORTH);
         commitHistoryPanel.add(commitTable, BorderLayout.CENTER);
         commitHistoryPanel.add(loadMoreButton, BorderLayout.SOUTH);
 
         JScrollPane commitScrollPane = new JScrollPane(commitHistoryPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         commitScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
         commitScrollPane.setPreferredSize(new Dimension(800, 300));
+        add(commitTable.getTableHeader(), BorderLayout.NORTH);
         add(commitScrollPane, BorderLayout.CENTER);
     }
 }
