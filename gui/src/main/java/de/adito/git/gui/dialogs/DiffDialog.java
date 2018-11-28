@@ -2,6 +2,7 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.ColorPicker;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
@@ -71,7 +72,7 @@ class DiffDialog extends JPanel implements IDiscardable {
 
         // add table and DiffPanel to the Panel
         notificationArea.setEnabled(false);
-        notificationArea.setForeground(UIManager.getColor("infoText"));
+        notificationArea.setForeground(ColorPicker.INFO_TEXT);
         add(notificationArea, BorderLayout.NORTH);
         add(fileListTable, BorderLayout.EAST);
         add(splitPane, BorderLayout.CENTER);

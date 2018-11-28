@@ -2,6 +2,7 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.ColorPicker;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
@@ -15,9 +16,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -194,7 +193,7 @@ public class StatusLineWindowContent extends JPanel implements IDiscardable {
         Color hoverColor;
 
         _HoverMouseListener() {
-            hoverColor = UIManager.getColor("List.selectionBackground");
+            hoverColor = ColorPicker.LIST_SELECTION_BACKGROUND;
         }
 
         @Override
