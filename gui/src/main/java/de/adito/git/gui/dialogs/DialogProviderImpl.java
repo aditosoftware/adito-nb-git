@@ -8,6 +8,7 @@ import io.reactivex.Observable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -43,14 +44,14 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult showCommitDialog(Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
+    public DialogResult<Supplier<List<IFileChangeType>>> showCommitDialog(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
         String commitMessage = null;
-        CommitDialog commitDialog = dialogFactory.createCommitDialog(dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton, pFilesToCommit);
+        CommitDialog commitDialog = dialogFactory.createCommitDialog(dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton, pRepository, pFilesToCommit);
         boolean pressedOk = dialogDisplayer.showDialog(commitDialog, "Commit", false);
         if(pressedOk) {
             commitMessage = commitDialog.getMessageText();
         }
-        return new DialogResult(pressedOk, commitMessage);
+        return new DialogResult<>(pressedOk, commitMessage, commitDialog.getFilesToCommit());
     }
 
     @Override

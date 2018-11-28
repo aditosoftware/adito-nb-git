@@ -10,9 +10,9 @@ import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -37,12 +37,11 @@ class CommitAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        DialogResult dialogResult = dialogProvider.showCommitDialog(selectedFilesObservable);
+        DialogResult<Supplier<List<IFileChangeType>>> dialogResult = dialogProvider.showCommitDialog(repository, selectedFilesObservable);
         // if user didn't cancel the dialogs
         if (dialogResult.isPressedOk()) {
             try {
-                List<File> files = selectedFilesObservable.blockingFirst()
-                        .orElse(Collections.emptyList())
+                List<File> files = dialogResult.getInformation().get()
                         .stream()
                         .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                         .collect(Collectors.toList());

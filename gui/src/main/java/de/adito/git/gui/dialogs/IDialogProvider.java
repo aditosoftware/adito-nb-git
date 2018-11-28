@@ -9,6 +9,7 @@ import io.reactivex.Observable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -21,7 +22,7 @@ public interface IDialogProvider {
 
     DialogResult showDiffDialog(List<IFileDiff> fileDiffs);
 
-    DialogResult showCommitDialog(Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
+    DialogResult<Supplier<List<IFileChangeType>>> showCommitDialog(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
 
     DialogResult showNewBranchDialog(Observable<Optional<IRepository>> pRepository);
 
