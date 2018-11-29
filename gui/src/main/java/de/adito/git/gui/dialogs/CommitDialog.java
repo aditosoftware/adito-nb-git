@@ -43,6 +43,12 @@ class CommitDialog extends JPanel {
     private final JEditorPane messagePane = new JEditorPane();
     private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
 
+    private final static int PREFERRED_WIDTH = 1200;
+    private final static int PREFERRED_HEIGHT = 800;
+    private final static int SELECTION_COL_MAX_WIDTH = 25;
+    private final static Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(200, 200);
+    private final static Dimension MESSAGE_PANE_PREF_SIZE = new Dimension(450, 750);
+
     @Inject
     public CommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOK,
                         @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
