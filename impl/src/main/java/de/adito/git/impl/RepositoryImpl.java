@@ -102,14 +102,14 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public String commit(@NotNull String message, List<File> fileList) throws Exception {
+    public String commit(@NotNull String message, List<File> fileList, boolean isAmend) throws Exception {
         CommitCommand commit = git.commit();
         RevCommit revCommit;
         for (File file : fileList) {
             commit.setOnly(getRelativePath(file, git));
         }
         try {
-            revCommit = commit.setMessage(message).call();
+            revCommit = commit.setMessage(message).setAmend(isAmend).call();
         } catch (GitAPIException e) {
             throw new Exception("Unable to commit to local Area", e);
         }
@@ -571,7 +571,7 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<String> getCommitedFiles(String commitId) throws Exception {
+    public List<String> getCommittedFiles(String commitId) throws Exception {
         RevCommit thisCommit = _getRevCommit(commitId);
         List<DiffEntry> diffEntries = new ArrayList<>();
         for (RevCommit parent : thisCommit.getParents()) {
@@ -587,7 +587,11 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public ICommit getCommit(@NotNull String identifier) throws Exception {
+    public ICommit getCommit(@Nullable String identifier) throws Exception {
+        if (identifier == null) {
+            // only one RevCommit expected as result, so only take the first RevCommit
+            return new CommitImpl(git.log().setMaxCount(1).call().iterator().next());
+        }
         return new CommitImpl(_getRevCommit(identifier));
     }
 

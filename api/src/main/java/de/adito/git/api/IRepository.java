@@ -31,10 +31,11 @@ public interface IRepository {
     /**
      * @param message  String with the commit message entered by the user
      * @param fileList List of files that should be committed (and none else)
+     * @param isAmend If this commit should be amended to the previous commit
      * @return the ID of the commit as String
      * @throws Exception if an error occurs
      */
-    String commit(@NotNull String message, List<File> fileList) throws Exception;
+    String commit(@NotNull String message, List<File> fileList, boolean isAmend) throws Exception;
 
     /**
      * Pushes the changes made to HEAD onto the selected branch/remote
@@ -195,14 +196,14 @@ public interface IRepository {
      * @throws Exception if JGit encountered an error condition
      * @throws Exception if an error occurs
      */
-    List<String> getCommitedFiles(String commitId) throws Exception;
+    List<String> getCommittedFiles(String commitId) throws Exception;
 
     /**
-     * @param identifier String with identifier of the commit
+     * @param identifier String with identifier of the commit, or NULL for the latest commit
      * @return ICommit describing the commit
      * @throws Exception if an error occurs
      */
-    ICommit getCommit(@NotNull String identifier) throws Exception;
+    ICommit getCommit(@Nullable String identifier) throws Exception;
 
     /**
      * @param sourceBranch IBranch for which all commits should be retrieved. Pass NULL for all commits

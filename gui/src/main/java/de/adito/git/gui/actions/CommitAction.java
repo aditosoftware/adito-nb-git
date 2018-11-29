@@ -6,13 +6,13 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -37,15 +37,16 @@ class CommitAction extends AbstractTableAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        DialogResult<Supplier<List<IFileChangeType>>> dialogResult = dialogProvider.showCommitDialog(repository, selectedFilesObservable);
+        DialogResult<CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repository, selectedFilesObservable);
         // if user didn't cancel the dialogs
         if (dialogResult.isPressedOk()) {
             try {
-                List<File> files = dialogResult.getInformation().get()
+                List<File> files = dialogResult.getInformation().getSelectedFilesSupplier().get()
                         .stream()
                         .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                         .collect(Collectors.toList());
-                repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).commit(dialogResult.getMessage(), files);
+                repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
+                        .commit(dialogResult.getMessage(), files, dialogResult.getInformation().isDoAmend());
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
