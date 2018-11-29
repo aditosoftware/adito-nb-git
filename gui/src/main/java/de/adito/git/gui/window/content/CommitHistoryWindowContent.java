@@ -27,8 +27,8 @@ class CommitHistoryWindowContent extends JPanel {
 
     private final static int SCROLL_SPEED_INCREMENT = 16;
     private final static int BRANCHING_AREA_PREF_WIDTH = 1600;
-    private final static int DATE_COL_PREF_WIDTH = 160;
-    private final static int AUTHOR_COL_PREF_WIDTH = 250;
+    private final static int DATE_COL_PREF_WIDTH = 250;
+    private final static int AUTHOR_COL_PREF_WIDTH = 160;
     private final JTable commitTable = new JTable();
     private final IActionProvider actionProvider;
     private final Observable<Optional<IRepository>> repository;
