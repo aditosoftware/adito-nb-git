@@ -30,6 +30,12 @@ import java.util.stream.Collectors;
  */
 class CommitDialog extends JPanel {
 
+    private final static int PREFERRED_WIDTH = 1200;
+    private final static int PREFERRED_HEIGHT = 800;
+    private final static int SELECTION_COL_MAX_WIDTH = 25;
+    private final static Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(200, 200);
+    private final static Dimension MESSAGE_PANE_PREF_SIZE = new Dimension(450, 750);
+
     private final Runnable enableOk;
     private final Runnable disableOK;
     private final JTable fileStatusTable = new JTable();
@@ -49,11 +55,27 @@ class CommitDialog extends JPanel {
                         .map(pUncommitted -> new _SelectedFileChangeType(pSelectedFiles.orElse(Collections.emptyList()).contains(pUncommitted), pUncommitted)).collect(Collectors.toList()));
         commitTableModel = new _CommitTableModel(filesToCommitObservable);
         fileStatusTable.setModel(commitTableModel);
+        amendCheckBox.addActionListener(e -> {
+            if (amendCheckBox.getModel().isSelected()) {
+                messagePane.setText(pRepository.blockingFirst().map(pRepo -> {
+                    try {
+                        return pRepo.getCommit(null).getShortMessage();
+                    } catch (Exception e1) {
+                        return "an error occurred while retrieving the commit message of the last commit";
+                    }
+                }).orElse("could not retrieve message of last commit"));
+            }
+        });
         _initGui();
     }
 
     String getMessageText() {
         return messagePane.getText();
+    }
+
+
+    boolean isAmend() {
+        return amendCheckBox.isSelected();
     }
 
     Supplier<List<IFileChangeType>> getFilesToCommit() {
@@ -68,10 +90,10 @@ class CommitDialog extends JPanel {
      * initialise GUI elements
      */
     private void _initGui() {
-        setPreferredSize(new Dimension(1200, 800));
+        setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
         setLayout(new BorderLayout());
         fileStatusTable.setSelectionModel(new ObservableListSelectionModel(fileStatusTable.getSelectionModel()));
-        fileStatusTable.getColumnModel().getColumn(commitTableModel.findColumn(_CommitTableModel.IS_SELECTED_COLUMN_NAME)).setMaxWidth(25);
+        fileStatusTable.getColumnModel().getColumn(commitTableModel.findColumn(_CommitTableModel.IS_SELECTED_COLUMN_NAME)).setMaxWidth(SELECTION_COL_MAX_WIDTH);
         fileStatusTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         // Hide the status column from view, but leave the data (retrieved via table.getModel.getValueAt)
         fileStatusTable.getColumnModel().removeColumn(fileStatusTable.getColumn(_CommitTableModel.CHANGE_TYPE_COLUMN_NAME));
@@ -83,8 +105,8 @@ class CommitDialog extends JPanel {
         // Size for the Table with the list of files to commit
         JScrollPane tableScrollPane = new JScrollPane(fileStatusTable);
         // EditorPane for the Commit message
-        messagePane.setMinimumSize(new Dimension(200, 200));
-        messagePane.setPreferredSize(new Dimension(450, 750));
+        messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
+        messagePane.setPreferredSize(MESSAGE_PANE_PREF_SIZE);
         messagePane.setBorder(tableScrollPane.getBorder());
         // Listener for enabling/disabling the OK button
         messagePane.getDocument().addDocumentListener(new _EmptyDocumentListener());

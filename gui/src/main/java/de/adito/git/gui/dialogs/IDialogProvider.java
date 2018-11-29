@@ -5,11 +5,11 @@ import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import io.reactivex.Observable;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -22,7 +22,7 @@ public interface IDialogProvider {
 
     DialogResult showDiffDialog(List<IFileDiff> fileDiffs);
 
-    DialogResult<Supplier<List<IFileChangeType>>> showCommitDialog(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
+    DialogResult<CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
 
     DialogResult showNewBranchDialog(Observable<Optional<IRepository>> pRepository);
 
