@@ -7,7 +7,7 @@ public interface IBranch {
 
     /**
      *
-     * @return the name of the Branch in clear text, as String
+     * @return the name of the Branch in clear text as String, i.e. refs/heads/master
      */
     String getName();
 
@@ -19,7 +19,7 @@ public interface IBranch {
 
     /**
      *
-     * @return a String of the short Name
+     * @return a String of the short Name, i.e. master
      */
     String getSimpleName();
 
