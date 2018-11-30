@@ -202,7 +202,7 @@ public class RepositoryImpl implements IRepository {
         if (listDiff != null) {
             for (DiffEntry diff : listDiff) {
                 try (DiffFormatter formatter = new DiffFormatter(null)) {
-                    formatter.setRepository(GitRepositoryProvider.get());
+                    formatter.setRepository(git.getRepository());
                     FileHeader fileHeader = formatter.toFileHeader(diff);
                     listDiffImpl.add(new FileDiffImpl(diff, fileHeader, getFileContents(getFileVersion(compareTo.getId(), diff.getOldPath())), getFileContents(getFileVersion(original.getId(), diff.getNewPath()))));
                 }
@@ -304,7 +304,7 @@ public class RepositoryImpl implements IRepository {
             try {
                 cloneRepo.call();
             } catch (GitAPIException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
             return true;
         }
@@ -552,19 +552,17 @@ public class RepositoryImpl implements IRepository {
     private RevCommit _findForkPoint(String parentBranchName, String foreignBranchName) throws IOException {
         try (RevWalk walk = new RevWalk(git.getRepository())) {
             RevCommit foreignCommit = walk.lookupCommit(git.getRepository().resolve(foreignBranchName));
-            List<ReflogEntry> refLog = git.getRepository().getReflogReader(parentBranchName).getReverseEntries();
-            if (refLog.isEmpty()) {
-                return null;
-            }
-            // <= to check both new and old ID for the oldest entry
-            for (int index = 0; index <= refLog.size(); index++) {
-                ObjectId commitId = index < refLog.size() ? refLog.get(index).getNewId() : refLog.get(index - 1).getOldId();
-                RevCommit commit = walk.lookupCommit(commitId);
+            LinkedList<ObjectId> parentsToParse = new LinkedList<>();
+            parentsToParse.add(git.getRepository().resolve(parentBranchName));
+            while (parentsToParse.size() > 0) {
+                RevCommit commit = walk.lookupCommit(parentsToParse.poll());
                 // check if foreignCommit is reachable from the currently selected commit
                 if (walk.isMergedInto(commit, foreignCommit)) {
                     // check if commit is a valid commit that does not contain errors when parsed
                     walk.parseBody(commit);
                     return commit;
+                } else {
+                    parentsToParse.addAll(Arrays.stream(commit.getParents()).map(RevObject::getId).collect(Collectors.toList()));
                 }
             }
         }
@@ -795,11 +793,11 @@ public class RepositoryImpl implements IRepository {
     private List<IBranch> _branchList() {
         ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.ALL);
         List<IBranch> branchList = new ArrayList<>();
-        List<Ref> refBranchList = null;
+        List<Ref> refBranchList;
         try {
             refBranchList = listBranchCommand.call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         if (refBranchList != null) {
             refBranchList.forEach(branch -> branchList.add(new BranchImpl(branch)));
@@ -809,11 +807,11 @@ public class RepositoryImpl implements IRepository {
 
     private IFileStatus _status() {
         StatusCommand statusCommand = git.status();
-        Status currentStatus = null;
+        Status currentStatus;
         try {
             currentStatus = statusCommand.call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return new FileStatusImpl(currentStatus, git.getRepository().getDirectory());
     }
@@ -823,8 +821,7 @@ public class RepositoryImpl implements IRepository {
             String branch = git.getRepository().getFullBranch();
             return getBranch(branch);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
