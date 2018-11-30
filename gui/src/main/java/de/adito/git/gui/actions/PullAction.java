@@ -3,10 +3,13 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,20 +18,19 @@ import java.util.Optional;
  * @author A.Arnold 11.10.2018
  */
 class PullAction extends AbstractAction {
-    private String targetId;
     private Observable<Optional<IRepository>> repository;
+    private IDialogProvider dialogProvider;
 
     /**
      * The PullAction is an action to pull all commits from one branch. If no branch is chosen take an empty string for the master branch.
      *
      * @param pRepository the repository where the pull command should work
-     * @param pTargetId   the ID of the branch which is to pull
      */
     @Inject
-    PullAction(@Assisted Observable<Optional<IRepository>> pRepository, @Assisted String pTargetId) {
+    PullAction(IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
+        dialogProvider = pDialogProvider;
         putValue(Action.NAME, "Pull");
         putValue(Action.SHORT_DESCRIPTION, "Pull all Files from one Branch");
-        targetId = pTargetId;
         repository = pRepository;
     }
 
@@ -38,7 +40,10 @@ class PullAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
-            repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).pull(targetId);
+            List<IMergeDiff> mergeDiffs = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).pull();
+            if (mergeDiffs.size() > 0) {
+                dialogProvider.showMergeConflictDialog(repository, mergeDiffs);
+            }
         } catch (Exception e1) {
             e1.printStackTrace();
         }

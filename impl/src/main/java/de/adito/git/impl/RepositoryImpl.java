@@ -46,7 +46,7 @@ public class RepositoryImpl implements IRepository {
     private Git git;
     private final Observable<Optional<List<IBranch>>> branchList;
     private final Observable<IFileStatus> status;
-    private final BehaviorSubject<Optional<IBranch>> currentBranch;
+    private final BehaviorSubject<Optional<IBranch>> currentBranchObservable;
     private final ColorRoulette colorRoulette;
 
     @Inject
@@ -61,7 +61,7 @@ public class RepositoryImpl implements IRepository {
 
         // Current Branch
         IBranch curBranch = _currentBranch();
-        currentBranch = BehaviorSubject.createDefault(curBranch == null ? Optional.empty() : Optional.of(curBranch));
+        currentBranchObservable = BehaviorSubject.createDefault(curBranch == null ? Optional.empty() : Optional.of(curBranch));
     }
 
     /**
@@ -138,23 +138,27 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public boolean pull(@NotNull String targetId) throws Exception {
-        if (status.blockingFirst().hasUncommittedChanges()) {
+    public List<IMergeDiff> pull() throws Exception {
+        String currentHeadName = git.getRepository().getFullBranch();
+        String targetName = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
+        IFileStatus currentStatus = status.blockingFirst();
+        if (currentStatus.hasUncommittedChanges()) {
             //TODO: remove this once stashing is implemented and do stash -> pull -> un-stash
             System.err.println("Not able to pull files from remote due to uncommitted, changed files. Either commit or revert them and try again");
-            return false;
+            return Collections.emptyList();
         }
-        if (targetId.equals("")) {
-            targetId = "master";
+        if (currentStatus.getConflicting().size() > 0) {
+            RevCommit forkCommit = _findForkPoint(targetName, currentHeadName);
+            return _getMergeConflicts(targetName, currentHeadName, new CommitImpl(forkCommit), currentStatus.getConflicting());
         }
-        PullCommand pullcommand = git.pull().setRemoteBranchName(targetId);
-        pullcommand.setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
+        PullCommand pullCommand = git.pull();
+        pullCommand.setRebase(true);
         try {
             pullcommand.call();
         } catch (GitAPIException e) {
             throw new Exception("Unable to pull new files", e);
         }
-        return true;
+        return Collections.emptyList();
     }
 
     /**
@@ -230,7 +234,7 @@ public class RepositoryImpl implements IRepository {
             }
             if (pathFilters.size() > 1) {
                 diffFormatter.setPathFilter(OrTreeFilter.create(pathFilters));
-            } else {
+            } else if (pathFilters.size() != 0) {
                 diffFormatter.setPathFilter(pathFilters.get(0));
             }
         }
@@ -439,7 +443,7 @@ public class RepositoryImpl implements IRepository {
         CheckoutCommand checkout = git.checkout().setName(branch.getName()).setCreateBranch(false).setStartPoint(branch.getName());
         try {
             checkout.call();
-            currentBranch.onNext(Optional.of(branch));
+            currentBranchObservable.onNext(Optional.of(branch));
         } catch (GitAPIException e) {
             throw new Exception("Unable to checkout Branch " + branch.getName(), e);
         }
@@ -469,7 +473,7 @@ public class RepositoryImpl implements IRepository {
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
         if (status.blockingFirst().getConflicting().size() > 0) {
             RevCommit forkCommit = _findForkPoint(parentID, toMergeID);
-            mergeConflicts = _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
+            return _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
         }
         try {
             checkout(parentID);
@@ -539,9 +543,9 @@ public class RepositoryImpl implements IRepository {
     }
 
     /**
-     * @param parentBranchName  name of the branch currently on
-     * @param foreignBranchName name of the branch for which to find the closest forkPoint to this branch
-     * @return RevCommit that is the forkpoint between the two branches, or null if not available
+     * @param parentBranchName  name (not id) of the branch currently on
+     * @param foreignBranchName name (not id) of the branch (or id for a commit) for which to find the closest forkPoint to this branch
+     * @return RevCommit that is the forkPoint between the two branches, or null if not available
      * @throws IOException if an error occurs during parsing
      */
     @Nullable
@@ -747,7 +751,7 @@ public class RepositoryImpl implements IRepository {
 
     @Override
     public Observable<Optional<IBranch>> getCurrentBranch() {
-        return currentBranch;
+        return currentBranchObservable;
     }
 
     /**
@@ -804,10 +808,10 @@ public class RepositoryImpl implements IRepository {
     }
 
     private IFileStatus _status() {
-        StatusCommand statusCommnand = git.status();
+        StatusCommand statusCommand = git.status();
         Status currentStatus = null;
         try {
-            currentStatus = statusCommnand.call();
+            currentStatus = statusCommand.call();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }

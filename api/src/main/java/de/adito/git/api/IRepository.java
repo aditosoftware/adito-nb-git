@@ -46,11 +46,13 @@ public interface IRepository {
     boolean push() throws Exception;
 
     /**
-     * @param targetId the id/url of the branch/remote to pull from
+     * Pulls the current contents of the tracked remote branch of the currently selected local branch
+     * from origin
+     *
      * @return {@code true} if the pull was successful, {@code false otherwise}
      * @throws Exception if an error occurs
      */
-    boolean pull(@NotNull String targetId) throws Exception;
+    List<IMergeDiff> pull() throws Exception;
 
     /**
      * Fetches the current state of the remote and stores it internally. Does not affect the working directory.
