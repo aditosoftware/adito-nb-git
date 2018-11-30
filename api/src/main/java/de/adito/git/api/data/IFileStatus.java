@@ -66,7 +66,7 @@ public interface IFileStatus {
 
     /**
      *
-     * @return Set an Ordnern die nicht ignoriert wurden und sich nicht im Index befinden
+     * @return Set of folders that are not currently tracked and are not yet in the index
      */
     Set<String> getUntrackedFolders();
 
@@ -79,7 +79,7 @@ public interface IFileStatus {
 
     /**
      *
-     * @return Map die Files im Konfliktzustand auf ihre {@link EStageState} mappt
+     * @return Map that maps files that have conflicting status to their {@link EStageState}
      */
     Map<String, EStageState> getConflictingStageState();
 
