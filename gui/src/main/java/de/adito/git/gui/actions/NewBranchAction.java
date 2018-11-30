@@ -40,7 +40,7 @@ class NewBranchAction extends AbstractAction {
             if (result.isPressedOk())
                 repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).createBranch(result.getMessage(), true); //todo checkout via dialogs
         } catch (Exception e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 }

@@ -40,7 +40,7 @@ class ResetAction extends AbstractTableAction {
             try {
                 repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).reset(selectedCommits.get(0).getId(), dialogResult.getInformation());
             } catch (Exception e1) {
-                e1.printStackTrace();
+                throw new RuntimeException(e1);
             }
         }
     }

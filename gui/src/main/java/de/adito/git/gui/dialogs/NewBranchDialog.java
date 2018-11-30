@@ -13,8 +13,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -106,7 +105,7 @@ class NewBranchDialog extends JPanel {
             try {
                 _checkingUpdate(e, branchMap, alreadyExists);
             } catch (BadLocationException e1) {
-                e1.printStackTrace();
+                throw new RuntimeException(e1);
             }
         }
 
@@ -115,7 +114,7 @@ class NewBranchDialog extends JPanel {
             try {
                 _checkingUpdate(e, branchMap, alreadyExists);
             } catch (BadLocationException e1) {
-                e1.printStackTrace();
+                throw new RuntimeException(e1);
             }
         }
 
@@ -124,7 +123,7 @@ class NewBranchDialog extends JPanel {
             try {
                 _checkingUpdate(e, branchMap, alreadyExists);
             } catch (BadLocationException e1) {
-                e1.printStackTrace();
+                throw new RuntimeException(e1);
             }
         }
     }

@@ -40,7 +40,7 @@ class IgnoreAction extends AbstractTableAction {
         try {
             repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).ignore(files);
         } catch (IOException e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 

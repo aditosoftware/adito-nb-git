@@ -36,7 +36,7 @@ class PushAction extends AbstractAction {
         try {
             repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).push();
         } catch (Exception e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 }

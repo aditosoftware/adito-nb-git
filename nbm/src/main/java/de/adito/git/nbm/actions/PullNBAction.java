@@ -43,7 +43,7 @@ public class PullNBAction extends NBAction {
         try {
             actionProvider.getPullAction(repository).actionPerformed(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

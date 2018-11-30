@@ -48,7 +48,7 @@ class CommitAction extends AbstractTableAction {
                 repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
                         .commit(dialogResult.getMessage(), files, dialogResult.getInformation().isDoAmend());
             } catch (Exception e1) {
-                e1.printStackTrace();
+                throw new RuntimeException(e1);
             }
         }
     }
