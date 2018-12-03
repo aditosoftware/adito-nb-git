@@ -47,6 +47,11 @@ public class PullNBAction extends NBAction {
         }
     }
 
+    @Override
+    protected String iconResource() {
+        return NbBundle.getMessage(PushNBAction.class, "ICON_PullNBAction_Path");
+    }
+
     /**
      * @param activatedNodes The activated nodes of NetBeans
      * @return true if there is one repository for the files

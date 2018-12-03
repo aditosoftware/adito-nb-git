@@ -37,8 +37,12 @@ public class PushNBAction extends NBAction {
         Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
         Injector injector = IGitConstants.INJECTOR;
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
-
         actionProvider.getPushAction(repository).actionPerformed(null);
+    }
+
+    @Override
+    protected String iconResource() {
+        return NbBundle.getMessage(PushNBAction.class, "ICON_PushNBAction_Path");
     }
 
     /**

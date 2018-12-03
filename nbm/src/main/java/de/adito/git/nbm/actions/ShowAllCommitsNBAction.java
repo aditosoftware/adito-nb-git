@@ -34,6 +34,11 @@ public class ShowAllCommitsNBAction extends NBAction {
     }
 
     @Override
+    protected String iconResource() {
+        return NbBundle.getMessage(PushNBAction.class, "ICON_ShowAllCommitsNBAction_Path");
+    }
+
+    @Override
     protected boolean enable(Node[] activatedNodes) {
         return findOneRepositoryFromNode(activatedNodes).blockingFirst().isPresent();
     }
