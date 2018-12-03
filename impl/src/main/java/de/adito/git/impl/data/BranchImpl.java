@@ -11,14 +11,28 @@ import org.eclipse.jgit.lib.Ref;
 public class BranchImpl implements IBranch {
     private Ref branchRef;
     private EBranchType branchType;
+    private String simpleName = null;
 
     public BranchImpl(Ref pBranchRef) {
         branchRef = pBranchRef;
+        branchType = EBranchType.EMPTY;
         String[] split = branchRef.getName().split("/");
-        if (split[1].equals("remotes")) {
-            branchType = EBranchType.REMOTE;
-        } else
-            branchType = EBranchType.LOCAL;
+        if (split.length > 1) {
+            if (split[1].equals("remotes")) {
+                branchType = EBranchType.REMOTE;
+            }
+            if (split[1].equals("heads")) {
+                branchType = EBranchType.LOCAL;
+            }
+        }
+        if (split.length == 1 && branchRef.getName().equals("DETACHED")) {
+            branchType = EBranchType.DETACHED;
+            simpleName = getId();
+        }
+    }
+    public BranchImpl(ObjectId pId){
+        branchType = EBranchType.DETACHED;
+        simpleName = ObjectId.toString(pId);
     }
 
     /**
@@ -26,7 +40,11 @@ public class BranchImpl implements IBranch {
      */
     @Override
     public String getName() {
+        if(branchType == EBranchType.DETACHED){
+            return simpleName;
+        }
         return branchRef.getName();
+
     }
 
     /**
@@ -43,9 +61,7 @@ public class BranchImpl implements IBranch {
     @Override
     // TODO: 24.10.2018
     public String getSimpleName() {
-        String simpleName = null;
         String name = getName();
-
         String[] split = name.split("/");
         simpleName = split[split.length - 1];
         return simpleName;
@@ -64,6 +80,8 @@ public class BranchImpl implements IBranch {
      */
     @Override
     public String toString() {
+        if(EBranchType.DETACHED == this.getType())
+            return this.getId();
         return branchRef.getName();
     }
 }

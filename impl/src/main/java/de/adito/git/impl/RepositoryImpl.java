@@ -723,22 +723,7 @@ public class RepositoryImpl implements IRepository {
      */
     @Override
     public IBranch getBranch(@NotNull String branchString) throws Exception {
-        List<Ref> refList = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
-        if (refList.isEmpty()) {
-            throw new Exception("This Branch doesn't exists: " + branchString);
-        }
-
-        Ref branch = git.getRepository().getRefDatabase().getRef(branchString);
-
-        List<Ref> list = refList.stream()
-                .filter(pBranch -> pBranch.getName()
-                        .equals(branch.getName()))
-                .collect(Collectors.toList());
-
-        if (list.isEmpty()) {
-            throw new Exception("There is no element in the branch list");
-        }
-        return new BranchImpl(list.get(0));
+        return new BranchImpl(git.getRepository().getRefDatabase().getRef(branchString));
     }
 
     @Override
@@ -813,10 +798,12 @@ public class RepositoryImpl implements IRepository {
     private IBranch _currentBranch() {
         try {
             String branch = git.getRepository().getFullBranch();
+            if (git.getRepository().getRefDatabase().getRef(branch) == null) {
+                return new BranchImpl(git.getRepository().resolve(branch));
+            }
             return getBranch(branch);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException("Ref isn't a Branch or a Commit to checkout");
         }
     }
 

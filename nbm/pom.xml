@@ -107,7 +107,11 @@
             <version>2.5</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>de.adito.util</groupId>
+            <artifactId>reactive</artifactId>
+            <version>1.0.3</version>
+        </dependency>
     </dependencies>
 
     <build>

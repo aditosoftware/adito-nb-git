@@ -9,7 +9,6 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TableLayoutUtil;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.Observable;
@@ -30,19 +29,26 @@ import java.util.Optional;
  *
  * @author a.arnold, 08.11.2018
  */
-public class StatusLineWindowContent extends JPanel implements IDiscardable {
+class StatusLineWindowContent extends JPanel implements IDiscardable {
     private final IActionProvider actionProvider;
-    private final Observable<Optional<IRepository>> repository;
-    private final Observable<Optional<List<IBranch>>> branchObservable;
+    private final Observable<Optional<IRepository>> observableOptRepo;
+    private final Observable<Optional<List<IBranch>>> observableBranches;
     private List<JList<IBranch>> branchLists = new ArrayList<>();
     private Disposable disposable;
-    private PopupWindow popupWindow;
 
     @Inject
-    public StatusLineWindowContent(IActionProvider pProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
+    public StatusLineWindowContent(IActionProvider pProvider, @Assisted Observable<Optional<IRepository>> pObservableOptRepo) {
         actionProvider = pProvider;
-        repository = pRepository;
-        branchObservable = repository.flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException("no valid repository found")).getBranches());
+        observableOptRepo = pObservableOptRepo;
+        observableBranches = observableOptRepo.flatMap(pOptRepo -> pOptRepo
+                .map(pRepo -> {
+                    try {
+                        return pRepo.getBranches();
+                    } catch (Exception e) {
+                        return Observable.just(Optional.<List<IBranch>>empty());
+                    }
+                })
+                .orElse(Observable.just(Optional.empty())));
         _initGUI();
     }
 
@@ -72,14 +78,15 @@ public class StatusLineWindowContent extends JPanel implements IDiscardable {
         tlu.add(0, 6, _createListBranches(EBranchType.REMOTE));
     }
 
-    private JLabel _createLabel(String pString){
+    private JLabel _createLabel(String pString) {
         JLabel jLabel = new JLabel(pString);
         jLabel.setFont(jLabel.getFont().deriveFont(Font.BOLD));
-        return  jLabel;
+        return jLabel;
     }
 
     /**
-     * a click-able label to create a new Branch at the actual repository
+     * a click-able label to create a new Branch at the actual observableOptRepo
+     *
      * @return return a label for the new branch action
      */
     private JLabel _createNewBranch() {
@@ -89,9 +96,11 @@ public class StatusLineWindowContent extends JPanel implements IDiscardable {
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                Action newBranchAction = actionProvider.getNewBranchAction(repository);
+                Action newBranchAction = actionProvider.getNewBranchAction(observableOptRepo);
                 newBranchAction.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, ""));
-                popupWindow.dispose();
+                JWindow parent = (JWindow) getClientProperty("parent");
+                if (parent != null)
+                    parent.dispose();
             }
         });
         return label;
@@ -109,21 +118,17 @@ public class StatusLineWindowContent extends JPanel implements IDiscardable {
         branchList.setSelectionModel(new ObservableListSelectionModel(branchList.getSelectionModel()));
         branchList.setCellRenderer(new BranchCellRenderer());
         branchList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        branchList.addMouseListener(new _BranchMouseListener());
+        branchList.addMouseListener(new _BranchMouseListener(type));
         branchList.addMouseListener(hoverMouseListener);
         branchList.addMouseMotionListener(hoverMouseListener);
         branchLists.add(branchList);
 
-        disposable = branchObservable.subscribe(pBranches -> branchList.setListData(
+        disposable = observableBranches.subscribe(pBranches -> branchList.setListData(
                 pBranches.orElse(Collections.emptyList())
-                .stream()
-                .filter(pBranch -> pBranch.getType().equals(type))
-                .toArray(IBranch[]::new)));
+                        .stream()
+                        .filter(pBranch -> pBranch.getType().equals(type))
+                        .toArray(IBranch[]::new)));
         return branchList;
-    }
-
-    public void setParentWindow(PopupWindow pPopupWindow) {
-        popupWindow = pPopupWindow;
     }
 
     @Override
@@ -136,40 +141,42 @@ public class StatusLineWindowContent extends JPanel implements IDiscardable {
      * add a {@link MouseAdapter} to the second popup menu at the clicked branch.
      */
     private class _BranchMouseListener extends MouseAdapter {
+        private final EBranchType type;
+
+        _BranchMouseListener(EBranchType pType) {
+            type = pType;
+        }
+
         @Override
         public void mousePressed(MouseEvent e) {
-            JList branchList = (JList) e.getSource();
-            int selectedIndex = branchList.getSelectedIndex();
+            JList<IBranch> selectedBranchList = (JList) e.getSource();
 
             //clear the last selection
             branchLists.forEach(listComponent -> {
-                        if (!listComponent.equals(branchList)) {
+                        if (!listComponent.equals(selectedBranchList)) {
                             listComponent.clearSelection();
                         }
                     }
             );
 
-            //get selected branch as optional
-            Observable<Optional<IBranch>> selectedBranch = branchObservable.map(pBranches -> {
-                if (selectedIndex == -1) {
-                    return Optional.empty();
-                } else {
-                    return Optional.of(pBranches.orElseThrow().get(selectedIndex));
-                }
-            });
+            Observable<Optional<List<IBranch>>> selectedBranches = Observable.just(Optional.of(selectedBranchList.getSelectedValuesList()));
+            Observable<Optional<IBranch>> selectedBranch = selectedBranches.map(pOpt -> pOpt.map(pList -> {
+                if (pList.isEmpty())
+                    return null;
+                return pList.get(0);
+            }));
 
-            Action checkoutAction = actionProvider.getCheckoutAction(repository, selectedBranch);
-            Action showAllCommitsAction = actionProvider.getShowAllCommitsForBranchAction(repository, branchObservable.map(pBranch ->
-                    pBranch.map(iBranches -> Collections.singletonList(iBranches.get(selectedIndex)))));
-            Action mergeAction = actionProvider.getMergeAction(repository, selectedBranch);
+            Action checkoutAction = actionProvider.getCheckoutAction(observableOptRepo, selectedBranch);
+            Action showAllCommitsAction = actionProvider.getShowAllCommitsForBranchAction(observableOptRepo, selectedBranches);
+            Action mergeAction = actionProvider.getMergeAction(observableOptRepo, selectedBranch);
 
             JPopupMenu innerPopup = new JPopupMenu();
             innerPopup.add(new _DisposeAction(checkoutAction));
             innerPopup.add(new _DisposeAction(showAllCommitsAction));
             innerPopup.add(new _DisposeAction(mergeAction));
 
-            Point location = _calculateInnerPopupPosition(branchList);
-            innerPopup.show(branchList, location.x - innerPopup.getPreferredSize().width, location.y);
+            Point location = _calculateInnerPopupPosition(selectedBranchList);
+            innerPopup.show(selectedBranchList, location.x - innerPopup.getPreferredSize().width, location.y);
         }
 
         private Point _calculateInnerPopupPosition(JList pBranchList) {
@@ -238,7 +245,9 @@ public class StatusLineWindowContent extends JPanel implements IDiscardable {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            popupWindow.dispose();
+            JWindow parent = (JWindow) getClientProperty("parent");
+            if (parent != null)
+                parent.dispose();
             outerAction.actionPerformed(e);
         }
     }

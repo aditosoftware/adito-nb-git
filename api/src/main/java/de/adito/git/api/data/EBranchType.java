@@ -10,7 +10,9 @@ package de.adito.git.api.data;
  */
 public enum EBranchType {
     REMOTE("Remote"),
-    LOCAL("Local");
+    LOCAL("Local"),
+    DETACHED("Detached"),
+    EMPTY("Empty");
 
     private String displayName;
 
@@ -39,6 +41,8 @@ public enum EBranchType {
                 return "heads";
             case REMOTE:
                 return "remotes";
+            case DETACHED:
+                return "detached";
             default:
                 return "heads";
         }

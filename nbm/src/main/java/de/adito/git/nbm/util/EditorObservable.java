@@ -1,6 +1,7 @@
 package de.adito.git.nbm.util;
 
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.Observables;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.windows.Mode;
@@ -14,11 +15,11 @@ import java.util.Set;
 /**
  * @author a.arnold, 05.11.2018
  */
+@NotNull
 public class EditorObservable extends AbstractListenerObservable<PropertyChangeListener, TopComponent.Registry, Optional<TopComponent>> {
 
     public static Observable<Optional<TopComponent>> create() {
-        return Observable.create(new EditorObservable())
-                .startWith(Optional.ofNullable(getCurrentEditor()));
+        return Observables.create(new EditorObservable(), EditorObservable::_getCurrentEditor);
     }
 
     private EditorObservable() {
@@ -28,7 +29,7 @@ public class EditorObservable extends AbstractListenerObservable<PropertyChangeL
     @NotNull
     @Override
     protected PropertyChangeListener registerListener(@NotNull TopComponent.Registry pRegistry, @NotNull IFireable<Optional<TopComponent>> pFireable) {
-        PropertyChangeListener listener = evt -> pFireable.fireValueChanged(Optional.ofNullable(getCurrentEditor()));
+        PropertyChangeListener listener = evt -> pFireable.fireValueChanged(_getCurrentEditor());
         pRegistry.addPropertyChangeListener(listener);
         return listener;
     }
@@ -38,13 +39,14 @@ public class EditorObservable extends AbstractListenerObservable<PropertyChangeL
         pRegistry.removePropertyChangeListener(pPropertyChangeListener);
     }
 
-    private static TopComponent getCurrentEditor() {
+    @NotNull
+    private static Optional<TopComponent> _getCurrentEditor() {
         Set<? extends Mode> modes = WindowManager.getDefault().getModes();
         for (Mode mode : modes) {
             if ("editor".equals(mode.getName())) {
-                return mode.getSelectedTopComponent();
+                return Optional.ofNullable(mode.getSelectedTopComponent());
             }
         }
-        return null;
+        return Optional.empty();
     }
 }
