@@ -14,7 +14,7 @@ public class FileChangeTypeImpl implements IFileChangeType {
     private File file;
     private EChangeType changeType;
 
-    FileChangeTypeImpl(File pFile, EChangeType pEChangeType) {
+    public FileChangeTypeImpl(File pFile, EChangeType pEChangeType) {
         file = pFile;
         changeType = pEChangeType;
     }
