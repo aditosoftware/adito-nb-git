@@ -15,6 +15,8 @@ import java.util.Optional;
  */
 public interface IRepository {
 
+    enum RebaseState {START, CONTINUE, ABORT}
+
     /**
      * @param addList List of files to add to staging
      * @throws Exception if an error occurs
@@ -47,7 +49,7 @@ public interface IRepository {
 
     /**
      * Pulls the current contents of the tracked remote branch of the currently selected local branch
-     * from origin
+     * from origin via pull --rebase
      *
      * @return {@code true} if the pull was successful, {@code false otherwise}
      * @throws Exception if an error occurs
@@ -198,7 +200,7 @@ public interface IRepository {
      * @throws Exception if JGit encountered an error condition
      * @throws Exception if an error occurs
      */
-    List<String> getCommittedFiles(String commitId) throws Exception;
+    List<IFileChangeType> getCommittedFiles(String commitId) throws Exception;
 
     /**
      * @param identifier String with identifier of the commit, or NULL for the latest commit

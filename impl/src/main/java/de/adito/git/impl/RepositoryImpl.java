@@ -15,6 +15,7 @@ import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
@@ -573,14 +574,15 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<String> getCommittedFiles(String commitId) throws Exception {
+    public List<IFileChangeType> getCommittedFiles(String commitId) throws Exception {
         RevCommit thisCommit = _getRevCommit(commitId);
         List<DiffEntry> diffEntries = new ArrayList<>();
         for (RevCommit parent : thisCommit.getParents()) {
             diffEntries.addAll(_doDiff(thisCommit.getId(), parent.getId()));
         }
         return diffEntries.stream()
-                .map(DiffEntry::getOldPath)
+                .map(pDiffEntry -> new FileChangeTypeImpl(
+                        new File(pDiffEntry.getOldPath()), EnumMappings._toEChangeType(pDiffEntry.getChangeType())))
                 .distinct()
                 .collect(Collectors.toList());
     }
