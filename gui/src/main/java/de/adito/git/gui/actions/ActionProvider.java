@@ -93,8 +93,8 @@ class ActionProvider implements IActionProvider {
      * {@inheritDoc}
      */
     @Override
-    public PullAction getPullAction(Observable<Optional<IRepository>> pRepository, String pTargetId) {
-        return actionFactory.createPullAction(pRepository, pTargetId);
+    public PullAction getPullAction(Observable<Optional<IRepository>> pRepository) {
+        return actionFactory.createPullAction(pRepository);
     }
 
     /**

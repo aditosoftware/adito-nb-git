@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import io.reactivex.Observable;
 
 import java.util.List;
@@ -43,14 +44,14 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public DialogResult showCommitDialog(Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
+    public DialogResult<CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit) {
         String commitMessage = null;
-        CommitDialog commitDialog = dialogFactory.createCommitDialog(dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton, pFilesToCommit);
+        CommitDialog commitDialog = dialogFactory.createCommitDialog(dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton, pRepository, pFilesToCommit);
         boolean pressedOk = dialogDisplayer.showDialog(commitDialog, "Commit", false);
         if(pressedOk) {
             commitMessage = commitDialog.getMessageText();
         }
-        return new DialogResult(pressedOk, commitMessage);
+        return new DialogResult<>(pressedOk, commitMessage, new CommitDialogResult(commitDialog.getFilesToCommit(), commitDialog.isAmend()));
     }
 
     @Override

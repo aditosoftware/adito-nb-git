@@ -14,7 +14,7 @@ import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -125,7 +125,7 @@ class MergeConflictDialog extends JPanel {
                     .orElseThrow(() -> new RuntimeException("no valid repository found"))
                     .add(Collections.singletonList(pSelectedFile));
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

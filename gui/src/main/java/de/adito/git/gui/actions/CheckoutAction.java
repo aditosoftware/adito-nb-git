@@ -41,7 +41,7 @@ class CheckoutAction extends AbstractTableAction {
                 repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).checkout(branchImpl);
                 System.out.println("Checkout to: " + branch);
             } catch (Exception e1) {
-                e1.printStackTrace();
+                throw new RuntimeException(e1);
             }
         }
     }

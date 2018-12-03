@@ -40,7 +40,7 @@ class ExcludeAction extends AbstractTableAction {
                     .collect(Collectors.toList());
             repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).exclude(files);
         } catch (IOException e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 

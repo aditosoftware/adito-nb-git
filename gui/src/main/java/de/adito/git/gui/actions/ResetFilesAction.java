@@ -40,7 +40,7 @@ class ResetFilesAction extends AbstractTableAction {
                             .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
                             .collect(Collectors.toList()));
         } catch (Exception e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 

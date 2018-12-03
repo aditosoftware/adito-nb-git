@@ -41,7 +41,7 @@ class AddAction extends AbstractTableAction {
                     .collect(Collectors.toList());
             repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).add(files);
         } catch (Exception e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 

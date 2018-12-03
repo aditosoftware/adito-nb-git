@@ -303,11 +303,11 @@ public class MergeDiffImpl implements IMergeDiff {
         List<Integer> affectedChunks = new ArrayList<>();
         int intersectionIndex = 0;
         // Side A ist assumed to be the text from the fork-point
-        while (fileChangeChunkList.get(intersectionIndex).getAEnd() <= toInsert.getAStart() && intersectionIndex < fileChangeChunkList.size()) {
+        while (intersectionIndex < fileChangeChunkList.size() && fileChangeChunkList.get(intersectionIndex).getAEnd() <= toInsert.getAStart()) {
             intersectionIndex++;
         }
         // all chunks before the affected area are now excluded
-        while (fileChangeChunkList.get(intersectionIndex).getAStart() < toInsert.getAEnd() && intersectionIndex < fileChangeChunkList.size()) {
+        while (intersectionIndex < fileChangeChunkList.size() && fileChangeChunkList.get(intersectionIndex).getAStart() < toInsert.getAEnd()) {
             affectedChunks.add(intersectionIndex);
             intersectionIndex++;
         }

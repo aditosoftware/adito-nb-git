@@ -96,7 +96,7 @@ public class RepositoryCache {
                 try {
                     _doOnProjectOpened(openedProject);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
         }
     }

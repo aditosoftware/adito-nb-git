@@ -30,7 +30,7 @@ interface IActionFactory {
 
     NewBranchAction createNewBranchAction(Observable<Optional<IRepository>> pRepository);
 
-    PullAction createPullAction(Observable<Optional<IRepository>> pRepository, String pTargetId);
+    PullAction createPullAction(Observable<Optional<IRepository>> pRepository);
 
     PushAction createPushAction(Observable<Optional<IRepository>> pRepository);
 

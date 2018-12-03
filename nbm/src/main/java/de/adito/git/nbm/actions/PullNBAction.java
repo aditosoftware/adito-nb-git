@@ -7,6 +7,7 @@ import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
@@ -22,7 +23,10 @@ import java.util.Optional;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.PullNBAction")
 @ActionRegistration(displayName = "LBL_PullNBAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100)
+@ActionReferences({
+        @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100),
+        @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 300)
+})
 public class PullNBAction extends NBAction {
 
     /**
@@ -37,16 +41,15 @@ public class PullNBAction extends NBAction {
         IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
         try {
-            actionProvider.getPullAction(repository, repository
-                    .blockingFirst()
-                    .orElseThrow(() -> new RuntimeException("no valid repository found"))
-                    .getCurrentBranch()
-                    .blockingFirst()
-                    .orElseThrow(() -> new RuntimeException("could not find current branch"))
-                    .getId());
+            actionProvider.getPullAction(repository).actionPerformed(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    protected String iconResource() {
+        return NbBundle.getMessage(PushNBAction.class, "ICON_PullNBAction_Path");
     }
 
     /**

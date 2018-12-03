@@ -111,7 +111,7 @@ public class ForkPointPanel extends ChangeDisplayPanel implements IDiscardable {
                         mergeDiff.insertText(insertedText, insertedText.length(), insertOffset, true);
                     });
                 } catch (BadLocationException e1) {
-                    e1.printStackTrace();
+                    throw new RuntimeException(e1);
                 }
             }
         }

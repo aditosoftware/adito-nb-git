@@ -19,7 +19,8 @@ interface IDialogFactory {
 
     MergeConflictResolutionDialog create(IMergeDiff pMergeDiff);
 
-    CommitDialog createCommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
+    CommitDialog createCommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk,
+                                    Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
 
     DiffDialog createDiffDialog(List<IFileDiff> pDiffs);
 

@@ -45,7 +45,7 @@ class DiffAction extends AbstractTableAction {
             fileDiffs = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).diff(files, null);
             dialogProvider.showDiffDialog(fileDiffs);
         } catch (Exception e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 

@@ -46,7 +46,7 @@ public class RepositoryImpl implements IRepository {
     private Git git;
     private final Observable<Optional<List<IBranch>>> branchList;
     private final Observable<IFileStatus> status;
-    private final BehaviorSubject<Optional<IBranch>> currentBranch;
+    private final BehaviorSubject<Optional<IBranch>> currentBranchObservable;
     private final ColorRoulette colorRoulette;
 
     @Inject
@@ -61,7 +61,7 @@ public class RepositoryImpl implements IRepository {
 
         // Current Branch
         IBranch curBranch = _currentBranch();
-        currentBranch = BehaviorSubject.createDefault(curBranch == null ? Optional.empty() : Optional.of(curBranch));
+        currentBranchObservable = BehaviorSubject.createDefault(curBranch == null ? Optional.empty() : Optional.of(curBranch));
     }
 
     /**
@@ -102,14 +102,14 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public String commit(@NotNull String message, List<File> fileList) throws Exception {
+    public String commit(@NotNull String message, List<File> fileList, boolean isAmend) throws Exception {
         CommitCommand commit = git.commit();
         RevCommit revCommit;
         for (File file : fileList) {
             commit.setOnly(getRelativePath(file, git));
         }
         try {
-            revCommit = commit.setMessage(message).call();
+            revCommit = commit.setMessage(message).setAmend(isAmend).call();
         } catch (GitAPIException e) {
             throw new Exception("Unable to commit to local Area", e);
         }
@@ -138,23 +138,27 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public boolean pull(@NotNull String targetId) throws Exception {
-        if (status.blockingFirst().hasUncommittedChanges()) {
+    public List<IMergeDiff> pull() throws Exception {
+        String currentHeadName = git.getRepository().getFullBranch();
+        String targetName = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
+        IFileStatus currentStatus = status.blockingFirst();
+        if (currentStatus.hasUncommittedChanges()) {
             //TODO: remove this once stashing is implemented and do stash -> pull -> un-stash
             System.err.println("Not able to pull files from remote due to uncommitted, changed files. Either commit or revert them and try again");
-            return false;
+            return Collections.emptyList();
         }
-        if (targetId.equals("")) {
-            targetId = "master";
+        if (currentStatus.getConflicting().size() > 0) {
+            RevCommit forkCommit = _findForkPoint(targetName, currentHeadName);
+            return _getMergeConflicts(targetName, currentHeadName, new CommitImpl(forkCommit), currentStatus.getConflicting());
         }
-        PullCommand pullcommand = git.pull().setRemoteBranchName(targetId);
-        pullcommand.setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
+        PullCommand pullCommand = git.pull();
+        pullCommand.setRebase(true);
         try {
-            pullcommand.call();
+            pullCommand.call();
         } catch (GitAPIException e) {
             throw new Exception("Unable to pull new files", e);
         }
-        return true;
+        return Collections.emptyList();
     }
 
     /**
@@ -198,7 +202,7 @@ public class RepositoryImpl implements IRepository {
         if (listDiff != null) {
             for (DiffEntry diff : listDiff) {
                 try (DiffFormatter formatter = new DiffFormatter(null)) {
-                    formatter.setRepository(GitRepositoryProvider.get());
+                    formatter.setRepository(git.getRepository());
                     FileHeader fileHeader = formatter.toFileHeader(diff);
                     listDiffImpl.add(new FileDiffImpl(diff, fileHeader, getFileContents(getFileVersion(compareTo.getId(), diff.getOldPath())), getFileContents(getFileVersion(original.getId(), diff.getNewPath()))));
                 }
@@ -230,7 +234,7 @@ public class RepositoryImpl implements IRepository {
             }
             if (pathFilters.size() > 1) {
                 diffFormatter.setPathFilter(OrTreeFilter.create(pathFilters));
-            } else {
+            } else if (pathFilters.size() != 0) {
                 diffFormatter.setPathFilter(pathFilters.get(0));
             }
         }
@@ -300,7 +304,7 @@ public class RepositoryImpl implements IRepository {
             try {
                 cloneRepo.call();
             } catch (GitAPIException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
             return true;
         }
@@ -439,7 +443,7 @@ public class RepositoryImpl implements IRepository {
         CheckoutCommand checkout = git.checkout().setName(branch.getName()).setCreateBranch(false).setStartPoint(branch.getName());
         try {
             checkout.call();
-            currentBranch.onNext(Optional.of(branch));
+            currentBranchObservable.onNext(Optional.of(branch));
         } catch (GitAPIException e) {
             throw new Exception("Unable to checkout Branch " + branch.getName(), e);
         }
@@ -469,7 +473,7 @@ public class RepositoryImpl implements IRepository {
         List<IMergeDiff> mergeConflicts = new ArrayList<>();
         if (status.blockingFirst().getConflicting().size() > 0) {
             RevCommit forkCommit = _findForkPoint(parentID, toMergeID);
-            mergeConflicts = _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
+            return _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
         }
         try {
             checkout(parentID);
@@ -539,28 +543,26 @@ public class RepositoryImpl implements IRepository {
     }
 
     /**
-     * @param parentBranchName  name of the branch currently on
-     * @param foreignBranchName name of the branch for which to find the closest forkPoint to this branch
-     * @return RevCommit that is the forkpoint between the two branches, or null if not available
+     * @param parentBranchName  name (not id) of the branch currently on
+     * @param foreignBranchName name (not id) of the branch (or id for a commit) for which to find the closest forkPoint to this branch
+     * @return RevCommit that is the forkPoint between the two branches, or null if not available
      * @throws IOException if an error occurs during parsing
      */
     @Nullable
     private RevCommit _findForkPoint(String parentBranchName, String foreignBranchName) throws IOException {
         try (RevWalk walk = new RevWalk(git.getRepository())) {
             RevCommit foreignCommit = walk.lookupCommit(git.getRepository().resolve(foreignBranchName));
-            List<ReflogEntry> refLog = git.getRepository().getReflogReader(parentBranchName).getReverseEntries();
-            if (refLog.isEmpty()) {
-                return null;
-            }
-            // <= to check both new and old ID for the oldest entry
-            for (int index = 0; index <= refLog.size(); index++) {
-                ObjectId commitId = index < refLog.size() ? refLog.get(index).getNewId() : refLog.get(index - 1).getOldId();
-                RevCommit commit = walk.lookupCommit(commitId);
+            LinkedList<ObjectId> parentsToParse = new LinkedList<>();
+            parentsToParse.add(git.getRepository().resolve(parentBranchName));
+            while (parentsToParse.size() > 0) {
+                RevCommit commit = walk.lookupCommit(parentsToParse.poll());
                 // check if foreignCommit is reachable from the currently selected commit
                 if (walk.isMergedInto(commit, foreignCommit)) {
                     // check if commit is a valid commit that does not contain errors when parsed
                     walk.parseBody(commit);
                     return commit;
+                } else {
+                    parentsToParse.addAll(Arrays.stream(commit.getParents()).map(RevObject::getId).collect(Collectors.toList()));
                 }
             }
         }
@@ -571,7 +573,7 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<String> getCommitedFiles(String commitId) throws Exception {
+    public List<String> getCommittedFiles(String commitId) throws Exception {
         RevCommit thisCommit = _getRevCommit(commitId);
         List<DiffEntry> diffEntries = new ArrayList<>();
         for (RevCommit parent : thisCommit.getParents()) {
@@ -587,7 +589,11 @@ public class RepositoryImpl implements IRepository {
      * {@inheritDoc}
      */
     @Override
-    public ICommit getCommit(@NotNull String identifier) throws Exception {
+    public ICommit getCommit(@Nullable String identifier) throws Exception {
+        if (identifier == null) {
+            // only one RevCommit expected as result, so only take the first RevCommit
+            return new CommitImpl(git.log().setMaxCount(1).call().iterator().next());
+        }
         return new CommitImpl(_getRevCommit(identifier));
     }
 
@@ -728,7 +734,7 @@ public class RepositoryImpl implements IRepository {
 
     @Override
     public Observable<Optional<IBranch>> getCurrentBranch() {
-        return currentBranch;
+        return currentBranchObservable;
     }
 
     /**
@@ -772,11 +778,11 @@ public class RepositoryImpl implements IRepository {
     private List<IBranch> _branchList() {
         ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.ALL);
         List<IBranch> branchList = new ArrayList<>();
-        List<Ref> refBranchList = null;
+        List<Ref> refBranchList;
         try {
             refBranchList = listBranchCommand.call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         if (refBranchList != null) {
             refBranchList.forEach(branch -> branchList.add(new BranchImpl(branch)));
@@ -785,12 +791,12 @@ public class RepositoryImpl implements IRepository {
     }
 
     private IFileStatus _status() {
-        StatusCommand statusCommnand = git.status();
-        Status currentStatus = null;
+        StatusCommand statusCommand = git.status();
+        Status currentStatus;
         try {
-            currentStatus = statusCommnand.call();
+            currentStatus = statusCommand.call();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return new FileStatusImpl(currentStatus, git.getRepository().getDirectory());
     }

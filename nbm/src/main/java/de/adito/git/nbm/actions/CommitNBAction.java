@@ -60,6 +60,11 @@ public class CommitNBAction extends NBAction {
         actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
     }
 
+    @Override
+    protected String iconResource() {
+        return NbBundle.getMessage(PushNBAction.class, "ICON_CommitNBAction_Path");
+    }
+
     /**
      * @param activatedNodes the activated nodes in NetBeans
      * @return return true if the nodes have one repository and there are files which are not committed.

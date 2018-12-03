@@ -1,8 +1,10 @@
 package de.adito.git.gui;
 
 import de.adito.git.api.data.EChangeType;
+import de.adito.git.gui.tableModels.StatusTableModel;
 
 import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
@@ -19,7 +21,7 @@ public class FileStatusCellRenderer extends DefaultTableCellRenderer {
         // Text in cells is always displayed as label
         JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         if (!isSelected) {
-            label.setForeground(((EChangeType) table.getModel().getValueAt(row, 2)).getStatusColor());
+            label.setForeground(((EChangeType) table.getModel().getValueAt(row, ((AbstractTableModel) table.getModel()).findColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME))).getStatusColor());
         }
         return label;
     }

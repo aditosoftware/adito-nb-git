@@ -15,9 +15,12 @@ import javax.swing.table.AbstractTableModel;
  */
 public class StatusTableModel extends AbstractTableModel implements IDiscardable {
 
-    public static final String[] columnNames = {"Filename", "Filepath", "Changetype"};
+    public final static String FILE_NAME_COLUMN_NAME = "fileName";
+    public final static String FILE_PATH_COLUMN_NAME = "filePath";
+    public final static String CHANGE_TYPE_COLUMN_NAME = "changeType";
+    public static final String[] columnNames = {FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
 
-    private  IFileStatus status;
+    private IFileStatus status;
     private Disposable statusDisposable;
 
     public StatusTableModel(Observable<IFileStatus> pStatusObservable) {
@@ -25,6 +28,15 @@ public class StatusTableModel extends AbstractTableModel implements IDiscardable
             status = pStatus;
             fireTableDataChanged();
         });
+    }
+
+    @Override
+    public int findColumn(String columnName) {
+        for (int index = 0; index < columnNames.length; index++) {
+            if (columnNames[index].equals(columnName))
+                return index;
+        }
+        return -1;
     }
 
     @Override
@@ -57,17 +69,15 @@ public class StatusTableModel extends AbstractTableModel implements IDiscardable
     public Object getValueAt(int rowIndex, int columnIndex) {
         // Columns : | filename | filepath     | changetype |
         // example:  | file     | example/file | modified   |
-        switch (columnIndex) {
-            case 0:
-                return status.getUncommitted().get(rowIndex).getFile().getName();
-            case 1:
-                return status.getUncommitted().get(rowIndex).getFile().getPath();
-            case 2:
-                return status.getUncommitted().get(rowIndex).getChangeType();
-            default:
-                return null;
-        }
 
+        if (columnIndex == findColumn(FILE_NAME_COLUMN_NAME))
+            return status.getUncommitted().get(rowIndex).getFile().getName();
+        else if (columnIndex == findColumn(FILE_PATH_COLUMN_NAME))
+            return status.getUncommitted().get(rowIndex).getFile().getPath();
+        else if (columnIndex == findColumn(CHANGE_TYPE_COLUMN_NAME))
+            return status.getUncommitted().get(rowIndex).getChangeType();
+        else
+            return null;
     }
 
     /**

@@ -35,6 +35,11 @@ public class ShowStatusWindowNBAction extends NBAction {
     }
 
     @Override
+    protected String iconResource() {
+        return NbBundle.getMessage(PushNBAction.class, "ICON_ShowStatusWindowNBAction_Path");
+    }
+
+    @Override
     protected boolean enable(Node[] activeNodes) {
         return NBAction.findOneRepositoryFromNode(activeNodes).blockingFirst().isPresent();
     }

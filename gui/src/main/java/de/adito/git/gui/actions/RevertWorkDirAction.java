@@ -40,7 +40,7 @@ class RevertWorkDirAction extends AbstractTableAction {
                             .map(IFileChangeType::getFile)
                             .collect(Collectors.toList()));
         } catch (Exception e1) {
-            e1.printStackTrace();
+            throw new RuntimeException(e1);
         }
     }
 

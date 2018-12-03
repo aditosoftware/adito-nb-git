@@ -72,10 +72,9 @@ public interface IActionProvider {
 
     /**
      * @param pRepository Observable with the current Repository
-     * @param pTargetId   the id for the remote/branch to pull from
      * @return Action whose actionPerformed method pulls all changes from origin/a remote to the HEAD and the working directory
      */
-    Action getPullAction(Observable<Optional<IRepository>> pRepository, String pTargetId);
+    Action getPullAction(Observable<Optional<IRepository>> pRepository);
 
     /**
      * @param pRepository Observable with the current Repository
