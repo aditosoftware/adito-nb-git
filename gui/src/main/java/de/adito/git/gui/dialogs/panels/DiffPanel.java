@@ -1,9 +1,7 @@
 package de.adito.git.gui.dialogs.panels;
 
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.TextHighlightUtil;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -89,7 +87,7 @@ public class DiffPanel extends ChangeDisplayPanel implements IDiscardable {
     private void _textChanged(List<IFileChangeChunk> pChangeChunkList) {
         final int caretPosition = textPane.getCaretPosition();
         // insert the text from the IFileDiffs
-        TextHighlightUtil.insertColoredText(textPane, pChangeChunkList, changeSide, true);
+      TextHighlightUtil.insertColoredText(textPane, pChangeChunkList, changeSide, useParityLines);
         super.writeLineNums(lineNumbering, pChangeChunkList, useParityLines);
         textPane.setCaretPosition(caretPosition);
         revalidate();
