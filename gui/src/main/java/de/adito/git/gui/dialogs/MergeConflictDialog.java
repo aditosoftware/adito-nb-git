@@ -48,7 +48,7 @@ class MergeConflictDialog extends JPanel
     selectedMergeDiffObservable = Observable
         .combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
           // if either the list or selection is null, more than one element is selected or the list has 0 elements
-          if (pSelectedRows == null || pMergeDiffList == null || pSelectedRows.length != 1 || !pMergeDiffList.isEmpty())
+          if (pSelectedRows == null || pMergeDiffList == null || pSelectedRows.length != 1 || pMergeDiffList.isEmpty())
           {
             return Optional.empty();
             // if no element is selected (and at least one element is in the list, this follows from the if above)
