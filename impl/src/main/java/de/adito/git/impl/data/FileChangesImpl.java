@@ -1,18 +1,12 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChanges;
+import de.adito.git.api.data.*;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
-import org.eclipse.jgit.diff.Edit;
-import org.eclipse.jgit.diff.EditList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.subjects.*;
+import org.eclipse.jgit.diff.*;
+import org.jetbrains.annotations.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Object that stores the information about which changes happened to a file
@@ -43,6 +37,7 @@ public class FileChangesImpl implements IFileChanges {
             // from last chunk to end of file
             changeChunkList.add(_getUnchangedChunk(editList.get(editList.size() - 1), null));
         }
+        else
         {
             Edit edit = new Edit(0, originalLines.length, 0, newLines.length);
             changeChunkList.add(new FileChangeChunkImpl(edit, pNewFileContents, pNewFileContents, EChangeType.SAME));
