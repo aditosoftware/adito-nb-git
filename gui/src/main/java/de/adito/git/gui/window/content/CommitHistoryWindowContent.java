@@ -3,7 +3,7 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
@@ -12,7 +12,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.TableModel;
 import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.util.List;
@@ -32,11 +32,12 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static final int AUTHOR_COL_PREF_WIDTH = 160;
   private static final double MAIN_SPLIT_PANE_SIZE_RATIO = 0.75;
   private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
+  private static final String DETAILS_FORMAT_STRING = "%-10s\t%s%s";
   private final JTable commitTable = new JTable();
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectionObservable;
-  private final _ChangedFilesTableModel changedFilesTableModel;
+  private final ChangedFilesTableModel changedFilesTableModel;
   private Disposable disposable;
   private JPopupMenu popupMenu;
 
@@ -57,7 +58,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
       return Optional.of(selectedCommits);
     });
-    changedFilesTableModel = new _ChangedFilesTableModel(selectionObservable, repository);
+    changedFilesTableModel = new ChangedFilesTableModel(selectionObservable, repository);
     _initGUI(pLoadMoreCallback);
   }
 
@@ -131,10 +132,10 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     JTable changedFilesTable = new JTable(changedFilesTableModel);
     changedFilesTable.getColumnModel().removeColumn(changedFilesTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
     changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(_ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))
+        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))
         .setCellRenderer(new FileStatusCellRenderer());
     changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(_ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
+        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
         .setCellRenderer(new FileStatusCellRenderer());
     disposable = selectionObservable.subscribe(pCommits -> pCommits.ifPresent(iCommits -> messageTextArea.setText(_getDescriptionText(iCommits))));
     JScrollPane messageTextScrollPane = new JScrollPane(messageTextArea);
@@ -154,96 +155,11 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   {
     if (pCommits.isEmpty())
       return "";
-    return String.format("%-10s\t%s%s", "ID:", pCommits.get(0).getId(), "\n")
-        + String.format("%-10s\t%s%s", "Author:", pCommits.get(0).getAuthor(), "\n")
-        + String.format("%-10s\t%s%s", "Date:", pCommits.get(0).getTime().toString(), "\n\n")
+    return String.format(DETAILS_FORMAT_STRING, "ID:", pCommits.get(0).getId(), "\n")
+        + String.format(DETAILS_FORMAT_STRING, "Author:", pCommits.get(0).getAuthor(), "\n")
+        + String.format(DETAILS_FORMAT_STRING, "Date:", pCommits.get(0).getTime().toString(), "\n\n")
         + "Full message:\n"
         + pCommits.get(0).getMessage();
   }
 
-  /**
-   * TableModel for displaying a the list of changed files with their name and absolute path
-   *
-   * @author M.Kaspera 03.12.2018
-   */
-  private static class _ChangedFilesTableModel extends AbstractTableModel implements IDiscardable
-  {
-
-    static final String FILE_PATH_COLUMN_NAME = StatusTableModel.FILE_PATH_COLUMN_NAME;
-    static final String CHANGE_TYPE_COLUMN_NAME = StatusTableModel.CHANGE_TYPE_COLUMN_NAME;
-    static final String FILE_NAME_COLUMN_NAME = StatusTableModel.FILE_NAME_COLUMN_NAME;
-    static final String[] columnNames = {FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
-    private Disposable disposable;
-    private List<IFileChangeType> changedFiles = new ArrayList<>();
-
-    _ChangedFilesTableModel(Observable<Optional<List<ICommit>>> pSelectedCommits, Observable<Optional<IRepository>> pRepo)
-    {
-      Optional<IRepository> currentRepo = pRepo.blockingFirst();
-      disposable = pSelectedCommits.subscribe(pSelectedCommitsOpt -> {
-        if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
-          changedFiles = currentRepo.get().getCommittedFiles(pSelectedCommitsOpt.get().get(0).getId());
-        else
-          changedFiles = Collections.emptyList();
-        fireTableDataChanged();
-      });
-    }
-
-    @Override
-    public int findColumn(String pColumnName)
-    {
-      for (int index = 0; index < pColumnName.length(); index++)
-      {
-        if (columnNames[index].equals(pColumnName))
-        {
-          return index;
-        }
-      }
-      return -1;
-    }
-
-    @Override
-    public String getColumnName(int pColumn)
-    {
-      String returnValue = "";
-      if (pColumn == findColumn(FILE_NAME_COLUMN_NAME))
-        returnValue = FILE_NAME_COLUMN_NAME;
-      if (pColumn == findColumn(FILE_PATH_COLUMN_NAME))
-        returnValue = FILE_PATH_COLUMN_NAME;
-      if (pColumn == findColumn(CHANGE_TYPE_COLUMN_NAME))
-        returnValue = CHANGE_TYPE_COLUMN_NAME;
-      return returnValue;
-    }
-
-    @Override
-    public int getRowCount()
-    {
-      return changedFiles.size();
-    }
-
-    @Override
-    public int getColumnCount()
-    {
-      return columnNames.length;
-    }
-
-    @Override
-    public Object getValueAt(int pRowIndex, int pColumnIndex)
-    {
-      Object returnValue;
-      if (pColumnIndex == findColumn(FILE_NAME_COLUMN_NAME))
-        returnValue = changedFiles.get(pRowIndex).getFile().getName();
-      else if (pColumnIndex == findColumn(FILE_PATH_COLUMN_NAME))
-        returnValue = changedFiles.get(pRowIndex).getFile().getAbsolutePath();
-      else if (pColumnIndex == findColumn(CHANGE_TYPE_COLUMN_NAME))
-        returnValue = changedFiles.get(pRowIndex).getChangeType();
-      else returnValue = changedFiles.get(pRowIndex);
-      return returnValue;
-    }
-
-    @Override
-    public void discard()
-    {
-      disposable.dispose();
-    }
-  }
 }
