@@ -19,6 +19,11 @@ import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import org.jetbrains.annotations.*;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
@@ -394,7 +399,7 @@ public class RepositoryImpl implements IRepository
   public String getFileContents(String pIdentifier) throws IOException
   {
     ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
-    return new String(loader.getBytes());
+    return new String(loader.getBytes(), StandardCharsets.UTF_8);
   }
 
   /**
