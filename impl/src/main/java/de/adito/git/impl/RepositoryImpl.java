@@ -179,8 +179,8 @@ public class RepositoryImpl implements IRepository
         try
         {
           PullResult pullResult = pullCommand.call();
-          iRebaseResult = _handlePullResult(pullResult::getRebaseResult, currentHeadName, targetName,
-                                            new CommitImpl(_findForkPoint(currentHeadName, targetName)));
+          iRebaseResult = _handlePullResult(pullResult::getRebaseResult, ObjectId.toString(pullResult.getRebaseResult().getCurrentCommit().getId()),
+                                            targetName, new CommitImpl(_findForkPoint(currentHeadName, targetName)));
         }
         catch (GitAPIException e)
         {
