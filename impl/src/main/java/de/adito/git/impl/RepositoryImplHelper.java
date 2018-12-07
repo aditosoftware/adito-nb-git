@@ -292,4 +292,80 @@ class RepositoryImplHelper
     }
   }
 
+  /**
+   * Creates a new stash commit with all uncommitted changes in the index
+   *
+   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
+   * @return SHA-1 id of the created stash commit
+   * @throws GitAPIException if JGit throws an exception
+   */
+  static String stashChanges(@NotNull Git pGit) throws GitAPIException
+  {
+    return pGit.stashCreate().call().getName();
+  }
+
+  /**
+   * Checks whether there is a stashed commit available or not and un-stashes the commit if one exists
+   *
+   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
+   * @throws GitAPIException   if JGit throws an exception
+   * @throws AditoGitException if a stashed commit exists in the list of stashed commits, but it cannot be retrieved by its ID
+   */
+  static void unStashIfAvailable(@NotNull Git pGit) throws GitAPIException, AditoGitException
+  {
+    Collection<RevCommit> stashedCommits = pGit.stashList().call();
+    if (!stashedCommits.isEmpty())
+    {
+      unStashChanges(pGit, stashedCommits.iterator().next().getName());
+    }
+  }
+
+  /**
+   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
+   * @throws GitAPIException   if JGit throws an exception
+   * @throws AditoGitException if there is no stashed commit available
+   */
+  static void unStashChange(@NotNull Git pGit) throws GitAPIException, AditoGitException
+  {
+    Collection<RevCommit> stashedCommits = pGit.stashList().call();
+    if (!stashedCommits.isEmpty())
+    {
+      unStashChanges(pGit, stashedCommits.iterator().next().getName());
+    }
+    else
+    {
+      throw new AditoGitException("Could not find any stashed commits to un-stash");
+    }
+  }
+
+  /**
+   * Applies the changes stored in the stashed commit with id pStashCommitId and removes the
+   * stashed commit afterwards
+   *
+   * @param pGit           Git object to call for retrieving commits/objects/info about the repository status
+   * @param pStashCommitId id of the stashed commit to apply
+   * @throws GitAPIException   if JGit throws an exception
+   * @throws AditoGitException if no stashed commit can be found with id pStashCommitId
+   */
+  @SuppressWarnings("WeakerAccess")
+  static void unStashChanges(@NotNull Git pGit, @NotNull String pStashCommitId) throws GitAPIException, AditoGitException
+  {
+    boolean stashCommitExists = false;
+    int index = 0;
+    for (RevCommit stashedCommit : pGit.stashList().call())
+    {
+      if (stashedCommit.getName().equals(pStashCommitId))
+      {
+        stashCommitExists = true;
+        break;
+      }
+      else
+        index++;
+    }
+    if (!stashCommitExists)
+      throw new AditoGitException("Could not find a stashed commit for id " + pStashCommitId);
+    pGit.stashApply().setStashRef(pStashCommitId).call();
+    pGit.stashDrop().setStashRef(index).call();
+  }
+
 }

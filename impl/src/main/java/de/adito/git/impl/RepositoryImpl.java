@@ -19,12 +19,8 @@ import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import org.jetbrains.annotations.*;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.function.*;
@@ -165,21 +161,30 @@ public class RepositoryImpl implements IRepository
         rebaseCommand.setOperation(RebaseCommand.Operation.ABORT);
         RebaseResult rebaseResult = rebaseCommand.call();
         if (rebaseResult.getStatus() == RebaseResult.Status.ABORTED)
+        {
+          RepositoryImplHelper.unStashIfAvailable(git);
           return new RebaseResultImpl(Collections.emptyList(), rebaseResult.getStatus());
+        }
         else
           throw new AditoGitException("could not abort rebase");
       }
       IRebaseResult iRebaseResult;
       if (!git.getRepository().getRepositoryState().isRebasing())
       {
+        if (!status.blockingFirst().getUncommitted().isEmpty())
+        {
+          RepositoryImplHelper.stashChanges(git);
+        }
         String currentHeadName = git.getRepository().getFullBranch();
         String targetName = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
         PullCommand pullCommand = git.pull();
         pullCommand.setRebase(true);
 
         PullResult pullResult = pullCommand.call();
-        iRebaseResult = _handlePullResult(pullResult::getRebaseResult, ObjectId.toString(pullResult.getRebaseResult().getCurrentCommit().getId()),
-                                          targetName, new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentHeadName, targetName)));
+        String currentCommitId = pullResult.getRebaseResult().getCurrentCommit() == null ?
+            null : ObjectId.toString(pullResult.getRebaseResult().getCurrentCommit().getId());
+        iRebaseResult = _handlePullResult(pullResult::getRebaseResult, currentCommitId, targetName,
+                                          new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentHeadName, targetName)));
       }
       else
       {
@@ -200,8 +205,8 @@ public class RepositoryImpl implements IRepository
         {
           RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, targetName, currentHeadName);
           return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, targetName, currentHeadName, new CommitImpl(forkCommit),
-                                                                             currentStatus.getConflicting(), this::diff)
-              , RebaseResult.Status.CONFLICTS);
+                                                                             currentStatus.getConflicting(), this::diff),
+                                      RebaseResult.Status.CONFLICTS);
         }
         RebaseCommand rebaseCommand = git.rebase();
         rebaseCommand.setOperation(RebaseCommand.Operation.CONTINUE);
@@ -219,7 +224,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @NotNull
-  private IRebaseResult _handlePullResult(Supplier<RebaseResult> pResultSupplier,
+  private IRebaseResult _handlePullResult(@NotNull Supplier<RebaseResult> pResultSupplier,
                                           String pCurrHeadName, String pTargetName, CommitImpl pForkPoint) throws AditoGitException
   {
     if (!pResultSupplier.get().getStatus().isSuccessful())
@@ -240,6 +245,14 @@ public class RepositoryImpl implements IRepository
         return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, pCurrHeadName, pTargetName, pForkPoint, conflictFilesSet, this::diff),
                                     pResultSupplier.get().getStatus());
       }
+    }
+    try
+    {
+      RepositoryImplHelper.unStashIfAvailable(git);
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
     }
     return new RebaseResultImpl(Collections.emptyList(), pResultSupplier.get().getStatus());
   }
