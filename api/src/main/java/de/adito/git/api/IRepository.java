@@ -276,7 +276,7 @@ public interface IRepository
    * @return the IBranch for the given identifier
    * @throws AditoGitException if an error occurs
    */
-  IBranch getBranch(String branchString) throws AditoGitException;
+  Optional<IBranch> getBranch(String branchString) throws AditoGitException;
 
   /**
    * @return the current branch

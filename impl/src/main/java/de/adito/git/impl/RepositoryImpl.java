@@ -50,14 +50,14 @@ public class RepositoryImpl implements IRepository
   {
     colorRoulette = pColorRoulette;
     git = new Git(GitRepositoryProvider.get(pRepositoryDescription));
-    branchList = BehaviorSubject.createDefault(Optional.of(_branchList()));
+    branchList = BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList(git)));
 
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
-        .subscribeWith(BehaviorSubject.createDefault(_status()));
+        .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.status(git)));
 
     // Current Branch
-    IBranch curBranch = _currentBranch();
+    IBranch curBranch = RepositoryImplHelper.currentBranch(git, this::getBranch);
     currentBranchObservable = BehaviorSubject.createDefault(curBranch == null ? Optional.empty() : Optional.of(curBranch));
   }
 
@@ -176,16 +176,10 @@ public class RepositoryImpl implements IRepository
         String targetName = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
         PullCommand pullCommand = git.pull();
         pullCommand.setRebase(true);
-        try
-        {
-          PullResult pullResult = pullCommand.call();
-          iRebaseResult = _handlePullResult(pullResult::getRebaseResult, ObjectId.toString(pullResult.getRebaseResult().getCurrentCommit().getId()),
-                                            targetName, new CommitImpl(_findForkPoint(currentHeadName, targetName)));
-        }
-        catch (GitAPIException e)
-        {
-          throw new AditoGitException("Unable to pull new files", e);
-        }
+
+        PullResult pullResult = pullCommand.call();
+        iRebaseResult = _handlePullResult(pullResult::getRebaseResult, ObjectId.toString(pullResult.getRebaseResult().getCurrentCommit().getId()),
+                                          targetName, new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentHeadName, targetName)));
       }
       else
       {
@@ -204,9 +198,10 @@ public class RepositoryImpl implements IRepository
         }
         if (!currentStatus.getConflicting().isEmpty())
         {
-          RevCommit forkCommit = _findForkPoint(targetName, currentHeadName);
-          return new RebaseResultImpl(_getMergeConflicts(targetName, currentHeadName, new CommitImpl(forkCommit),
-                                                         currentStatus.getConflicting()), RebaseResult.Status.CONFLICTS);
+          RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, targetName, currentHeadName);
+          return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, targetName, currentHeadName, new CommitImpl(forkCommit),
+                                                                             currentStatus.getConflicting(), this::diff)
+              , RebaseResult.Status.CONFLICTS);
         }
         RebaseCommand rebaseCommand = git.rebase();
         rebaseCommand.setOperation(RebaseCommand.Operation.CONTINUE);
@@ -223,6 +218,7 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  @NotNull
   private IRebaseResult _handlePullResult(Supplier<RebaseResult> pResultSupplier,
                                           String pCurrHeadName, String pTargetName, CommitImpl pForkPoint) throws AditoGitException
   {
@@ -232,7 +228,7 @@ public class RepositoryImpl implements IRepository
       List<String> conflictFiles = pResultSupplier.get().getConflicts();
       if (conflictFiles == null)
       {
-        IFileStatus currentStatus = _status();
+        IFileStatus currentStatus = RepositoryImplHelper.status(git);
         conflictFilesSet = currentStatus.getConflicting();
       }
       else
@@ -241,7 +237,7 @@ public class RepositoryImpl implements IRepository
       }
       if (!conflictFilesSet.isEmpty())
       {
-        return new RebaseResultImpl(_getMergeConflicts(pCurrHeadName, pTargetName, pForkPoint, conflictFilesSet),
+        return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, pCurrHeadName, pTargetName, pForkPoint, conflictFilesSet, this::diff),
                                     pResultSupplier.get().getStatus());
       }
     }
@@ -292,13 +288,13 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @NotNull ICommit pCompareTo) throws AditoGitException
+  public @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @NotNull ICommit pCompareTo)
   {
     try
     {
       List<IFileDiff> listDiffImpl = new ArrayList<>();
 
-      List<DiffEntry> listDiff = _doDiff(ObjectId.fromString(pOriginal.getId()), ObjectId.fromString(pCompareTo.getId()));
+      List<DiffEntry> listDiff = RepositoryImplHelper.doDiff(git, ObjectId.fromString(pOriginal.getId()), ObjectId.fromString(pCompareTo.getId()));
 
       if (listDiff != null)
       {
@@ -318,9 +314,9 @@ public class RepositoryImpl implements IRepository
       }
       return listDiffImpl;
     }
-    catch (IOException pE)
+    catch (AditoGitException | IOException pE)
     {
-      throw new AditoGitException(pE);
+      throw new RuntimeException(pE);
     }
   }
 
@@ -337,7 +333,7 @@ public class RepositoryImpl implements IRepository
       // prepare the TreeIterators for the local working copy and the files in HEAD
       FileTreeIterator fileTreeIterator = new FileTreeIterator(git.getRepository());
       ObjectId compareWithId = git.getRepository().resolve(pCompareWith == null ? Constants.HEAD : pCompareWith.getId());
-      CanonicalTreeParser treeParser = _prepareTreeParser(git.getRepository(), compareWithId);
+      CanonicalTreeParser treeParser = RepositoryImplHelper.prepareTreeParser(git.getRepository(), compareWithId);
 
       // Use the DiffFormatter to retrieve a list of changes
       DiffFormatter diffFormatter = new DiffFormatter(null);
@@ -621,7 +617,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void checkout(@NotNull String pBranchName) throws AditoGitException
   {
-    checkout(getBranch(pBranchName));
+    checkout(getBranch(pBranchName).orElseThrow(() -> new AditoGitException("Unable to find branch for name " + pBranchName)));
   }
 
   /**
@@ -654,8 +650,10 @@ public class RepositoryImpl implements IRepository
       {
         File aConflictingFile = new File(git.getRepository().getDirectory().getParent(), conflictingFiles.iterator().next());
         String currentBranch = git.getRepository().getBranch();
-        String branchToMerge = _getConflictingBranch(aConflictingFile);
-        return _getMergeConflicts(currentBranch, branchToMerge, new CommitImpl(_findForkPoint(currentBranch, branchToMerge)), conflictingFiles);
+        String branchToMerge = RepositoryImplHelper.getConflictingBranch(aConflictingFile);
+        return RepositoryImplHelper.getMergeConflicts(git, currentBranch, branchToMerge,
+                                                      new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentBranch, branchToMerge)),
+                                                      conflictingFiles, this::diff);
       }
       return Collections.emptyList();
     }
@@ -678,8 +676,9 @@ public class RepositoryImpl implements IRepository
       List<IMergeDiff> mergeConflicts = new ArrayList<>();
       if (!status.blockingFirst().getConflicting().isEmpty())
       {
-        RevCommit forkCommit = _findForkPoint(parentID, toMergeID);
-        return _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), status.blockingFirst().getConflicting());
+        RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
+        return RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, new CommitImpl(forkCommit),
+                                                      status.blockingFirst().getConflicting(), this::diff);
       }
       try
       {
@@ -706,9 +705,10 @@ public class RepositoryImpl implements IRepository
             .setFastForward(MergeCommand.FastForwardMode.NO_FF).call();
         if (mergeResult.getConflicts() != null)
         {
-          RevCommit forkCommit = _findForkPoint(parentID, toMergeID);
+          RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
           if (forkCommit != null)
-            mergeConflicts = _getMergeConflicts(parentID, toMergeID, new CommitImpl(forkCommit), mergeResult.getConflicts().keySet());
+            mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, new CommitImpl(forkCommit),
+                                                                    mergeResult.getConflicts().keySet(), this::diff);
         }
       }
       catch (GitAPIException e)
@@ -724,95 +724,6 @@ public class RepositoryImpl implements IRepository
   }
 
   /**
-   * @param pConflictingFile one of the Files with a conflict that were modified by git/JGit
-   * @return id of the branch that gets merged ("THEIRS" for merges)
-   */
-  private String _getConflictingBranch(File pConflictingFile) throws IOException
-  {
-    try (Stream<String> lines = Files.lines(pConflictingFile.toPath()))
-    {
-      return lines.filter(line -> line.startsWith(">>>>>>>>"))
-          .findFirst()
-          .map(s -> s.replace(">", "").trim())
-          .orElse(null);
-    }
-  }
-
-  /**
-   * @param pCurrentBranch Identifier for the current branch
-   * @param pBranchToMerge Identifier for the branch that should be merged into the current one
-   * @param pForkCommit    the commit where the branches of the two commits diverged
-   * @param pConflicts     Set of Strings (filepaths) that give the files with conflicts that occurred during the merge
-   * @return List<IMergeDiff> describing the changes from the fork commit to each branch
-   * @throws AditoGitException if JGit encountered an error condition
-   */
-  private List<IMergeDiff> _getMergeConflicts(String pCurrentBranch, String pBranchToMerge,
-                                              ICommit pForkCommit, Set<String> pConflicts) throws AditoGitException
-  {
-    List<IMergeDiff> mergeConflicts = new ArrayList<>();
-    ICommit parentBranchCommit;
-    ICommit toMergeCommit;
-    try
-    {
-      parentBranchCommit = new CommitImpl(git.getRepository().parseCommit(git.getRepository().resolve(pCurrentBranch)));
-      toMergeCommit = new CommitImpl(git.getRepository().parseCommit(git.getRepository().resolve(pBranchToMerge)));
-    }
-    catch (IOException e)
-    {
-      throw new AditoGitException(e);
-    }
-    List<IFileDiff> parentDiffList = diff(parentBranchCommit, pForkCommit);
-    List<IFileDiff> toMergeDiffList = diff(toMergeCommit, pForkCommit);
-    for (IFileDiff parentDiff : parentDiffList)
-    {
-      if (pConflicts.contains(parentDiff.getFilePath(EChangeSide.NEW)))
-      {
-        for (IFileDiff toMergeDiff : toMergeDiffList)
-        {
-          if (toMergeDiff.getFilePath(EChangeSide.NEW).equals(parentDiff.getFilePath(EChangeSide.NEW)))
-          {
-            mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
-          }
-        }
-      }
-    }
-    return mergeConflicts;
-  }
-
-  /**
-   * @param pParentBranchName  name (not id) of the branch currently on
-   * @param pForeignBranchName name (not id) of the branch (or id for a commit) for which to find the closest forkPoint to this branch
-   * @return RevCommit that is the forkPoint between the two branches, or null if not available
-   * @throws IOException if an error occurs during parsing
-   */
-  @Nullable
-  private RevCommit _findForkPoint(String pParentBranchName, String pForeignBranchName) throws IOException
-  {
-    try (RevWalk walk = new RevWalk(git.getRepository()))
-    {
-      RevCommit foreignCommit = walk.lookupCommit(git.getRepository().resolve(pForeignBranchName));
-      LinkedList<ObjectId> parentsToParse = new LinkedList<>();
-      parentsToParse.add(git.getRepository().resolve(pParentBranchName));
-      while (!parentsToParse.isEmpty())
-      {
-        RevCommit commit = walk.lookupCommit(parentsToParse.poll());
-        // check if foreignCommit is reachable from the currently selected commit
-        if (walk.isMergedInto(commit, foreignCommit))
-        {
-          // check if commit is a valid commit that does not contain errors when parsed
-          walk.parseBody(commit);
-          return commit;
-        }
-        else
-        {
-          parentsToParse.addAll(Arrays.stream(commit.getParents()).map(RevObject::getId).collect(Collectors.toList()));
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -820,11 +731,11 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
-      RevCommit thisCommit = _getRevCommit(pCommitId);
+      RevCommit thisCommit = RepositoryImplHelper.getRevCommit(git, pCommitId);
       List<DiffEntry> diffEntries = new ArrayList<>();
       for (RevCommit parent : thisCommit.getParents())
       {
-        diffEntries.addAll(_doDiff(thisCommit.getId(), parent.getId()));
+        diffEntries.addAll(RepositoryImplHelper.doDiff(git, thisCommit.getId(), parent.getId()));
       }
       return diffEntries.stream()
           .map(pDiffEntry -> new FileChangeTypeImpl(
@@ -851,7 +762,7 @@ public class RepositoryImpl implements IRepository
         // only one RevCommit expected as result, so only take the first RevCommit
         return new CommitImpl(git.log().setMaxCount(1).call().iterator().next());
       }
-      return new CommitImpl(_getRevCommit(pIdentifier));
+      return new CommitImpl(RepositoryImplHelper.getRevCommit(git, pIdentifier));
     }
     catch (IOException | GitAPIException pE)
     {
@@ -883,7 +794,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public List<ICommit> getCommits(@Nullable IBranch pSourceBranch, int pIndexFrom, int pNumCommits) throws AditoGitException
   {
-    return _getCommits(pSourceBranch, null, pIndexFrom, pNumCommits);
+    return RepositoryImplHelper.getCommits(git, pSourceBranch, null, pIndexFrom, pNumCommits);
   }
 
   /**
@@ -910,66 +821,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public List<ICommit> getCommits(@Nullable File pFile, int pIndexFrom, int pNumCommits) throws AditoGitException
   {
-    return _getCommits(null, pFile, pIndexFrom, pNumCommits);
-  }
-
-  /**
-   * @param pSourceBranch IBranch that the retrieved commits should be from
-   * @param pFile         File that is affected by all commits that are retrieved
-   * @param pIndexFrom    number of (matching) commits to skip before retrieving commits from the log
-   * @param pNumCommits   number of (matching) commits to retrieve
-   * @return List of ICommits matching the provided criteria
-   * @throws AditoGitException if JGit throws an exception/returns null
-   */
-  private List<ICommit> _getCommits(@Nullable IBranch pSourceBranch, @Nullable File pFile, int pIndexFrom, int pNumCommits) throws AditoGitException
-  {
-    try
-    {
-      List<ICommit> commitList = new ArrayList<>();
-      Iterable<RevCommit> refCommits;
-      LogCommand logCommand = git.log();
-      if (pSourceBranch != null)
-      {
-        logCommand.add(git.getRepository().resolve(pSourceBranch.getName()));
-      }
-      else
-      {
-        logCommand.all();
-      }
-      if (pFile != null)
-      {
-        logCommand.addPath(getRelativePath(pFile, git));
-      }
-      if (pIndexFrom >= 0)
-      {
-        logCommand.setSkip(pIndexFrom);
-      }
-      if (pNumCommits >= 0)
-      {
-        logCommand.setMaxCount(pNumCommits);
-      }
-      try
-      {
-        refCommits = logCommand.call();
-      }
-      catch (GitAPIException e)
-      {
-        throw new AditoGitException("Unable to check the commits of one branch and/or file. Branch: " + pSourceBranch + ", File: " + pFile, e);
-      }
-      if (refCommits != null)
-      {
-        refCommits.forEach(commit -> commitList.add(new CommitImpl(commit)));
-      }
-      else
-      {
-        throw new AditoGitException("Object returned by JGit was null while trying to retrieve commits. Branch: " + pSourceBranch + ", File: " + pFile);
-      }
-      return commitList;
-    }
-    catch (IOException pE)
-    {
-      throw new AditoGitException(pE);
-    }
+    return RepositoryImplHelper.getCommits(git, null, pFile, pIndexFrom, pNumCommits);
   }
 
   /**
@@ -1025,15 +877,15 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public IBranch getBranch(@NotNull String pBranchString) throws AditoGitException
+  public Optional<IBranch> getBranch(@NotNull String pBranchString)
   {
     try
     {
-      return new BranchImpl(git.getRepository().getRefDatabase().getRef(pBranchString));
+      return Optional.of(new BranchImpl(git.getRepository().getRefDatabase().getRef(pBranchString)));
     }
     catch (IOException pE)
     {
-      throw new AditoGitException(pE);
+      throw new RuntimeException(pE);
     }
   }
 
@@ -1053,126 +905,6 @@ public class RepositoryImpl implements IRepository
     return branchList;
   }
 
-  /**
-   * @param pIdentifier Id of the commit to be retrieved
-   * @return RevCommit that matches the passed identifier
-   * @throws IOException if JGit encountered an error condition
-   */
-  private RevCommit _getRevCommit(String pIdentifier) throws IOException
-  {
-    try (RevWalk revWalk = new RevWalk(git.getRepository()))
-    {
-      ObjectId commitId = ObjectId.fromString(pIdentifier);
-      return revWalk.parseCommit(commitId);
-    }
-  }
-
-  /**
-   * @param pCurrentId   Id of the current branch/commit/file
-   * @param pCompareToId Id of the branch/commit/file to be compared with the current one
-   * @return List<DiffEntry> with the DiffEntrys that make the difference between the two commits/branches/files
-   * @throws AditoGitException if JGit encountered an error condition
-   */
-  private List<DiffEntry> _doDiff(ObjectId pCurrentId, ObjectId pCompareToId) throws AditoGitException
-  {
-    try
-    {
-      CanonicalTreeParser oldTreeIter = _prepareTreeParser(git.getRepository(), pCompareToId);
-      CanonicalTreeParser newTreeIter = _prepareTreeParser(git.getRepository(), pCurrentId);
-
-      try
-      {
-        return git.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
-      }
-      catch (GitAPIException e)
-      {
-        throw new AditoGitException("Unable to show changes between commits", e);
-      }
-    }
-    catch (IOException pE)
-    {
-      throw new AditoGitException(pE);
-    }
-  }
-
-  private List<IBranch> _branchList()
-  {
-    ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.ALL);
-    List<IBranch> branches = new ArrayList<>();
-    List<Ref> refBranchList;
-    try
-    {
-      refBranchList = listBranchCommand.call();
-    }
-    catch (GitAPIException e)
-    {
-      throw new RuntimeException(e);
-    }
-    if (refBranchList != null)
-    {
-      refBranchList.forEach(branch -> branches.add(new BranchImpl(branch)));
-    }
-    return branches;
-  }
-
-  private IFileStatus _status()
-  {
-    StatusCommand statusCommand = git.status();
-    Status currentStatus;
-    try
-    {
-      currentStatus = statusCommand.call();
-    }
-    catch (GitAPIException e)
-    {
-      throw new RuntimeException(e);
-    }
-    return new FileStatusImpl(currentStatus, git.getRepository().getDirectory());
-  }
-
-  private IBranch _currentBranch()
-  {
-    try
-    {
-      String branch = git.getRepository().getFullBranch();
-      if (git.getRepository().getRefDatabase().getRef(branch) == null)
-      {
-        return new BranchImpl(git.getRepository().resolve(branch));
-      }
-      return getBranch(branch);
-    }
-    catch (Exception e)
-    {
-      throw new RuntimeException("Ref isn't a Branch or a Commit to checkout");
-    }
-  }
-
-  /**
-   * Helperfunction to prepare the TreeParser for the diff function
-   *
-   * @param pRepository the (git) repository
-   * @param pObjectId   the objectId for the commit/Branch that the Tree should be prepared for
-   * @return initialised CanonicalTreeParser
-   * @throws IOException if an error occurs, such as an invalid ID or the treeParser cannot be reset
-   */
-  private CanonicalTreeParser _prepareTreeParser(Repository pRepository, ObjectId pObjectId) throws IOException
-  {
-    try (RevWalk walk = new RevWalk(pRepository))
-    {
-      RevCommit commit = walk.parseCommit(pObjectId);
-      RevTree tree = walk.parseTree(commit.getTree().getId());
-
-      CanonicalTreeParser treeParser = new CanonicalTreeParser();
-      try (ObjectReader reader = pRepository.newObjectReader())
-      {
-        treeParser.reset(reader, tree.getId());
-      }
-
-      walk.dispose();
-
-      return treeParser;
-    }
-  }
 
   /**
    * Bridge from the FileSystemChangeListener to Observables
@@ -1189,7 +921,7 @@ public class RepositoryImpl implements IRepository
     @Override
     protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pListenableValue, @NotNull Consumer<IFileStatus> pOnNext)
     {
-      IFileSystemChangeListener listener = () -> pOnNext.accept(_status());
+      IFileSystemChangeListener listener = () -> pOnNext.accept(RepositoryImplHelper.status(git));
       pListenableValue.addListener(listener);
       return listener;
     }
