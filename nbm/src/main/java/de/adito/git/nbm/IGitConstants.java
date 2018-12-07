@@ -1,7 +1,8 @@
 package de.adito.git.nbm;
 
-import com.google.inject.*;
-import de.adito.git.nbm.Guice.AditoNbmModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import de.adito.git.nbm.guice.AditoNbmModule;
 
 /**
  * A class for all constants in in IGit
