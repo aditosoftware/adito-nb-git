@@ -6,17 +6,12 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionRegistration;
+import io.reactivex.subjects.*;
+import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author a.arnold, 31.10.2018
@@ -26,30 +21,34 @@ import java.util.Optional;
 @ActionRegistration(displayName = "LBL_RevertNBAction_Name")
 //Reference for the menu
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 200)
-public class RevertNBAction extends NBAction {
+public class RevertNBAction extends NBAction
+{
 
-    private final Subject<Optional<List<IFileChangeType>>> selectedFiles = BehaviorSubject.create();
+  private final Subject<Optional<List<IFileChangeType>>> selectedFiles = BehaviorSubject.create();
 
-    @Override
-    protected void performAction(Node[] activatedNodes) {
-        Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
-        Injector injector = IGitConstants.INJECTOR;
-        IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
+  @Override
+  protected void performAction(Node[] pActivatedNodes)
+  {
+    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Injector injector = IGitConstants.INJECTOR;
+    IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
-        selectedFiles.onNext(getUncommittedFilesOfNodes(activatedNodes, repository));
+    selectedFiles.onNext(getUncommittedFilesOfNodes(pActivatedNodes, repository));
 
-        actionProvider.getRevertWorkDirAction(repository, selectedFiles);
+    actionProvider.getRevertWorkDirAction(repository, selectedFiles).actionPerformed(null);
 
-    }
+  }
 
-    @Override
-    protected boolean enable(Node[] activatedNodes) {
-        return getUncommittedFilesOfNodes(activatedNodes, findOneRepositoryFromNode(activatedNodes)).orElse(Collections.emptyList()).size() > 0;
-    }
+  @Override
+  protected boolean enable(Node[] pActivatedNodes)
+  {
+    return !getUncommittedFilesOfNodes(pActivatedNodes, findOneRepositoryFromNode(pActivatedNodes)).orElse(Collections.emptyList()).isEmpty();
+  }
 
-    @Override
-    public String getName() {
-        return NbBundle.getMessage(RevertNBAction.class, "LBL_RevertNBAction_Name");
-    }
+  @Override
+  public String getName()
+  {
+    return NbBundle.getMessage(RevertNBAction.class, "LBL_RevertNBAction_Name");
+  }
 
 }
