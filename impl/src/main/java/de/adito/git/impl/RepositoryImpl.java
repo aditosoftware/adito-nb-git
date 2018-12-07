@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.impl.data.*;
-import de.adito.git.impl.rxjava.AbstractListenerObservable;
+import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
@@ -23,7 +23,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.Supplier;
 import java.util.stream.*;
 
 import static de.adito.git.impl.Util.getRelativePath;
@@ -932,10 +932,10 @@ public class RepositoryImpl implements IRepository
 
     @NotNull
     @Override
-    protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pListenableValue, @NotNull Consumer<IFileStatus> pOnNext)
+    protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver, @NotNull IFireable<IFileStatus> pIFireable)
     {
-      IFileSystemChangeListener listener = () -> pOnNext.accept(RepositoryImplHelper.status(git));
-      pListenableValue.addListener(listener);
+      IFileSystemChangeListener listener = () -> pIFireable.fireValueChanged(RepositoryImplHelper.status(git));
+      pIFileSystemObserver.addListener(listener);
       return listener;
     }
 

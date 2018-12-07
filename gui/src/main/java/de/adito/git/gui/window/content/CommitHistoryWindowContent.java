@@ -130,6 +130,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
          */
     JTextPane messageTextArea = new JTextPane(new DefaultStyledDocument());
     JTable changedFilesTable = new JTable(changedFilesTableModel);
+    changedFilesTable.setSelectionModel(new ObservableListSelectionModel(changedFilesTable.getSelectionModel()));
     changedFilesTable.getColumnModel().removeColumn(changedFilesTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
     changedFilesTable.getColumnModel()
         .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))

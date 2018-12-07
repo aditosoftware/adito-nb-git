@@ -1,13 +1,12 @@
 package de.adito.git.gui.rxjava;
 
-import de.adito.git.impl.rxjava.AbstractListenerObservable;
+import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
-import java.util.function.Consumer;
 
 /**
  * @author a.arnold, 14.11.2018
@@ -161,13 +160,13 @@ public class ObservableListSelectionModel implements ListSelectionModel
 
     @NotNull
     @Override
-    protected ListSelectionListener registerListener(@NotNull ListSelectionModel pListenableValue, @NotNull Consumer<Integer[]> pOnNext)
+    protected ListSelectionListener registerListener(@NotNull ListSelectionModel pListSelectionModel, @NotNull IFireable<Integer[]> pIFireable)
     {
       ListSelectionListener listener = e -> {
         if (!e.getValueIsAdjusting())
-          pOnNext.accept(_getSelectedRows(pListenableValue));
+          pIFireable.fireValueChanged(_getSelectedRows(pListSelectionModel));
       };
-      pListenableValue.addListSelectionListener(listener);
+      pListSelectionModel.addListSelectionListener(listener);
       return listener;
     }
 
