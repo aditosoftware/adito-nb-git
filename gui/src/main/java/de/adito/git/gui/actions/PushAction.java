@@ -2,7 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -15,28 +15,40 @@ import java.util.Optional;
  *
  * @author A.Arnold 11.10.2018
  */
-class PushAction extends AbstractAction {
-    private Observable<Optional<IRepository>> repository;
+class PushAction extends AbstractAction
+{
+  private Observable<Optional<IRepository>> repository;
+  private INotifyUtil notifyUtil;
 
-    /**
-     * @param pRepository The repository to push
-     */
-    @Inject
-    PushAction(@Assisted Observable<Optional<IRepository>> pRepository) {
-        putValue(Action.NAME, "Push");
-        putValue(Action.SHORT_DESCRIPTION, "Pull all added files to one Branch or Master Branch");
-        repository = pRepository;
-    }
+  /**
+   * @param pRepository The repository to push
+   */
+  @Inject
+  PushAction(INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository)
+  {
+    notifyUtil = pNotifyUtil;
+    putValue(Action.NAME, "Push");
+    putValue(Action.SHORT_DESCRIPTION, "Push all commits to the remote-tracking branch");
+    repository = pRepository;
+  }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        try {
-            repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).push();
-        } catch (Exception e1) {
-            throw new RuntimeException(e1);
-        }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void actionPerformed(ActionEvent pEvent)
+  {
+    try
+    {
+      boolean isPushSuccess = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).push();
+      if (isPushSuccess)
+      {
+        notifyUtil.notify("Push success", "Pushing the local commits to the remote was successful", true);
+      }
     }
+    catch (Exception e1)
+    {
+      throw new RuntimeException(e1);
+    }
+  }
 }

@@ -12,7 +12,7 @@ import java.awt.event.ActionEvent;
 import java.util.*;
 
 /**
- * pullAction to pull from one branch.
+ * PullAction to pull from one branch.
  *
  * @author A.Arnold 11.10.2018
  */
@@ -20,6 +20,7 @@ class PullAction extends AbstractAction
 {
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
+  private INotifyUtil notifyUtil;
 
   /**
    * The PullAction is an action to pull all commits from one branch. If no branch is chosen take an empty string for the master branch.
@@ -27,11 +28,12 @@ class PullAction extends AbstractAction
    * @param pRepository the repository where the pull command should work
    */
   @Inject
-  PullAction(IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  PullAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     dialogProvider = pDialogProvider;
+    notifyUtil = pNotifyUtil;
     putValue(Action.NAME, "Pull");
-    putValue(Action.SHORT_DESCRIPTION, "Pull all Files from one Branch");
+    putValue(Action.SHORT_DESCRIPTION, "Pull all changes from the remote Branch");
     repository = pRepository;
   }
 
@@ -59,7 +61,10 @@ class PullAction extends AbstractAction
         IRebaseResult rebaseResult =
             repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).pull(false);
         if (rebaseResult.isSuccess())
+        {
+          notifyUtil.notify("Rebase success", "Applying the remote changes to the local branch was successful", true);
           break;
+        }
         if (!rebaseResult.getMergeConflicts().isEmpty())
         {
           // if the pull should be aborted, _handleConflictDialog returns true
@@ -85,11 +90,13 @@ class PullAction extends AbstractAction
     DialogResult dialogResult = dialogProvider.showMergeConflictDialog(repository, pMergeConflicts);
     if (!dialogResult.isPressedOk())
     {
+      // user pressed cancel -> abort
       IRebaseResult abortedRebaseResult =
           repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).pull(true);
       if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
         throw new RuntimeException("The abort of the rebase failed with state: " + abortedRebaseResult.getResultType());
-      // user pressed cancel -> abort
+      // abort was successful -> notify user
+      notifyUtil.notify("Aborted rebase", "Rebase abort was successful, all local content restored to state before rebase", true);
       return true;
     }
     return false;
