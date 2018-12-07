@@ -511,16 +511,29 @@ public class RepositoryImpl implements IRepository
   @Override
   public void revertWorkDir(@NotNull List<File> pFiles) throws AditoGitException
   {
+    IFileStatus currentStatus = status.blockingFirst();
+    List<String> filesToCheckout = new ArrayList<>();
+    List<String> newFiles = new ArrayList<>();
+    newFiles.addAll(currentStatus.getAdded());
+    newFiles.addAll(currentStatus.getUntracked());
     try
     {
-      CheckoutCommand checkoutCommand = git.checkout();
       for (File file : pFiles)
       {
-        checkoutCommand.addPath(Util.getRelativePath(file, git));
+        String relativePath = Util.getRelativePath(file, git);
+        if (newFiles.stream().noneMatch(pFilePath -> pFilePath.equals(relativePath)))
+          filesToCheckout.add(relativePath);
+        else
+          Files.delete(file.toPath());
       }
-      checkoutCommand.call();
+      if (!filesToCheckout.isEmpty())
+      {
+        CheckoutCommand checkoutCommand = git.checkout();
+        checkoutCommand.addPaths(filesToCheckout);
+        checkoutCommand.call();
+      }
     }
-    catch (GitAPIException pE)
+    catch (GitAPIException | IOException pE)
     {
       throw new AditoGitException(pE);
     }

@@ -1,9 +1,6 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.EStageState;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.*;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.IndexDiff;
 
@@ -13,178 +10,209 @@ import java.util.*;
 /**
  * @author m.kaspera 21.09.2018
  */
-public class FileStatusImpl implements IFileStatus {
+public class FileStatusImpl implements IFileStatus
+{
 
-    private Status status;
-    private File gitDirectory;
-    private List<IFileChangeType> uncommittedFiles;
+  private Status status;
+  private File gitDirectory;
+  private List<IFileChangeType> uncommittedFiles;
 
-    public FileStatusImpl(Status pStatus, File pGitDirectory) {
-        status = pStatus;
-        gitDirectory = pGitDirectory;
+  public FileStatusImpl(Status pStatus, File pGitDirectory)
+  {
+    status = pStatus;
+    gitDirectory = pGitDirectory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isClean()
+  {
+    return status.isClean();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean hasUncommittedChanges()
+  {
+    return status.hasUncommittedChanges();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getAdded()
+  {
+    return status.getAdded();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getChanged()
+  {
+    return status.getChanged();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getRemoved()
+  {
+    return status.getRemoved();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getMissing()
+  {
+    return status.getMissing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getModified()
+  {
+    return status.getModified();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getUntracked()
+  {
+    return status.getUntracked();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getUntrackedFolders()
+  {
+    return status.getUntrackedFolders();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getConflicting()
+  {
+    return status.getConflicting();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Map<String, EStageState> getConflictingStageState()
+  {
+    Map<String, EStageState> conflictingStageState = new HashMap<>();
+    Map<String, IndexDiff.StageState> jgitConflictingStageState = status.getConflictingStageState();
+    for (Map.Entry<String, IndexDiff.StageState> conflictingStageStateEntry : jgitConflictingStageState.entrySet())
+    {
+      conflictingStageState.put(conflictingStageStateEntry.getKey(), _fromStageState(conflictingStageStateEntry.getValue()));
     }
+    return conflictingStageState;
+  }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isClean() {
-        return status.isClean();
-    }
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getIgnoredNotInIndex()
+  {
+    return status.getIgnoredNotInIndex();
+  }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean hasUncommittedChanges() {
-        return status.hasUncommittedChanges();
-    }
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getUncommittedChanges()
+  {
+    return status.getUncommittedChanges();
+  }
 
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getAdded() {
-        return status.getAdded();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getChanged() {
-        return status.getChanged();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getRemoved() {
-        return status.getRemoved();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getMissing() {
-        return status.getMissing();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getModified() {
-        return status.getModified();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<IFileChangeType> getUntracked() {
-        HashMap<String, EChangeType> untrackedMap = new HashMap<>();
-        status.getUntracked().forEach(fileString -> untrackedMap.put(fileString, EChangeType.NEW));
-        return _toFileChangeTypes(untrackedMap);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getUntrackedFolders() {
-        return status.getUntrackedFolders();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getConflicting() {
-        return status.getConflicting();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Map<String, EStageState> getConflictingStageState() {
-        Map<String, EStageState> conflictingStageState = new HashMap<>();
-        Map<String, IndexDiff.StageState> jgitConflictingStageState = status.getConflictingStageState();
-        for (String fileName : jgitConflictingStageState.keySet()) {
-            conflictingStageState.put(fileName, _fromStageState(jgitConflictingStageState.get(fileName)));
-        }
-        return conflictingStageState;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getIgnoredNotInIndex() {
-        return status.getIgnoredNotInIndex();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getUncommittedChanges() {
-        return status.getUncommittedChanges();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<IFileChangeType> getUncommitted() {
-        if (uncommittedFiles == null) {
+  /**
+   * {@inheritDoc}
+   */
+  public List<IFileChangeType> getUncommitted()
+  {
+    if (uncommittedFiles == null)
+    {
         /*
             can't use a stream with distinct() here since
             1) need to put the EChangeType in, according to which list we retrieved
             2) the ordering is important, if a File is conflicting the EChangeType should read
                 conflicting in the end, not changed. distinct() only guarantees that on ordered streams
          */
-            HashMap<String, EChangeType> fileChangeTypes = new HashMap<>();
-            status.getChanged().forEach(changed -> fileChangeTypes.put(changed, EChangeType.CHANGED));
-            status.getModified().forEach(modified -> fileChangeTypes.put(modified, EChangeType.MODIFY));
-            status.getAdded().forEach(added -> fileChangeTypes.put(added, EChangeType.ADD));
-            status.getUntracked().forEach(unTracked -> fileChangeTypes.put(unTracked, EChangeType.NEW));
-            status.getRemoved().forEach(removed -> fileChangeTypes.put(removed, EChangeType.DELETE));
-            status.getMissing().forEach(missing -> fileChangeTypes.put(missing, EChangeType.MISSING));
-            status.getConflicting().forEach(conflicting -> fileChangeTypes.put(conflicting, EChangeType.CONFLICTING));
-            uncommittedFiles = _toFileChangeTypes(fileChangeTypes);
-        }
-        return uncommittedFiles;
+      HashMap<String, EChangeType> fileChangeTypes = new HashMap<>();
+      status.getChanged().forEach(changed -> fileChangeTypes.put(changed, EChangeType.CHANGED));
+      status.getModified().forEach(modified -> fileChangeTypes.put(modified, EChangeType.MODIFY));
+      status.getAdded().forEach(added -> fileChangeTypes.put(added, EChangeType.ADD));
+      status.getUntracked().forEach(unTracked -> fileChangeTypes.put(unTracked, EChangeType.NEW));
+      status.getRemoved().forEach(removed -> fileChangeTypes.put(removed, EChangeType.DELETE));
+      status.getMissing().forEach(missing -> fileChangeTypes.put(missing, EChangeType.MISSING));
+      status.getConflicting().forEach(conflicting -> fileChangeTypes.put(conflicting, EChangeType.CONFLICTING));
+      uncommittedFiles = _toFileChangeTypes(fileChangeTypes);
     }
+    return uncommittedFiles;
+  }
 
-    private List<IFileChangeType> _toFileChangeTypes(HashMap<String, EChangeType> fileChanges) {
-        List<IFileChangeType> fileChangeTypes = new ArrayList<>();
-        for (String filename : fileChanges.keySet()) {
-            fileChangeTypes.add(new FileChangeTypeImpl(new File(gitDirectory.getParent(), filename), fileChanges.get(filename)));
-        }
-        fileChangeTypes.sort(new IFileChangeComparator());
-        return fileChangeTypes;
+  private List<IFileChangeType> _toFileChangeTypes(HashMap<String, EChangeType> pFileChanges)
+  {
+    List<IFileChangeType> fileChangeTypes = new ArrayList<>();
+    for (Map.Entry<String, EChangeType> fileChangeEntry : pFileChanges.entrySet())
+    {
+      fileChangeTypes.add(new FileChangeTypeImpl(new File(gitDirectory.getParent(), fileChangeEntry.getKey()), fileChangeEntry.getValue()));
     }
+    fileChangeTypes.sort(new IFileChangeComparator());
+    return fileChangeTypes;
+  }
 
-    private class IFileChangeComparator implements Comparator<IFileChangeType> {
+  private class IFileChangeComparator implements Comparator<IFileChangeType>
+  {
 
-        @Override
-        public int compare(IFileChangeType file1, IFileChangeType file2) {
-            return file1.getFile().getName().compareTo(file2.getFile().getName());
-        }
+    @Override
+    public int compare(IFileChangeType pFile1, IFileChangeType pFile2)
+    {
+      return pFile1.getFile().getName().compareTo(pFile2.getFile().getName());
     }
+  }
 
-    /**
-     * @param stageState IndexDiff.StageState to "wrap"
-     * @return "wrapped" IndexDiff.StageState
-     */
-    private static EStageState _fromStageState(IndexDiff.StageState stageState) {
-        switch (stageState) {
-            case BOTH_DELETED: // 0b001
-                return EStageState.BOTH_DELETED;
-            case ADDED_BY_US: // 0b010
-                return EStageState.ADDED_BY_US;
-            case DELETED_BY_THEM: // 0b011
-                return EStageState.DELETED_BY_THEM;
-            case ADDED_BY_THEM: // 0b100
-                return EStageState.ADDED_BY_THEM;
-            case DELETED_BY_US: // 0b101
-                return EStageState.DELETED_BY_US;
-            case BOTH_ADDED: // 0b110
-                return EStageState.BOTH_ADDED;
-            case BOTH_MODIFIED: // 0b111
-                return EStageState.BOTH_MODIFIED;
-            default:
-                return null;
-        }
+  /**
+   * @param pStageState IndexDiff.StageState to "wrap"
+   * @return "wrapped" IndexDiff.StageState
+   */
+  private static EStageState _fromStageState(IndexDiff.StageState pStageState)
+  {
+    EStageState returnValue;
+    switch (pStageState)
+    {
+      case BOTH_DELETED: // 0b001
+        returnValue = EStageState.BOTH_DELETED;
+        break;
+      case ADDED_BY_US: // 0b010
+        returnValue = EStageState.ADDED_BY_US;
+        break;
+      case DELETED_BY_THEM: // 0b011
+        returnValue = EStageState.DELETED_BY_THEM;
+        break;
+      case ADDED_BY_THEM: // 0b100
+        returnValue = EStageState.ADDED_BY_THEM;
+        break;
+      case DELETED_BY_US: // 0b101
+        returnValue = EStageState.DELETED_BY_US;
+        break;
+      case BOTH_ADDED: // 0b110
+        returnValue = EStageState.BOTH_ADDED;
+        break;
+      case BOTH_MODIFIED: // 0b111
+        returnValue = EStageState.BOTH_MODIFIED;
+        break;
+      default:
+        returnValue = null;
     }
+    return returnValue;
+  }
 }
