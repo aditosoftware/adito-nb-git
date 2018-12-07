@@ -34,23 +34,27 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
   private static final String DETAILS_FORMAT_STRING = "%-10s\t%s%s";
   private final JTable commitTable = new JTable();
+  private final JTextPane messageTextArea = new JTextPane(new DefaultStyledDocument());
+  private final JTable changedFilesTable = new JTable();
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
-  private final Observable<Optional<List<ICommit>>> selectionObservable;
+  private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final ChangedFilesTableModel changedFilesTableModel;
   private Disposable disposable;
-  private JPopupMenu popupMenu;
+  private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
   @Inject
   CommitHistoryWindowContent(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                              @Assisted TableModel pTableModel, @Assisted Runnable pLoadMoreCallback)
   {
-    ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
-    commitTable.setSelectionModel(observableListSelectionModel);
+    ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
+    commitTable.setSelectionModel(observableCommitListSelectionModel);
+    ObservableListSelectionModel observableFilesListSelectionModel = new ObservableListSelectionModel(changedFilesTable.getSelectionModel());
+    changedFilesTable.setSelectionModel(observableFilesListSelectionModel);
     actionProvider = pActionProvider;
     repository = pRepository;
     commitTable.setModel(pTableModel);
-    selectionObservable = observableListSelectionModel.selectedRows().map(selectedRows -> {
+    selectedCommitObservable = observableCommitListSelectionModel.selectedRows().map(selectedRows -> {
       List<ICommit> selectedCommits = new ArrayList<>();
       for (int selectedRow : selectedRows)
       {
@@ -58,32 +62,21 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
       return Optional.of(selectedCommits);
     });
-    changedFilesTableModel = new ChangedFilesTableModel(selectionObservable, repository);
+    changedFilesTableModel = new ChangedFilesTableModel(selectedCommitObservable, repository);
     _initGUI(pLoadMoreCallback);
+  }
+
+  @Override
+  public void discard()
+  {
+    disposable.dispose();
   }
 
   private void _initGUI(Runnable pLoadMoreCallback)
   {
     setLayout(new BorderLayout());
-    commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
-
-    popupMenu = new JPopupMenu();
-    popupMenu.add(actionProvider.getResetAction(repository, selectionObservable));
-
-    commitTable.addMouseListener(new PopupMouseListener(popupMenu));
-
-    // cannot set preferred width of only last columns, so have to set a width for the first one as well
-    // since the total width is not know the width for the first one has to be a guess that works for most screens
-    // and makes it so the last two columns get approx. the desired space (less if guess is too high, more if guess is too low)
-    commitTable.getColumnModel()
-        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.BRANCHING_COL_NAME))
-        .setPreferredWidth(BRANCHING_AREA_PREF_WIDTH);
-    commitTable.getColumnModel()
-        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.DATE_COL_NAME))
-        .setPreferredWidth(DATE_COL_PREF_WIDTH);
-    commitTable.getColumnModel()
-        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME))
-        .setPreferredWidth(AUTHOR_COL_PREF_WIDTH);
+    _setUpCommitTable();
+    _setUpChangedFilesTable();
 
     JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -107,6 +100,39 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     add(mainSplitPane);
   }
 
+  private void _setUpCommitTable()
+  {
+    commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
+
+    commitListPopupMenu.add(actionProvider.getResetAction(repository, selectedCommitObservable));
+    commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
+
+    // cannot set preferred width of only last columns, so have to set a width for the first one as well
+    // since the total width is not know the width for the first one has to be a guess that works for most screens
+    // and makes it so the last two columns get approx. the desired space (less if guess is too high, more if guess is too low)
+    commitTable.getColumnModel()
+        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.BRANCHING_COL_NAME))
+        .setPreferredWidth(BRANCHING_AREA_PREF_WIDTH);
+    commitTable.getColumnModel()
+        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.DATE_COL_NAME))
+        .setPreferredWidth(DATE_COL_PREF_WIDTH);
+    commitTable.getColumnModel()
+        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME))
+        .setPreferredWidth(AUTHOR_COL_PREF_WIDTH);
+  }
+
+  private void _setUpChangedFilesTable()
+  {
+    changedFilesTable.setModel(changedFilesTableModel);
+    changedFilesTable.getColumnModel().removeColumn(changedFilesTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
+    changedFilesTable.getColumnModel()
+        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))
+        .setCellRenderer(new FileStatusCellRenderer());
+    changedFilesTable.getColumnModel()
+        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
+        .setCellRenderer(new FileStatusCellRenderer());
+  }
+
   /**
    * DetailPanel shows the changed files and the short message, author, commit date and full message of the
    * currently selected commit to the right of the branching window of the commitHistory.
@@ -128,28 +154,12 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
         | -------------------------- |
         ------------------------------
          */
-    JTextPane messageTextArea = new JTextPane(new DefaultStyledDocument());
-    JTable changedFilesTable = new JTable(changedFilesTableModel);
-    changedFilesTable.setSelectionModel(new ObservableListSelectionModel(changedFilesTable.getSelectionModel()));
-    changedFilesTable.getColumnModel().removeColumn(changedFilesTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
-    changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))
-        .setCellRenderer(new FileStatusCellRenderer());
-    changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
-        .setCellRenderer(new FileStatusCellRenderer());
-    disposable = selectionObservable.subscribe(pCommits -> pCommits.ifPresent(iCommits -> messageTextArea.setText(_getDescriptionText(iCommits))));
+    disposable = selectedCommitObservable.subscribe(pCommits -> pCommits.ifPresent(iCommits -> messageTextArea.setText(_getDescriptionText(iCommits))));
     JScrollPane messageTextScrollPane = new JScrollPane(messageTextArea);
     JScrollPane changedFilesScrollPane = new JScrollPane(changedFilesTable);
     JSplitPane detailPanelSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, changedFilesScrollPane, messageTextScrollPane);
     detailPanelSplitPane.setResizeWeight(DETAIL_SPLIT_PANE_RATIO);
     return detailPanelSplitPane;
-  }
-
-  @Override
-  public void discard()
-  {
-    disposable.dispose();
   }
 
   private String _getDescriptionText(List<ICommit> pCommits)

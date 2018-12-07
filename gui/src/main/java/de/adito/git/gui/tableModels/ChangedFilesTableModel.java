@@ -29,10 +29,19 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
   {
     Optional<IRepository> currentRepo = pRepo.blockingFirst();
     disposable = pSelectedCommits.subscribe(pSelectedCommitsOpt -> {
+      Set<IFileChangeType> changedFilesSet = new HashSet<>();
       if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
-        changedFiles = currentRepo.get().getCommittedFiles(pSelectedCommitsOpt.get().get(0).getId());
+      {
+        for (ICommit selectedCommit : pSelectedCommitsOpt.get())
+        {
+          changedFilesSet.addAll(currentRepo.get().getCommittedFiles(selectedCommit.getId()));
+        }
+        changedFiles = new ArrayList<>(changedFilesSet);
+      }
       else
+      {
         changedFiles = Collections.emptyList();
+      }
       fireTableDataChanged();
     });
   }
