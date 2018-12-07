@@ -1,166 +1,166 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.adito.git</groupId>
-    <artifactId>adito-nb-git</artifactId>
-    <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+  <groupId>de.adito.git</groupId>
+  <artifactId>adito-nb-git</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0-SNAPSHOT</version>
 
-    <properties>
-        <netbeans.version>RELEASE90a</netbeans.version>
-        <maven.plugin.version>3.0.1</maven.plugin.version>
-    </properties>
+  <properties>
+    <netbeans.version>RELEASE90a</netbeans.version>
+    <maven.plugin.version>3.0.1</maven.plugin.version>
+  </properties>
 
-    <repositories>
-        <repository>
-            <id>netbeans</id>
-            <name>NetBeans</name>
-            <url>http://bits.netbeans.org/nexus/content/groups/netbeans/</url>
-        </repository>
-    </repositories>
+  <repositories>
+    <repository>
+      <id>netbeans</id>
+      <name>NetBeans</name>
+      <url>http://bits.netbeans.org/nexus/content/groups/netbeans/</url>
+    </repository>
+  </repositories>
 
-    <modules>
-        <module>api</module>
-        <module>impl</module>
-        <module>nbm</module>
-        <module>gui</module>
-    </modules>
+  <modules>
+    <module>api</module>
+    <module>impl</module>
+    <module>nbm</module>
+    <module>gui</module>
+  </modules>
 
-    <build>
-        <plugins>
-            <!-- dependency plugin -->
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.0</version>
-            </plugin>
+  <build>
+    <plugins>
+      <!-- dependency plugin -->
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.0</version>
+      </plugin>
 
-            <!-- Plugin: Compiler -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <release>10</release>
-                    <source>10</source>
-                    <target>10</target>
-                </configuration>
-            </plugin>
+      <!-- Plugin: Compiler -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <release>10</release>
+          <source>10</source>
+          <target>10</target>
+        </configuration>
+      </plugin>
 
-            <!--Plugin: Jar-Plugin to exclude maven descriptors and add manifest entries -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven.plugin.version}</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <useUniqueVersions>true</useUniqueVersions>
-                            <addClasspath>false</addClasspath>
-                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
-                        </manifest>
-                        <addMavenDescriptor>false</addMavenDescriptor>
-                    </archive>
-                </configuration>
-            </plugin>
+      <!--Plugin: Jar-Plugin to exclude maven descriptors and add manifest entries -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven.plugin.version}</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <useUniqueVersions>true</useUniqueVersions>
+              <addClasspath>false</addClasspath>
+              <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
+            </manifest>
+            <addMavenDescriptor>false</addMavenDescriptor>
+          </archive>
+        </configuration>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>${maven.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven.plugin.version}</version>
-                <configuration>
-                    <jdkToolchain>
-                        <version>10</version>
-                    </jdkToolchain>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven.plugin.version}</version>
+        <configuration>
+          <jdkToolchain>
+            <version>10</version>
+          </jdkToolchain>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.1</version>
-            </plugin>
-        </plugins>
-    </build>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.1</version>
+      </plugin>
+    </plugins>
+  </build>
 
-    <!-- Core Library -->
-    <dependencies>
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit</artifactId>
-            <version>5.1.1.201809181055-r</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>16.0.3</version>
-        </dependency>
+  <!-- Core Library -->
+  <dependencies>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>5.1.1.201809181055-r</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>16.0.3</version>
+    </dependency>
 
-        <!-- Guice dependencies -->
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.2.2</version>
-        </dependency>
+    <!-- guice dependencies -->
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>4.2.2</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.3.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.3.1</version>
-            <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.3.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.3.1</version>
+      <scope>test</scope>
+    </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxjava -->
-        <dependency>
-            <groupId>io.reactivex.rxjava2</groupId>
-            <artifactId>rxjava</artifactId>
-            <version>2.2.2</version>
-        </dependency>
+    <!-- https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxjava -->
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>2.2.2</version>
+    </dependency>
 
-        <dependency>
-            <groupId>de.adito.util</groupId>
-            <artifactId>reactive</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
-        </dependency>
+    <dependency>
+      <groupId>de.adito.util</groupId>
+      <artifactId>reactive</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+    </dependency>
 
-        <dependency>
-            <groupId>com.google.inject.extensions</groupId>
-            <artifactId>guice-assistedinject</artifactId>
-            <version>4.2.0</version>
-        </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-assistedinject</artifactId>
+      <version>4.2.0</version>
+    </dependency>
+  </dependencies>
 
 
 </project>

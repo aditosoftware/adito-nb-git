@@ -4,16 +4,18 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
- * A Guice module to define bindings for the action package
+ * A guice module to define bindings for the action package
  *
  * @author a.arnold 05.11.2018
  */
-public class ActionModule extends AbstractModule {
+public class ActionModule extends AbstractModule
+{
 
 
-    @Override
-    protected void configure() {
-        install(new FactoryModuleBuilder().build(IActionFactory.class));
-        bind(IActionProvider.class).to(ActionProvider.class);
-    }
+  @Override
+  protected void configure()
+  {
+    install(new FactoryModuleBuilder().build(IActionFactory.class));
+    bind(IActionProvider.class).to(ActionProvider.class);
+  }
 }
