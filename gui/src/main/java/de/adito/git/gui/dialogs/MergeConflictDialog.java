@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.MergeDiffStatusModel;
 import io.reactivex.Observable;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * @author m.kaspera 25.10.2018
  */
-class MergeConflictDialog extends JPanel
+class MergeConflictDialog extends JPanel implements IDiscardable
 {
 
   private static final String NO_REPO_ERROR_MSG = "no valid repository found";
@@ -27,9 +28,9 @@ class MergeConflictDialog extends JPanel
   private final IDialogProvider dialogFactory;
   private Observable<Optional<IRepository>> repository;
   private final Subject<List<IMergeDiff>> mergeConflictDiffs;
-  private final Observable<List<IMergeDiff>> mergeDiffListObservable;
   private final JTable mergeConflictTable = new JTable();
   private final Observable<Optional<IMergeDiff>> selectedMergeDiffObservable;
+  private final MergeDiffStatusModel mergeDiffStatusModel;
 
   @Inject
   MergeConflictDialog(IDialogProvider pDialogFactory, @Assisted Observable<Optional<IRepository>> pRepository,
@@ -42,9 +43,10 @@ class MergeConflictDialog extends JPanel
     mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
     Observable<IFileStatus> obs = pRepository
         .flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG)).getStatus());
-    mergeDiffListObservable = Observable.combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
-        .filter(pMergeDiff -> pStatus.getConflicting().contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
-        .collect(Collectors.toList()));
+    Observable<List<IMergeDiff>> mergeDiffListObservable = Observable.combineLatest(obs,
+                                                                                    mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
+            .filter(pMergeDiff -> pStatus.getConflicting().contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
+            .collect(Collectors.toList()));
     selectedMergeDiffObservable = Observable
         .combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
           // if either the list or selection is null, more than one element is selected or the list has 0 elements
@@ -55,6 +57,7 @@ class MergeConflictDialog extends JPanel
           }
           return Optional.of(pMergeDiffList.get(pSelectedRows[0]));
         });
+    mergeDiffStatusModel = new MergeDiffStatusModel(mergeDiffListObservable);
     _initGui();
   }
 
@@ -74,7 +77,7 @@ class MergeConflictDialog extends JPanel
     buttonPanel.add(acceptTheirsButton);
     add(buttonPanel, BorderLayout.EAST);
     mergeConflictTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    mergeConflictTable.setModel(new MergeDiffStatusModel(mergeDiffListObservable));
+    mergeConflictTable.setModel(mergeDiffStatusModel);
     add(mergeConflictTable, BorderLayout.WEST);
   }
 
@@ -148,4 +151,9 @@ class MergeConflictDialog extends JPanel
     }
   }
 
+  @Override
+  public void discard()
+  {
+    mergeDiffStatusModel.discard();
+  }
 }
