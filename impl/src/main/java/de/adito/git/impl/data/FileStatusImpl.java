@@ -259,6 +259,6 @@ public class FileStatusImpl implements IFileStatus
   @Override
   public int hashCode()
   {
-    return Objects.hash(gitDirectory);
+    return Objects.hash(gitDirectory, getUncommitted());
   }
 }
