@@ -50,6 +50,7 @@ public class RepositoryImpl implements IRepository
 
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
+        .distinctUntilChanged()
         .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.status(git)));
 
     // Current Branch
