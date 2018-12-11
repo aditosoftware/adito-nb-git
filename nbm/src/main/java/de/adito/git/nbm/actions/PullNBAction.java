@@ -5,10 +5,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
-import org.openide.awt.ActionRegistration;
+import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
@@ -24,46 +21,54 @@ import java.util.Optional;
 @ActionRegistration(displayName = "LBL_PullNBAction_Name")
 //Reference for the menu
 @ActionReferences({
-        @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100),
-        @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 300)
+    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100),
+    @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 200)
 })
-public class PullNBAction extends NBAction {
+public class PullNBAction extends NBAction
+{
 
-    /**
-     * get the actual repository and pull the current branch.
-     *
-     * @param activatedNodes The activated nodes in NetBeans
-     */
-    @Override
-    protected void performAction(Node[] activatedNodes) {
-        Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(activatedNodes);
-        Injector injector = IGitConstants.INJECTOR;
-        IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
+  /**
+   * get the actual repository and pull the current branch.
+   *
+   * @param pActivatedNodes The activated nodes in NetBeans
+   */
+  @Override
+  protected void performAction(Node[] pActivatedNodes)
+  {
+    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Injector injector = IGitConstants.INJECTOR;
+    IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
 
-        try {
-            actionProvider.getPullAction(repository).actionPerformed(null);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    try
+    {
+      actionProvider.getPullAction(repository).actionPerformed(null);
     }
-
-    @Override
-    protected String iconResource() {
-        return NbBundle.getMessage(PushNBAction.class, "ICON_PullNBAction_Path");
+    catch (Exception e)
+    {
+      throw new RuntimeException(e);
     }
+  }
 
-    /**
-     * @param activatedNodes The activated nodes of NetBeans
-     * @return true if there is one repository for the files
-     */
-    @Override
-    protected boolean enable(Node[] activatedNodes) {
-        return findOneRepositoryFromNode(activatedNodes).blockingFirst().isPresent();
-    }
+  @Override
+  protected String iconResource()
+  {
+    return NbBundle.getMessage(PushNBAction.class, "ICON_PullNBAction_Path");
+  }
 
-    @Override
-    public String getName() {
-        return NbBundle.getMessage(PullNBAction.class, "LBL_PullNBAction_Name");
-    }
+  /**
+   * @param pActivatedNodes The activated nodes of NetBeans
+   * @return true if there is one repository for the files
+   */
+  @Override
+  protected boolean enable(Node[] pActivatedNodes)
+  {
+    return findOneRepositoryFromNode(pActivatedNodes).blockingFirst().isPresent();
+  }
+
+  @Override
+  public String getName()
+  {
+    return NbBundle.getMessage(PullNBAction.class, "LBL_PullNBAction_Name");
+  }
 
 }
