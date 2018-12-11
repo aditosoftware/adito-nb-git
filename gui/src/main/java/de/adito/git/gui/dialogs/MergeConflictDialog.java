@@ -8,6 +8,7 @@ import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.MergeDiffStatusModel;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.*;
 
 import javax.swing.*;
@@ -20,23 +21,26 @@ import java.util.stream.Collectors;
 /**
  * @author m.kaspera 25.10.2018
  */
-class MergeConflictDialog extends JPanel implements IDiscardable
+class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
   private static final String NO_REPO_ERROR_MSG = "no valid repository found";
 
-  private final IDialogProvider dialogFactory;
+  private final IDialogProvider dialogProvider;
+  private IDialogDisplayer.IDescriptor isValidDescriptor;
   private Observable<Optional<IRepository>> repository;
   private final Subject<List<IMergeDiff>> mergeConflictDiffs;
   private final JTable mergeConflictTable = new JTable();
   private final Observable<Optional<IMergeDiff>> selectedMergeDiffObservable;
   private final MergeDiffStatusModel mergeDiffStatusModel;
+  private final Disposable disposable;
 
   @Inject
-  MergeConflictDialog(IDialogProvider pDialogFactory, @Assisted Observable<Optional<IRepository>> pRepository,
-                      @Assisted List<IMergeDiff> pMergeConflictDiffs)
+  MergeConflictDialog(IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeDiff> pMergeConflictDiffs)
   {
-    dialogFactory = pDialogFactory;
+    dialogProvider = pDialogProvider;
+    isValidDescriptor = pIsValidDescriptor;
     repository = pRepository;
     ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
@@ -57,6 +61,7 @@ class MergeConflictDialog extends JPanel implements IDiscardable
           }
           return Optional.of(pMergeDiffList.get(pSelectedRows[0]));
         });
+    disposable = mergeDiffListObservable.subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty()));
     mergeDiffStatusModel = new MergeDiffStatusModel(mergeDiffListObservable);
     _initGui();
   }
@@ -85,7 +90,7 @@ class MergeConflictDialog extends JPanel implements IDiscardable
   {
     Optional<IMergeDiff> mergeDiffOptional = pSelectedMergeDiffObservable.blockingFirst();
     mergeDiffOptional.ifPresent(iMergeDiff -> {
-      if (dialogFactory.showMergeConflictResolutionDialog(iMergeDiff).isPressedOk())
+      if (dialogProvider.showMergeConflictResolutionDialog(iMergeDiff).isPressedOk())
         _acceptManualVersion(iMergeDiff);
     });
   }
@@ -154,6 +159,19 @@ class MergeConflictDialog extends JPanel implements IDiscardable
   @Override
   public void discard()
   {
+    disposable.dispose();
     mergeDiffStatusModel.discard();
+  }
+
+  @Override
+  public String getMessage()
+  {
+    return null;
+  }
+
+  @Override
+  public Object getInformation()
+  {
+    return null;
   }
 }

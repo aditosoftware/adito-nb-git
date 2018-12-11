@@ -22,27 +22,25 @@ import java.util.*;
  * @author A.Arnold 17.10.2018
  */
 
-class NewBranchDialog extends JPanel
+class NewBranchDialog extends AditoBaseDialog<Object>
 {
 
-  private final Runnable enableOk;
-  private final Runnable disableOk;
-  private @NotNull List<IBranch> branchList;
-  private JTextField textField = new JTextField();
-  private JCheckBox checkbox = new JCheckBox();
-  private HashSet<String> branchMap = new HashSet<>();
+  private final @NotNull List<IBranch> branchList;
+  private final JTextField textField = new JTextField();
+  private final JCheckBox checkbox = new JCheckBox();
+  private final HashSet<String> branchMap = new HashSet<>();
+  private IDialogDisplayer.IDescriptor isValidDescriptor;
 
   /**
    * @param pRepository The repository where the new branch has to be
    */
   @Inject
-  public NewBranchDialog(@Assisted Observable<Optional<IRepository>> pRepository,
-                         @Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk) throws AditoGitException
+  public NewBranchDialog(@Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                         @Assisted Observable<Optional<IRepository>> pRepository) throws AditoGitException
   {
+    isValidDescriptor = pIsValidDescriptor;
     branchList = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
         .getBranches().blockingFirst().orElse(Collections.emptyList());
-    enableOk = pEnableOk;
-    disableOk = pDisableOk;
     checkbox.setSelected(true);
     textField.setPreferredSize(new Dimension(200, 24));
     _initGui();
@@ -87,6 +85,18 @@ class NewBranchDialog extends JPanel
       branchMap.add(branch.getSimpleName());
     }
     textField.getDocument().addDocumentListener(new _DocumentListener(branchMap, labelAlreadyExists));
+  }
+
+  @Override
+  public String getMessage()
+  {
+    return textField.getText();
+  }
+
+  @Override
+  public Object getInformation()
+  {
+    return null;
   }
 
   /**
@@ -148,25 +158,20 @@ class NewBranchDialog extends JPanel
     {
       if (pBranchMap.contains(pEvent.getDocument().getText(0, pEvent.getDocument().getLength())))
       {
-        disableOk.run();
+        isValidDescriptor.setValid(false);
         pAlreadyExists.setVisible(true);
       }
       else if (pEvent.getDocument().getLength() == 0)
       {
-        disableOk.run();
+        isValidDescriptor.setValid(false);
         pAlreadyExists.setVisible(false);
       }
       else
       {
-        enableOk.run();
+        isValidDescriptor.setValid(true);
         pAlreadyExists.setVisible(false);
       }
     }
-  }
-
-  String getBranchName()
-  {
-    return textField.getText();
   }
 
   public boolean isCheckoutValid()

@@ -7,31 +7,39 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author a.arnold 31.10.2018
  */
-public class DialogResult<T> {
+public class DialogResult<S, T>
+{
 
-    private boolean pressedOk;
-    private String message;
-    private T information;
+  private S source;
+  private boolean pressedOk;
+  private String message;
+  private T information;
 
-    DialogResult(boolean pPressedOk, @Nullable String pMessage) {
-        this(pPressedOk, pMessage, null);
-    }
+  public DialogResult(S pSource, boolean pPressedOk, @Nullable String pMessage, @Nullable T pInformation)
+  {
+    source = pSource;
+    pressedOk = pPressedOk;
+    message = pMessage;
+    information = pInformation;
+  }
 
-    DialogResult(boolean pPressedOk, @Nullable String pMessage, @Nullable T pInformation) {
-        pressedOk = pPressedOk;
-        message = pMessage;
-        information = pInformation;
-    }
+  S getSource()
+  {
+    return source;
+  }
 
-    public boolean isPressedOk() {
-        return pressedOk;
-    }
+  public boolean isPressedOk()
+  {
+    return pressedOk;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public String getMessage()
+  {
+    return message;
+  }
 
-    public T getInformation() {
-        return information;
-    }
+  public T getInformation()
+  {
+    return information;
+  }
 }

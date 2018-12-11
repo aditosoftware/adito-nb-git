@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs;
 
-import javax.swing.*;
+import java.util.function.Function;
 
 /**
  * Interface to provide functionality of giving an overlying framework
@@ -8,17 +8,19 @@ import javax.swing.*;
  *
  * @author m.kaspera 28.09.2018
  */
-public interface IDialogDisplayer {
+public interface IDialogDisplayer
+{
 
-    /**
-     * @param pDialog   JDialog that should be displayed
-     * @param pTitle    String with title of the dialogs
-     * @param okEnabled if the OK button is enabled by default
-     * @return {@code true} if the "okay" button was pressed, {@code false} if the dialogs was cancelled
-     */
-    boolean showDialog(JPanel pDialog, String pTitle, boolean okEnabled);
+  /**
+   * @param pDialogContentSupplier
+   * @param pTitle                 String with title of the dialogs
+   * @return {@code true} if the "okay" button was pressed, {@code false} if the dialogs was cancelled
+   */
+  <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier, String pTitle);
 
-    void disableOKButton();
+  interface IDescriptor
+  {
+    void setValid(boolean pValid);
+  }
 
-    void enableOKButton();
 }
