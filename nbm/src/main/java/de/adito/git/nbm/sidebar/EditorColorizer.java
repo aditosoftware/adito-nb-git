@@ -4,7 +4,6 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
-import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.util.DocumentObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
@@ -28,11 +27,17 @@ import static de.adito.git.gui.Constants.ARROW_RIGHT;
  */
 class EditorColorizer extends JPanel implements IDiscardable
 {
+  private final JTextComponent target;
   private Disposable disposable;
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList();
 
+  @Override
+  public void setBounds(int x, int y, int width, int height)
+  {
+    super.setBounds(x, y, width, height);
+  }
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -42,8 +47,10 @@ class EditorColorizer extends JPanel implements IDiscardable
    */
   EditorColorizer(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget)
   {
+    target = pTarget;
     setMinimumSize(new Dimension(10, 0));
     setPreferredSize(new Dimension(10, 0));
+    setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
 
     DataObject dataObject = (DataObject) pTarget.getDocument().getProperty(Document.StreamDescriptionProperty);
@@ -59,6 +66,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     Observable<Integer> scrollObservable = Observable.create(new AbstractListenerObservable<AdjustmentListener, JTextComponent, Integer>(pTarget)
     {
       JScrollPane jScrollPane = _getJScollPane(pTarget);
+
 
       @NotNull
       @Override
@@ -79,7 +87,7 @@ class EditorColorizer extends JPanel implements IDiscardable
 
 
     Observable<List<IFileChangeChunk>> chunkObservable = Observable
-        .combineLatest(pRepository, actualText.debounce(IGitConstants.TIMETOWAIT, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
+        .combineLatest(pRepository, actualText.debounce(0, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
           if (pRepoOpt.isPresent())
             return pRepoOpt.get().diff(pText, file);
           return List.of();
@@ -90,7 +98,17 @@ class EditorColorizer extends JPanel implements IDiscardable
         .subscribe(chunkList -> {
           changeList.clear();
           Rectangle scrollPaneRectangle = _getJScollPane(pTarget).getViewport().getViewRect();
-          chunkList.forEach(pChange -> _calculateRec(pTarget, pChange, scrollPaneRectangle));
+
+          try
+          {
+            for (IFileChangeChunk chunk : chunkList)
+              _calculateRec(pTarget, chunk, scrollPaneRectangle);
+          }
+          catch (Throwable e) // Catch Throwables because of NetBeans Execution Exceptions, if this Method is called too often
+          {
+            // nothing
+          }
+
           repaint();
         });
   }
@@ -101,7 +119,7 @@ class EditorColorizer extends JPanel implements IDiscardable
    * @param pChange              A chunk of a file that was changed
    * @param pScrollPaneRectangle The rectangle of the viewport of the JScrollPane
    */
-  private void _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange, Rectangle pScrollPaneRectangle)
+  private void _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange, Rectangle pScrollPaneRectangle) throws BadLocationException
   {
     int startLine = 0;
     int endLine = 0;
@@ -132,18 +150,12 @@ class EditorColorizer extends JPanel implements IDiscardable
     View view = pTarget.getUI().getRootView(pTarget);
     if (view != null)
     {
-      try
+      Rectangle changeRectangle =
+          view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Forward, new Rectangle()).getBounds();
+
+      if (pScrollPaneRectangle.intersects(changeRectangle))
       {
-        Rectangle changeRectangle =
-            view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Forward, new Rectangle()).getBounds();
-        if (pScrollPaneRectangle.contains(changeRectangle))
-        {
-          changeList.add(new _ChangeHolder(changeRectangle, pChange.getChangeType()));
-        }
-      }
-      catch (Exception pE)
-      {
-        //This bad location exception can't throw, because there is no location for this rectangle
+        changeList.add(new _ChangeHolder(changeRectangle, pChange.getChangeType()));
       }
     }
   }
