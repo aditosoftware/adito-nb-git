@@ -8,25 +8,29 @@ import org.openide.modules.ModuleInstall;
  *
  * @author a.arnold, 22.10.2018
  */
-public class GitModuleInstall extends ModuleInstall {
+public class GitModuleInstall extends ModuleInstall
+{
 
-    /**
-     * start the Git Module
-     */
-    @Override
-    public void restored() {
-        if(RepositoryCache.getInstance()!= null)
-        RepositoryCache.getInstance().init();
+  /**
+   * start the Git Module
+   */
+  @Override
+  public void restored()
+  {
+    if (RepositoryCache.getInstance() != null)
+      RepositoryCache.getInstance().init();
+  }
+
+  /**
+   * close the Git Module
+   */
+  @Override
+  public void uninstalled()
+  {
+    if (RepositoryCache.getInstance() != null)
+    {
+      RepositoryCache.getInstance().clear();
+
     }
-
-    /**
-     * close the Git Module
-     */
-    @Override
-    public void uninstalled() {
-        if (RepositoryCache.getInstance() != null) {
-            RepositoryCache.getInstance().clear();
-
-        }
-    }
+  }
 }
