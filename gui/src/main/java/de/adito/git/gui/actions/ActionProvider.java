@@ -66,15 +66,6 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public AddAction getAddAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
-  {
-    return actionFactory.createAddAction(pRepository, pSelectedFilesObservable);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ExcludeAction getExcludeAction(Observable<Optional<IRepository>> pRepository,
                                         Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
@@ -150,16 +141,6 @@ class ActionProvider implements IActionProvider
                                        Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createRevertWorkDirAction(pRepository, pSelectedFilesObservable);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Action getResetFilesAction(Observable<Optional<IRepository>> pRepository,
-                                    Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
-  {
-    return actionFactory.createResetFilesAction(pRepository, pSelectedFilesObservable);
   }
 
   /**

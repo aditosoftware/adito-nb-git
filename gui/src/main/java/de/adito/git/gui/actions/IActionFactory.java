@@ -23,8 +23,6 @@ interface IActionFactory
   IgnoreAction createIgnoreAction(Observable<Optional<IRepository>> pRepository,
                                   Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-  AddAction createAddAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
-
   ExcludeAction createExcludeAction(Observable<Optional<IRepository>> pRepository,
                                     Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
@@ -45,9 +43,6 @@ interface IActionFactory
 
   RevertWorkDirAction createRevertWorkDirAction(Observable<Optional<IRepository>> pRepository,
                                                 Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
-
-  ResetFilesAction createResetFilesAction(Observable<Optional<IRepository>> pRepository,
-                                          Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
   ResetAction createResetAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 

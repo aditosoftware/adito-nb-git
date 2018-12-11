@@ -44,13 +44,6 @@ public interface IActionProvider
   /**
    * @param pRepository              Observable with the current Repository
    * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
-   * @return Action whose actionPerformed method adds a file/changes in a file to the staging. Also {@link de.adito.git.gui.actions.ResetFilesAction}
-   */
-  Action getAddAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
-
-  /**
-   * @param pRepository              Observable with the current Repository
-   * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
    * @return Action whose actionPerformed method excludes a file (like git ignore, but does not show up in the .gitignore)
    */
   Action getExcludeAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
@@ -105,13 +98,6 @@ public interface IActionProvider
    * @return Action whose actionPerformed method reverts the selected files in the working dir to the state of HEAD (performs a checkout on the files)
    */
   Action getRevertWorkDirAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
-
-  /**
-   * @param pRepository              Observable with the current Repository
-   * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
-   * @return Action whose actionPerformed method resets the selected files from staging (i.e. the opposite of add)
-   */
-  Action getResetFilesAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
   /**
    * @param pRepository                Observable with the current Repository
