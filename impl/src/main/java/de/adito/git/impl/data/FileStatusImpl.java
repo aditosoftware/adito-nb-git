@@ -215,4 +215,50 @@ public class FileStatusImpl implements IFileStatus
     }
     return returnValue;
   }
+
+  /**
+   * checks whether or not the lists of pOtherStatus and this status are the same/contain the same elements
+   *
+   * @param pOtherStatus The IFileStatus whose uncommitted files should be compared
+   * @return whether or not the lists of pOtherStatus and this status are the same
+   */
+  private boolean _compareUncommittedLists(IFileStatus pOtherStatus)
+  {
+    for (IFileChangeType changeType : getUncommitted())
+    {
+      boolean containedValue = false;
+      for (IFileChangeType otherChangeType : pOtherStatus.getUncommitted())
+      {
+        if (changeType.getFile().equals(otherChangeType.getFile()))
+        {
+          if (changeType.getChangeType() != otherChangeType.getChangeType())
+            return false;
+          else
+          {
+            containedValue = true;
+            break;
+          }
+        }
+      }
+      if (!containedValue)
+        return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean equals(Object pO)
+  {
+    if (this == pO) return true;
+    if (pO == null || getClass() != pO.getClass()) return false;
+    FileStatusImpl that = (FileStatusImpl) pO;
+    return gitDirectory.equals(that.gitDirectory) && hasUncommittedChanges() == that.hasUncommittedChanges()
+        && _compareUncommittedLists(that);
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return Objects.hash(gitDirectory, getUncommitted());
+  }
 }

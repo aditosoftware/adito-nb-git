@@ -27,63 +27,71 @@ class DialogProviderImpl implements IDialogProvider
   @Override
   public DialogResult showMergeConflictDialog(Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs)
   {
-    MergeConflictDialog mergeConflictDialog = dialogFactory.create(pRepository, pMergeConflictDiffs);
-    boolean pressedOk = dialogDisplayer.showDialog(mergeConflictDialog, "Merge Conflicts", true);
-    mergeConflictDialog.discard();
-    return new DialogResult(pressedOk, null);
+    DialogResult<MergeConflictDialog, ?> result = null;
+    try
+    {
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs),
+                                          "Merge Conflicts");
+      return result;
+    }
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
   }
 
   @Override
   public DialogResult showMergeConflictResolutionDialog(IMergeDiff pMergeDiff)
   {
-    boolean pressedOk = dialogDisplayer.showDialog(dialogFactory.create(pMergeDiff),
-                                                   "Conflict resolution for file "
-                                                       + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW),
-                                                   true);
-    return new DialogResult(pressedOk, null);
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
+                                      "Conflict resolution for file "
+                                          + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW));
   }
 
   @Override
   public DialogResult showDiffDialog(List<IFileDiff> pFileDiffs)
   {
-    boolean pressedOk = dialogDisplayer.showDialog(dialogFactory.createDiffDialog(pFileDiffs), "DiffDialog", true);
-    return new DialogResult(pressedOk, null);
+    DialogResult<DiffDialog, ?> result = null;
+    try
+    {
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs), "DiffDialog");
+      return result;
+    }
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
   }
 
   @Override
-  public DialogResult<CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository,
-                                                           Observable<Optional<List<IFileChangeType>>> pFilesToCommit)
+  public DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository,
+                                                                         Observable<Optional<List<IFileChangeType>>> pFilesToCommit)
   {
-    String commitMessage = null;
-    CommitDialog commitDialog = dialogFactory.createCommitDialog(dialogDisplayer::enableOKButton,
-                                                                 dialogDisplayer::disableOKButton,
-                                                                 pRepository,
-                                                                 pFilesToCommit);
-    boolean pressedOk = dialogDisplayer.showDialog(commitDialog, "Commit", false);
-    if (pressedOk)
+    DialogResult<CommitDialog, CommitDialogResult> result = null;
+    try
     {
-      commitMessage = commitDialog.getMessageText();
+      result = dialogDisplayer.showDialog(pIsValidDescriptor -> dialogFactory.createCommitDialog(pIsValidDescriptor, pRepository, pFilesToCommit),
+                                          "Commit");
+      return result;
     }
-    return new DialogResult<>(pressedOk, commitMessage, new CommitDialogResult(commitDialog.getFilesToCommit(), commitDialog.isAmend()));
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
   }
 
   @Override
   public DialogResult showNewBranchDialog(Observable<Optional<IRepository>> pRepository)
   {
-    NewBranchDialog dialog = dialogFactory.createNewBranchDialog(pRepository, dialogDisplayer::enableOKButton, dialogDisplayer::disableOKButton);
-    boolean pressedOk = dialogDisplayer.showDialog(dialog, "New Branch", false);
-    return new DialogResult(pressedOk, dialog.getBranchName());
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createNewBranchDialog(pValidConsumer, pRepository), "New Branch");
   }
 
   @Override
-  public DialogResult<EResetType> showResetDialog()
+  public DialogResult<ResetDialog, EResetType> showResetDialog()
   {
-    ResetDialog resetDialog = dialogFactory.createResetDialog();
-    boolean pressedOk = dialogDisplayer.showDialog(resetDialog, "Reset", true);
-    if (pressedOk)
-    {
-      return new DialogResult<>(true, null, resetDialog.getResetType());
-    }
-    return new DialogResult<>(false, null);
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createResetDialog(), "Reset");
   }
 }

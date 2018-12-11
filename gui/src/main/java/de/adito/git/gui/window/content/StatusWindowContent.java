@@ -69,14 +69,12 @@ class StatusWindowContent extends JPanel implements IDiscardable
     disposable = repository.subscribe(pRepository -> {
       popupMenu = new JPopupMenu();
       popupMenu.add(actionProvider.getCommitAction(repository, selectionObservable));
-      popupMenu.add(actionProvider.getAddAction(repository, selectionObservable));
       popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
       popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
       popupMenu.addSeparator();
       popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable));
       popupMenu.addSeparator();
       popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
-      popupMenu.add(actionProvider.getResetFilesAction(repository, selectionObservable));
     });
 
     statusTable.addMouseListener(new PopupMouseListener(popupMenu));

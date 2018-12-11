@@ -1,31 +1,29 @@
 package de.adito.git.gui.dialogs;
 
-import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera 26.10.2018
  */
-interface IDialogFactory {
+interface IDialogFactory
+{
 
-    MergeConflictDialog create(Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs);
+  MergeConflictDialog createMergeConflictDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                                                Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs);
 
-    MergeConflictResolutionDialog create(IMergeDiff pMergeDiff);
+  MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
 
-    CommitDialog createCommitDialog(@Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk,
-                                    Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
+  CommitDialog createCommitDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                                  Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
 
-    DiffDialog createDiffDialog(List<IFileDiff> pDiffs);
+  DiffDialog createDiffDialog(List<IFileDiff> pDiffs);
 
-    NewBranchDialog createNewBranchDialog(Observable<Optional<IRepository>> pRepository, @Assisted("enable") Runnable pEnableOk, @Assisted("disable") Runnable pDisableOk);
+  NewBranchDialog createNewBranchDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor, Observable<Optional<IRepository>> pRepository);
 
-    ResetDialog createResetDialog();
+  ResetDialog createResetDialog();
 
 }
