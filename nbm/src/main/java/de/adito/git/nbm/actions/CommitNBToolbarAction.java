@@ -13,15 +13,14 @@ import org.openide.util.NbBundle;
 import java.util.*;
 
 /**
- * An action class which opens the commit dialog, responsible for the action in the right-click menu
+ * An action class which opens the commit dialog, responsible for the action in the toolbar
  *
  * @author a.arnold, 25.10.2018
  */
-@ActionID(category = "System", id = "de.adito.git.nbm.actions.CommitNBAction")
-@ActionRegistration(displayName = "LBL_CommitNBAction_Name")
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 700)
-
-public class CommitNBAction extends NBAction
+@ActionID(category = "System", id = "de.adito.git.nbm.actions.CommitNBToolbarAction")
+@ActionRegistration(displayName = "LBL_CommitNBToolbarAction_Name")
+@ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 300)
+public class CommitNBToolbarAction extends CommitNBAction
 {
 
   /**
@@ -35,22 +34,12 @@ public class CommitNBAction extends NBAction
     Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
     Subject<Optional<List<IFileChangeType>>> listNodes;
-
-    if (pActivatedNodes.length == 0)
-    {
-      listNodes = BehaviorSubject.createDefault(Optional.empty());
-    }
-    else
-    {
-      listNodes = BehaviorSubject.createDefault(getUncommittedFilesOfNodes(pActivatedNodes, repository));
-    }
+    listNodes = BehaviorSubject.createDefault(Optional.of(repository.blockingFirst()
+                                                              .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                                                              .getStatus()
+                                                              .blockingFirst()
+                                                              .getUncommitted()));
     actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
-  }
-
-  @Override
-  protected String iconResource()
-  {
-    return NbBundle.getMessage(PushNBAction.class, "ICON_CommitNBAction_Path");
   }
 
   /**
@@ -63,7 +52,7 @@ public class CommitNBAction extends NBAction
     if (pActivatedNodes != null)
     {
       Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
-      return !getUncommittedFilesOfNodes(pActivatedNodes, repository).orElse(Collections.emptyList()).isEmpty();
+      return repository.blockingFirst().map(pRepo -> !pRepo.getStatus().blockingFirst().getUncommitted().isEmpty()).orElse(false);
     }
     return false;
   }
@@ -71,6 +60,6 @@ public class CommitNBAction extends NBAction
   @Override
   public String getName()
   {
-    return NbBundle.getMessage(CommitNBAction.class, "LBL_CommitNBAction_Name");
+    return NbBundle.getMessage(CommitNBToolbarAction.class, "LBL_CommitNBToolbarAction_Name");
   }
 }
