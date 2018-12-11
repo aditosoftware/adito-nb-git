@@ -11,33 +11,39 @@ import java.util.Optional;
 /**
  * @author a.arnold, 31.10.2018
  */
-public class WindowContentProviderImpl implements IWindowContentProvider {
+public class WindowContentProviderImpl implements IWindowContentProvider
+{
 
-    private final IWindowContentFactory windowContentFactory;
+  private final IWindowContentFactory windowContentFactory;
 
-    @Inject
-    public WindowContentProviderImpl(IWindowContentFactory pWindowContentFactory) {
-        windowContentFactory = pWindowContentFactory;
-    }
+  @Inject
+  public WindowContentProviderImpl(IWindowContentFactory pWindowContentFactory)
+  {
+    windowContentFactory = pWindowContentFactory;
+  }
 
-    @Override
-    public JComponent createStatusWindowContent(Observable<Optional<IRepository>> pRepository) {
-        return windowContentFactory.createStatusWindowContent(pRepository);
-    }
+  @Override
+  public JComponent createStatusWindowContent(Observable<Optional<IRepository>> pRepository)
+  {
+    return windowContentFactory.createStatusWindowContent(pRepository);
+  }
 
-    @Override
-    public JComponent createBranchListWindowContent(Observable<Optional<IRepository>> pRepository) {
-        return windowContentFactory.createBranchListWindowContent(pRepository);
-    }
+  @Override
+  public JComponent createBranchListWindowContent(Observable<Optional<IRepository>> pRepository)
+  {
+    return windowContentFactory.createBranchListWindowContent(pRepository);
+  }
 
-    @Override
-    public JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback) {
-        return windowContentFactory.createCommitHistoryWindowContent(pRepository, pTableModel, pLoadMoreCallback);
-    }
+  @Override
+  public JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadCallback)
+  {
+    return windowContentFactory.createCommitHistoryWindowContent(pRepository, pTableModel, pLoadCallback);
+  }
 
-    @Override
-    public JComponent createStatusLineWindowContent(Observable<Optional<IRepository>> pRepository) {
-        return windowContentFactory.createStatusLineWindowContent(pRepository);
-    }
+  @Override
+  public JComponent createStatusLineWindowContent(Observable<Optional<IRepository>> pRepository)
+  {
+    return windowContentFactory.createStatusLineWindowContent(pRepository);
+  }
 
 }

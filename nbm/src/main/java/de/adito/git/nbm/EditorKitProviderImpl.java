@@ -11,7 +11,7 @@ import javax.swing.text.EditorKit;
 public class EditorKitProviderImpl implements IEditorKitProvider {
 
     @Override
-    public EditorKit getEditorKit(String mimeType) {
-        return CloneableEditorSupport.getEditorKit(mimeType);
+    public EditorKit getEditorKit(String pMimeType) {
+        return CloneableEditorSupport.getEditorKit(pMimeType);
     }
 }

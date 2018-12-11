@@ -4,8 +4,7 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.gui.tableModels.StatusTableModel;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.*;
 import java.awt.*;
 
 /**
@@ -14,15 +13,19 @@ import java.awt.*;
  *
  * @author m.kaspera 05.10.2018
  */
-public class FileStatusCellRenderer extends DefaultTableCellRenderer {
+public class FileStatusCellRenderer extends DefaultTableCellRenderer
+{
 
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        // Text in cells is always displayed as label
-        JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        if (!isSelected) {
-            label.setForeground(((EChangeType) table.getModel().getValueAt(row, ((AbstractTableModel) table.getModel()).findColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME))).getStatusColor());
-        }
-        return label;
+  @Override
+  public Component getTableCellRendererComponent(JTable pTable, Object pValue, boolean pIsSelected, boolean pHasFocus, int pRow, int pColumn)
+  {
+    // Text in cells is always displayed as label
+    JLabel label = (JLabel) super.getTableCellRendererComponent(pTable, pValue, pIsSelected, pHasFocus, pRow, pColumn);
+    if (!pIsSelected)
+    {
+      label.setForeground(((EChangeType) pTable.getModel().getValueAt(pRow, ((AbstractTableModel) pTable.getModel())
+          .findColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME))).getStatusColor());
     }
+    return label;
+  }
 }

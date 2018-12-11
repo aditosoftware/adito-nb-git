@@ -12,14 +12,15 @@ import java.util.Optional;
  *
  * @author a.arnold, 31.10.2018
  */
-public interface IWindowProvider {
+public interface IWindowProvider
+{
 
-    void showBranchListWindow(Observable<Optional<IRepository>> pRepository);
+  void showBranchListWindow(Observable<Optional<IRepository>> pRepository);
 
-    void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch);
+  void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch);
 
-    void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile);
+  void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile);
 
-    void showStatusWindow(Observable<Optional<IRepository>> pRepository);
+  void showStatusWindow(Observable<Optional<IRepository>> pRepository);
 
 }
