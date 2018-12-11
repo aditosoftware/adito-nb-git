@@ -14,6 +14,7 @@ import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
@@ -34,7 +35,7 @@ import static de.adito.git.impl.Util.getRelativePath;
 public class RepositoryImpl implements IRepository
 {
 
-  private Git git;
+  private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<IFileStatus> status;
   private final BehaviorSubject<Optional<IBranch>> currentBranchObservable;
@@ -45,7 +46,7 @@ public class RepositoryImpl implements IRepository
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
     colorRoulette = pColorRoulette;
-    git = new Git(GitRepositoryProvider.get(pRepositoryDescription));
+    git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
     branchList = BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList(git)));
 
     // listen for changes in the fileSystem for the status command
@@ -430,7 +431,7 @@ public class RepositoryImpl implements IRepository
         treeWalk.setFilter(PathFilter.create(pFilename));
         if (!treeWalk.next())
         {
-          throw new IllegalStateException("Could not find file " + pFilename);
+          throw new IllegalStateException("Could not find file " + pFilename + " in repository " + getDirectory());
         }
         return ObjectId.toString(treeWalk.getObjectId(0));
       }
@@ -479,7 +480,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void ignore(@NotNull List<File> pFiles) throws IOException
   {
-    File gitIgnore = new File(GitRepositoryProvider.get().getDirectory().getParent(), ".gitignore");
+    File gitIgnore = new File(git.getRepository().getDirectory().getParent(), ".gitignore");
     try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
     {
       for (File file : pFiles)
@@ -495,7 +496,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void exclude(@NotNull List<File> pFiles) throws IOException
   {
-    File gitIgnore = new File(GitRepositoryProvider.get().getDirectory(), "info/exclude");
+    File gitIgnore = new File(git.getRepository().getDirectory(), "info/exclude");
     try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
     {
       for (File file : pFiles)
@@ -945,7 +946,8 @@ public class RepositoryImpl implements IRepository
 
     @NotNull
     @Override
-    protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver, @NotNull IFireable<IFileStatus> pIFireable)
+    protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver,
+                                                         @NotNull IFireable<IFileStatus> pIFireable)
     {
       IFileSystemChangeListener listener = () -> pIFireable.fireValueChanged(RepositoryImplHelper.status(git));
       pIFileSystemObserver.addListener(listener);

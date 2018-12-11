@@ -7,7 +7,5 @@ import de.adito.git.api.data.IRepositoryDescription;
  */
 public interface IRepositoryProviderFactory
 {
-
-  IRepositoryProvider create(IRepositoryDescription pRepositoryDescription);
-
+  RepositoryProvider create(IRepositoryDescription pRepositoryDescription);
 }

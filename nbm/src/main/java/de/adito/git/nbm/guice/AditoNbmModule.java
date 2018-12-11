@@ -29,9 +29,9 @@ public class AditoNbmModule extends AbstractModule
     install(new NBTopComponentsModule());
     install(new NBDialogsModule());
     install(new FactoryModuleBuilder().build(IFileSystemObserverImplFactory.class));
+    install(new FactoryModuleBuilder().build(IRepositoryProviderFactory.class));
 
     bind(IUserPreferences.class).to(UserPreferencesNBImpl.class);
-    bind(IRepositoryProviderFactory.class).to(RepositoryProviderFactory.class);
     bind(IFileSystemObserverProvider.class).to(FileSystemObserverProviderImpl.class);
     bind(IFileSystemObserverImplFactory.class)
         .toProvider(FactoryProvider.newFactory(IFileSystemObserverImplFactory.class, FileSystemObserverImpl.class));

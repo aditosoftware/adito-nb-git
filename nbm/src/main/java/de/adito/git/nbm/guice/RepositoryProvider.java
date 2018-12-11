@@ -1,12 +1,12 @@
 package de.adito.git.nbm.guice;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.gui.guice.IRepositoryFactory;
 import io.reactivex.Observable;
 import io.reactivex.subjects.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -19,13 +19,13 @@ public class RepositoryProvider implements IRepositoryProvider
 {
 
   private final Subject<Optional<IRepository>> git;
-  private IRepositoryFactory gitFactory;
+  private final IRepositoryFactory gitFactory;
 
   @Inject
-  RepositoryProvider(IRepositoryFactory pGitFactory, @Assisted IRepositoryDescription pDescription)
+  RepositoryProvider(IRepositoryFactory pGitFactory)
   {
     gitFactory = pGitFactory;
-    git = BehaviorSubject.createDefault(Optional.of(pGitFactory.create(pDescription)));
+    git = BehaviorSubject.createDefault(Optional.empty());
   }
 
   /**
@@ -34,12 +34,15 @@ public class RepositoryProvider implements IRepositoryProvider
   @Override
   public Observable<Optional<IRepository>> getRepositoryImpl()
   {
-    return git;
+    return git.distinctUntilChanged();
   }
 
-  public void setRepositoryDescription(IRepositoryDescription pDescription)
+  public void setRepositoryDescription(@Nullable IRepositoryDescription pDescription)
   {
-    git.onNext(Optional.of(gitFactory.create(pDescription)));
+    if (pDescription != null)
+      git.onNext(Optional.of(gitFactory.create(pDescription)));
+    else
+      git.onNext(Optional.empty());
   }
 
 }
