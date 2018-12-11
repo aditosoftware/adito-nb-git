@@ -3,4 +3,5 @@ OpenIDE-Module: de.adito.git/0
 OpenIDE-Module-Localizing-Bundle: de/adito/git/Bundle.properties
 OpenIDE-Module-Specification-Version: 0.2.5
 OpenIDE-Module-Install: de/adito/git/nbm/GitModuleInstall.class
+OpenIDE-Module-Layer: de/adito/git/nbm/layer.xml
 AutoUpdate-Show-In-Client: true
