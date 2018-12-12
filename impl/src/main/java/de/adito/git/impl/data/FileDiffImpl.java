@@ -42,7 +42,7 @@ public class FileDiffImpl implements IFileDiff
   @Override
   public EChangeType getChangeType()
   {
-    return EnumMappings._toEChangeType(diffEntry.getChangeType());
+    return EnumMappings.toEChangeType(diffEntry.getChangeType());
   }
 
   /**
@@ -51,7 +51,7 @@ public class FileDiffImpl implements IFileDiff
   @Override
   public EFileType getFileType(EChangeSide pSide)
   {
-    return EnumMappings._toEFileType(pSide == EChangeSide.NEW ? diffEntry.getMode(DiffEntry.Side.NEW) : diffEntry.getMode(DiffEntry.Side.OLD));
+    return EnumMappings.toEFileType(pSide == EChangeSide.NEW ? diffEntry.getMode(DiffEntry.Side.NEW) : diffEntry.getMode(DiffEntry.Side.OLD));
   }
 
   /**

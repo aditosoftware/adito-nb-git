@@ -15,7 +15,7 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import org.jetbrains.annotations.*;
@@ -134,19 +134,30 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public boolean push()
+  public Map<String, EPushResult> push()
   {
+    Map<String, EPushResult> resultMap = new HashMap<>();
     PushCommand push = git.push()
         .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
     try
     {
-      push.call();
+      Iterable<PushResult> pushResults = push.call();
+      for (PushResult pushResult : pushResults)
+      {
+        for (RemoteRefUpdate remoteRefUpdate : pushResult.getRemoteUpdates())
+        {
+          if (remoteRefUpdate.getStatus() != RemoteRefUpdate.Status.OK && remoteRefUpdate.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE)
+          {
+            resultMap.put(remoteRefUpdate.getRemoteName(), EnumMappings.toPushResult(remoteRefUpdate.getStatus()));
+          }
+        }
+      }
     }
     catch (JGitInternalException | GitAPIException e)
     {
       throw new IllegalStateException("Unable to push into remote Git repository", e);
     }
-    return true;
+    return resultMap;
   }
 
   /**
@@ -281,7 +292,7 @@ public class RepositoryImpl implements IRepository
     List<IFileChangeChunk> changeChunks = new ArrayList<>();
     for (Edit edit : linesChanged)
     {
-      changeChunks.add(new FileChangeChunkImpl(edit, "", "", EnumMappings._toEChangeType(edit.getType())));
+      changeChunks.add(new FileChangeChunkImpl(edit, "", "", EnumMappings.toEChangeType(edit.getType())));
     }
     return changeChunks;
   }
@@ -754,7 +765,7 @@ public class RepositoryImpl implements IRepository
       }
       return diffEntries.stream()
           .map(pDiffEntry -> new FileChangeTypeImpl(
-              new File(pDiffEntry.getOldPath()), EnumMappings._toEChangeType(pDiffEntry.getChangeType())))
+              new File(pDiffEntry.getOldPath()), EnumMappings.toEChangeType(pDiffEntry.getChangeType())))
           .distinct()
           .collect(Collectors.toList());
     }

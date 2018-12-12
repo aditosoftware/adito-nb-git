@@ -41,7 +41,7 @@ public interface IRepository
    * @return {@code true} if the operation was successful, {@code false} otherwise
    * @throws AditoGitException if an error occurs
    */
-  boolean push() throws AditoGitException;
+  Map<String, EPushResult> push() throws AditoGitException;
 
   /**
    * Pulls the current contents of the tracked remote branch of the currently selected local branch
