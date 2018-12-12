@@ -164,7 +164,6 @@ public class RepositoryImpl implements IRepository
         RebaseResult rebaseResult = rebaseCommand.call();
         if (rebaseResult.getStatus() == RebaseResult.Status.ABORTED)
         {
-          RepositoryImplHelper.unStashIfAvailable(git);
           return new RebaseResultImpl(Collections.emptyList(), rebaseResult.getStatus());
         }
         else
@@ -173,10 +172,6 @@ public class RepositoryImpl implements IRepository
       IRebaseResult iRebaseResult;
       if (!git.getRepository().getRepositoryState().isRebasing())
       {
-        if (!status.blockingFirst().getUncommitted().isEmpty())
-        {
-          RepositoryImplHelper.stashChanges(git);
-        }
         String currentHeadName = git.getRepository().getFullBranch();
         String targetName = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
         PullCommand pullCommand = git.pull();
@@ -247,14 +242,6 @@ public class RepositoryImpl implements IRepository
         return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, pCurrHeadName, pTargetName, pForkPoint, conflictFilesSet, this::diff),
                                     pResultSupplier.get().getStatus());
       }
-    }
-    try
-    {
-      RepositoryImplHelper.unStashIfAvailable(git);
-    }
-    catch (GitAPIException pE)
-    {
-      throw new AditoGitException(pE);
     }
     return new RebaseResultImpl(Collections.emptyList(), pResultSupplier.get().getStatus());
   }
@@ -931,6 +918,100 @@ public class RepositoryImpl implements IRepository
   public Observable<Optional<List<IBranch>>> getBranches()
   {
     return branchList;
+  }
+
+  @Override
+  public @Nullable String peekStash() throws AditoGitException
+  {
+    try
+    {
+      Collection<RevCommit> stashedCommits = git.stashList().call();
+      if (!stashedCommits.isEmpty())
+      {
+        return stashedCommits.iterator().next().getName();
+      }
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+    return null;
+  }
+
+  @Override
+  public @Nullable String stashChanges() throws AditoGitException
+  {
+    try
+    {
+      return git.stashCreate().call().getName();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+  }
+
+  @Override
+  public List<IMergeDiff> unStashIfAvailable() throws AditoGitException
+  {
+    String topMostStashedCommitId = peekStash();
+    if (topMostStashedCommitId != null)
+    {
+      return unStashChanges(topMostStashedCommitId);
+    }
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException
+  {
+    int stashIndexForId = RepositoryImplHelper.getStashIndexForId(git, pStashCommitId);
+    if (stashIndexForId < 0)
+      throw new AditoGitException("Could not find a stashed commit for id " + pStashCommitId);
+    try
+    {
+      git.stashApply().setStashRef(pStashCommitId).call();
+    }
+    catch (StashApplyFailureException pStashApplyFailureEx)
+    {
+      if (pStashApplyFailureEx.getMessage().contains("Applying stashed changes resulted in a conflict"))
+      {
+        try
+        {
+          return RepositoryImplHelper.getStashConflictMerge(git, RepositoryImplHelper.status(git).getConflicting(), pStashCommitId, this::diff);
+        }
+        catch (IOException pE1)
+        {
+          throw new AditoGitException(pE1);
+        }
+      }
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+    try
+    {
+      git.stashDrop().setStashRef(stashIndexForId).call();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException("Could not drop commit with id " + pStashCommitId + " after un-stashing it", pE);
+    }
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void dropStashedCommit(@NotNull String pStashCommitId) throws AditoGitException
+  {
+    try
+    {
+      git.stashDrop().setStashRef(RepositoryImplHelper.getStashIndexForId(git, pStashCommitId)).call();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
   }
 
 

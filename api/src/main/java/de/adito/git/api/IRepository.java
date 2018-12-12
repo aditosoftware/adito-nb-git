@@ -14,26 +14,26 @@ public interface IRepository
 {
 
   /**
-   * @param addList List of files to add to staging
+   * @param pAddList List of files to add to staging
    * @throws AditoGitException if an error occurs
    */
-  void add(List<File> addList) throws AditoGitException;
+  void add(List<File> pAddList) throws AditoGitException;
 
   /**
-   * @param message String with the commit message entered by the user
+   * @param pMessage String with the commit message entered by the user
    * @return the ID of the commit as String
    * @throws AditoGitException if an error occurs
    */
-  String commit(@NotNull String message) throws AditoGitException;
+  String commit(@NotNull String pMessage) throws AditoGitException;
 
   /**
-   * @param message  String with the commit message entered by the user
-   * @param fileList List of files that should be committed (and none else)
-   * @param isAmend  If this commit should be amended to the previous commit
+   * @param pMessage  String with the commit message entered by the user
+   * @param pFileList List of files that should be committed (and none else)
+   * @param pIsAmend  If this commit should be amended to the previous commit
    * @return the ID of the commit as String
    * @throws AditoGitException if an error occurs
    */
-  String commit(@NotNull String message, List<File> fileList, boolean isAmend) throws AditoGitException;
+  String commit(@NotNull String pMessage, List<File> pFileList, boolean pIsAmend) throws AditoGitException;
 
   /**
    * Pushes the changes made to HEAD onto the selected branch/remote
@@ -65,53 +65,53 @@ public interface IRepository
    * Fetches the current state of the remote and stores it internally. Does not affect the working directory.
    * See also the "git fetch" command
    *
-   * @param prune whether references to branches/tags that no longer exist on the remote should be deleted or not
+   * @param pPrune whether references to branches/tags that no longer exist on the remote should be deleted or not
    * @throws AditoGitException if an error occurs
    */
-  void fetch(boolean prune) throws AditoGitException;
+  void fetch(boolean pPrune) throws AditoGitException;
 
-  List<IFileChangeChunk> diff(@NotNull String fileContents, File compareWith) throws IOException;
+  List<IFileChangeChunk> diff(@NotNull String pFileContents, File pCompareWith) throws IOException;
 
   /**
-   * @param original  the older ICommit
-   * @param compareTo the later ICommit
+   * @param pOriginal  the older ICommit
+   * @param pCompareTo the later ICommit
    * @return IFileDiff that contains the differences between the two files
    * @throws AditoGitException if an error occurs
    */
-  @NotNull List<IFileDiff> diff(@NotNull ICommit original, @NotNull ICommit compareTo) throws AditoGitException;
+  @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @NotNull ICommit pCompareTo) throws AditoGitException;
 
   /**
    * performs a diff of the working copy of the provided files with their version as it is in compareWith
    *
-   * @param fileToDiff  List of Files that should be diff'd with HEAD. pass null if all changes should be displayed
-   * @param compareWith ICommit giving the version that the files should be compared with. If null files are compared to the HEAD
+   * @param pFileToDiff  List of Files that should be diff'd with HEAD. pass null if all changes should be displayed
+   * @param pCompareWith ICommit giving the version that the files should be compared with. If null files are compared to the HEAD
    * @return List of IFileDiff describing the differences of the files in the working copy and compareWith (or HEAD if compareWith == null)
    * @throws AditoGitException if an error occurs
    */
-  @NotNull List<IFileDiff> diff(@Nullable List<File> fileToDiff, @Nullable ICommit compareWith) throws AditoGitException;
+  @NotNull List<IFileDiff> diff(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith) throws AditoGitException;
 
   /**
-   * @param identifier String identifying the specific version of the file
+   * @param pIdentifier String identifying the specific version of the file
    * @return the contents of the requested file as String
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  String getFileContents(String identifier) throws IOException;
+  String getFileContents(String pIdentifier) throws IOException;
 
   /**
-   * @param commitId the ID of the commit for the version of the file
-   * @param filename the name of the file to be retrieved
+   * @param pCommitId the ID of the commit for the version of the file
+   * @param pFilename the name of the file to be retrieved
    * @return identifying String for the specific version of the file
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  String getFileVersion(String commitId, String filename) throws IOException;
+  String getFileVersion(String pCommitId, String pFilename) throws IOException;
 
   /**
-   * @param url  the url from which to pull from, as String
-   * @param dest the location on the local disk
+   * @param pUrl  the url from which to pull from, as String
+   * @param pDest the location on the local disk
    * @return {@code true} if the operation was successful, {@code false} otherwise
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  boolean clone(@NotNull String url, @NotNull File dest) throws IOException;
+  boolean clone(@NotNull String pUrl, @NotNull File pDest) throws IOException;
 
   /**
    * @return List of IFileStatus that describe the different staging states of the local files
@@ -119,62 +119,62 @@ public interface IRepository
   @NotNull Observable<IFileStatus> getStatus();
 
   /**
-   * @param files List of files that should be added to the .gitignore
+   * @param pFiles List of files that should be added to the .gitignore
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  void ignore(@NotNull List<File> files) throws IOException;
+  void ignore(@NotNull List<File> pFiles) throws IOException;
 
   /**
    * Excludes the listed files, basically a local .gitignore
    *
-   * @param files List of files that should be added to the .git/info/exclude
+   * @param pFiles List of files that should be added to the .git/info/exclude
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  void exclude(@NotNull List<File> files) throws IOException;
+  void exclude(@NotNull List<File> pFiles) throws IOException;
 
   /**
-   * @param files List of files which should be reverted to the state in HEAD
+   * @param pFiles List of files which should be reverted to the state in HEAD
    * @throws AditoGitException if an error occurs
    */
-  void revertWorkDir(@NotNull List<File> files) throws AditoGitException;
+  void revertWorkDir(@NotNull List<File> pFiles) throws AditoGitException;
 
   /**
-   * @param files List of files that should be reset. Can also be null, in which case all changes are reset
+   * @param pFiles List of files that should be reset. Can also be null, in which case all changes are reset
    * @throws AditoGitException if an error occurs
    */
-  void reset(@NotNull List<File> files) throws AditoGitException;
+  void reset(@NotNull List<File> pFiles) throws AditoGitException;
 
   /**
-   * @param identifier ID for the branch/commit to reset to
-   * @param resetType  resetType which type of reset should be conducted
+   * @param pIdentifier ID for the branch/commit to reset to
+   * @param pResetType  resetType which type of reset should be conducted
    * @throws AditoGitException if an error occurs
    */
-  void reset(@NotNull String identifier, @NotNull EResetType resetType) throws AditoGitException;
+  void reset(@NotNull String pIdentifier, @NotNull EResetType pResetType) throws AditoGitException;
 
   /**
-   * @param branchName String with the name of the branch
-   * @param checkout   {@code true} if the branch should be automatically checked out after it was created
+   * @param pBranchName String with the name of the branch
+   * @param pCheckout   {@code true} if the branch should be automatically checked out after it was created
    * @throws AditoGitException if an error occurs
    */
-  void createBranch(@NotNull String branchName, boolean checkout) throws AditoGitException;
+  void createBranch(@NotNull String pBranchName, boolean pCheckout) throws AditoGitException;
 
   /**
-   * @param branchName the name of the branch to delete
+   * @param pBranchName the name of the branch to delete
    * @throws AditoGitException if an error occurs
    */
-  void deleteBranch(@NotNull String branchName) throws AditoGitException;
+  void deleteBranch(@NotNull String pBranchName) throws AditoGitException;
 
   /**
-   * @param branchName String with identifier of the branch to checkout
+   * @param pBranchName String with identifier of the branch to checkout
    * @throws AditoGitException if an error occurs
    */
-  void checkout(@NotNull String branchName) throws AditoGitException;
+  void checkout(@NotNull String pBranchName) throws AditoGitException;
 
   /**
-   * @param branch branch to checkout
+   * @param pBranch branch to checkout
    * @throws AditoGitException if an error occurs
    */
-  void checkout(@NotNull IBranch branch) throws AditoGitException;
+  void checkout(@NotNull IBranch pBranch) throws AditoGitException;
 
   /**
    * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
@@ -184,82 +184,82 @@ public interface IRepository
   List<IMergeDiff> getMergeConflicts() throws AditoGitException;
 
   /**
-   * @param sourceBranch The source branch
-   * @param targetBranch The target branch
+   * @param pSourceBranch The source branch
+   * @param pTargetBranch The target branch
    * @return List of IMergeDiffs, the list is empty if no merge conflict happened, else the list of IMergeDiffs describe the merge conflicts
    * @throws AditoGitException if an error occurs
    */
-  List<IMergeDiff> merge(@NotNull IBranch sourceBranch, @NotNull IBranch targetBranch) throws AditoGitException;
+  List<IMergeDiff> merge(@NotNull IBranch pSourceBranch, @NotNull IBranch pTargetBranch) throws AditoGitException;
 
   /**
-   * @param commitId Id of the commit for which the changed files should be retrieved
+   * @param pCommitId Id of the commit for which the changed files should be retrieved
    * @return {@code List<String>} detailing the changed files in the commit
    * @throws AditoGitException if JGit encountered an error condition
    * @throws AditoGitException if an error occurs
    */
-  List<IFileChangeType> getCommittedFiles(String commitId) throws AditoGitException;
+  List<IFileChangeType> getCommittedFiles(String pCommitId) throws AditoGitException;
 
   /**
-   * @param identifier String with identifier of the commit, or NULL for the latest commit
+   * @param pIdentifier String with identifier of the commit, or NULL for the latest commit
    * @return ICommit describing the commit
    * @throws AditoGitException if an error occurs
    */
-  ICommit getCommit(@Nullable String identifier) throws AditoGitException;
+  ICommit getCommit(@Nullable String pIdentifier) throws AditoGitException;
 
   /**
-   * @param sourceBranch IBranch for which all commits should be retrieved. Pass NULL for all commits
+   * @param pSourceBranch IBranch for which all commits should be retrieved. Pass NULL for all commits
    * @return List with all ICommits in the sourceBranch
    * @throws AditoGitException if an error occurs
    */
-  List<ICommit> getCommits(IBranch sourceBranch) throws AditoGitException;
+  List<ICommit> getCommits(IBranch pSourceBranch) throws AditoGitException;
 
   /**
-   * @param sourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
-   * @param numCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
+   * @param pSourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
+   * @param pNumCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
    * @return List with all ICommits in the sourceBranch
    * @throws AditoGitException if an error occurs
    */
-  List<ICommit> getCommits(IBranch sourceBranch, int numCommits) throws AditoGitException;
+  List<ICommit> getCommits(IBranch pSourceBranch, int pNumCommits) throws AditoGitException;
 
   /**
-   * @param sourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
-   * @param indexFrom    how many commits should be skipped. Pass -1 if the parameter should be ignored
-   * @param numCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
+   * @param pSourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
+   * @param pIndexFrom    how many commits should be skipped. Pass -1 if the parameter should be ignored
+   * @param pNumCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
    * @return List with all ICommits in the sourceBranch
    * @throws AditoGitException if an error occurs
    */
-  List<ICommit> getCommits(IBranch sourceBranch, int indexFrom, int numCommits) throws AditoGitException;
+  List<ICommit> getCommits(IBranch pSourceBranch, int pIndexFrom, int pNumCommits) throws AditoGitException;
 
   /**
-   * @param forFile File for which all commits should be retrieved. Pass NULL for all commits
+   * @param pForFile File for which all commits should be retrieved. Pass NULL for all commits
    * @return List with ICommits that contains all commits that affected the file
    * @throws AditoGitException if an error occurs
    */
-  List<ICommit> getCommits(File forFile) throws AditoGitException;
+  List<ICommit> getCommits(File pForFile) throws AditoGitException;
 
   /**
-   * @param forFile    File for which commits should be retrieved. Pass NULL for all commits
-   * @param numCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
+   * @param pForFile    File for which commits should be retrieved. Pass NULL for all commits
+   * @param pNumCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
    * @return List with ICommits that contains all commits that affected the file
    * @throws AditoGitException if an error occurs
    */
-  List<ICommit> getCommits(File forFile, int numCommits) throws AditoGitException;
+  List<ICommit> getCommits(File pForFile, int pNumCommits) throws AditoGitException;
 
   /**
-   * @param forFile    File for which commits should be retrieved. Pass NULL for all commits
-   * @param indexFrom  how many commits should be skipped. Pass -1 if the parameter should be ignored
-   * @param numCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
+   * @param pForFile    File for which commits should be retrieved. Pass NULL for all commits
+   * @param pIndexFrom  how many commits should be skipped. Pass -1 if the parameter should be ignored
+   * @param pNumCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
    * @return List with ICommits that contains all commits that affected the file
    * @throws AditoGitException if an error occurs
    */
-  List<ICommit> getCommits(File forFile, int indexFrom, int numCommits) throws AditoGitException;
+  List<ICommit> getCommits(File pForFile, int pIndexFrom, int pNumCommits) throws AditoGitException;
 
   /**
-   * @param commits    List of commits for which the CommitHistoryTreeList should be created
-   * @param startCHTLI If the List of commits is an extension of a list, pass the last CommitHistoryTreeListItem of that list here
+   * @param pCommits    List of commits for which the CommitHistoryTreeList should be created
+   * @param pStartCHTLI If the List of commits is an extension of a list, pass the last CommitHistoryTreeListItem of that list here
    * @return List of CommitHistoryTreeListItems
    */
-  List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> commits, @Nullable CommitHistoryTreeListItem startCHTLI);
+  List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> pCommits, @Nullable CommitHistoryTreeListItem pStartCHTLI);
 
   /**
    * @return the directory of the actual repository
@@ -272,11 +272,11 @@ public interface IRepository
   File getTopLevelDirectory();
 
   /**
-   * @param branchString String with the string of the targeted branch
+   * @param pBranchString String with the string of the targeted branch
    * @return the IBranch for the given identifier
    * @throws AditoGitException if an error occurs
    */
-  Optional<IBranch> getBranch(String branchString) throws AditoGitException;
+  Optional<IBranch> getBranch(String pBranchString) throws AditoGitException;
 
   /**
    * @return the current branch
@@ -290,4 +290,48 @@ public interface IRepository
    */
   @NotNull
   Observable<Optional<List<IBranch>>> getBranches() throws AditoGitException;
+
+  /**
+   * check if there is any stashed commit and return the id of the latest stashed commit if any exist
+   *
+   * @return String with the sha-1 id of latest stashed commit if at least one stashed commits exists, else null
+   * @throws AditoGitException if an error occurs
+   */
+  @Nullable
+  String peekStash() throws AditoGitException;
+
+  /**
+   * Stash the uncommitted changes in the current working directory
+   *
+   * @return sha-1 id that the stashed commit with the changes that existed in the working directory got
+   * @throws AditoGitException if an error occurs
+   */
+  @Nullable
+  String stashChanges() throws AditoGitException;
+
+  /**
+   * un-stashed the latest stashed commit
+   *
+   * @return list with IMergeDiffs if a conflict occurs during un-stashing, empty list if successful
+   * @throws AditoGitException if an error occurs
+   */
+  List<IMergeDiff> unStashIfAvailable() throws AditoGitException;
+
+  /**
+   * un-stash the changes of the specified stashed commit and drop the commit if the changes
+   * could be successfully un-stashed
+   *
+   * @param pStashCommitId sha-1 id for the commit to be un-stashed
+   * @return list with IMergeDiffs if a conflict occurs during un-stashing, empty list if successful
+   * @throws AditoGitException if an error occurs
+   */
+  List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException;
+
+  /**
+   * drop the specified stashed commit
+   *
+   * @param pStashCommitId sha-1 id for the commit to deleted
+   * @throws AditoGitException if an error occurs
+   */
+  void dropStashedCommit(@NotNull String pStashCommitId) throws AditoGitException;
 }

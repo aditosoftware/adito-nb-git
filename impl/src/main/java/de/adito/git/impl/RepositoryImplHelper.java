@@ -1,5 +1,6 @@
 package de.adito.git.impl;
 
+import com.google.common.base.*;
 import de.adito.git.api.AditoGitException;
 import de.adito.git.api.data.*;
 import de.adito.git.impl.data.*;
@@ -8,12 +9,15 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.Optional;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.*;
 import java.util.stream.*;
 
@@ -158,6 +162,89 @@ class RepositoryImplHelper
 
   /**
    * @param pGit           Git object to call for retrieving commits/objects/info about the repository status
+   * @param pConflicts     Strings of files that are in conflict
+   * @param pStashCommitId id of the stashed commit that had a conflict
+   * @param pDiffFn        BiFunction for diffing two commits
+   * @return List of IMergeDiff with the diffs of merge-base to the two heads
+   * @throws IOException       JGit exception
+   * @throws AditoGitException if no commit fitting the ID can be found
+   */
+  @NotNull
+  static List<IMergeDiff> getStashConflictMerge(@NotNull Git pGit, @NotNull Set<String> pConflicts, String pStashCommitId,
+                                                @NotNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFn)
+      throws IOException, AditoGitException
+  {
+    RevCommit toUnstash = getStashedCommit(pGit, pStashCommitId);
+    if (toUnstash == null)
+      throw new AditoGitException("could not find any stashed commits while trying to resolve conflict of stashed commit with HEAD");
+    RevCommit mergeBase = RepositoryImplHelper.getMergeBase(pGit, toUnstash,
+                                                            pGit.getRepository().parseCommit(pGit.getRepository().resolve(Constants.HEAD)));
+    return RepositoryImplHelper.getMergeConflicts(pGit, toUnstash.getName(),
+                                                  ObjectId.toString(pGit.getRepository().resolve(Constants.HEAD)),
+                                                  new CommitImpl(mergeBase), pConflicts, pDiffFn);
+  }
+
+  /**
+   * @param pGit           Git object to call for retrieving commits/objects/info about the repository status
+   * @param pStashCommitId id of the stashed commit that should be retrieved from the stash
+   * @return RevCommit with the specified id or null if no matching stashed commit could be found
+   * @throws AditoGitException if JGit encounters an error
+   */
+  static RevCommit getStashedCommit(@NotNull Git pGit, @NotNull String pStashCommitId) throws AditoGitException
+  {
+    Collection<RevCommit> stashList;
+    try
+    {
+      stashList = pGit.stashList().call();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+    for (RevCommit stashedCommit : stashList)
+    {
+      if (stashedCommit.getName().equals(pStashCommitId))
+      {
+        return stashedCommit;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param pGit           Git object to call for retrieving commits/objects/info about the repository status
+   * @param pStashCommitId sha-1 id of the stashed commit for which to search the stack index for
+   * @return index of the specified commit in the stash stack, or -1 if no commit with the passed ID can be found
+   * @throws AditoGitException if JGit encounters an error
+   */
+  static int getStashIndexForId(@NotNull Git pGit, @NotNull String pStashCommitId) throws AditoGitException
+  {
+    int index = 0;
+    boolean commitExists = false;
+    Collection<RevCommit> stashList;
+    try
+    {
+      stashList = pGit.stashList().call();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+    for (RevCommit stashedCommit : stashList)
+    {
+      if (stashedCommit.getName().equals(pStashCommitId))
+      {
+        commitExists = true;
+        break;
+      }
+      else
+        index++;
+    }
+    return commitExists ? index : -1;
+  }
+
+  /**
+   * @param pGit           Git object to call for retrieving commits/objects/info about the repository status
    * @param pCurrentBranch Identifier for the current branch
    * @param pBranchToMerge Identifier for the branch that should be merged into the current one
    * @param pForkCommit    the commit where the branches of the two commits diverged
@@ -293,79 +380,34 @@ class RepositoryImplHelper
   }
 
   /**
-   * Creates a new stash commit with all uncommitted changes in the index
+   * Searches the causal chain of pThrowable and looks for any occurrences of pLookFor
    *
-   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
-   * @return SHA-1 id of the created stash commit
-   * @throws GitAPIException if JGit throws an exception
+   * @param pThrowable The exception whose causal chain should be searched for pLookFor
+   * @param pLookFor   The exception that should be searched in the causal chain of pThrowable
+   * @param <EX>       Exception class
+   * @return whether or not pLookFor is in the causal chain of pThrowable
    */
-  static String stashChanges(@NotNull Git pGit) throws GitAPIException
+  static <EX extends Throwable> boolean containsCause(Throwable pThrowable, Class<EX> pLookFor)
   {
-    return pGit.stashCreate().call().getName();
+    return Throwables.getCausalChain(pThrowable).stream().anyMatch(Predicates.instanceOf(pLookFor)::apply);
   }
 
   /**
-   * Checks whether there is a stashed commit available or not and un-stashes the commit if one exists
+   * Searches a merge base for two given commits
    *
-   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
-   * @throws GitAPIException   if JGit throws an exception
-   * @throws AditoGitException if a stashed commit exists in the list of stashed commits, but it cannot be retrieved by its ID
+   * @param pGit         Git object to call for retrieving commits/objects/info about the repository status
+   * @param pYourCommit  the commit on the YOURS side
+   * @param pTheirCommit the commit on the THEIRS side
+   * @return RevCommit that forms the merge-base for yourCommit and theirCommit
+   * @throws IOException if any errors occur during the RevWalk
    */
-  static void unStashIfAvailable(@NotNull Git pGit) throws GitAPIException, AditoGitException
+  static RevCommit getMergeBase(Git pGit, RevCommit pYourCommit, RevCommit pTheirCommit) throws IOException
   {
-    Collection<RevCommit> stashedCommits = pGit.stashList().call();
-    if (!stashedCommits.isEmpty())
-    {
-      unStashChanges(pGit, stashedCommits.iterator().next().getName());
-    }
-  }
-
-  /**
-   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
-   * @throws GitAPIException   if JGit throws an exception
-   * @throws AditoGitException if there is no stashed commit available
-   */
-  static void unStashChange(@NotNull Git pGit) throws GitAPIException, AditoGitException
-  {
-    Collection<RevCommit> stashedCommits = pGit.stashList().call();
-    if (!stashedCommits.isEmpty())
-    {
-      unStashChanges(pGit, stashedCommits.iterator().next().getName());
-    }
-    else
-    {
-      throw new AditoGitException("Could not find any stashed commits to un-stash");
-    }
-  }
-
-  /**
-   * Applies the changes stored in the stashed commit with id pStashCommitId and removes the
-   * stashed commit afterwards
-   *
-   * @param pGit           Git object to call for retrieving commits/objects/info about the repository status
-   * @param pStashCommitId id of the stashed commit to apply
-   * @throws GitAPIException   if JGit throws an exception
-   * @throws AditoGitException if no stashed commit can be found with id pStashCommitId
-   */
-  @SuppressWarnings("WeakerAccess")
-  static void unStashChanges(@NotNull Git pGit, @NotNull String pStashCommitId) throws GitAPIException, AditoGitException
-  {
-    boolean stashCommitExists = false;
-    int index = 0;
-    for (RevCommit stashedCommit : pGit.stashList().call())
-    {
-      if (stashedCommit.getName().equals(pStashCommitId))
-      {
-        stashCommitExists = true;
-        break;
-      }
-      else
-        index++;
-    }
-    if (!stashCommitExists)
-      throw new AditoGitException("Could not find a stashed commit for id " + pStashCommitId);
-    pGit.stashApply().setStashRef(pStashCommitId).call();
-    pGit.stashDrop().setStashRef(index).call();
+    RevWalk walk = new RevWalk(pGit.getRepository());
+    walk.setRevFilter(RevFilter.MERGE_BASE);
+    walk.markStart(pYourCommit);
+    walk.markStart(pTheirCommit);
+    return walk.next();
   }
 
 }

@@ -18,6 +18,7 @@ import java.util.*;
  */
 class PullAction extends AbstractAction
 {
+  private static final String NO_VALID_REPO_MSG = "no valid repository found";
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
   private INotifyUtil notifyUtil;
@@ -53,16 +54,22 @@ class PullAction extends AbstractAction
    */
   private void _doRebase()
   {
+    IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
     boolean doAbort = false;
+    String stashedCommitId = null;
     try
     {
+      if (!pRepo.getStatus().blockingFirst().getUncommitted().isEmpty())
+      {
+        stashedCommitId = pRepo.stashChanges();
+      }
       while (!doAbort)
       {
         IRebaseResult rebaseResult =
-            repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).pull(false);
+            pRepo.pull(false);
         if (rebaseResult.isSuccess())
         {
-          notifyUtil.notify("Rebase success", "Applying the remote changes to the local branch was successful", true);
+          notifyUtil.notify("Rebase success", "Applying the remote changes to the local branch was successful", false);
           break;
         }
         if (!rebaseResult.getMergeConflicts().isEmpty())
@@ -75,6 +82,39 @@ class PullAction extends AbstractAction
     catch (Exception e)
     {
       throw new RuntimeException(e);
+    }
+    finally
+    {
+      if (stashedCommitId != null)
+      {
+        _doUnStashing(stashedCommitId);
+      }
+    }
+  }
+
+  /**
+   * @param pStashedCommitId sha-1 id of the stashed commit to un-stash
+   */
+  private void _doUnStashing(String pStashedCommitId)
+  {
+    IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
+    notifyUtil.notify("Un-stashing changes", "Applying saved changes from before the pull", true);
+    try
+    {
+      List<IMergeDiff> stashConflicts = pRepo.unStashChanges(pStashedCommitId);
+      if (!stashConflicts.isEmpty())
+      {
+        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(repository, stashConflicts);
+        if (dialogResult.isPressedOk())
+        {
+          pRepo.dropStashedCommit(pStashedCommitId);
+          notifyUtil.notify("Done un-stashing changes", "Stashed changes from before the pull were applied successfully", true);
+        }
+      }
+    }
+    catch (AditoGitException pE)
+    {
+      throw new RuntimeException(pE);
     }
   }
 
@@ -92,7 +132,7 @@ class PullAction extends AbstractAction
     {
       // user pressed cancel -> abort
       IRebaseResult abortedRebaseResult =
-          repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).pull(true);
+          repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG)).pull(true);
       if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
         throw new RuntimeException("The abort of the rebase failed with state: " + abortedRebaseResult.getResultType());
       // abort was successful -> notify user
