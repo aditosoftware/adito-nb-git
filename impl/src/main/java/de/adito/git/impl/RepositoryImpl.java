@@ -850,6 +850,26 @@ public class RepositoryImpl implements IRepository
     return RepositoryImplHelper.getCommits(git, null, pFile, pIndexFrom, pNumCommits);
   }
 
+  @Override
+  public List<ICommit> getUnPushedCommits() throws AditoGitException
+  {
+    List<ICommit> unPushedCommits = new ArrayList<>();
+    try
+    {
+      Iterable<RevCommit> unPushedCommitsIter = git.log()
+          .add(git.getRepository().resolve(git.getRepository().getBranch()))
+          .not(git.getRepository().resolve(new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch())
+                                               .getRemoteTrackingBranch()))
+          .call();
+      unPushedCommitsIter.forEach(pUnPushedCommit -> unPushedCommits.add(new CommitImpl(pUnPushedCommit)));
+    }
+    catch (GitAPIException | IOException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+    return unPushedCommits;
+  }
+
   /**
    * {@inheritDoc}
    */
