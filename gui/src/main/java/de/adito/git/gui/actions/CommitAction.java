@@ -60,6 +60,6 @@ class CommitAction extends AbstractTableAction
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
-    return pSelectedFilesObservable.map(selectedFiles -> Optional.of(true));
+    return Observable.just(Optional.of(true));
   }
 }
