@@ -81,10 +81,17 @@ class EditorColorizer extends JPanel implements IDiscardable
     Observable<List<IFileChangeChunk>> chunkObservable = Observable
         .combineLatest(pRepository, actualText.debounce(0, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
           if (pRepoOpt.isPresent())
-            return pRepoOpt.get().diff(pText, file);
+          {
+            IRepository repo = pRepoOpt.get();
+            EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
+
+            // No changes if added or new, because the file can not be diffed -> not in index
+            if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
+              return List.of();
+            return repo.diff(pText, file);
+          }
           return List.of();
         });
-
 
     disposable = Observable.combineLatest(chunkObservable, scrollObservable, (pChunks, pScroll) -> pChunks)
         .subscribe(chunkList -> {

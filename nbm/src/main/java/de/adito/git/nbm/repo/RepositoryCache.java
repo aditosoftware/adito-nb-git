@@ -118,8 +118,9 @@ public class RepositoryCache
     try
     {
       RepositoryProvider provider = _getProvider(pProjectFolder, false);
-      if (provider != null)
-        provider.setRepositoryDescription(null);
+      // todo close repo
+      //if (provider != null)
+      //  provider.setRepositoryDescription(null);
     }
     catch (Exception e)
     {

@@ -24,6 +24,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.*;
 
@@ -90,6 +91,17 @@ public class RepositoryImpl implements IRepository
     RevCommit revCommit;
     try
     {
+      // add all untracked files
+      List<File> files = status.blockingFirst()
+          .map(IFileStatus::getUntracked)
+          .orElse(Set.of())
+          .stream()
+          .map(File::new)
+          .collect(Collectors.toList());
+      if (!files.isEmpty())
+        add(files);
+
+      // commit files
       revCommit = commit.setMessage(pMessage).call();
     }
     catch (GitAPIException e)
@@ -117,6 +129,7 @@ public class RepositoryImpl implements IRepository
     }
     try
     {
+      add(pFileList);
       revCommit = commit.setMessage(pMessage).setAmend(pIsAmend).call();
     }
     catch (GitAPIException e)
@@ -809,8 +822,15 @@ public class RepositoryImpl implements IRepository
         diffEntries.addAll(RepositoryImplHelper.doDiff(git, thisCommit.getId(), parent.getId()));
       }
       return diffEntries.stream()
-          .map(pDiffEntry -> new FileChangeTypeImpl(
-              new File(pDiffEntry.getOldPath()), EnumMappings.toEChangeType(pDiffEntry.getChangeType())))
+          .map(pDiffEntry -> {
+            EChangeType changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
+            String path;
+            if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
+              path = pDiffEntry.getNewPath();
+            else
+              path = pDiffEntry.getOldPath();
+            return new FileChangeTypeImpl(new File(path), changeType);
+          })
           .distinct()
           .collect(Collectors.toList());
     }
@@ -1107,7 +1127,9 @@ public class RepositoryImpl implements IRepository
     protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver,
                                                          @NotNull IFireable<Optional<IFileStatus>> pIFireable)
     {
-      IFileSystemChangeListener listener = () -> pIFireable.fireValueChanged(Optional.of(RepositoryImplHelper.status(git)));
+      // todo better threadhandling
+      Executor service = Executors.newFixedThreadPool(1);
+      IFileSystemChangeListener listener = () -> service.execute(() -> pIFireable.fireValueChanged(Optional.of(RepositoryImplHelper.status(git))));
       pIFileSystemObserver.addListener(listener);
       return listener;
     }
