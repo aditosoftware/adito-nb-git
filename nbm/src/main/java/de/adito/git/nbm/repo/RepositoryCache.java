@@ -3,8 +3,10 @@ package de.adito.git.nbm.repo;
 import de.adito.git.api.IRepository;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.guice.*;
+import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
+import io.reactivex.subjects.BehaviorSubject;
+import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.filesystems.FileObject;
@@ -27,7 +29,7 @@ public class RepositoryCache
   private static RepositoryCache instance;
   private PropertyChangeListener pcl = new _OpenProjectListener();
   private IRepositoryProviderFactory repositoryProviderFactory = IGitConstants.INJECTOR.getInstance(IRepositoryProviderFactory.class);
-  private Map<FileObject, RepositoryProvider> repoCache = new WeakHashMap<>();
+  private final BehaviorSubject<List<RepositoryProvider>> providers = BehaviorSubject.createDefault(List.of());
 
   private RepositoryCache()
   {
@@ -62,7 +64,7 @@ public class RepositoryCache
     OpenProjects.getDefault().removePropertyChangeListener(pcl);
     for (Project project : OpenProjects.getDefault().getOpenProjects())
       _doOnProjectClose(project.getProjectDirectory());
-    repoCache.clear();
+    providers.onComplete();
   }
 
   /**
@@ -72,7 +74,19 @@ public class RepositoryCache
   @NotNull
   public Observable<Optional<IRepository>> findRepository(@NotNull Project pProject)
   {
-    return _getProvider(pProject.getProjectDirectory()).getRepositoryImpl();
+    return providers.switchMap(pRepoProviders -> pRepoProviders.stream()
+        .filter(pRepo -> pRepo.getRepositoryFolder().equals(pProject.getProjectDirectory()))
+        .map(RepositoryProvider::getRepositoryImpl)
+        .findFirst()
+        .orElse(Observable.just(Optional.empty())));
+  }
+
+  @NotNull
+  public Observable<List<IRepository>> repositories()
+  {
+    return providers.switchMap(pRepositoryProviders -> pRepositoryProviders.stream()
+        .map(RepositoryProvider::getRepositoryImpl)
+        .collect(ObservableCollectors.combineOptionalsToList()));
   }
 
   /**
@@ -84,7 +98,8 @@ public class RepositoryCache
   {
     try
     {
-      RepositoryProvider provider = _getProvider(pProjectDirectory);
+      RepositoryProvider provider = _getProvider(pProjectDirectory, true);
+      assert provider != null;
       provider.setRepositoryDescription(new ProjectRepositoryDescription(pProjectDirectory));
     }
     catch (Exception e)
@@ -96,14 +111,15 @@ public class RepositoryCache
   /**
    * remove a repository from the repoCache
    *
-   * @param pProjectDirectory the project to remove
+   * @param pProjectFolder the project to remove
    */
-  private void _doOnProjectClose(FileObject pProjectDirectory)
+  private void _doOnProjectClose(@NotNull FileObject pProjectFolder)
   {
     try
     {
-      RepositoryProvider provider = _getProvider(pProjectDirectory);
-      provider.setRepositoryDescription(null);
+      RepositoryProvider provider = _getProvider(pProjectFolder, false);
+      if (provider != null)
+        provider.setRepositoryDescription(null);
     }
     catch (Exception e)
     {
@@ -111,10 +127,24 @@ public class RepositoryCache
     }
   }
 
-  @NotNull
-  private RepositoryProvider _getProvider(FileObject pProjectDirectory)
+  @Nullable
+  private RepositoryProvider _getProvider(FileObject pProjectDirectory, boolean pCreate)
   {
-    return repoCache.computeIfAbsent(pProjectDirectory, pProj -> repositoryProviderFactory.create(null));
+    List<RepositoryProvider> currentProviders = providers.getValue();
+    for (RepositoryProvider provider : currentProviders)
+      if (provider.getRepositoryFolder().equals(pProjectDirectory))
+        return provider;
+
+    if (pCreate)
+    {
+      RepositoryProvider thisProvider = repositoryProviderFactory.create(pProjectDirectory);
+      currentProviders = new ArrayList<>(currentProviders);
+      currentProviders.add(thisProvider);
+      providers.onNext(currentProviders);
+      return thisProvider;
+    }
+    else
+      return null;
   }
 
   /**
@@ -128,24 +158,19 @@ public class RepositoryCache
         .collect(Collectors.toList());
 
     // Delete old cached projects
-    for (FileObject cachedPrj : new HashSet<>(repoCache.keySet()))
-      if (!projectFolders.contains(cachedPrj))
-        _doOnProjectClose(cachedPrj);
+    for (RepositoryProvider cachedProvider : providers.getValue())
+    {
+      FileObject projectFolder = cachedProvider.getRepositoryFolder();
+      if (!projectFolders.contains(projectFolder))
+        _doOnProjectClose(projectFolder);
+    }
 
     // Add opened projects
     for (FileObject openedProject : projectFolders)
     {
-      if (!repoCache.containsKey(openedProject))
-      {
-        try
-        {
-          _doOnProjectOpened(openedProject);
-        }
-        catch (Exception e)
-        {
-          throw new RuntimeException(e);
-        }
-      }
+      RepositoryProvider provider = _getProvider(openedProject, false);
+      if (provider == null)
+        _doOnProjectOpened(openedProject);
     }
   }
 

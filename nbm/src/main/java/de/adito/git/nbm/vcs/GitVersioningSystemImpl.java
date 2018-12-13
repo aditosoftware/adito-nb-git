@@ -4,6 +4,7 @@ import org.netbeans.api.project.*;
 import org.netbeans.modules.versioning.spi.*;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * @author a.arnold, 30.10.2018
@@ -13,6 +14,15 @@ import java.io.File;
 public class GitVersioningSystemImpl extends VersioningSystem
 {
   private VCSAnnotator annotator;
+  private VCSInterceptor interceptor;
+
+  @Override
+  public VCSInterceptor getVCSInterceptor()
+  {
+    if (interceptor == null)
+      interceptor = new GitInterceptor(pFile -> fireAnnotationsChanged(Set.of(pFile)));
+    return interceptor;
+  }
 
   @Override
   public VCSAnnotator getVCSAnnotator()

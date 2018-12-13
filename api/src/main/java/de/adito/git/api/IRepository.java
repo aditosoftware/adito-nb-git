@@ -96,6 +96,12 @@ public interface IRepository
    * @throws IOException if an error occurs during transport/reading of the file
    */
   String getFileContents(String pIdentifier) throws IOException;
+  
+  /**
+   * @param file the File to check the status
+   * @return returns the {@link IFileChangeType} of the file
+   */
+  IFileChangeType getStatusOfSingleFile(@NotNull File file);
 
   /**
    * @param pCommitId the ID of the commit for the version of the file

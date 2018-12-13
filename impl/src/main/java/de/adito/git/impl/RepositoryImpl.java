@@ -415,6 +415,49 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
+  public IFileChangeType getStatusOfSingleFile(@NotNull File pFile)
+  {
+    try
+    {
+      IndexDiff diff = new IndexDiff(git.getRepository(), "HEAD", new FileTreeIterator(git.getRepository()));
+      diff.setFilter(new PathFilterGroup().createFromStrings(getRelativePath(pFile, git)));
+      diff.diff();
+      if (!diff.getAdded().isEmpty())
+      {
+        return new FileChangeTypeImpl(pFile, EChangeType.ADD);
+      }
+      if (!diff.getChanged().isEmpty())
+      {
+        return new FileChangeTypeImpl(pFile, EChangeType.CHANGED);
+      }
+      if (!diff.getRemoved().isEmpty())
+      {
+        return new FileChangeTypeImpl(pFile, EChangeType.DELETE);
+      }
+      if (!diff.getModified().isEmpty())
+      {
+        return new FileChangeTypeImpl(pFile, EChangeType.MODIFY);
+      }
+      if (!diff.getUntracked().isEmpty())
+      {
+        return new FileChangeTypeImpl(pFile, EChangeType.NEW);
+      }
+      if (!diff.getConflicting().isEmpty())
+      {
+        return new FileChangeTypeImpl(pFile, EChangeType.CONFLICTING);
+      }
+    }
+    catch (IOException pE)
+    {
+      throw new RuntimeException("Can't check Status of file: " + pFile, pE);
+    }
+    return new FileChangeTypeImpl(pFile, EChangeType.SAME);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String getFileVersion(String pCommitId, String pFilename) throws IOException
   {
     try (RevWalk revWalk = new RevWalk(git.getRepository()))
