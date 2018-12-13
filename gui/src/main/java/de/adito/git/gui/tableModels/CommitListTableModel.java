@@ -18,8 +18,8 @@ public class CommitListTableModel extends AbstractTableModel
   private static final String DATE_COL_NAME = "Date";
   public static final String COMMIT_OBJ_COL_NAME = "Commit column";
 
-  private static final List<String> columnNames = new ArrayList<>(Arrays.asList(SHORT_MSG_COL_NAME, AUTHOR_COL_NAME, DATE_COL_NAME,
-                                                                                COMMIT_OBJ_COL_NAME));
+  private static final List<String> columnNames = new ArrayList<>(Arrays.asList(COMMIT_OBJ_COL_NAME, SHORT_MSG_COL_NAME, AUTHOR_COL_NAME,
+                                                                                DATE_COL_NAME));
   private List<ICommit> commitList;
 
   public CommitListTableModel(List<ICommit> pCommitList)
