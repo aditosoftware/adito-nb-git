@@ -25,7 +25,7 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
   private Disposable disposable;
   private List<IFileChangeType> changedFiles = new ArrayList<>();
 
-  public ChangedFilesTableModel(io.reactivex.Observable<Optional<List<ICommit>>> pSelectedCommits, Observable<Optional<IRepository>> pRepo)
+  public ChangedFilesTableModel(Observable<Optional<List<ICommit>>> pSelectedCommits, Observable<Optional<IRepository>> pRepo)
   {
     Optional<IRepository> currentRepo = pRepo.blockingFirst();
     disposable = pSelectedCommits.subscribe(pSelectedCommitsOpt -> {
