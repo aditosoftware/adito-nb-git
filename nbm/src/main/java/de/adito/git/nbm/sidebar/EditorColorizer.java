@@ -27,17 +27,10 @@ import static de.adito.git.gui.Constants.ARROW_RIGHT;
  */
 class EditorColorizer extends JPanel implements IDiscardable
 {
-  private final JTextComponent target;
   private Disposable disposable;
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList();
-
-  @Override
-  public void setBounds(int x, int y, int width, int height)
-  {
-    super.setBounds(x, y, width, height);
-  }
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -47,7 +40,6 @@ class EditorColorizer extends JPanel implements IDiscardable
    */
   EditorColorizer(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget)
   {
-    target = pTarget;
     setMinimumSize(new Dimension(10, 0));
     setPreferredSize(new Dimension(10, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
