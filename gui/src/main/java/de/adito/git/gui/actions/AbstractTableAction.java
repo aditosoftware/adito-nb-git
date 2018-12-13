@@ -12,22 +12,32 @@ import java.util.Optional;
  *
  * @author m.kaspera 04.10.2018
  */
-abstract class AbstractTableAction extends AbstractAction implements IDiscardable {
+abstract class AbstractTableAction extends AbstractAction implements IDiscardable
+{
 
-    private final Disposable disposable;
+  private final Disposable disposable;
 
-    /**
-     *
-     * @param name the title of the action (is displayed in a menu)
-     * @param isEnabledObservable an observable that indicates the current state of the action (dis/enabled)
-     */
-    AbstractTableAction(String name, Observable<Optional<Boolean>> isEnabledObservable) {
-        super(name);
-        disposable = isEnabledObservable.subscribe(isEnabled -> setEnabled(isEnabled.orElse(false)));
-    }
+  /**
+   * @param pName the title of the action (is displayed in a menu)
+   */
+  public AbstractTableAction(String pName)
+  {
+    this(pName, Observable.just(Optional.of(true)));
+  }
 
-    @Override
-    public void discard() {
-        disposable.dispose();
-    }
+  /**
+   * @param pName                the title of the action (is displayed in a menu)
+   * @param pIsEnabledObservable an observable that indicates the current state of the action (dis/enabled)
+   */
+  AbstractTableAction(String pName, Observable<Optional<Boolean>> pIsEnabledObservable)
+  {
+    super(pName);
+    disposable = pIsEnabledObservable.subscribe(isEnabled -> setEnabled(isEnabled.orElse(false)));
+  }
+
+  @Override
+  public void discard()
+  {
+    disposable.dispose();
+  }
 }

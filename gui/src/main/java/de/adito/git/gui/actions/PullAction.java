@@ -4,8 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
+import de.adito.git.api.progress.*;
 import de.adito.git.gui.dialogs.*;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -19,9 +21,10 @@ import java.util.*;
 class PullAction extends AbstractAction
 {
   private static final String NO_VALID_REPO_MSG = "no valid repository found";
-  private Observable<Optional<IRepository>> repository;
-  private IDialogProvider dialogProvider;
-  private INotifyUtil notifyUtil;
+  private final Observable<Optional<IRepository>> repository;
+  private final IDialogProvider dialogProvider;
+  private final INotifyUtil notifyUtil;
+  private final IAsyncProgressFacade progressFacade;
 
   /**
    * The PullAction is an action to pull all commits from one branch. If no branch is chosen take an empty string for the master branch.
@@ -29,10 +32,12 @@ class PullAction extends AbstractAction
    * @param pRepository the repository where the pull command should work
    */
   @Inject
-  PullAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository)
+  PullAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
+             @Assisted Observable<Optional<IRepository>> pRepository)
   {
     dialogProvider = pDialogProvider;
     notifyUtil = pNotifyUtil;
+    progressFacade = pProgressFacade;
     putValue(Action.NAME, "Pull");
     putValue(Action.SHORT_DESCRIPTION, "Pull all changes from the remote Branch");
     repository = pRepository;
@@ -44,16 +49,16 @@ class PullAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    Runnable attemptMergeRunnable = this::_doRebase;
-    new Thread(attemptMergeRunnable).start();
+    progressFacade.executeInBackground("Updating Project...", this::_doRebase);
   }
 
   /**
    * Keeps calling the pull method of the repository until the result is either a success or the user
    * presses cancel on one of the Conflict resolution dialogs
    */
-  private void _doRebase()
+  private void _doRebase(@NotNull IProgressHandle pProgressHandle)
   {
+    pProgressHandle.setDescription("Retrieving Repository");
     IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
     boolean doAbort = false;
     String stashedCommitId = null;
@@ -61,19 +66,21 @@ class PullAction extends AbstractAction
     {
       if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
       {
+        pProgressHandle.setDescription("Stashing Changes");
         stashedCommitId = pRepo.stashChanges();
       }
       while (!doAbort)
       {
+        pProgressHandle.setDescription("Rebasing");
         IRebaseResult rebaseResult =
             pRepo.pull(false);
         if (rebaseResult.isSuccess())
         {
-          notifyUtil.notify("Rebase success", "Applying the remote changes to the local branch was successful", false);
           break;
         }
         if (!rebaseResult.getMergeConflicts().isEmpty())
         {
+          pProgressHandle.setDescription("Resolving Conflicts");
           // if the pull should be aborted, _handleConflictDialog returns true
           doAbort = _handleConflictDialog(rebaseResult.getMergeConflicts());
         }
@@ -87,6 +94,7 @@ class PullAction extends AbstractAction
     {
       if (stashedCommitId != null)
       {
+        pProgressHandle.setDescription("Unstashing Changes");
         _doUnStashing(stashedCommitId);
       }
     }
@@ -98,7 +106,6 @@ class PullAction extends AbstractAction
   private void _doUnStashing(String pStashedCommitId)
   {
     IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
-    notifyUtil.notify("Un-stashing changes", "Applying saved changes from before the pull", true);
     try
     {
       List<IMergeDiff> stashConflicts = pRepo.unStashChanges(pStashedCommitId);
@@ -108,7 +115,6 @@ class PullAction extends AbstractAction
         if (dialogResult.isPressedOk())
         {
           pRepo.dropStashedCommit(pStashedCommitId);
-          notifyUtil.notify("Done un-stashing changes", "Stashed changes from before the pull were applied successfully", true);
         }
       }
     }

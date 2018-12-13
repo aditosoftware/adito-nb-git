@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
@@ -19,18 +20,18 @@ import java.util.*;
  */
 class PushAction extends AbstractAction
 {
+  private final IAsyncProgressFacade progressFacade;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
-  private INotifyUtil notifyUtil;
 
   /**
    * @param pRepository The repository to push
    */
   @Inject
-  PushAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository)
+  PushAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository)
   {
+    progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
-    notifyUtil = pNotifyUtil;
     putValue(Action.NAME, "Push");
     putValue(Action.SHORT_DESCRIPTION, "Push all commits to the remote-tracking branch");
     repository = pRepository;
@@ -42,8 +43,8 @@ class PushAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    try
-    {
+    progressFacade.executeInBackground("Pushing Commits", pHandle -> {
+      pHandle.setDescription("Collecting Informations");
       Optional<List<ICommit>> commitList = repository.blockingFirst().map(pRepo -> {
         try
         {
@@ -57,13 +58,10 @@ class PushAction extends AbstractAction
       boolean doCommit = dialogProvider.showPushDialog(repository, commitList.orElse(Collections.emptyList())).isPressedOk();
       if (doCommit)
       {
+        pHandle.setDescription("Pushing");
         _doPush();
       }
-    }
-    catch (AditoGitException e1)
-    {
-      throw new RuntimeException(e1);
-    }
+    });
   }
 
   private void _doPush() throws AditoGitException
@@ -72,11 +70,7 @@ class PushAction extends AbstractAction
         .blockingFirst()
         .orElseThrow(() -> new RuntimeException("no valid repository found"))
         .push();
-    if (failedPushResults.isEmpty())
-    {
-      notifyUtil.notify("Push success", "Pushing the local commits to the remote was successful", true);
-    }
-    else
+    if (!failedPushResults.isEmpty())
     {
       StringBuilder infoText = new StringBuilder();
       for (Map.Entry<String, EPushResult> failedResult : failedPushResults.entrySet())

@@ -3,58 +3,57 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.*;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera 11.10.2018
  */
-class IgnoreAction extends AbstractTableAction {
+class IgnoreAction extends AbstractTableAction
+{
 
-    private Observable<Optional<IRepository>> repository;
-    private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
+  private final IAsyncProgressFacade progressFacade;
+  private Observable<Optional<IRepository>> repository;
+  private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
-    @Inject
-    IgnoreAction(@Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
-        super("Ignore", getIsEnabledObservable(pSelectedFilesObservable));
-        selectedFilesObservable = pSelectedFilesObservable;
-        repository = pRepository;
-    }
+  @Inject
+  IgnoreAction(IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
+               @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  {
+    super("Ignore", getIsEnabledObservable(pSelectedFilesObservable));
+    progressFacade = pProgressFacade;
+    selectedFilesObservable = pSelectedFilesObservable;
+    repository = pRepository;
+  }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        List<File> files = selectedFilesObservable.blockingFirst()
-                .orElse(Collections.emptyList())
-                .stream()
-                .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
-                .collect(Collectors.toList());
-        try {
-            repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).ignore(files);
-        } catch (IOException e1) {
-            throw new RuntimeException(e1);
-        }
-    }
+  @Override
+  public void actionPerformed(ActionEvent e)
+  {
+    progressFacade.executeInBackground("Ignoring Files", pHandle -> {
+      List<File> files = selectedFilesObservable.blockingFirst()
+          .orElse(Collections.emptyList())
+          .stream()
+          .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
+          .collect(Collectors.toList());
+      repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).ignore(files);
+    });
+  }
 
-    /**
-     * Only enabled if all selected files are not in the index yet, i.e. have status
-     * NEW, MODIFY or MISSING
-     */
-    private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable) {
-        return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles
-                .orElse(Collections.emptyList())
-                .stream()
-                .allMatch(row ->
-                        row.getChangeType().equals(EChangeType.NEW)
-                                || row.getChangeType().equals(EChangeType.MODIFY)
-                                || row.getChangeType().equals(EChangeType.MISSING))));
-    }
+  /**
+   * Only enabled if all selected files are not in the index yet, i.e. have status
+   * NEW, MODIFY or MISSING
+   */
+  private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  {
+    return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles.orElse(Collections.emptyList()).stream()
+                                                                         .allMatch(row -> row.getChangeType().equals(EChangeType.NEW)
+                                                                             || row.getChangeType().equals(EChangeType.MODIFY)
+                                                                             || row.getChangeType().equals(EChangeType.MISSING))));
+  }
 }
