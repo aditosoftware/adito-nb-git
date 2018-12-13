@@ -45,11 +45,12 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
     mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
-    Observable<IFileStatus> obs = pRepository
+    Observable<Optional<IFileStatus>> obs = pRepository
         .flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG)).getStatus());
     Observable<List<IMergeDiff>> mergeDiffListObservable = Observable.combineLatest(obs,
                                                                                     mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
-            .filter(pMergeDiff -> pStatus.getConflicting().contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
+            .filter(pMergeDiff -> pStatus.map(IFileStatus::getConflicting).orElse(Collections.emptySet())
+                .contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
             .collect(Collectors.toList()));
     selectedMergeDiffObservable = Observable
         .combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {

@@ -83,7 +83,8 @@ public class IgnoreNBAction extends NBAction
     return pCurrentRepo
         .getStatus()
         .blockingFirst()
-        .getUntracked().stream()
+        .map(IFileStatus::getUntracked).orElse(Collections.emptySet())
+        .stream()
         .map(pFilePath -> new FileChangeTypeImpl(new File(projectDir, pFilePath), EChangeType.NEW))
         .collect(Collectors.toList());
   }

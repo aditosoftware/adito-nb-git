@@ -1,7 +1,7 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
@@ -37,8 +37,8 @@ public class CommitNBToolbarAction extends CommitNBAction
     listNodes = BehaviorSubject.createDefault(Optional.of(repository.blockingFirst()
                                                               .orElseThrow(() -> new RuntimeException("no valid repository found"))
                                                               .getStatus()
-                                                              .blockingFirst()
-                                                              .getUncommitted()));
+                                                              .blockingFirst().map(IFileStatus::getUncommitted)
+                                                              .orElse(Collections.emptyList())));
     actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
   }
 
@@ -52,7 +52,11 @@ public class CommitNBToolbarAction extends CommitNBAction
     if (pActivatedNodes != null)
     {
       Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
-      return repository.blockingFirst().map(pRepo -> !pRepo.getStatus().blockingFirst().getUncommitted().isEmpty()).orElse(false);
+      return repository.blockingFirst()
+          .map(pRepo -> !pRepo.getStatus().blockingFirst()
+              .map(pStatus -> pStatus.getUncommitted().isEmpty())
+              .orElse(true))
+          .orElse(false);
     }
     return false;
   }

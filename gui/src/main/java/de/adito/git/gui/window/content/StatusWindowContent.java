@@ -38,15 +38,15 @@ class StatusWindowContent extends JPanel implements IDiscardable
   {
     repository = pRepository;
     actionProvider = pActionProvider;
-    Observable<IFileStatus> status = repository
-        .flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException("no valid repository found")).getStatus());
+    Observable<Optional<IFileStatus>> status = repository
+        .flatMap(pRepo -> pRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())));
     statusTable = new JTable(new StatusTableModel(status));
     ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());
     statusTable.setSelectionModel(observableListSelectionModel);
     selectionObservable = Observable.combineLatest(observableListSelectionModel.selectedRows(), status, (pSelected, pStatus) -> {
-      if (pSelected == null || pStatus == null)
+      if (pSelected == null)
         return Optional.of(Collections.emptyList());
-      List<IFileChangeType> uncommittedListCached = pStatus.getUncommitted();
+      List<IFileChangeType> uncommittedListCached = pStatus.map(IFileStatus::getUncommitted).orElse(Collections.emptyList());
       return Optional.of(Stream.of(pSelected)
                              .map(uncommittedListCached::get)
                              .collect(Collectors.toList()));

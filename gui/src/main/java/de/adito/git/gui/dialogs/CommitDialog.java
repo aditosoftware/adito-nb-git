@@ -46,11 +46,12 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     isValidDescriptor = pIsValidDescriptor;
     // disable OK button at the start since the commit message is empty then
     isValidDescriptor.setValid(false);
-    Observable<IFileStatus> statusObservable = pRepository
+    Observable<Optional<IFileStatus>> statusObservable = pRepository
         .flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException("no valid repository found"))
             .getStatus());
     Observable<List<SelectedFileChangeType>> filesToCommitObservable = Observable.combineLatest(
-        statusObservable, pFilesToCommit, (pStatusObservable, pSelectedFiles) -> pStatusObservable.getUncommitted()
+        statusObservable, pFilesToCommit, (pStatusObservable, pSelectedFiles)
+            -> pStatusObservable.map(IFileStatus::getUncommitted).orElse(Collections.emptyList())
             .stream()
             .map(pUncommitted -> new SelectedFileChangeType(pSelectedFiles.orElse(Collections.emptyList()).contains(pUncommitted), pUncommitted))
             .collect(Collectors.toList()));

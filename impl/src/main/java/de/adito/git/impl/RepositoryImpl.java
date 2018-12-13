@@ -37,7 +37,7 @@ public class RepositoryImpl implements IRepository
 
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
-  private final Observable<IFileStatus> status;
+  private final Observable<Optional<IFileStatus>> status;
   private final BehaviorSubject<Optional<IBranch>> currentBranchObservable;
   private final ColorRoulette colorRoulette;
 
@@ -52,7 +52,7 @@ public class RepositoryImpl implements IRepository
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
         .distinctUntilChanged()
-        .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.status(git)));
+        .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))));
 
     // Current Branch
     IBranch curBranch = RepositoryImplHelper.currentBranch(git, this::getBranch);
@@ -196,7 +196,7 @@ public class RepositoryImpl implements IRepository
       }
       else
       {
-        IFileStatus currentStatus = status.blockingFirst();
+        Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
         String targetName;
         String currentHeadName;
         try (BufferedReader reader = new BufferedReader(new FileReader(
@@ -209,11 +209,11 @@ public class RepositoryImpl implements IRepository
         {
           targetName = reader.readLine();
         }
-        if (!currentStatus.getConflicting().isEmpty())
+        if (!conflictingFiles.isEmpty())
         {
           RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, targetName, currentHeadName);
           return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, targetName, currentHeadName, new CommitImpl(forkCommit),
-                                                                             currentStatus.getConflicting(), this::diff),
+                                                                             conflictingFiles, this::diff),
                                       RebaseResult.Status.CONFLICTS);
         }
         RebaseCommand rebaseCommand = git.rebase();
@@ -511,7 +511,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @NotNull Observable<IFileStatus> getStatus()
+  public @NotNull Observable<Optional<IFileStatus>> getStatus()
   {
     return status;
   }
@@ -554,11 +554,12 @@ public class RepositoryImpl implements IRepository
   @Override
   public void revertWorkDir(@NotNull List<File> pFiles) throws AditoGitException
   {
-    IFileStatus currentStatus = status.blockingFirst();
     List<String> filesToCheckout = new ArrayList<>();
     List<String> newFiles = new ArrayList<>();
-    newFiles.addAll(currentStatus.getAdded());
-    newFiles.addAll(currentStatus.getUntracked());
+    status.blockingFirst().ifPresent(pStatus -> {
+      newFiles.addAll(pStatus.getAdded());
+      newFiles.addAll(pStatus.getUntracked());
+    });
     try
     {
       for (File file : pFiles)
@@ -714,7 +715,7 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
-      Set<String> conflictingFiles = status.blockingFirst().getConflicting();
+      Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
       if (!conflictingFiles.isEmpty())
       {
         File aConflictingFile = new File(git.getRepository().getDirectory().getParent(), conflictingFiles.iterator().next());
@@ -743,11 +744,12 @@ public class RepositoryImpl implements IRepository
       String parentID = pParentBranch.getId();
       String toMergeID = pBranchToMerge.getId();
       List<IMergeDiff> mergeConflicts = new ArrayList<>();
-      if (!status.blockingFirst().getConflicting().isEmpty())
+      if (!status.blockingFirst().map(pStatus -> pStatus.getConflicting().isEmpty()).orElse(true))
       {
         RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
         return RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, new CommitImpl(forkCommit),
-                                                      status.blockingFirst().getConflicting(), this::diff);
+                                                      status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet()),
+                                                      this::diff);
       }
       try
       {
@@ -1092,7 +1094,7 @@ public class RepositoryImpl implements IRepository
   /**
    * Bridge from the FileSystemChangeListener to Observables
    */
-  private class _FileSystemChangeObservable extends AbstractListenerObservable<IFileSystemChangeListener, IFileSystemObserver, IFileStatus>
+  private class _FileSystemChangeObservable extends AbstractListenerObservable<IFileSystemChangeListener, IFileSystemObserver, Optional<IFileStatus>>
   {
 
     _FileSystemChangeObservable(@NotNull IFileSystemObserver pListenableValue)
@@ -1103,9 +1105,9 @@ public class RepositoryImpl implements IRepository
     @NotNull
     @Override
     protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver,
-                                                         @NotNull IFireable<IFileStatus> pIFireable)
+                                                         @NotNull IFireable<Optional<IFileStatus>> pIFireable)
     {
-      IFileSystemChangeListener listener = () -> pIFireable.fireValueChanged(RepositoryImplHelper.status(git));
+      IFileSystemChangeListener listener = () -> pIFireable.fireValueChanged(Optional.of(RepositoryImplHelper.status(git)));
       pIFileSystemObserver.addListener(listener);
       return listener;
     }

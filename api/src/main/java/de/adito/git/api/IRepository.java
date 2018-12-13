@@ -122,7 +122,7 @@ public interface IRepository
   /**
    * @return List of IFileStatus that describe the different staging states of the local files
    */
-  @NotNull Observable<IFileStatus> getStatus();
+  @NotNull Observable<Optional<IFileStatus>> getStatus();
 
   /**
    * @param pFiles List of files that should be added to the .gitignore

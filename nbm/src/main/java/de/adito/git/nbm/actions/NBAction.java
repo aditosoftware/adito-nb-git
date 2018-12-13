@@ -1,7 +1,7 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.*;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.git.nbm.util.ProjectUtility;
 import io.reactivex.Observable;
@@ -39,7 +39,7 @@ abstract class NBAction extends NodeAction
     uncommittedFiles = repository
         .getStatus()
         .blockingFirst()
-        .getUncommitted();
+        .map(IFileStatus::getUncommitted).orElse(Collections.emptyList());
     return Optional.of(uncommittedFiles
                            .stream()
                            .filter(pUncommittedFile -> files

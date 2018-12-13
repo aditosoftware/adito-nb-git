@@ -59,7 +59,7 @@ class PullAction extends AbstractAction
     String stashedCommitId = null;
     try
     {
-      if (!pRepo.getStatus().blockingFirst().getUncommitted().isEmpty())
+      if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
       {
         stashedCommitId = pRepo.stashChanges();
       }
