@@ -52,7 +52,6 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 
     // Table on which to select which IFileDiff is displayed in the DiffPanel
     fileListTable.setModel(new DiffTableModel(diffs));
-    fileListTable.setMinimumSize(new Dimension(200, 600));
     fileListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     // display the first entry as default
     if (!diffs.isEmpty())
@@ -66,15 +65,16 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     // make left and right DiffPanel scroll at the same time/speed
     oldVersionPanel.coupleToScrollPane(newVersionPanel.getMainScrollPane());
     oldVersionPanel.getMainScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, oldVersionPanel, newVersionPanel);
-    splitPane.setResizeWeight(0.5);
+    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, oldVersionPanel, newVersionPanel);
+    mainSplitPane.setResizeWeight(0.5);
 
     // add table and DiffPanel to the Panel
     notificationArea.setEnabled(false);
     notificationArea.setForeground(ColorPicker.INFO_TEXT);
     add(notificationArea, BorderLayout.NORTH);
-    add(fileListTable, BorderLayout.EAST);
-    add(splitPane, BorderLayout.CENTER);
+    JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mainSplitPane, new JScrollPane(fileListTable));
+    diffToListSplitPane.setResizeWeight(1);
+    add(diffToListSplitPane, BorderLayout.CENTER);
   }
 
   /**
