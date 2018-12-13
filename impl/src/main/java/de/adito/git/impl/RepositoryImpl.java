@@ -36,6 +36,7 @@ import static de.adito.git.impl.Util.getRelativePath;
 public class RepositoryImpl implements IRepository
 {
 
+  private static final String VOID_PATH = "/dev/null";
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<Optional<IFileStatus>> status;
@@ -330,11 +331,9 @@ public class RepositoryImpl implements IRepository
           {
             formatter.setRepository(git.getRepository());
             FileHeader fileHeader = formatter.toFileHeader(diff);
-            listDiffImpl.add(new FileDiffImpl(
-                diff,
-                fileHeader,
-                getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath())),
-                getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()))));
+            String oldFileContent = VOID_PATH.equals(diff.getOldPath()) ? "" : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
+            String newFileContent = VOID_PATH.equals(diff.getNewPath()) ? "" : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
+            listDiffImpl.add(new FileDiffImpl(diff, fileHeader, oldFileContent, newFileContent));
           }
         }
       }
