@@ -26,4 +26,6 @@ public interface IDialogProvider
 
   DialogResult<ResetDialog, EResetType> showResetDialog();
 
+  DialogResult<PushDialog, Object> showPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList);
+
 }

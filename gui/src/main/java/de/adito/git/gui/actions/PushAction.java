@@ -3,7 +3,8 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.EPushResult;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -19,14 +20,16 @@ import java.util.*;
 class PushAction extends AbstractAction
 {
   private Observable<Optional<IRepository>> repository;
+  private IDialogProvider dialogProvider;
   private INotifyUtil notifyUtil;
 
   /**
    * @param pRepository The repository to push
    */
   @Inject
-  PushAction(INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository)
+  PushAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository)
   {
+    dialogProvider = pDialogProvider;
     notifyUtil = pNotifyUtil;
     putValue(Action.NAME, "Push");
     putValue(Action.SHORT_DESCRIPTION, "Push all commits to the remote-tracking branch");
@@ -41,24 +44,46 @@ class PushAction extends AbstractAction
   {
     try
     {
-      Map<String, EPushResult> failedPushResults = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).push();
-      if (failedPushResults.isEmpty())
-      {
-        notifyUtil.notify("Push success", "Pushing the local commits to the remote was successful", true);
-      }
-      else
-      {
-        StringBuilder infoText = new StringBuilder();
-        for (Map.Entry<String, EPushResult> failedResult : failedPushResults.entrySet())
+      Optional<List<ICommit>> commitList = repository.blockingFirst().map(pRepo -> {
+        try
         {
-          infoText.append("Push to remote ref ").append(failedResult.getKey()).append(" failed with reason: ").append(failedResult.getValue());
+          return pRepo.getUnPushedCommits();
         }
-        throw new RuntimeException(infoText.toString());
+        catch (AditoGitException pE)
+        {
+          throw new RuntimeException("Error while finding un-pushed commits", pE);
+        }
+      });
+      boolean doCommit = dialogProvider.showPushDialog(repository, commitList.orElse(Collections.emptyList())).isPressedOk();
+      if (doCommit)
+      {
+        _doPush();
       }
     }
-    catch (Exception e1)
+    catch (AditoGitException e1)
     {
       throw new RuntimeException(e1);
+    }
+  }
+
+  private void _doPush() throws AditoGitException
+  {
+    Map<String, EPushResult> failedPushResults = repository
+        .blockingFirst()
+        .orElseThrow(() -> new RuntimeException("no valid repository found"))
+        .push();
+    if (failedPushResults.isEmpty())
+    {
+      notifyUtil.notify("Push success", "Pushing the local commits to the remote was successful", true);
+    }
+    else
+    {
+      StringBuilder infoText = new StringBuilder();
+      for (Map.Entry<String, EPushResult> failedResult : failedPushResults.entrySet())
+      {
+        infoText.append("Push to remote ref ").append(failedResult.getKey()).append(" failed with reason: ").append(failedResult.getValue());
+      }
+      throw new RuntimeException(infoText.toString());
     }
   }
 }
