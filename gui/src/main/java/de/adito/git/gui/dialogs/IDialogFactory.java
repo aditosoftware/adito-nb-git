@@ -26,4 +26,6 @@ interface IDialogFactory
 
   ResetDialog createResetDialog();
 
+  PushDialog createPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList);
+
 }

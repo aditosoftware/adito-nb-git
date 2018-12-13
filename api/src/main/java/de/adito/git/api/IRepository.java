@@ -261,6 +261,14 @@ public interface IRepository
   List<ICommit> getCommits(File pForFile, int pIndexFrom, int pNumCommits) throws AditoGitException;
 
   /**
+   * retrieves all local commits that do not yet exist on the remote-tracking branch of the current branch
+   *
+   * @return list of all commits that are not yet pushed to the remote-tracking branch
+   * @throws AditoGitException if JGit encounters an error
+   */
+  List<ICommit> getUnPushedCommits() throws AditoGitException;
+
+  /**
    * @param pCommits    List of commits for which the CommitHistoryTreeList should be created
    * @param pStartCHTLI If the List of commits is an extension of a list, pass the last CommitHistoryTreeListItem of that list here
    * @return List of CommitHistoryTreeListItems

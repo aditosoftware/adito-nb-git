@@ -6,14 +6,13 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tableModels.*;
+import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
-import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
@@ -31,16 +30,11 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static final int DATE_COL_PREF_WIDTH = 250;
   private static final int AUTHOR_COL_PREF_WIDTH = 160;
   private static final double MAIN_SPLIT_PANE_SIZE_RATIO = 0.75;
-  private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
-  private static final String DETAILS_FORMAT_STRING = "%-10s\t%s%s";
+  private final CommitDetailsPanel commitDetailsPanel;
   private final JTable commitTable = new JTable();
-  private final JTextPane messageTextArea = new JTextPane(new DefaultStyledDocument());
-  private final JTable changedFilesTable = new JTable();
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
-  private final ChangedFilesTableModel changedFilesTableModel;
-  private Disposable disposable;
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
   @Inject
@@ -49,8 +43,6 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   {
     ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
     commitTable.setSelectionModel(observableCommitListSelectionModel);
-    ObservableListSelectionModel observableFilesListSelectionModel = new ObservableListSelectionModel(changedFilesTable.getSelectionModel());
-    changedFilesTable.setSelectionModel(observableFilesListSelectionModel);
     actionProvider = pActionProvider;
     repository = pRepository;
     commitTable.setModel(pTableModel);
@@ -62,21 +54,20 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
       return Optional.of(selectedCommits);
     });
-    changedFilesTableModel = new ChangedFilesTableModel(selectedCommitObservable, repository);
+    commitDetailsPanel = new CommitDetailsPanel(pRepository, selectedCommitObservable);
     _initGUI(pLoadMoreCallback);
   }
 
   @Override
   public void discard()
   {
-    disposable.dispose();
+    commitDetailsPanel.discard();
   }
 
   private void _initGUI(Runnable pLoadMoreCallback)
   {
     setLayout(new BorderLayout());
     _setUpCommitTable();
-    _setUpChangedFilesTable();
 
     JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -95,7 +86,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
     });
     commitScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
-    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitScrollPane, _initDetailPanel());
+    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitScrollPane, commitDetailsPanel.getPanel());
     mainSplitPane.setResizeWeight(MAIN_SPLIT_PANE_SIZE_RATIO);
     add(mainSplitPane);
   }
@@ -119,58 +110,6 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitTable.getColumnModel()
         .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME))
         .setPreferredWidth(AUTHOR_COL_PREF_WIDTH);
-  }
-
-  private void _setUpChangedFilesTable()
-  {
-    changedFilesTable.setModel(changedFilesTableModel);
-    changedFilesTable.getColumnModel().removeColumn(changedFilesTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
-    changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))
-        .setCellRenderer(new FileStatusCellRenderer());
-    changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
-        .setCellRenderer(new FileStatusCellRenderer());
-  }
-
-  /**
-   * DetailPanel shows the changed files and the short message, author, commit date and full message of the
-   * currently selected commit to the right of the branching window of the commitHistory.
-   * If more than one commit is selected, the first selected commit in the list is chosen
-   *
-   * @return JSplitPane with the components of the DetailPanel laid out and initialised
-   */
-  private JComponent _initDetailPanel()
-  {
-        /*
-        ------------------------------
-        | -------------------------- |
-        | |  Table with scrollPane | |
-        | -------------------------- |
-        |         SplitPane          |
-        | -------------------------- |
-        | |  TextArea with detail  | |
-        | |  message in scrollPane | |
-        | -------------------------- |
-        ------------------------------
-         */
-    disposable = selectedCommitObservable.subscribe(pCommits -> pCommits.ifPresent(iCommits -> messageTextArea.setText(_getDescriptionText(iCommits))));
-    JScrollPane messageTextScrollPane = new JScrollPane(messageTextArea);
-    JScrollPane changedFilesScrollPane = new JScrollPane(changedFilesTable);
-    JSplitPane detailPanelSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, changedFilesScrollPane, messageTextScrollPane);
-    detailPanelSplitPane.setResizeWeight(DETAIL_SPLIT_PANE_RATIO);
-    return detailPanelSplitPane;
-  }
-
-  private String _getDescriptionText(List<ICommit> pCommits)
-  {
-    if (pCommits.isEmpty())
-      return "";
-    return String.format(DETAILS_FORMAT_STRING, "ID:", pCommits.get(0).getId(), "\n")
-        + String.format(DETAILS_FORMAT_STRING, "Author:", pCommits.get(0).getAuthor(), "\n")
-        + String.format(DETAILS_FORMAT_STRING, "Date:", pCommits.get(0).getTime().toString(), "\n\n")
-        + "Full message:\n"
-        + pCommits.get(0).getMessage();
   }
 
 }
