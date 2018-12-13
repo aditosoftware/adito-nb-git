@@ -29,6 +29,60 @@
     <module>gui</module>
   </modules>
 
+  <dependencies>
+
+    <!-- Core Library -->
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>5.1.1.201809181055-r</version>
+    </dependency>
+
+    <!-- guice dependencies -->
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>4.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-assistedinject</artifactId>
+      <version>4.2.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>de.adito.util</groupId>
+      <artifactId>reactive</artifactId>
+      <version>1.0.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>16.0.3</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.3.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.3.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <!-- dependency plugin -->
@@ -86,6 +140,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>${maven.plugin.version}</version>
         <configuration>
+          <doclint>none</doclint>
           <jdkToolchain>
             <version>10</version>
           </jdkToolchain>
@@ -107,60 +162,6 @@
       </plugin>
     </plugins>
   </build>
-
-  <!-- Core Library -->
-  <dependencies>
-    <dependency>
-      <groupId>org.eclipse.jgit</groupId>
-      <artifactId>org.eclipse.jgit</artifactId>
-      <version>5.1.1.201809181055-r</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
-    <dependency>
-      <groupId>org.jetbrains</groupId>
-      <artifactId>annotations</artifactId>
-      <version>16.0.3</version>
-    </dependency>
-
-    <!-- guice dependencies -->
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-      <version>4.2.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.3.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.3.1</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxjava -->
-    <dependency>
-      <groupId>io.reactivex.rxjava2</groupId>
-      <artifactId>rxjava</artifactId>
-      <version>2.2.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>de.adito.util</groupId>
-      <artifactId>reactive</artifactId>
-      <version>1.0.2-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.inject.extensions</groupId>
-      <artifactId>guice-assistedinject</artifactId>
-      <version>4.2.0</version>
-    </dependency>
-  </dependencies>
 
 
 </project>
