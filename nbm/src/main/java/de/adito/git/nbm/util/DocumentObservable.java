@@ -8,6 +8,8 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 
 /**
+ * An Observable to check document changes inside the editor tab
+ *
  * @author a.arnold, 26.11.2018
  */
 public class DocumentObservable extends AbstractListenerObservable<DocumentListener, Document, String>

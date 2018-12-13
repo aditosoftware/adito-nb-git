@@ -8,10 +8,12 @@ import javax.swing.text.EditorKit;
 /**
  * @author m.kaspera 13.11.2018
  */
-public class EditorKitProviderImpl implements IEditorKitProvider {
+public class EditorKitProviderImpl implements IEditorKitProvider
+{
 
-    @Override
-    public EditorKit getEditorKit(String pMimeType) {
-        return CloneableEditorSupport.getEditorKit(pMimeType);
-    }
+  @Override
+  public EditorKit getEditorKit(String pMimeType)
+  {
+    return CloneableEditorSupport.getEditorKit(pMimeType);
+  }
 }
