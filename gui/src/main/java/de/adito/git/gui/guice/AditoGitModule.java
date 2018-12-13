@@ -3,11 +3,13 @@ package de.adito.git.gui.guice;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.*;
 import de.adito.git.api.IUserPreferences;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.UserPreferencesImpl;
 import de.adito.git.gui.actions.ActionModule;
 import de.adito.git.gui.dialogs.DialogModule;
 import de.adito.git.gui.icon.*;
+import de.adito.git.gui.prefs.DummyPrefStore;
 import de.adito.git.gui.progress.SimpleAsyncProgressFacade;
 import de.adito.git.gui.window.WindowModule;
 import de.adito.git.impl.*;
@@ -36,5 +38,6 @@ public class AditoGitModule extends AbstractModule
     bind(IIconLoader.class).to(SwingIconLoaderImpl.class);
     bind(IFileSystemObserverProvider.class).to(FileSystemObserverProviderImpl.class);
     bind(IAsyncProgressFacade.class).to(SimpleAsyncProgressFacade.class);
+    bind(IPrefStore.class).to(DummyPrefStore.class);
   }
 }
