@@ -2,10 +2,12 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.*;
-import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.api.progress.*;
+import de.adito.git.gui.actions.commands.StashCommand;
+import de.adito.git.gui.dialogs.*;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -17,16 +19,19 @@ import java.util.*;
 class MergeAction extends AbstractTableAction
 {
 
+  private static final String STASH_ID_KEY = "merge::stashCommitId";
   private final Observable<Optional<IRepository>> repositoryObservable;
+  private final IPrefStore prefStore;
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
   private Observable<Optional<IBranch>> targetBranch;
 
   @Inject
-  MergeAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository,
-              @Assisted Observable<Optional<IBranch>> pTargetBranch)
+  MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pTargetBranch)
   {
     super("Merge into Current", _getIsEnabledObservable(pTargetBranch));
+    prefStore = pPrefStore;
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
     repositoryObservable = pRepository;
@@ -42,14 +47,47 @@ class MergeAction extends AbstractTableAction
 
     // execute
     progressFacade.executeInBackground("Merging " + selectedBranch.getSimpleName() + " into Current", pHandle -> {
-      IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
-      if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
-        throw new RuntimeException("Un-committed files detected while trying to merge: Implement stashing or commit/undo changes"); //todo
-
-      List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst().orElseThrow(), selectedBranch);
-      if (!mergeConflictDiffs.isEmpty())
-        dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
+      _doMerge(pHandle, selectedBranch);
     });
+  }
+
+  private void _doMerge(IProgressHandle pProgressHandle, IBranch pSelectedBranch) throws AditoGitException
+  {
+    IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+    try
+    {
+      if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
+      {
+        pProgressHandle.setDescription("Stashing uncommitted local changes");
+        prefStore.put(STASH_ID_KEY, repository.stashChanges());
+      }
+      pProgressHandle.setDescription("Merging branches");
+      List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst().orElseThrow(), pSelectedBranch);
+      if (!mergeConflictDiffs.isEmpty())
+      {
+        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
+        if (dialogResult.isPressedOk())
+        {
+          repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
+                                + repository.getCurrentBranch().blockingFirst().map(IBranch::getSimpleName).orElse("current Branch"));
+        }
+        else
+        {
+          pProgressHandle.setDescription("Aborting merge");
+          repository.reset(repository.getCurrentBranch().blockingFirst().orElseThrow().getId(), EResetType.HARD);
+        }
+      }
+    }
+    finally
+    {
+      pProgressHandle.setDescription("Un-stashing saved uncommitted local changes");
+      String stashedCommitId = prefStore.get(STASH_ID_KEY);
+      if (stashedCommitId != null)
+      {
+        StashCommand.doUnStashing(dialogProvider, stashedCommitId, repositoryObservable);
+      }
+      prefStore.put(STASH_ID_KEY, null);
+    }
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IBranch>> pTargetBranch)

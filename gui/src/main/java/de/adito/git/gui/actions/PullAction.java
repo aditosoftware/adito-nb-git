@@ -4,7 +4,9 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.*;
+import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.*;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -20,8 +22,10 @@ import java.util.*;
  */
 class PullAction extends AbstractAction
 {
+  private static final String STASH_ID_KEY = "pull::stashCommitId";
   private static final String NO_VALID_REPO_MSG = "no valid repository found";
   private final Observable<Optional<IRepository>> repository;
+  private final IPrefStore prefStore;
   private final IDialogProvider dialogProvider;
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
@@ -32,9 +36,10 @@ class PullAction extends AbstractAction
    * @param pRepository the repository where the pull command should work
    */
   @Inject
-  PullAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
+  PullAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
              @Assisted Observable<Optional<IRepository>> pRepository)
   {
+    prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
@@ -61,13 +66,12 @@ class PullAction extends AbstractAction
     pProgressHandle.setDescription("Retrieving Repository");
     IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
     boolean doAbort = false;
-    String stashedCommitId = null;
     try
     {
       if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
       {
         pProgressHandle.setDescription("Stashing Changes");
-        stashedCommitId = pRepo.stashChanges();
+        prefStore.put(STASH_ID_KEY, pRepo.stashChanges());
       }
       while (!doAbort)
       {
@@ -92,35 +96,13 @@ class PullAction extends AbstractAction
     }
     finally
     {
+      String stashedCommitId = prefStore.get(STASH_ID_KEY);
       if (stashedCommitId != null)
       {
         pProgressHandle.setDescription("Unstashing Changes");
-        _doUnStashing(stashedCommitId);
+        StashCommand.doUnStashing(dialogProvider, stashedCommitId, repository);
+        prefStore.put(STASH_ID_KEY, null);
       }
-    }
-  }
-
-  /**
-   * @param pStashedCommitId sha-1 id of the stashed commit to un-stash
-   */
-  private void _doUnStashing(String pStashedCommitId)
-  {
-    IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
-    try
-    {
-      List<IMergeDiff> stashConflicts = pRepo.unStashChanges(pStashedCommitId);
-      if (!stashConflicts.isEmpty())
-      {
-        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(repository, stashConflicts);
-        if (dialogResult.isPressedOk())
-        {
-          pRepo.dropStashedCommit(pStashedCommitId);
-        }
-      }
-    }
-    catch (AditoGitException pE)
-    {
-      throw new RuntimeException(pE);
     }
   }
 
