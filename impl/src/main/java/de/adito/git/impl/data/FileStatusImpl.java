@@ -224,10 +224,14 @@ public class FileStatusImpl implements IFileStatus
    */
   private boolean _compareUncommittedLists(IFileStatus pOtherStatus)
   {
-    for (IFileChangeType changeType : getUncommitted())
+    List<IFileChangeType> thisUncommitted = getUncommitted();
+    List<IFileChangeType> thatUncommitted = pOtherStatus.getUncommitted();
+    if (thisUncommitted.size() != thatUncommitted.size())
+      return false;
+    for (IFileChangeType changeType : thisUncommitted)
     {
       boolean containedValue = false;
-      for (IFileChangeType otherChangeType : pOtherStatus.getUncommitted())
+      for (IFileChangeType otherChangeType : thatUncommitted)
       {
         if (changeType.getFile().equals(otherChangeType.getFile()))
         {
