@@ -34,7 +34,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private static final Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(200, 200);
   private static final Dimension MESSAGE_PANE_PREF_SIZE = new Dimension(450, 750);
   private final JTable fileStatusTable = new JTable();
-  private final _CommitTableModel commitTableModel;
+  private final _SelectedCommitTableModel commitTableModel;
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
   private IDialogDisplayer.IDescriptor isValidDescriptor;
@@ -55,7 +55,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
             .stream()
             .map(pUncommitted -> new SelectedFileChangeType(pSelectedFiles.orElse(Collections.emptyList()).contains(pUncommitted), pUncommitted))
             .collect(Collectors.toList()));
-    commitTableModel = new _CommitTableModel(filesToCommitObservable);
+    commitTableModel = new _SelectedCommitTableModel(filesToCommitObservable);
     fileStatusTable.setModel(commitTableModel);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
@@ -83,11 +83,11 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
     setLayout(new BorderLayout());
     fileStatusTable.setSelectionModel(new ObservableListSelectionModel(fileStatusTable.getSelectionModel()));
-    fileStatusTable.getColumnModel().getColumn(commitTableModel.findColumn(_CommitTableModel.IS_SELECTED_COLUMN_NAME))
+    fileStatusTable.getColumnModel().getColumn(commitTableModel.findColumn(_SelectedCommitTableModel.IS_SELECTED_COLUMN_NAME))
         .setMaxWidth(SELECTION_COL_MAX_WIDTH);
     fileStatusTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     // Hide the status column from view, but leave the data (retrieved via table.getModel.getValueAt)
-    fileStatusTable.getColumnModel().removeColumn(fileStatusTable.getColumn(_CommitTableModel.CHANGE_TYPE_COLUMN_NAME));
+    fileStatusTable.getColumnModel().removeColumn(fileStatusTable.getColumn(_SelectedCommitTableModel.CHANGE_TYPE_COLUMN_NAME));
     // Set Renderer for cells so they are colored according to their EChangeType
     for (int index = 1; index < fileStatusTable.getColumnModel().getColumnCount(); index++)
     {
@@ -184,7 +184,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   /**
    * TableModel for the Table, has the list of files to commit. Similar to {@link StatusTableModel}
    */
-  private static class _CommitTableModel extends AbstractTableModel implements IDiscardable
+  private static class _SelectedCommitTableModel extends AbstractTableModel implements IDiscardable
   {
 
     static final String IS_SELECTED_COLUMN_NAME = "commit file";
@@ -196,7 +196,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     private Disposable disposable;
     private List<SelectedFileChangeType> fileList;
 
-    _CommitTableModel(Observable<List<SelectedFileChangeType>> pSelectedFileChangeTypes)
+    _SelectedCommitTableModel(Observable<List<SelectedFileChangeType>> pSelectedFileChangeTypes)
     {
       disposable = pSelectedFileChangeTypes.subscribe(pFilesToCommit -> fileList = pFilesToCommit);
     }
