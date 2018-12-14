@@ -5,6 +5,7 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.window.content.IWindowContentProvider;
+import de.adito.git.nbm.observables.ActivatedNodesObservable;
 import de.adito.git.nbm.util.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -50,7 +51,7 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
    */
   private void _setStatusLineName()
   {
-    //noinspection ResultOfMethodCallIgnored StatusLineElement only exists once
+    //noinspection StatusLineElement only exists once
     disposable = _observeRepository()
         .flatMap(pRepo -> pRepo.isPresent() ? pRepo.get().getCurrentBranch() : Observable.just(Optional.<IBranch>empty()))
         .subscribe(pBranch -> label.setText(pBranch.map(IBranch::getSimpleName).orElse("<no branch>")));
@@ -58,10 +59,8 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
 
   private Observable<Optional<IRepository>> _observeRepository()
   {
-    return EditorObservable.create()
-        .flatMap(pEditorOpt -> pEditorOpt
-            .map(pTopComponent -> RepositoryUtility.findOneRepositoryFromNode(pTopComponent.getActivatedNodes()))
-            .orElse(Observable.just(Optional.empty())));
+    return ActivatedNodesObservable.create()
+        .switchMap(RepositoryUtility::findOneRepositoryFromNode);
   }
 
   private void _initPopup()
