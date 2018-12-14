@@ -1,8 +1,8 @@
 package de.adito.git.impl;
 
 import com.google.common.base.*;
-import de.adito.git.api.AditoGitException;
 import de.adito.git.api.data.*;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.impl.data.*;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -153,7 +153,7 @@ class RepositoryImplHelper
   {
     try (Stream<String> lines = Files.lines(pConflictingFile.toPath()))
     {
-      return lines.filter(line -> line.startsWith(">>>>>>>>"))
+      return lines.filter(line -> line.startsWith(">>>>>>>"))
           .findFirst()
           .map(s -> s.replace(">", "").trim())
           .orElse(null);
@@ -182,6 +182,20 @@ class RepositoryImplHelper
     return RepositoryImplHelper.getMergeConflicts(pGit, toUnstash.getName(),
                                                   ObjectId.toString(pGit.getRepository().resolve(Constants.HEAD)),
                                                   new CommitImpl(mergeBase), pConflicts, pDiffFn);
+  }
+
+  static List<ICommit> getStashedCommits(Git pGit) throws AditoGitException
+  {
+    List<ICommit> stashedCommits = new ArrayList<>();
+    try
+    {
+      pGit.stashList().call().forEach(pRevCommit -> stashedCommits.add(new CommitImpl(pRevCommit)));
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+    return stashedCommits;
   }
 
   /**

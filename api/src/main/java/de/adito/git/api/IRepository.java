@@ -1,6 +1,7 @@
 package de.adito.git.api;
 
 import de.adito.git.api.data.*;
+import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.*;
 
@@ -185,9 +186,17 @@ public interface IRepository
   /**
    * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
    * or if the branch to be merged cannot be read from the conflicting files
+   * @throws AditoGitException if an error occurs or if the conflict was caused by a stashed commit, but several commits are stashed
+   */
+  List<IMergeDiff> getConflicts() throws AditoGitException;
+
+  /**
+   *
+   * @param pStashedCommitId sha-1 id of the stashed commit that caused the conflicts
+   * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
    * @throws AditoGitException if an error occurs
    */
-  List<IMergeDiff> getMergeConflicts() throws AditoGitException;
+  List<IMergeDiff> getStashConflicts(String pStashedCommitId) throws AditoGitException;
 
   /**
    * @param pSourceBranch The source branch
@@ -304,6 +313,14 @@ public interface IRepository
    */
   @NotNull
   Observable<Optional<List<IBranch>>> getBranches() throws AditoGitException;
+
+  /**
+   * retrieve all stashed commits
+   *
+   * @return List of stashed commits
+   * @throws AditoGitException if JGit encounters any errors
+   */
+  List<ICommit> getStashedCommits() throws AditoGitException;
 
   /**
    * check if there is any stashed commit and return the id of the latest stashed commit if any exist
