@@ -1,7 +1,8 @@
 package de.adito.git.gui.actions.commands;
 
-import de.adito.git.api.*;
+import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.dialogs.*;
 import io.reactivex.Observable;
 

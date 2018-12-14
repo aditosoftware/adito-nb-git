@@ -1,20 +1,19 @@
-package de.adito.git.api;
+package de.adito.git.api.exception;
 
 /**
- * Wrapper for the normal Exception so it is obvious from which
- * module the Exception comes from
+ * Exception that is thrown if no stash commit id was given and several commits are stashed
+ * (and it is thus unclear which stashed commit should be used)
  *
- * @author Michael Kaspera 05.12.2018
+ * @author m.kaspera, 14.12.2018
  */
-public class AditoGitException extends Exception
+public class AmbiguousStashCommitsException extends AditoGitException
 {
-
   /**
    * Default constructor for Exceptions
    *
    * @param pMessage Message to throw further up
    */
-  public AditoGitException(String pMessage)
+  public AmbiguousStashCommitsException(String pMessage)
   {
     super(pMessage);
   }
@@ -25,7 +24,7 @@ public class AditoGitException extends Exception
    * @param pMessage Message to throw further up
    * @param pE       Exception causing this exception to be thrown
    */
-  public AditoGitException(String pMessage, Exception pE)
+  public AmbiguousStashCommitsException(String pMessage, Exception pE)
   {
     super(pMessage, pE);
   }
@@ -35,7 +34,7 @@ public class AditoGitException extends Exception
    *
    * @param pE Exception causing this exception to be thrown
    */
-  public AditoGitException(Exception pE)
+  public AmbiguousStashCommitsException(Exception pE)
   {
     super(pE);
   }

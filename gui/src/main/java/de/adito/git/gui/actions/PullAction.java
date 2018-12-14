@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.*;
 import de.adito.git.gui.actions.commands.StashCommand;
