@@ -1,6 +1,6 @@
 package de.adito.git.gui.tableModels;
 
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileDiff;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
@@ -48,10 +48,7 @@ public class DiffTableModel extends AbstractTableModel
     Object returnValue = null;
     if (pColumnIndex == 0)
     {
-      if (fileDiffs.get(pRowIndex).getChangeType() == EChangeType.DELETE)
-        returnValue = fileDiffs.get(pRowIndex).getFilePath(EChangeSide.OLD);
-      else
-        returnValue = fileDiffs.get(pRowIndex).getFilePath(EChangeSide.NEW);
+      returnValue = fileDiffs.get(pRowIndex).getFilePath();
     }
     else if (pColumnIndex == 1)
       returnValue = fileDiffs.get(pRowIndex).getChangeType();

@@ -50,7 +50,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     Observable<List<IMergeDiff>> mergeDiffListObservable = Observable.combineLatest(obs,
                                                                                     mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
             .filter(pMergeDiff -> pStatus.map(IFileStatus::getConflicting).orElse(Collections.emptySet())
-                .contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW)))
+                .contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath()))
             .collect(Collectors.toList()));
     selectedMergeDiffObservable = Observable
         .combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
@@ -105,7 +105,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       File selectedFile = new File(repository
                                        .blockingFirst()
                                        .orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG))
-                                       .getTopLevelDirectory(), selectedMergeDiff.getDiff(pConflictSide).getFilePath(EChangeSide.NEW));
+                                       .getTopLevelDirectory(), selectedMergeDiff.getDiff(pConflictSide).getFilePath());
       StringBuilder fileContents = new StringBuilder();
       for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst())
       {
@@ -121,7 +121,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     File selectedFile = new File(repository
                                      .blockingFirst()
                                      .orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG))
-                                     .getTopLevelDirectory(), pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath(EChangeSide.NEW));
+                                     .getTopLevelDirectory(), pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
     StringBuilder fileContents = new StringBuilder();
     for (IFileChangeChunk changeChunk : pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks().blockingFirst())
     {

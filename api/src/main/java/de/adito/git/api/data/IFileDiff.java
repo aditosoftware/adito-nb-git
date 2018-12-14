@@ -38,6 +38,14 @@ public interface IFileDiff
   String getFilePath(EChangeSide pChangeSide);
 
   /**
+   * returns the same as getFilePath(EChangeSide.NEW) if file is not deleted,
+   * otherwise getFilePath(EChangeSide.OLD) is returned
+   *
+   * @return path from the root to the file
+   */
+  String getFilePath();
+
+  /**
    * @return {@link IFileChanges} that contains a list detailing the changes in each changed line
    */
   IFileChanges getFileChanges();
