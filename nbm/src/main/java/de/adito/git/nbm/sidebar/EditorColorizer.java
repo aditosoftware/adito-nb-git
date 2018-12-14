@@ -38,16 +38,15 @@ class EditorColorizer extends JPanel implements IDiscardable
    * @param pRepository the actual repository
    * @param pTarget     the text component of the editor
    */
-  EditorColorizer(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget)
+  EditorColorizer(Observable<Optional<IRepository>> pRepository, DataObject pDataObject, JTextComponent pTarget)
   {
     setMinimumSize(new Dimension(10, 0));
     setPreferredSize(new Dimension(10, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
 
-    DataObject dataObject = (DataObject) pTarget.getDocument().getProperty(Document.StreamDescriptionProperty);
     Observable<String> actualText = DocumentObservable.create(pTarget.getDocument());
-    file = new File(dataObject.getPrimaryFile().toURI());
+    file = new File(pDataObject.getPrimaryFile().toURI());
 
 
     /*

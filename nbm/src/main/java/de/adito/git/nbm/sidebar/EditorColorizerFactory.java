@@ -31,7 +31,10 @@ public class EditorColorizerFactory implements SideBarFactory
     if (dataObject == null || dataObject.getPrimaryFile() == null)
       return null;
 
-    return new EditorColorizer(RepositoryUtility.find(dataObject), pTarget);
+    if("file".equals(dataObject.getPrimaryFile().toURI().getScheme()))
+      return new EditorColorizer(RepositoryUtility.find(dataObject), dataObject, pTarget);
+
+    return null;
   }
 
 }
