@@ -112,4 +112,12 @@ public interface IActionProvider
    */
   Action getShowStatusWindowAction(Observable<Optional<IRepository>> pRepository);
 
+  /**
+   * @param pRepository              Observable with the current Repository
+   * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @return Action whose actionPerformed method tries to determine the causes of conflicting files and shows a dialog to resolve those conflicts
+   */
+  Action getResolveConflictsAction(Observable<Optional<IRepository>> pRepository,
+                                   Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+
 }

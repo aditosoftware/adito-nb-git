@@ -158,4 +158,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createShowStatusWindowAction(pRepository);
   }
 
+  @Override
+  public Action getResolveConflictsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  {
+    return actionFactory.createResolveConflictsAction(pRepository, pSelectedFilesObservable);
+  }
+
 }

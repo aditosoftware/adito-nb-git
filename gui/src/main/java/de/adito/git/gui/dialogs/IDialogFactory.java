@@ -28,4 +28,6 @@ interface IDialogFactory
 
   PushDialog createPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList);
 
+  StashedCommitSelectionDialog createStashedCommitSelectionDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                                                                  Observable<Optional<IRepository>> pRepository, List<ICommit> pStashedCommits);
 }

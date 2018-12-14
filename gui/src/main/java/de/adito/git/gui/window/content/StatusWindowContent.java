@@ -75,6 +75,8 @@ class StatusWindowContent extends JPanel implements IDiscardable
       popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable));
       popupMenu.addSeparator();
       popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
+      popupMenu.addSeparator();
+      popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
     });
 
     statusTable.addMouseListener(new PopupMouseListener(popupMenu));

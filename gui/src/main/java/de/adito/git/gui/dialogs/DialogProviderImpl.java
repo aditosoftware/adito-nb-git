@@ -110,4 +110,22 @@ class DialogProviderImpl implements IDialogProvider
         result.getSource().discard();
     }
   }
+
+  @Override
+  public DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(Observable<Optional<IRepository>> pRepository,
+                                                                                             List<ICommit> pStashedCommits)
+  {
+    DialogResult<StashedCommitSelectionDialog, String> result = null;
+    try
+    {
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashedCommitSelectionDialog(pValidConsumer, pRepository, pStashedCommits),
+                                          "Choose stashed commit");
+      return result;
+    }
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
+  }
 }
