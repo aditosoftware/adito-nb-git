@@ -4,6 +4,7 @@ import de.adito.git.api.data.ICommit;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -53,8 +54,8 @@ public class CommitImpl implements ICommit {
      * {@inheritDoc}
      */
     @Override
-    public Date getTime() {
-        return revCommit.getCommitterIdent().getWhen();
+    public Instant getTime() {
+        return revCommit.getCommitterIdent().getWhen().toInstant();
     }
 
     /**

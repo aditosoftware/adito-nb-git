@@ -1,6 +1,7 @@
 package de.adito.git.gui.tableModels;
 
 import de.adito.git.api.data.ICommit;
+import de.adito.git.gui.DateTimeRenderer;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.*;
@@ -73,7 +74,7 @@ public class CommitListTableModel extends AbstractTableModel
     else if (pColumnIndex == findColumn(AUTHOR_COL_NAME))
       returnValue = commitList.get(pRowIndex).getAuthor();
     else if (pColumnIndex == findColumn(DATE_COL_NAME))
-      returnValue = commitList.get(pRowIndex).getTime();
+      returnValue = DateTimeRenderer.asString(commitList.get(pRowIndex).getTime());
     return returnValue;
   }
 }

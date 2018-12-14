@@ -81,7 +81,7 @@ public class CommitDetailsPanel implements IDiscardable
       return "";
     return String.format(DETAILS_FORMAT_STRING, "ID:", pCommits.get(0).getId(), "\n")
         + String.format(DETAILS_FORMAT_STRING, "Author:", pCommits.get(0).getAuthor(), "\n")
-        + String.format(DETAILS_FORMAT_STRING, "Date:", pCommits.get(0).getTime().toString(), "\n\n")
+        + String.format(DETAILS_FORMAT_STRING, "Date:", DateTimeRenderer.asString(pCommits.get(0).getTime()), "\n\n")
         + "Full message:\n"
         + pCommits.get(0).getMessage();
   }

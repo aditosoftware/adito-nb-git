@@ -1,5 +1,6 @@
 package de.adito.git.api.data;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public interface ICommit {
      *
      * @return the timestamp of the date of the commit
      */
-    Date getTime();
+    Instant getTime();
 
     /**
      *

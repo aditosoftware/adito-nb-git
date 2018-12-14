@@ -1,6 +1,7 @@
 package de.adito.git.gui.tableModels;
 
 import de.adito.git.api.CommitHistoryTreeListItem;
+import de.adito.git.gui.DateTimeRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.AbstractTableModel;
@@ -85,7 +86,7 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel {
             case AUTHOR:
                 return commitHistoryTreeListItem.getCommit().getAuthor();
             case TIME:
-                return commitHistoryTreeListItem.getCommit().getTime();
+                return DateTimeRenderer.asString(commitHistoryTreeListItem.getCommit().getTime());
             default:
                 return null;
         }
