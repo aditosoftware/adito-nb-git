@@ -25,14 +25,14 @@ class RevertWorkDirAction extends AbstractTableAction
   RevertWorkDirAction(IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
                       @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
-    super("Revert", getIsEnabledObservable(pSelectedFilesObservable));
+    super("Revert", _getIsEnabledObservable(pSelectedFilesObservable));
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedFilesObservable = pSelectedFilesObservable;
   }
 
   @Override
-  public void actionPerformed(ActionEvent e)
+  public void actionPerformed(ActionEvent pEvent)
   {
     progressFacade.executeInBackground("Reverting", pHandle -> {
       repository.blockingFirst()
@@ -45,11 +45,12 @@ class RevertWorkDirAction extends AbstractTableAction
     });
   }
 
-  private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles
                                                                          .orElse(Collections.emptyList())
                                                                          .stream()
-                                                                         .noneMatch(fileChangeType -> fileChangeType.getChangeType().equals(EChangeType.SAME))));
+                                                                         .noneMatch(fileChangeType -> fileChangeType.getChangeType()
+                                                                             .equals(EChangeType.SAME))));
   }
 }
