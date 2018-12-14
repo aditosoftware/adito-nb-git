@@ -765,7 +765,7 @@ public class RepositoryImpl implements IRepository
       }
       try
       {
-        checkout(parentID);
+        checkout(pParentBranch.getName());
       }
       catch (Exception e)
       {
