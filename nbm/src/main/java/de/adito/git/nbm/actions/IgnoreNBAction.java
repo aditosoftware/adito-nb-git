@@ -1,6 +1,5 @@
 package de.adito.git.nbm.actions;
 
-import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.actions.IActionProvider;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.IgnoreAction")
 @ActionRegistration(displayName = "LBL_IgnoreAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 500)
+@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.IGNORE_ACTION_RIGHT_CLICK)
 public class IgnoreNBAction extends NBAction
 {
 
@@ -40,8 +39,7 @@ public class IgnoreNBAction extends NBAction
   {
     Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
     IRepository currentRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
-    Injector injector = IGitConstants.INJECTOR;
-    IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
+    IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     List<IFileChangeType> untrackedSelectedFiles = _getUntrackedFiles(currentRepo).stream()
         .filter(untrackedFile -> getAllFilesOfNodes(pActivatedNodes)

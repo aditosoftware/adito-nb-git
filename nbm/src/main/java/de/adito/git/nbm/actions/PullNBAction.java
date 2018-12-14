@@ -1,6 +1,5 @@
 package de.adito.git.nbm.actions;
 
-import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
@@ -21,8 +20,8 @@ import java.util.Optional;
 @ActionRegistration(displayName = "LBL_PullNBAction_Name")
 //Reference for the menu
 @ActionReferences({
-    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 100),
-    @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = 200)
+    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.PULL_ACTION_RIGHT_CLICK),
+    @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = INBActionPositions.PULL_ACTION_TOOLBAR)
 })
 public class PullNBAction extends NBAction
 {
@@ -36,8 +35,7 @@ public class PullNBAction extends NBAction
   protected void performAction(Node[] pActivatedNodes)
   {
     Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
-    Injector injector = IGitConstants.INJECTOR;
-    IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
+    IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     try
     {

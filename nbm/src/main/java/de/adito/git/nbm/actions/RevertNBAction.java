@@ -1,6 +1,5 @@
 package de.adito.git.nbm.actions;
 
-import com.google.inject.Injector;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
@@ -20,7 +19,7 @@ import java.util.*;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.RevertNBAction")
 @ActionRegistration(displayName = "LBL_RevertNBAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = 200)
+@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.REVERT_ACTION_RIGHT_CLICK)
 public class RevertNBAction extends NBAction
 {
 
@@ -30,8 +29,7 @@ public class RevertNBAction extends NBAction
   protected void performAction(Node[] pActivatedNodes)
   {
     Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
-    Injector injector = IGitConstants.INJECTOR;
-    IActionProvider actionProvider = injector.getInstance(IActionProvider.class);
+    IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     selectedFiles.onNext(getUncommittedFilesOfNodes(pActivatedNodes, repository));
 
