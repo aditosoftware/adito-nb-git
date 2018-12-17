@@ -3,15 +3,19 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.util.*;
+import java.io.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -48,8 +52,34 @@ class DiffToHeadAction extends AbstractTableAction
       List<IFileDiff> fileDiffs = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).diff(files, null);
 
       //Show Dialog in EDT -> Handle gets finished
-      SwingUtilities.invokeLater(() -> dialogProvider.showDiffDialog(fileDiffs));
+      SwingUtilities.invokeLater(() -> {
+        DialogResult dialogResult = dialogProvider.showDiffDialog(fileDiffs);
+        if (dialogResult.isPressedOk())
+        {
+          for (IFileDiff fileDiff : fileDiffs)
+          {
+            _saveFileDiffChanges(fileDiff);
+          }
+        }
+      });
     });
+  }
+
+  private void _saveFileDiffChanges(IFileDiff pFileDiff)
+  {
+    try (BufferedWriter writer = new BufferedWriter(
+        new FileWriter(
+            new File(repository.blockingFirst().orElseThrow().getTopLevelDirectory(), pFileDiff.getFilePath()), false)))
+    {
+      StringBuilder fileDiffContents = new StringBuilder();
+      pFileDiff.getFileChanges().getChangeChunks().blockingFirst().forEach(pChangeChunk -> fileDiffContents.append(pChangeChunk.getBLines()));
+      // -1 on the substring because there is one newLine too many
+      writer.write(fileDiffContents.substring(0, fileDiffContents.length() - 1));
+    }
+    catch (IOException pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
 }
