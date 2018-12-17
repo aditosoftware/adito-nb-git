@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.*;
-import de.adito.git.gui.dialogs.panels.*;
+import de.adito.git.gui.dialogs.panels.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
 
 import javax.swing.*;
@@ -22,9 +22,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
 {
 
   private final IMergeDiff mergeDiff;
-  private final MergePanel currentBranchPanel;
-  private final ForkPointPanel forkPointPanel;
-  private final MergePanel mergeBranchPanel;
+  private final MergePanel mergePanel;
 
   @Inject
   MergeConflictResolutionDialog(IIconLoader pIconLoader, @Assisted IMergeDiff pMergeDiff)
@@ -33,9 +31,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
     ImageIcon acceptYoursIcon = pIconLoader.getIcon(ACCEPT_CHANGE_YOURS_ICON);
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
     ImageIcon discardIcon = pIconLoader.getIcon(DISCARD_CHANGE_ICON);
-    currentBranchPanel = new MergePanel(IMergeDiff.CONFLICT_SIDE.YOURS, pMergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon);
-    mergeBranchPanel = new MergePanel(IMergeDiff.CONFLICT_SIDE.THEIRS, pMergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon);
-    forkPointPanel = new ForkPointPanel(mergeDiff);
+    mergePanel = new MergePanel(mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon);
     _initGui();
   }
 
@@ -44,15 +40,8 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
     // create a panel in a scrollPane for each of the textPanes
     setLayout(new BorderLayout());
 
-    // add a splitPane on top of another splitPane so there are three sub-windows for each textPane/version of the file
-    JSplitPane forkToMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, forkPointPanel, mergeBranchPanel);
-    JSplitPane threeWayPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, currentBranchPanel, forkToMergeSplit);
-    // 0.5 so the initial split is equal. For perfect feel on resizing set to 1, this would make the right pane almost invisible at the start though
-    forkToMergeSplit.setResizeWeight(0.5);
-    // 0.33 because the right side contains two sub-windows, the left only one
-    threeWayPane.setResizeWeight(0.33);
     JPanel diffPanel = new JPanel(new BorderLayout());
-    diffPanel.add(threeWayPane, BorderLayout.CENTER);
+    diffPanel.add(mergePanel, BorderLayout.CENTER);
     diffPanel.add(_initAcceptAllPanel(), BorderLayout.NORTH);
     diffPanel.setPreferredSize(new Dimension(1600, 900));
     add(diffPanel, BorderLayout.CENTER);
