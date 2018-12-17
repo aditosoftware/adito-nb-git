@@ -4,7 +4,9 @@ import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -19,6 +21,8 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
 {
 
   private final JScrollPane mainScrollPane;
+  private final List<JScrollPane> componentScrollPanes = new ArrayList<>();
+  private final List<IDiscardable> discardAbles = new ArrayList<>();
   private final JTextPane textPane;
   // since the BorderLayout only has one spot for east/west, the components have to be added to nested Panel each time a component is added
   private JPanel outerEasternPanel = this;
@@ -27,6 +31,7 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
   BaseDiffPanel(JTextPane pJTextPane)
   {
     mainScrollPane = new JScrollPane(pJTextPane);
+    mainScrollPane.setBorder(null);
     textPane = pJTextPane;
     _initGui();
   }
@@ -45,7 +50,11 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
   void addLineNumPanel(DiffPanelModel pModel, String pLineOrientation)
   {
     JPanel nestedPanel = new JPanel(new BorderLayout());
-    JScrollPane lineNumContentScrollPane = new LineNumPanel(pModel).getContentScrollPane();
+    LineNumPanel lineNumPanel = new LineNumPanel(pModel);
+    discardAbles.add(lineNumPanel);
+    JScrollPane lineNumContentScrollPane = lineNumPanel.getContentScrollPane();
+    componentScrollPanes.add(lineNumContentScrollPane);
+    _coupleScrollPanes(mainScrollPane, lineNumContentScrollPane);
     nestedPanel.add(lineNumContentScrollPane, BorderLayout.CENTER);
     if (pLineOrientation.equals(BorderLayout.WEST))
     {
@@ -72,9 +81,13 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
                             Consumer<IFileChangeChunk> pDoOnDiscard, Consumer<IFileChangeChunk> pDoOnAccept, String pLineOrientation)
   {
     JPanel nestedPanel = new JPanel(new BorderLayout());
-    JScrollPane choiceButtonContentScrollPane =
-        new ChoiceButtonPanel(pModel, pDiscardIcon, pAcceptIcon, textPane.getFontMetrics(textPane.getFont()).getHeight(),
-                              pDoOnDiscard, pDoOnAccept, pLineOrientation).getContentScrollPane();
+    ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, pDiscardIcon, pAcceptIcon,
+                                                                textPane.getFontMetrics(textPane.getFont()).getHeight(),
+                                                                pDoOnDiscard, pDoOnAccept, pLineOrientation);
+    discardAbles.add(choiceButtonPanel);
+    JScrollPane choiceButtonContentScrollPane = choiceButtonPanel.getContentScrollPane();
+    componentScrollPanes.add(choiceButtonContentScrollPane);
+    _coupleScrollPanes(mainScrollPane, choiceButtonContentScrollPane);
     nestedPanel.add(choiceButtonContentScrollPane, BorderLayout.CENTER);
     if (pLineOrientation.equals(BorderLayout.WEST))
     {
@@ -91,10 +104,37 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
   @Override
   public void discard()
   {
-    for (Component component : getComponents())
+    for (IDiscardable discardAble : discardAbles)
     {
-      if (component instanceof IDiscardable)
-        ((IDiscardable) component).discard();
+      discardAble.discard();
     }
+  }
+
+  JScrollPane getMainScrollPane()
+  {
+    return mainScrollPane;
+  }
+
+  void coupleToScrollPane(JScrollPane pMainScrollPane)
+  {
+    _coupleScrollPanes(pMainScrollPane, mainScrollPane);
+    for (JScrollPane componentScrollPane : componentScrollPanes)
+    {
+      _coupleScrollPanes(pMainScrollPane, componentScrollPane);
+    }
+  }
+
+  /**
+   * Makes the masterScrollPane determine the scrolling behaviour/speed of the slaveScrollPane.
+   * Both Panes are then  intertwined and cannot be scrolled independently
+   *
+   * @param pMasterScrollPane ScrollPane that will control scrolling behaviour. Is notified when the slave scrolls and does scroll then, too
+   * @param pSlaveScrollPane  ScrollPane that is linked to the master. Scrolling in the master also means scrolling in the slave, and vice versa
+   */
+  private void _coupleScrollPanes(JScrollPane pMasterScrollPane, JScrollPane pSlaveScrollPane)
+  {
+    pSlaveScrollPane.getVerticalScrollBar().setModel(pMasterScrollPane.getVerticalScrollBar().getModel());
+    pSlaveScrollPane.setWheelScrollingEnabled(false);
+    pSlaveScrollPane.addMouseWheelListener(pMasterScrollPane::dispatchEvent);
   }
 }
