@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs.panels;
 
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileDiff;
 import io.reactivex.Observable;
 
 import java.util.Optional;
@@ -10,22 +11,27 @@ public class DiffPanelModel
 {
 
   private final Function<IFileChangeChunk, Integer> getNumLines;
+  private final Function<IFileChangeChunk, String> getLines;
   private final Function<IFileChangeChunk, String> getParityLines;
-  private final boolean useParityLines;
   private final Observable<Optional<IFileDiff>> fileDiffObservable;
 
-  protected DiffPanelModel(Observable<Optional<IFileDiff>> pFileDiffObservable, Function<IFileChangeChunk, Integer> pGetNumLines,
-                           Function<IFileChangeChunk, String> pGetParityLines, boolean pUseParityLines)
+  DiffPanelModel(Observable<Optional<IFileDiff>> pFileDiffObservable, Function<IFileChangeChunk, Integer> pGetNumLines,
+                 Function<IFileChangeChunk, String> pGetLines, Function<IFileChangeChunk, String> pGetParityLines)
   {
     fileDiffObservable = pFileDiffObservable;
     getNumLines = pGetNumLines;
+    getLines = pGetLines;
     getParityLines = pGetParityLines;
-    useParityLines = pUseParityLines;
   }
 
-  public Function<IFileChangeChunk, Integer> getGetNumLines()
+  Function<IFileChangeChunk, Integer> getGetNumLines()
   {
     return getNumLines;
+  }
+
+  public Function<IFileChangeChunk, String> getGetLines()
+  {
+    return getLines;
   }
 
   public Function<IFileChangeChunk, String> getGetParityLines()
@@ -33,13 +39,9 @@ public class DiffPanelModel
     return getParityLines;
   }
 
-  public boolean isUseParityLines()
-  {
-    return useParityLines;
-  }
-
   public Observable<Optional<IFileDiff>> getFileDiff()
   {
     return fileDiffObservable;
   }
+
 }
