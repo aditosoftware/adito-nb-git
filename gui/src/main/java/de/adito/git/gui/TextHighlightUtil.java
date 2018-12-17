@@ -1,10 +1,14 @@
 package de.adito.git.gui;
 
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
 
 import javax.swing.*;
-import javax.swing.text.*;
-import java.util.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -16,6 +20,7 @@ import java.util.function.Function;
  */
 public class TextHighlightUtil
 {
+
   private TextHighlightUtil()
   {
   }
@@ -75,8 +80,8 @@ public class TextHighlightUtil
 
   /**
    * @param pFileChangeChunks    List of IFileChangeChunks for which the highlighted areas should be determined
-   * @param pGetLines            Function that retrieves the normal lines for an IFileChangeChunk
-   * @param pGetParityLines      Function that retrieves the parity lines for an IFileChangeChunk
+   * @param pGetLines             Function that retrieves the normal lines for an IFileChangeChunk
+   * @param pGetParityLines       Function that retrieves the parity lines for an IFileChangeChunk
    * @param pInsertParityStrings use parity Strings of the IFileChangeChunks to keep two Panels equal length
    * @return List of _Highlight
    */
@@ -106,14 +111,14 @@ public class TextHighlightUtil
   /**
    * @param pTextPane            JTextPane that should be filled with text and colored
    * @param pFileChangeChunks    List of IFileChangeChunks providing the text and the information about which areas to highlight
-   * @param pGetLines            Function that retrieves the normal lines for an IFileChangeChunk
-   * @param pGetParityLines      Function that retrieves the parity lines for an IFileChangeChunk
+   * @param pGetLines             Function that retrieves the normal lines for an IFileChangeChunk
+   * @param pGetParityLines       Function that retrieves the parity lines for an IFileChangeChunk
    * @param pInsertParityStrings use parity Strings of the IFileChangeChunks to keep two Panels equal length
-   * @param pHighlightSpots      List of _Highlight determining which areas get colored and the color of the areas
+   * @param pHighlightSpots       List of _Highlight determining which areas get colored and the color of the areas
    */
   private static void _insertColoredText(JTextPane pTextPane, List<IFileChangeChunk> pFileChangeChunks, Function<IFileChangeChunk, String> pGetLines,
-                                         Function<IFileChangeChunk, String> pGetParityLines,
-                                         boolean pInsertParityStrings, List<_Highlight> pHighlightSpots)
+                                         Function<IFileChangeChunk, String> pGetParityLines, boolean pInsertParityStrings,
+                                         List<_Highlight> pHighlightSpots)
   {
     StringBuilder paneContentBuilder = new StringBuilder();
     int currentIndex = 0;
@@ -130,7 +135,7 @@ public class TextHighlightUtil
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {
         pHighlightSpots.add(new _Highlight(currentIndex, currentIndex + currentLen,
-                                           new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
+                                          new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
       }
       currentIndex += currentLen;
     }
@@ -159,20 +164,20 @@ public class TextHighlightUtil
       getNumLines = pIFileChangeChunk -> pIFileChangeChunk.getAEnd() - pIFileChangeChunk.getAStart();
       getParityLines = IFileChangeChunk::getAParityLines;
     }
-    _insertColoredLineNumbers(pLineNumberingPane, pChangeChunkList, getNumLines, getParityLines, pUseParityLines);
+    insertColoredLineNumbers(pLineNumberingPane, pChangeChunkList, getNumLines, getParityLines, pUseParityLines);
 
   }
 
   /**
    * @param pLineNumberingPane JTextPane that should display the line numbers
    * @param pChangeChunkList   List of IFileChangeChunks determining the line numbers and colored areas
-   * @param pGetNumLines       Function that retrieves the normal lines for an IFileChangeChunk
-   * @param pGetParityLines    Function that retrieves the parity lines for an IFileChangeChunk
+   * @param pGetNumLines        Function that retrieves the normal lines for an IFileChangeChunk
+   * @param pGetParityLines     Function that retrieves the parity lines for an IFileChangeChunk
    * @param pUseParityLines    use parity Strings of the IFileChangeChunks to keep two Panels equal length
    */
-  private static void _insertColoredLineNumbers(JTextPane pLineNumberingPane, List<IFileChangeChunk> pChangeChunkList,
-                                                Function<IFileChangeChunk, Integer> pGetNumLines,
-                                                Function<IFileChangeChunk, String> pGetParityLines, boolean pUseParityLines)
+  public static void insertColoredLineNumbers(JTextPane pLineNumberingPane, List<IFileChangeChunk> pChangeChunkList,
+                                              Function<IFileChangeChunk, Integer> pGetNumLines,
+                                              Function<IFileChangeChunk, String> pGetParityLines, boolean pUseParityLines)
   {
     List<_Highlight> highlightSpots = new ArrayList<>();
     StringBuilder lineNumberingBuilder = new StringBuilder();
