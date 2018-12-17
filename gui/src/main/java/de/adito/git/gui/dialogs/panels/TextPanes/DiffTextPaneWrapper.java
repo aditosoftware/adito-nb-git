@@ -1,13 +1,15 @@
 package de.adito.git.gui.dialogs.panels.TextPanes;
 
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.DiffPanelModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author m.kaspera, 13.12.2018
@@ -38,7 +40,7 @@ public class DiffTextPaneWrapper implements IDiscardable
   {
     final int caretPosition = textPane.getCaretPosition();
     // insert the text from the IFileDiffs
-    TextHighlightUtil.insertColoredText(textPane, pChangeChunkList, EChangeSide.NEW, model.isUseParityLines());
+    TextHighlightUtil.insertColoredText(textPane, pChangeChunkList, model.getGetLines(), model.getGetParityLines());
     textPane.setCaretPosition(caretPosition);
   }
 

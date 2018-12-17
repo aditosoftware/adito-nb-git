@@ -1,12 +1,15 @@
 package de.adito.git.gui.dialogs.panels.TextPanes;
 
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.TextHighlightUtil;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import java.util.List;
 
@@ -44,7 +47,8 @@ public class ForkPointTextPaneWrapper implements IDiscardable
     caretPosition = textPane.getCaretPosition();
     // EChangeSide.OLD because the content of the ForkPointTextPane is the version of the forkPoint (i.e. the old version in all cases since forkPoint
     // predates both commits)
-    TextHighlightUtil.insertColoredText(textPane, pChangeChunkLists.yourVersion, pChangeChunkLists.theirVersion, EChangeSide.OLD, false);
+    TextHighlightUtil.insertColoredText(textPane, pChangeChunkLists.yourVersion, pChangeChunkLists.theirVersion,
+                                        IFileChangeChunk::getALines, pFileChangeChunk -> "");
     textPane.setCaretPosition(caretPosition);
     paneDocumentListener.enable();
   }

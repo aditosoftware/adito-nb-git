@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs.panels;
 
-import de.adito.git.gui.*;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.TextHighlightUtil;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -23,7 +24,7 @@ public class LineNumPanel implements IDiscardable
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
         .orElse(Observable.just(Collections.emptyList()))).subscribe(
         pFileChanges -> TextHighlightUtil.insertColoredLineNumbers(lineNumPane, pFileChanges, pModel.getGetNumLines(),
-                                                                   pModel.getGetParityLines(), pModel.isUseParityLines()));
+                                                                   pModel.getGetParityLines()));
   }
 
   JScrollPane getContentScrollPane()
