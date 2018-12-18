@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.IndexDiff;
 
 import java.io.File;
+import java.text.Collator;
 import java.util.*;
 
 /**
@@ -166,18 +167,8 @@ public class FileStatusImpl implements IFileStatus
     {
       fileChangeTypes.add(new FileChangeTypeImpl(new File(gitDirectory.getParent(), fileChangeEntry.getKey()), fileChangeEntry.getValue()));
     }
-    fileChangeTypes.sort(new IFileChangeComparator());
+    fileChangeTypes.sort(Comparator.comparing(pChangeType -> pChangeType.getFile().getName(), Collator.getInstance()));
     return fileChangeTypes;
-  }
-
-  private class IFileChangeComparator implements Comparator<IFileChangeType>
-  {
-
-    @Override
-    public int compare(IFileChangeType pFile1, IFileChangeType pFile2)
-    {
-      return pFile1.getFile().getName().compareTo(pFile2.getFile().getName());
-    }
   }
 
   /**
