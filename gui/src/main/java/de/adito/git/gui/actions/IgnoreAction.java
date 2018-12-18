@@ -59,8 +59,6 @@ class IgnoreAction extends AbstractTableAction
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles.orElse(Collections.emptyList()).stream()
-                                                                         .allMatch(row -> row.getChangeType().equals(EChangeType.NEW)
-                                                                             || row.getChangeType().equals(EChangeType.MODIFY)
-                                                                             || row.getChangeType().equals(EChangeType.MISSING))));
+                                                                         .allMatch(row -> row.getChangeType().equals(EChangeType.NEW))));
   }
 }
