@@ -15,12 +15,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * @author m.kaspera 13.12.2018
+ */
 public class ChoiceButtonPanel implements IDiscardable
 {
 
   private static final int ADDITIONAL_HEIGHT_PIXELS = 3;
   private static final int HALF_BUTTON_HEIGHT = 8;
-  private int buttonBarWidth = 35;
+  private static final int TWO_BUTTONS_BAR_WIDTH = 35;
+  private static final int ONE_BUTTON_BAR_WIDTH = 18;
+  private int buttonBarWidth = TWO_BUTTONS_BAR_WIDTH;
 
   private final JPanel buttonBar = new JPanel();
   private final JScrollPane buttonPanelScrollPane = new JScrollPane(buttonBar, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
@@ -43,7 +48,7 @@ public class ChoiceButtonPanel implements IDiscardable
     doOnDiscard = pDoOnDiscard;
     doOnAccept = pDoOnAccept;
     if (pDiscardIcon == null)
-      buttonBarWidth = 18;
+      buttonBarWidth = ONE_BUTTON_BAR_WIDTH;
     buttonPanelScrollPane.setBorder(null);
     disposable = pModel.getFileDiff().switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())

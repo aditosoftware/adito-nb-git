@@ -8,6 +8,9 @@ import io.reactivex.disposables.Disposable;
 import javax.swing.*;
 import java.util.Collections;
 
+/**
+ * @author m.kaspera 13.12.2018
+ */
 public class LineNumPanel implements IDiscardable
 {
 

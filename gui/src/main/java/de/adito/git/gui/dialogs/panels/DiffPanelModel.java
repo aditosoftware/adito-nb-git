@@ -7,6 +7,9 @@ import io.reactivex.Observable;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * @author m.kaspera 13.12.2018
+ */
 public class DiffPanelModel
 {
 
