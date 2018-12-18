@@ -1,16 +1,20 @@
 package de.adito.git.nbm.guice;
 
-import com.google.inject.*;
-import com.google.inject.assistedinject.*;
-import de.adito.git.api.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.assistedinject.FactoryProvider;
+import de.adito.git.api.IFileOpener;
+import de.adito.git.api.INotifyUtil;
+import de.adito.git.api.IUserPreferences;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.IDialogDisplayer;
-import de.adito.git.gui.guice.*;
+import de.adito.git.gui.guice.AditoGitModule;
+import de.adito.git.gui.guice.GuiceUtil;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.IFileSystemObserverProvider;
-import de.adito.git.nbm.FileSystemObserverProviderImpl;
 import de.adito.git.nbm.*;
 import de.adito.git.nbm.dialogs.NBDialogsModule;
 import de.adito.git.nbm.prefs.NBPrefStore;
@@ -44,5 +48,6 @@ public class AditoNbmModule extends AbstractModule
     bind(INotifyUtil.class).to(NotifyUtilImpl.class);
     bind(IAsyncProgressFacade.class).to(AsyncProgressFacadeImpl.class);
     bind(IPrefStore.class).to(NBPrefStore.class);
+    bind(IFileOpener.class).to(NBFileOpenerImpl.class);
   }
 }
