@@ -21,7 +21,7 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
 {
 
   private final JScrollPane mainScrollPane;
-  private final List<JScrollPane> componentScrollPanes = new ArrayList<>();
+  private final List<JScrollPane> componentScrollPaneList = new ArrayList<>();
   private final List<IDiscardable> discardAbles = new ArrayList<>();
   private final JTextPane textPane;
   // since the BorderLayout only has one spot for east/west, the components have to be added to nested Panel each time a component is added
@@ -53,7 +53,7 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
     LineNumPanel lineNumPanel = new LineNumPanel(pModel);
     discardAbles.add(lineNumPanel);
     JScrollPane lineNumContentScrollPane = lineNumPanel.getContentScrollPane();
-    componentScrollPanes.add(lineNumContentScrollPane);
+    componentScrollPaneList.add(lineNumContentScrollPane);
     _coupleScrollPanes(mainScrollPane, lineNumContentScrollPane);
     nestedPanel.add(lineNumContentScrollPane, BorderLayout.CENTER);
     if (pLineOrientation.equals(BorderLayout.WEST))
@@ -86,7 +86,7 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
                                                                 pDoOnDiscard, pDoOnAccept, pLineOrientation);
     discardAbles.add(choiceButtonPanel);
     JScrollPane choiceButtonContentScrollPane = choiceButtonPanel.getContentScrollPane();
-    componentScrollPanes.add(choiceButtonContentScrollPane);
+    componentScrollPaneList.add(choiceButtonContentScrollPane);
     _coupleScrollPanes(mainScrollPane, choiceButtonContentScrollPane);
     nestedPanel.add(choiceButtonContentScrollPane, BorderLayout.CENTER);
     if (pLineOrientation.equals(BorderLayout.WEST))
@@ -118,7 +118,7 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
   void coupleToScrollPane(JScrollPane pMainScrollPane)
   {
     _coupleScrollPanes(pMainScrollPane, mainScrollPane);
-    for (JScrollPane componentScrollPane : componentScrollPanes)
+    for (JScrollPane componentScrollPane : componentScrollPaneList)
     {
       _coupleScrollPanes(pMainScrollPane, componentScrollPane);
     }
