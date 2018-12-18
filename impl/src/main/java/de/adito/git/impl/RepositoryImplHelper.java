@@ -117,7 +117,7 @@ class RepositoryImplHelper
     }
     catch (Exception e)
     {
-      throw new RuntimeException("Ref isn't a Branch or a Commit to checkout");
+      throw new RuntimeException("Ref isn't a Branch or a Commit to checkout", e);
     }
   }
 
