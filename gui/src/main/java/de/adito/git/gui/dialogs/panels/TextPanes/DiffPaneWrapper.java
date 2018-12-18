@@ -49,7 +49,7 @@ public class DiffPaneWrapper implements IDiscardable
     // insert the text from the IFileDiffs
     TextHighlightUtil.insertColoredText(textPane, pChangeChunkList, model.getGetLines(), model.getGetParityLines());
     textPane.revalidate();
-    textPane.setCaretPosition(caretPosition);
+    SwingUtilities.invokeLater(() -> textPane.setCaretPosition(caretPosition));
   }
 
   @Override

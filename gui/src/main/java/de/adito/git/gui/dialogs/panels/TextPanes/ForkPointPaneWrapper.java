@@ -56,7 +56,7 @@ public class ForkPointPaneWrapper implements IDiscardable
     // predates both commits)
     TextHighlightUtil.insertColoredText(textPane, pChangeChunkLists.yourVersion, pChangeChunkLists.theirVersion,
                                         IFileChangeChunk::getALines, pFileChangeChunk -> "");
-    textPane.setCaretPosition(caretPosition);
+    SwingUtilities.invokeLater(() -> textPane.setCaretPosition(caretPosition));
     paneDocumentListener.enable();
   }
 
