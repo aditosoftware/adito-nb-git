@@ -6,8 +6,10 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -30,10 +32,12 @@ class DiffToHeadAction extends AbstractTableAction
   private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
-  DiffToHeadAction(IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
+  DiffToHeadAction(IIconLoader pIconLoader, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
+                   @Assisted Observable<Optional<IRepository>> pRepository,
                    @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Show Diff");
+    putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.DIFF_ACTION_ICON));
     progressFacade = pProgressFacade;
     repository = pRepository;
     dialogProvider = pDialogProvider;

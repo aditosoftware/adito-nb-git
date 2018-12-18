@@ -3,12 +3,18 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -22,10 +28,11 @@ class RevertWorkDirAction extends AbstractTableAction
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
-  RevertWorkDirAction(IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
+  RevertWorkDirAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
                       @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Revert", _getIsEnabledObservable(pSelectedFilesObservable));
+    putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.REVERT_ACTION_ICON));
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedFilesObservable = pSelectedFilesObservable;
