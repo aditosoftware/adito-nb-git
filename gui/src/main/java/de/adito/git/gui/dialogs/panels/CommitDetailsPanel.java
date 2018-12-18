@@ -2,6 +2,7 @@ package de.adito.git.gui.dialogs.panels;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.tableModels.ChangedFilesTableModel;
