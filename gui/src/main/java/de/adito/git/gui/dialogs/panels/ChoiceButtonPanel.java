@@ -23,8 +23,8 @@ public class ChoiceButtonPanel implements IDiscardable
 
   private static final int ADDITIONAL_HEIGHT_PIXELS = 3;
   private static final int HALF_BUTTON_HEIGHT = 8;
-  private static final int TWO_BUTTONS_BAR_WIDTH = 35;
-  private static final int ONE_BUTTON_BAR_WIDTH = 18;
+  private static final int TWO_BUTTONS_BAR_WIDTH = 32;
+  private static final int ONE_BUTTON_BAR_WIDTH = 16;
   private int buttonBarWidth = TWO_BUTTONS_BAR_WIDTH;
 
   private final JPanel buttonBar = new JPanel();
@@ -36,7 +36,7 @@ public class ChoiceButtonPanel implements IDiscardable
   private final int lineHeight;
   private final Consumer<IFileChangeChunk> doOnDiscard;
   private final Consumer<IFileChangeChunk> doOnAccept;
-  private String orientation;
+  private final String orientation;
 
 
   ChoiceButtonPanel(DiffPanelModel pModel, ImageIcon pDiscardIcon, ImageIcon pAcceptIcon,
@@ -47,6 +47,7 @@ public class ChoiceButtonPanel implements IDiscardable
     lineHeight = pLineHeight;
     doOnDiscard = pDoOnDiscard;
     doOnAccept = pDoOnAccept;
+    orientation = pOrientation;
     if (pDiscardIcon == null)
       buttonBarWidth = ONE_BUTTON_BAR_WIDTH;
     buttonPanelScrollPane.setBorder(null);
@@ -54,7 +55,6 @@ public class ChoiceButtonPanel implements IDiscardable
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
         .orElse(Observable.just(Collections.emptyList())))
         .subscribe(this::_initButtonPanel);
-    orientation = pOrientation;
   }
 
   JScrollPane getContentScrollPane()
@@ -96,6 +96,7 @@ public class ChoiceButtonPanel implements IDiscardable
   {
     JPanel dualButtonPanel = new JPanel(new BorderLayout());
     dualButtonPanel.setMaximumSize(new Dimension(buttonBarWidth, acceptIcon.getIconHeight()));
+    dualButtonPanel.setPreferredSize(new Dimension(buttonBarWidth, acceptIcon.getIconHeight()));
     if (discardIcon != null)
     {
       JButton discardChangeButton = _createButton(discardIcon, "discard change");
