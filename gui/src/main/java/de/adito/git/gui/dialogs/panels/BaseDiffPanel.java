@@ -28,9 +28,9 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
   private JPanel outerEasternPanel = this;
   private JPanel outerWesternPanel = this;
 
-  BaseDiffPanel(JTextPane pJTextPane)
+  BaseDiffPanel(JScrollPane pScrollPane, JTextPane pJTextPane)
   {
-    mainScrollPane = new JScrollPane(pJTextPane);
+    mainScrollPane = pScrollPane;
     mainScrollPane.setBorder(null);
     textPane = pJTextPane;
     _initGui();

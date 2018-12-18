@@ -14,21 +14,28 @@ import java.util.List;
 /**
  * @author m.kaspera, 13.12.2018
  */
-public class DiffTextPaneWrapper implements IDiscardable
+public class DiffPaneWrapper implements IDiscardable
 {
 
+  private final JScrollPane textScrollPane;
   private final JTextPane textPane;
   private final DiffPanelModel model;
   private final Disposable disposable;
 
-  public DiffTextPaneWrapper(DiffPanelModel pModel)
+  public DiffPaneWrapper(DiffPanelModel pModel)
   {
     model = pModel;
     textPane = new NonWrappingTextPane();
+    textScrollPane = new JScrollPane(textPane);
     disposable = model.getFileDiff().switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
         .orElse(Observable.just(Collections.emptyList())))
         .subscribe(this::_textChanged);
+  }
+
+  public JScrollPane getPane()
+  {
+    return textScrollPane;
   }
 
   public JTextPane getTextPane()
@@ -41,6 +48,7 @@ public class DiffTextPaneWrapper implements IDiscardable
     final int caretPosition = textPane.getCaretPosition();
     // insert the text from the IFileDiffs
     TextHighlightUtil.insertColoredText(textPane, pChangeChunkList, model.getGetLines(), model.getGetParityLines());
+    textPane.revalidate();
     textPane.setCaretPosition(caretPosition);
   }
 

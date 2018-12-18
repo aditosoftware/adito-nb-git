@@ -16,24 +16,31 @@ import java.util.List;
 /**
  * @author m.kaspera, 13.12.2018
  */
-public class ForkPointTextPaneWrapper implements IDiscardable
+public class ForkPointPaneWrapper implements IDiscardable
 {
 
+  private final JScrollPane textScrollPane;
   private final JTextPane textPane;
   private final IMergeDiff mergeDiff;
   private final Disposable disposable;
   private final _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
   private int caretPosition;
 
-  public ForkPointTextPaneWrapper(IMergeDiff pMergeDiff)
+  public ForkPointPaneWrapper(IMergeDiff pMergeDiff)
   {
     mergeDiff = pMergeDiff;
     textPane = new NonWrappingTextPane();
+    textScrollPane = new JScrollPane(textPane);
     textPane.getDocument().addDocumentListener(paneDocumentListener);
     disposable = Observable.zip(
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(), _ListPair::new)
         .subscribe(this::_refreshContent);
+  }
+
+  public JScrollPane getPane()
+  {
+    return textScrollPane;
   }
 
   public JTextPane getTextPane()

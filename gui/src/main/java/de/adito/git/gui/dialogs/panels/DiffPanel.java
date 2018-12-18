@@ -4,7 +4,7 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.dialogs.panels.TextPanes.DiffTextPaneWrapper;
+import de.adito.git.gui.dialogs.panels.TextPanes.DiffPaneWrapper;
 import de.adito.git.impl.data.FileChangeChunkImpl;
 import io.reactivex.Observable;
 
@@ -29,8 +29,10 @@ public class DiffPanel extends JPanel implements IDiscardable
                                                               IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(pFileDiffObs, pFilChunk -> pFilChunk.getAEnd() - pFilChunk.getAStart(),
                                                           IFileChangeChunk::getALines, IFileChangeChunk::getAParityLines);
-    currentVersionPanel = new BaseDiffPanel(new DiffTextPaneWrapper(currentDiffPanelModel).getTextPane());
-    oldVersionPanel = new BaseDiffPanel(new DiffTextPaneWrapper(oldDiffPanelModel).getTextPane());
+    DiffPaneWrapper currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel);
+    currentVersionPanel = new BaseDiffPanel(currentVersionDiffPane.getPane(), currentVersionDiffPane.getTextPane());
+    DiffPaneWrapper oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel);
+    oldVersionPanel = new BaseDiffPanel(oldVersionDiffPane.getPane(), oldVersionDiffPane.getTextPane());
     currentVersionPanel.addLineNumPanel(currentDiffPanelModel, BorderLayout.WEST);
     oldVersionPanel.addLineNumPanel(oldDiffPanelModel, BorderLayout.EAST);
     oldVersionPanel.addChoiceButtonPanel(oldDiffPanelModel, null, pAcceptIcon,
