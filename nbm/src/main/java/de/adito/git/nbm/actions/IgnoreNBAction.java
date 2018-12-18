@@ -1,18 +1,25 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
-import io.reactivex.subjects.*;
-import org.openide.awt.*;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -41,14 +48,14 @@ public class IgnoreNBAction extends NBAction
     IRepository currentRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
-    List<IFileChangeType> untrackedSelectedFiles = _getUntrackedFiles(currentRepo).stream()
-        .filter(untrackedFile -> getAllFilesOfNodes(pActivatedNodes)
-            .stream()
-            .anyMatch(selectedFile -> selectedFile.toURI()
-                .equals(untrackedFile.getFile().toURI())))
-        .collect(Collectors.toList());
-    filesToIgnore.onNext(Optional.of(untrackedSelectedFiles));
+    filesToIgnore.onNext(Optional.of(getUntrackedSelectedFiles(currentRepo, pActivatedNodes)));
     actionProvider.getIgnoreAction(repository, filesToIgnore).actionPerformed(null);
+  }
+
+  @Override
+  protected String iconResource()
+  {
+    return NbBundle.getMessage(PushNBAction.class, "ICON_IgnoreNBAction_Path");
   }
 
   /**
@@ -62,7 +69,7 @@ public class IgnoreNBAction extends NBAction
     IRepository currentRepo = repository.blockingFirst().orElse(null);
     if (currentRepo == null)
       return false;
-    return _getUntrackedFiles(currentRepo).stream()
+    return getUntrackedFiles(currentRepo).stream()
         .anyMatch(untrackedFile -> getAllFilesOfNodes(pActivatedNodes)
             .stream()
             .anyMatch(selectedFile -> selectedFile.toURI()
@@ -75,7 +82,7 @@ public class IgnoreNBAction extends NBAction
     return NbBundle.getMessage(IgnoreNBAction.class, "LBL_IgnoreAction_Name");
   }
 
-  private List<IFileChangeType> _getUntrackedFiles(IRepository pCurrentRepo)
+  List<IFileChangeType> getUntrackedFiles(IRepository pCurrentRepo)
   {
     File projectDir = pCurrentRepo.getTopLevelDirectory();
     return pCurrentRepo
@@ -84,6 +91,16 @@ public class IgnoreNBAction extends NBAction
         .map(IFileStatus::getUntracked).orElse(Collections.emptySet())
         .stream()
         .map(pFilePath -> new FileChangeTypeImpl(new File(projectDir, pFilePath), EChangeType.NEW))
+        .collect(Collectors.toList());
+  }
+
+  List<IFileChangeType> getUntrackedSelectedFiles(IRepository pCurrentRepo, Node[] pActivatedNodes)
+  {
+    return getUntrackedFiles(pCurrentRepo).stream()
+        .filter(untrackedFile -> getAllFilesOfNodes(pActivatedNodes)
+            .stream()
+            .anyMatch(selectedFile -> selectedFile.toURI()
+                .equals(untrackedFile.getFile().toURI())))
         .collect(Collectors.toList());
   }
 

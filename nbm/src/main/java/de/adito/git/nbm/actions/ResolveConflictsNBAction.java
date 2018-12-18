@@ -1,17 +1,23 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
-import org.openide.awt.*;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +41,12 @@ public class ResolveConflictsNBAction extends NBAction
                                          .stream().map(pFilePath -> new FileChangeTypeImpl(new File(pFilePath), EChangeType.CONFLICTING))
                                          .collect(Collectors.toList()));
     actionProvider.getResolveConflictsAction(repository, Observable.just(fileChangeTypeList)).actionPerformed(null);
+  }
+
+  @Override
+  protected String iconResource()
+  {
+    return NbBundle.getMessage(PushNBAction.class, "ICON_ResolveConflictsNBAction_Path");
   }
 
   @Override
