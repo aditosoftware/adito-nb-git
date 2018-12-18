@@ -2,15 +2,21 @@ package de.adito.git.gui.dialogs.panels;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.*;
-import de.adito.git.gui.tableModels.*;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.tableModels.ChangedFilesTableModel;
+import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.text.DefaultStyledDocument;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
+/**
+ * @author m.kaspera 13.12.2018
+ */
 public class CommitDetailsPanel implements IDiscardable
 {
 
