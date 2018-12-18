@@ -1,6 +1,7 @@
 package de.adito.git.impl;
 
-import com.google.common.base.*;
+import com.google.common.base.Predicates;
+import com.google.common.base.Throwables;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.impl.data.*;
@@ -11,15 +12,17 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Optional;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -156,6 +159,12 @@ class RepositoryImplHelper
       return lines.filter(line -> line.startsWith(">>>>>>>"))
           .findFirst()
           .map(s -> s.replace(">", "").trim())
+          // may contain commit message, id of commit is then the part before the first blank
+          .map(s -> {
+            if (s.contains(" "))
+              return s.split(" ")[0];
+            return s;
+          })
           .orElse(null);
     }
   }
