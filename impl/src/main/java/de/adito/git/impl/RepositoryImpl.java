@@ -599,6 +599,7 @@ public class RepositoryImpl implements IRepository
       {
         CheckoutCommand checkoutCommand = git.checkout();
         checkoutCommand.addPaths(filesToCheckout);
+        checkoutCommand.setStartPoint(git.getRepository().parseCommit(git.getRepository().resolve(Constants.HEAD)));
         checkoutCommand.call();
       }
     }
