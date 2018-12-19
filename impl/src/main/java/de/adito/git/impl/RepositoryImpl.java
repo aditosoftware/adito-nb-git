@@ -669,7 +669,7 @@ public class RepositoryImpl implements IRepository
       // the next line of code is for an automatically push after creating a branch
       if (pCheckout)
       {
-        checkout(pBranchName);
+        checkout(getBranch(pBranchName).orElseThrow());
       }
     }
     catch (GitAPIException e)
@@ -710,9 +710,36 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void checkout(@NotNull String pBranchName) throws AditoGitException
+  public void checkout(@NotNull String pId) throws AditoGitException
   {
-    checkout(getBranch(pBranchName).orElseThrow(() -> new AditoGitException("Unable to find branch for name " + pBranchName)));
+    try
+    {
+      Ref ref = git.checkout().setName(pId).call();
+      if (ref != null)
+        currentBranchObservable.onNext(Optional.of(new BranchImpl(ref)));
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void checkoutFileVersion(@NotNull String pId, List<String> pPaths) throws AditoGitException
+  {
+    try
+    {
+      Ref ref = git.checkout().setStartPoint(pId).addPaths(pPaths).call();
+      if (ref != null)
+        currentBranchObservable.onNext(Optional.of(new BranchImpl(ref)));
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException(pE);
+    }
   }
 
   /**
@@ -800,7 +827,7 @@ public class RepositoryImpl implements IRepository
       }
       try
       {
-        checkout(pParentBranch.getName());
+        checkout(pParentBranch);
       }
       catch (Exception e)
       {

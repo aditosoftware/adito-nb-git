@@ -3,10 +3,14 @@ package de.adito.git.api;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 20.09.2018
@@ -172,10 +176,21 @@ public interface IRepository
   void deleteBranch(@NotNull String pBranchName) throws AditoGitException;
 
   /**
-   * @param pBranchName String with identifier of the branch to checkout
-   * @throws AditoGitException if an error occurs
+   * Checks out the commit with id pId
+   *
+   * @param pId String with identifier of the object/commit to checkout
+   * @throws AditoGitException if an error occurs, such as a CheckoutConflict or the id cannot be resolved
    */
-  void checkout(@NotNull String pBranchName) throws AditoGitException;
+  void checkout(@NotNull String pId) throws AditoGitException;
+
+  /**
+   * Checks out the version of the files under pPaths as it was in the commit with pId
+   *
+   * @param pId    String with identifier of the object/commit to checkout
+   * @param pPaths paths of the files to checkout
+   * @throws AditoGitException if an error occurs, such as a CheckoutConflict or the id cannot be resolved
+   */
+  void checkoutFileVersion(@NotNull String pId, List<String> pPaths) throws AditoGitException;
 
   /**
    * @param pBranch branch to checkout
