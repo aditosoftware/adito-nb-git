@@ -3,6 +3,8 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.ColorPicker;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.DiffPanel;
@@ -11,6 +13,7 @@ import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.DiffTableModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -35,8 +38,9 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IEditorKitProvider editorKitProvider;
   private final IIconLoader iconLoader;
-  private DiffPanel diffPanel;
   private final JTextPane notificationArea = new JTextPane();
+  private DiffPanel diffPanel;
+  private Disposable disposable;
   private List<IFileDiff> diffs;
 
   @Inject
@@ -83,6 +87,22 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     notificationArea.setEnabled(false);
     notificationArea.setForeground(ColorPicker.INFO_TEXT);
     add(notificationArea, BorderLayout.NORTH);
+    disposable = fileDiffObservable.subscribe(pFileDiff -> {
+      if (pFileDiff.isPresent())
+      {
+        List<IFileChangeChunk> currentChangeChunks = pFileDiff.get().getFileChanges().getChangeChunks().blockingFirst();
+        if (currentChangeChunks.size() == 1 && currentChangeChunks.get(0).getChangeType() == EChangeType.SAME)
+          notificationArea.setText("Files do not differ in actual content, trailing whitespaces may be different");
+        else
+        {
+          notificationArea.setText("");
+        }
+      }
+      else
+      {
+        notificationArea.setText("");
+      }
+    });
     // add table and DiffPanel to the SplitPane
     JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, diffPanel, new JScrollPane(fileListTable));
     diffToListSplitPane.setResizeWeight(1);
@@ -92,6 +112,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   @Override
   public void discard()
   {
+    disposable.dispose();
     diffPanel.discard();
   }
 
