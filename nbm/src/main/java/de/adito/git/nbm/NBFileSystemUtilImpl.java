@@ -1,20 +1,21 @@
 package de.adito.git.nbm;
 
-import de.adito.git.api.IFileOpener;
+import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.exception.AditoGitException;
+import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.actions.Openable;
+import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.cookies.OpenCookie;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataObject;
-import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.filesystems.*;
+import org.openide.loaders.*;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 /**
  * @author m.kaspera, 18.12.2018
  */
-public class NBFileOpenerImpl implements IFileOpener
+public class NBFileSystemUtilImpl implements IFileSystemUtil
 {
   @Override
   public void openFile(String pAbsolutePath) throws AditoGitException
@@ -41,5 +42,12 @@ public class NBFileOpenerImpl implements IFileOpener
     {
       throw new AditoGitException(pE);
     }
+  }
+
+  @NotNull
+  @Override
+  public Charset getEncoding(@NotNull File pFile)
+  {
+    return FileEncodingQuery.getEncoding(FileUtil.toFileObject(pFile));
   }
 }

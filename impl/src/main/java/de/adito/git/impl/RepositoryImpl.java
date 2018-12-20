@@ -4,43 +4,31 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.exception.AmbiguousStashCommitsException;
+import de.adito.git.api.exception.*;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.api.errors.StashApplyFailureException;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.FileTreeIterator;
-import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.*;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -56,12 +44,14 @@ public class RepositoryImpl implements IRepository
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<Optional<IFileStatus>> status;
   private final BehaviorSubject<Optional<IBranch>> currentBranchObservable;
+  private final de.adito.git.api.IFileSystemUtil fileSystemUtil;
   private final ColorRoulette colorRoulette;
 
   @Inject
-  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette,
+  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette, IFileSystemUtil pIFileSystemUtil,
                         ISshProvider pSshProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
+    fileSystemUtil = pIFileSystemUtil;
     colorRoulette = pColorRoulette;
     sshProvider = pSshProvider;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
@@ -316,9 +306,13 @@ public class RepositoryImpl implements IRepository
   @Override
   public List<IFileChangeChunk> diff(@NotNull String pFileContents, File pCompareWith) throws IOException
   {
+
     String headId = ObjectId.toString(git.getRepository().resolve(Constants.HEAD));
-    RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(pCompareWith, git))).getBytes());
+
+
+    RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(pCompareWith, git)), pCompareWith).getBytes());
     RawText currentFileContents = new RawText(pFileContents.getBytes());
+
     EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, headFileContents, currentFileContents);
     List<IFileChangeChunk> changeChunks = new ArrayList<>();
     for (Edit edit : linesChanged)
@@ -434,6 +428,17 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
+  public String getFileContents(String pIdentifier, File pFile) throws IOException
+  {
+    Charset encoding = fileSystemUtil.getEncoding(pFile);
+    ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
+    return new String(loader.getBytes(), encoding);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String getFileContents(String pIdentifier) throws IOException
   {
     ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
@@ -475,12 +480,16 @@ public class RepositoryImpl implements IRepository
       {
         return new FileChangeTypeImpl(pFile, EChangeType.CONFLICTING);
       }
+      else
+      {
+        return new FileChangeTypeImpl(pFile, EChangeType.SAME);
+      }
     }
     catch (IOException pE)
     {
       throw new RuntimeException("Can't check Status of file: " + pFile, pE);
     }
-    return new FileChangeTypeImpl(pFile, EChangeType.SAME);
+    //return new FileChangeTypeImpl(pFile, EChangeType.SAME);
   }
 
   /**

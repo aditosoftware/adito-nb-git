@@ -95,6 +95,8 @@ public interface IRepository
    */
   @NotNull List<IFileDiff> diff(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith) throws AditoGitException;
 
+  String getFileContents(String pIdentifier, File pFile) throws IOException;
+
   /**
    * @param pIdentifier String identifying the specific version of the file
    * @return the contents of the requested file as String
