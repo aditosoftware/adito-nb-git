@@ -1,7 +1,10 @@
 package de.adito.git.nbm;
 
+import de.adito.git.gui.IDiscardable;
 import de.adito.git.nbm.repo.RepositoryCache;
+import org.netbeans.modules.versioning.core.util.VCSSystemProvider;
 import org.openide.modules.ModuleInstall;
+import org.openide.util.lookup.Lookups;
 
 /**
  * Start and close the Git Module at start and close of NetBeans
@@ -31,6 +34,13 @@ public class GitModuleInstall extends ModuleInstall
     {
       RepositoryCache.getInstance().clear();
 
+      // Shutdown GITVCS
+      Lookups.forPath("Services/VersioningSystem")
+          .lookupAll(VCSSystemProvider.VersioningSystem.class).stream()
+          .map(VCSSystemProvider.VersioningSystem::getDelegate)
+          .filter(IDiscardable.class::isInstance)
+          .map(IDiscardable.class::cast)
+          .forEach(IDiscardable::discard);
     }
   }
 }
