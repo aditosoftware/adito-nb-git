@@ -76,7 +76,8 @@ class DiffToHeadAction extends AbstractTableAction
             new File(repository.blockingFirst().orElseThrow().getTopLevelDirectory(), pFileDiff.getFilePath()), false)))
     {
       StringBuilder fileDiffContents = new StringBuilder();
-      pFileDiff.getFileChanges().getChangeChunks().blockingFirst().forEach(pChangeChunk -> fileDiffContents.append(pChangeChunk.getBLines()));
+      pFileDiff.getFileChanges().getChangeChunks().blockingFirst()
+          .getNewValue().forEach(pChangeChunk -> fileDiffContents.append(pChangeChunk.getBLines()));
       // -1 on the substring because there is one newLine too many
       writer.write(fileDiffContents.substring(0, fileDiffContents.length() - 1));
     }

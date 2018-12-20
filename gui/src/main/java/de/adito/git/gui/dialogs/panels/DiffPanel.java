@@ -38,7 +38,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     oldVersionPanel.addChoiceButtonPanel(oldDiffPanelModel, null, pAcceptIcon,
                                          pFileChangeChunk -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.getFileChanges()
                                              .replace(pFileChangeChunk,
-                                                      new FileChangeChunkImpl(pFileChangeChunk, EChangeType.SAME))),
+                                                      new FileChangeChunkImpl(pFileChangeChunk, EChangeType.SAME), true)),
                                          pChangeChunk -> pFileDiffObs.blockingFirst()
                                              .ifPresent(pFileDiff -> pFileDiff.getFileChanges().resetChanges(pChangeChunk)),
                                          BorderLayout.EAST);

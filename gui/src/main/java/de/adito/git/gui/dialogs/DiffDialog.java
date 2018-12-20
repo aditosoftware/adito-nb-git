@@ -90,7 +90,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     disposable = fileDiffObservable.subscribe(pFileDiff -> {
       if (pFileDiff.isPresent())
       {
-        List<IFileChangeChunk> currentChangeChunks = pFileDiff.get().getFileChanges().getChangeChunks().blockingFirst();
+        List<IFileChangeChunk> currentChangeChunks = pFileDiff.get().getFileChanges().getChangeChunks().blockingFirst().getNewValue();
         if (currentChangeChunks.size() == 1 && currentChangeChunks.get(0).getChangeType() == EChangeType.SAME)
           notificationArea.setText("Files do not differ in actual content, trailing whitespaces may be different");
         else

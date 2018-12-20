@@ -3,8 +3,6 @@ package de.adito.git.api.data;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 /**
  * Keeps an observable list of IFileChangeChunks and provided methods that operate on that list
  *
@@ -14,9 +12,9 @@ public interface IFileChanges
 {
 
   /**
-   * @return List with the changes made to the file, organized in chunks
+   * @return IFileChangesEvent with the information about what triggered the change
    */
-  Observable<List<IFileChangeChunk>> getChangeChunks();
+  Observable<IFileChangesEvent> getChangeChunks();
 
   /**
    * Accepts the changes from the B-side of the IFileChangeChunk, writes them to the A-side, saves
@@ -38,7 +36,8 @@ public interface IFileChanges
    *
    * @param pCurrent     IFileChangeChunk to replace, should be part of the list in getChangeChunks()
    * @param pReplaceWith IFileChangeChunk to replace current
+   * @param pTriggerUpdate Whether or not the Observable from getChangeChunks should fire a onNext update
    * @return true if current was in the list and could be replaced, false otherwise
    */
-  boolean replace(IFileChangeChunk pCurrent, IFileChangeChunk pReplaceWith);
+  boolean replace(IFileChangeChunk pCurrent, IFileChangeChunk pReplaceWith, boolean pTriggerUpdate);
 }

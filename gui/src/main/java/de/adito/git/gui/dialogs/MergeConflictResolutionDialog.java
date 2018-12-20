@@ -2,14 +2,19 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.dialogs.panels.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 
-import static de.adito.git.gui.Constants.*;
+import static de.adito.git.gui.Constants.ACCEPT_CHANGE_THEIRS_ICON;
+import static de.adito.git.gui.Constants.ACCEPT_CHANGE_YOURS_ICON;
+import static de.adito.git.gui.Constants.DISCARD_CHANGE_ICON;
 
 /**
  * Dialog/Panel for displaying the merge-conflicts
@@ -77,7 +82,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
    */
   private void _acceptAllChanges(IMergeDiff.CONFLICT_SIDE pConflictSide)
   {
-    for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst())
+    for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
     {
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {
@@ -91,7 +96,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
    */
   private void _discardAllChanges(IMergeDiff.CONFLICT_SIDE pConflictSide)
   {
-    for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst())
+    for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
     {
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {

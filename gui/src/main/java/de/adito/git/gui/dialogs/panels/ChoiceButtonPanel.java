@@ -3,6 +3,7 @@ package de.adito.git.gui.dialogs.panels;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
+import de.adito.git.impl.data.FileChangesEventImpl;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -53,8 +54,17 @@ public class ChoiceButtonPanel implements IDiscardable
     buttonPanelScrollPane.setBorder(null);
     disposable = pModel.getFileDiff().switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
-        .orElse(Observable.just(Collections.emptyList())))
-        .subscribe(this::_initButtonPanel);
+        .orElse(Observable.just(new FileChangesEventImpl(true, Collections.emptyList()))))
+        .subscribe(pFileChangesEvent -> {
+          if (pFileChangesEvent.isUpdateUI())
+          {
+            int scrollBarVal = buttonPanelScrollPane.getVerticalScrollBar().getModel().getValue();
+            buttonPanelScrollPane.getVerticalScrollBar().getModel().setValueIsAdjusting(true);
+            _initButtonPanel(pFileChangesEvent.getNewValue());
+            buttonPanelScrollPane.getVerticalScrollBar().getModel().setValue(scrollBarVal);
+            buttonPanelScrollPane.getVerticalScrollBar().getModel().setValueIsAdjusting(false);
+          }
+        });
   }
 
   JScrollPane getContentScrollPane()

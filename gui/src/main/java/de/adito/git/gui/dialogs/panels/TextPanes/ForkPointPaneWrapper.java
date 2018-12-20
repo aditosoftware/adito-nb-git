@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs.panels.TextPanes;
 
 import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
@@ -31,7 +32,9 @@ public class ForkPointPaneWrapper implements IDiscardable
     mergeDiff = pMergeDiff;
     textPane = new NonWrappingTextPane();
     textScrollPane = new JScrollPane(textPane);
-    textPane.getDocument().addDocumentListener(paneDocumentListener);
+    // disable manual text input for now, also no need for document listener as long as textPane not editable
+    textPane.setEditable(false);
+    //textPane.getDocument().addDocumentListener(paneDocumentListener);
     disposable = Observable.zip(
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(), _ListPair::new)
@@ -50,14 +53,23 @@ public class ForkPointPaneWrapper implements IDiscardable
 
   private void _refreshContent(_ListPair pChangeChunkLists)
   {
-    paneDocumentListener.disable();
-    caretPosition = textPane.getCaretPosition();
-    // EChangeSide.OLD because the content of the ForkPointTextPane is the version of the forkPoint (i.e. the old version in all cases since forkPoint
-    // predates both commits)
-    TextHighlightUtil.insertColoredText(textPane, pChangeChunkLists.yourVersion, pChangeChunkLists.theirVersion,
-                                        IFileChangeChunk::getALines, pFileChangeChunk -> "");
-    SwingUtilities.invokeLater(() -> textPane.setCaretPosition(caretPosition));
-    paneDocumentListener.enable();
+    if (pChangeChunkLists.doUpdate)
+    {
+      paneDocumentListener.disable();
+      caretPosition = textPane.getCaretPosition();
+      int scrollBarVal = textScrollPane.getVerticalScrollBar().getModel().getValue();
+      textScrollPane.getVerticalScrollBar().getModel().setValueIsAdjusting(true);
+      // OLD because the content of the ForkPointTextPane is the version of the forkPoint (i.e. the old version in all cases since forkPoint
+      // predates both commits)
+      TextHighlightUtil.insertColoredText(textPane, pChangeChunkLists.yourVersion, pChangeChunkLists.theirVersion,
+                                          IFileChangeChunk::getALines, pFileChangeChunk -> "");
+      SwingUtilities.invokeLater(() -> {
+        textPane.setCaretPosition(caretPosition);
+        textScrollPane.getVerticalScrollBar().getModel().setValue(scrollBarVal);
+        textScrollPane.getVerticalScrollBar().getModel().setValueIsAdjusting(false);
+      });
+      paneDocumentListener.enable();
+    }
   }
 
   @Override
@@ -86,10 +98,7 @@ public class ForkPointPaneWrapper implements IDiscardable
           // get the information about what text and where before the invokeLater(), else the information can be outdated
           final String insertedText = pEvent.getDocument().getText(pEvent.getOffset(), pEvent.getLength());
           final int insertOffset = pEvent.getOffset();
-          SwingUtilities.invokeLater(() -> {
-            caretPosition = textPane.getCaretPosition() + insertedText.length();
-            mergeDiff.insertText(insertedText, insertedText.length(), insertOffset, true);
-          });
+          SwingUtilities.invokeLater(() -> mergeDiff.insertText(insertedText, insertedText.length(), insertOffset, true));
         }
         catch (BadLocationException e1)
         {
@@ -103,8 +112,8 @@ public class ForkPointPaneWrapper implements IDiscardable
     {
       if (isActive)
       {
-        caretPosition = textPane.getCaretPosition();
-        SwingUtilities.invokeLater(() -> mergeDiff.insertText("", pEvent.getLength(), pEvent.getOffset(), false));
+        final int removeOffset = pEvent.getOffset();
+        SwingUtilities.invokeLater(() -> mergeDiff.insertText("", pEvent.getLength(), removeOffset, false));
       }
     }
 
@@ -135,11 +144,13 @@ public class ForkPointPaneWrapper implements IDiscardable
   {
     List<IFileChangeChunk> yourVersion;
     List<IFileChangeChunk> theirVersion;
+    boolean doUpdate;
 
-    _ListPair(List<IFileChangeChunk> yourVersion, List<IFileChangeChunk> theirVersion)
+    _ListPair(IFileChangesEvent yourVersion, IFileChangesEvent theirVersion)
     {
-      this.yourVersion = yourVersion;
-      this.theirVersion = theirVersion;
+      this.yourVersion = yourVersion.getNewValue();
+      this.theirVersion = theirVersion.getNewValue();
+      doUpdate = yourVersion.isUpdateUI() && theirVersion.isUpdateUI();
     }
   }
 }

@@ -37,6 +37,8 @@ public class CommitNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
+
+
     Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
     Subject<Optional<List<IFileChangeType>>> listNodes;

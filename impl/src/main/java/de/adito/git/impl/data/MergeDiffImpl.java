@@ -5,7 +5,8 @@ import javafx.util.Pair;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -54,7 +55,7 @@ public class MergeDiffImpl implements IMergeDiff
   {
     // list of changes the chunk should be applied to is the list of fileChangeChunks of the other side
     IFileChanges changes = getDiff(pConflictSide == CONFLICT_SIDE.YOURS ? CONFLICT_SIDE.THEIRS : CONFLICT_SIDE.YOURS).getFileChanges();
-    _insertChangeChunk(pAcceptedChunk, changes.getChangeChunks().blockingFirst());
+    _insertChangeChunk(pAcceptedChunk, changes.getChangeChunks().blockingFirst().getNewValue());
     ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
     _applyChangesSelf(pAcceptedChunk, () -> (FileChangesImpl) getDiff(pConflictSide).getFileChanges());
   }
@@ -70,7 +71,7 @@ public class MergeDiffImpl implements IMergeDiff
         pChangeChunk.getALines(),
         pChangeChunk.getBLines(),
         EChangeType.SAME);
-    getDiff(pConflictSide).getFileChanges().replace(pChangeChunk, replaceWith);
+    getDiff(pConflictSide).getFileChanges().replace(pChangeChunk, replaceWith, false);
   }
 
   /**
@@ -100,7 +101,8 @@ public class MergeDiffImpl implements IMergeDiff
   {
     List<Pair<Integer, Integer>> affectedIndices = _getChunksForOffset(pOffset, pText.length(), pConflictSide);
     assert affectedIndices.size() == 1;
-    IFileChangeChunk affectedChunk = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().get(affectedIndices.get(0).getKey());
+    IFileChangeChunk affectedChunk = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst()
+        .getNewValue().get(affectedIndices.get(0).getKey());
     // get the part before and after the insert and add the added text in the middle
     String beforeOffsetPart = affectedChunk.getALines().substring(0, pOffset - affectedIndices.get(0).getValue());
     String afterOffsetPart = affectedChunk.getALines().substring(pOffset - affectedIndices.get(0).getValue());
@@ -116,11 +118,11 @@ public class MergeDiffImpl implements IMergeDiff
   private void _deleteText(int pLength, int pOffset, CONFLICT_SIDE pConflictSide)
   {
     List<Pair<Integer, Integer>> affectedChunksInfo = _getChunksForOffset(pOffset, pLength, pConflictSide);
-    List<IFileChangeChunk> changeChunkList = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst();
+    List<IFileChangeChunk> changeChunkList = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue();
     for (Pair<Integer, Integer> affectedChunkInfo : affectedChunksInfo)
     {
       int beforeOffsetPartEnd = pOffset - affectedChunkInfo.getValue() > 0 ? pOffset - affectedChunkInfo.getValue() : 0;
-      // if this IFileChangeChunk has less lines after the offset/beginning of the chunk, set the afterOffsetPartStart to the end of the IFileChangeChunk
+      // if this IFileChangeChunk has less lines after the offset of the chunk, set the afterOffsetPartStart to the end of the IFileChangeChunk
       int afterOffsetPartStart = changeChunkList.get(affectedChunkInfo.getKey()).getALines().length()
           < (pOffset + pLength) - affectedChunkInfo.getValue()
           ? changeChunkList.get(affectedChunkInfo.getKey()).getALines().length()
@@ -145,15 +147,20 @@ public class MergeDiffImpl implements IMergeDiff
   private void _updateChunkAndPropagateChanges(boolean pInsert, String pText, IFileChangeChunk pAffectedChunk,
                                                int pAffectedChunkIndex, String pNewALines, CONFLICT_SIDE pConflictSide)
   {
+    // UI should only be updated here when the inserted/deleted text contains a newline.
+    // If it doesn't, text is already shown by the pane so no need to update it again with the same information
+    boolean updateUI = false;
     int additionalLines = 0;
     // if newlines were added/removed, find out how many
     if (pText.contains("\n"))
     {
+      updateUI = true;
       additionalLines = (int) pText.chars().filter(chr -> chr == '\n').count();
       // if the newlines were deleted the number of newlines is negative
       if (!pInsert)
         additionalLines = -additionalLines;
-      propagateAdditionalLines(getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst(), pAffectedChunkIndex + 1, additionalLines);
+      propagateAdditionalLines(getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue(),
+                               pAffectedChunkIndex + 1, additionalLines);
     }
     getDiff(pConflictSide).getFileChanges().replace(pAffectedChunk, new FileChangeChunkImpl(
         new Edit(pAffectedChunk.getAStart(),
@@ -161,7 +168,7 @@ public class MergeDiffImpl implements IMergeDiff
                  pAffectedChunk.getBStart(),
                  pAffectedChunk.getBEnd()),
         pNewALines, pAffectedChunk.getBLines(),
-        pAffectedChunk.getChangeType()));
+        pAffectedChunk.getChangeType()), updateUI);
   }
 
   /**
@@ -177,7 +184,7 @@ public class MergeDiffImpl implements IMergeDiff
     List<Pair<Integer, Integer>> affectedIndices = new ArrayList<>();
     int currentOffset = 0;
     int nextOffset;
-    List<IFileChangeChunk> changeChunks = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst();
+    List<IFileChangeChunk> changeChunks = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue();
     if (!changeChunks.isEmpty())
     {
       for (int index = 0; index < changeChunks.size(); index++)
@@ -220,13 +227,13 @@ public class MergeDiffImpl implements IMergeDiff
    * the changes into the list and adjusts the line numbers in the following IFileChangeChunks if needed
    *
    * @param pToChangeChunk      IFileChangeChunk whose B-side is accepted -> copy B-side over to the A-side
-   * @param pFileChangeSupplier Supplier for the FileChangesImpl containing the IFileChangeChunk, to write the changed IFileChangeChunk back to the list
+   * @param pFileChangeSupplier Supplier for the FileChangesImpl containing the IFileChangeChunk, writes the changed IFileChangeChunk back to the list
    */
   private void _applyChangesSelf(@NotNull IFileChangeChunk pToChangeChunk, Supplier<FileChangesImpl> pFileChangeSupplier)
   {
     synchronized (pFileChangeSupplier.get())
     {
-      List<IFileChangeChunk> changeChunkList = pFileChangeSupplier.get().getChangeChunks().blockingFirst();
+      List<IFileChangeChunk> changeChunkList = pFileChangeSupplier.get().getChangeChunks().blockingFirst().getNewValue();
       int indexInList = changeChunkList.indexOf(pToChangeChunk);
       // create new IFileChangeChunks since IFileChangeChunks are effectively final
       Edit edit = new Edit(pToChangeChunk.getAStart(), pToChangeChunk.getAStart() + (pToChangeChunk.getBEnd() - pToChangeChunk.getBStart()),
@@ -237,7 +244,7 @@ public class MergeDiffImpl implements IMergeDiff
                                (pToChangeChunk.getBEnd() - pToChangeChunk.getBStart()) - (pToChangeChunk.getAEnd() - pToChangeChunk.getAStart()));
       // save the changes to the list and fire a change on the list
       changeChunkList.set(indexInList, changedChunk);
-      pFileChangeSupplier.get().getSubject().onNext(changeChunkList);
+      pFileChangeSupplier.get().getSubject().onNext(new FileChangesEventImpl(true, changeChunkList));
     }
   }
 

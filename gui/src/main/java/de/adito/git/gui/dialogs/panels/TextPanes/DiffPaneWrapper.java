@@ -4,6 +4,7 @@ import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.DiffPanelModel;
+import de.adito.git.impl.data.FileChangesEventImpl;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -29,8 +30,11 @@ public class DiffPaneWrapper implements IDiscardable
     textScrollPane = new JScrollPane(textPane);
     disposable = model.getFileDiff().switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
-        .orElse(Observable.just(Collections.emptyList())))
-        .subscribe(this::_textChanged);
+        .orElse(Observable.just(new FileChangesEventImpl(true, Collections.emptyList()))))
+        .subscribe(pFileChangesEvent -> {
+          if (pFileChangesEvent.isUpdateUI())
+            _textChanged(pFileChangesEvent.getNewValue());
+        });
   }
 
   public JScrollPane getPane()

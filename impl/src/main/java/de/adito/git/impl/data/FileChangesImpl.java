@@ -2,11 +2,15 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
-import io.reactivex.subjects.*;
-import org.eclipse.jgit.diff.*;
-import org.jetbrains.annotations.*;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
+import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.diff.EditList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Object that stores the information about which changes happened to a file
@@ -17,41 +21,42 @@ import java.util.*;
 public class FileChangesImpl implements IFileChanges
 {
 
-  private final Subject<List<IFileChangeChunk>> changeChunks;
+  private final List<IFileChangeChunk> changeChunks;
+  private final Subject<IFileChangesEvent> changeEventObservable;
   private final String[] originalLines;
   private final String[] newLines;
 
   FileChangesImpl(EditList pEditList, String pOriginalFileContents, String pNewFileContents)
   {
-    List<IFileChangeChunk> changeChunkList = new ArrayList<>();
+    changeChunks = new ArrayList<>();
     // combine the lineChanges with the information from editList and build chunks
     originalLines = pOriginalFileContents.split("\n", -1);
     newLines = pNewFileContents.split("\n", -1);
     if (!pEditList.isEmpty())
     {
       // from beginning of the file to the first chunk
-      changeChunkList.add(_getUnchangedChunk(null, pEditList.get(0)));
+      changeChunks.add(_getUnchangedChunk(null, pEditList.get(0)));
       // first chunk extra, since the index in the for loop starts at 0
-      changeChunkList.add(_getChangedChunk(pEditList.get(0)));
+      changeChunks.add(_getChangedChunk(pEditList.get(0)));
       for (int index = 1; index < pEditList.size(); index++)
       {
-        changeChunkList.add(_getUnchangedChunk(pEditList.get(index - 1), pEditList.get(index)));
-        changeChunkList.add(_getChangedChunk(pEditList.get(index)));
+        changeChunks.add(_getUnchangedChunk(pEditList.get(index - 1), pEditList.get(index)));
+        changeChunks.add(_getChangedChunk(pEditList.get(index)));
       }
       // from last chunk to end of file
-      changeChunkList.add(_getUnchangedChunk(pEditList.get(pEditList.size() - 1), null));
+      changeChunks.add(_getUnchangedChunk(pEditList.get(pEditList.size() - 1), null));
     }
     else
     {
       Edit edit = new Edit(0, originalLines.length, 0, newLines.length);
-      changeChunkList.add(new FileChangeChunkImpl(edit, pNewFileContents, pNewFileContents, EChangeType.SAME));
+      changeChunks.add(new FileChangeChunkImpl(edit, pNewFileContents, pNewFileContents, EChangeType.SAME));
     }
-    changeChunks = BehaviorSubject.createDefault(changeChunkList);
+    changeEventObservable = BehaviorSubject.createDefault(new FileChangesEventImpl(true, changeChunks));
   }
 
-  Subject<List<IFileChangeChunk>> getSubject()
+  Subject<IFileChangesEvent> getSubject()
   {
-    return changeChunks;
+    return changeEventObservable;
   }
 
   /**
@@ -155,9 +160,9 @@ public class FileChangesImpl implements IFileChanges
    * {@inheritDoc}
    */
   @Override
-  public Observable<List<IFileChangeChunk>> getChangeChunks()
+  public Observable<IFileChangesEvent> getChangeChunks()
   {
-    return changeChunks;
+    return changeEventObservable;
   }
 
   /**
@@ -165,7 +170,7 @@ public class FileChangesImpl implements IFileChanges
    */
   public void applyChanges(@NotNull IFileChangeChunk pToChangeChunk)
   {
-    List<IFileChangeChunk> currentFileChangeChunks = changeChunks.blockingFirst();
+    List<IFileChangeChunk> currentFileChangeChunks = changeEventObservable.blockingFirst().getNewValue();
     int indexInList = currentFileChangeChunks.indexOf(pToChangeChunk);
     // create new IFileChangeChunks since IFileChangeChunks are effectively final
     Edit edit = new Edit(pToChangeChunk.getAStart(), pToChangeChunk.getAStart() + (pToChangeChunk.getBEnd() - pToChangeChunk.getBStart()),
@@ -177,7 +182,7 @@ public class FileChangesImpl implements IFileChanges
                               EChangeSide.OLD);
     // save the changes to the list and fire a change on the list
     currentFileChangeChunks.set(indexInList, changedChunk);
-    changeChunks.onNext(currentFileChangeChunks);
+    changeEventObservable.onNext(new FileChangesEventImpl(true, currentFileChangeChunks));
   }
 
   /**
@@ -186,7 +191,7 @@ public class FileChangesImpl implements IFileChanges
   @Override
   public void resetChanges(@NotNull IFileChangeChunk pToChangeChunk)
   {
-    List<IFileChangeChunk> currentFileChangeChunks = changeChunks.blockingFirst();
+    List<IFileChangeChunk> currentFileChangeChunks = changeEventObservable.blockingFirst().getNewValue();
     int indexInList = currentFileChangeChunks.indexOf(pToChangeChunk);
     Edit edit = new Edit(pToChangeChunk.getAStart(), pToChangeChunk.getAEnd(), pToChangeChunk.getBStart(),
                          pToChangeChunk.getBStart() + (pToChangeChunk.getAEnd() - pToChangeChunk.getAStart()));
@@ -195,7 +200,7 @@ public class FileChangesImpl implements IFileChanges
                               (pToChangeChunk.getAEnd() - pToChangeChunk.getAStart()) - (pToChangeChunk.getBEnd() - pToChangeChunk.getBStart()),
                               EChangeSide.NEW);
     currentFileChangeChunks.set(indexInList, changedChunk);
-    changeChunks.onNext(currentFileChangeChunks);
+    changeEventObservable.onNext(new FileChangesEventImpl(true, currentFileChangeChunks));
   }
 
   /**
@@ -225,6 +230,8 @@ public class FileChangesImpl implements IFileChanges
           edit,
           pFileChangeChunks.get(index).getALines(),
           pFileChangeChunks.get(index).getBLines(),
+          pFileChangeChunks.get(index).getAParityLines(),
+          pFileChangeChunks.get(index).getBParityLines(),
           pFileChangeChunks.get(index).getChangeType());
       // replace the current FileChangeChunk with the updated one
       pFileChangeChunks.set(index, updated);
@@ -235,12 +242,12 @@ public class FileChangesImpl implements IFileChanges
    * {@inheritDoc}
    */
   @Override
-  public boolean replace(IFileChangeChunk pCurrent, IFileChangeChunk pReplaceWith)
+  public boolean replace(IFileChangeChunk pCurrent, IFileChangeChunk pReplaceWith, boolean pTriggerUpdate)
   {
     List<IFileChangeChunk> tmpCopy;
     synchronized (changeChunks)
     {
-      tmpCopy = changeChunks.blockingFirst();
+      tmpCopy = changeEventObservable.blockingFirst().getNewValue();
     }
     int currentIndex = tmpCopy.indexOf(pCurrent);
     if (currentIndex == -1)
@@ -248,7 +255,7 @@ public class FileChangesImpl implements IFileChanges
       return false;
     }
     tmpCopy.set(currentIndex, pReplaceWith);
-    changeChunks.onNext(tmpCopy);
+    changeEventObservable.onNext(new FileChangesEventImpl(pTriggerUpdate, tmpCopy));
     return true;
   }
 

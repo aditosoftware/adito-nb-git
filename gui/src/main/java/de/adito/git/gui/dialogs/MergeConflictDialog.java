@@ -3,19 +3,25 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.MergeDiffStatusModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.*;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -107,7 +113,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
                                        .orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG))
                                        .getTopLevelDirectory(), selectedMergeDiff.getDiff(pConflictSide).getFilePath());
       StringBuilder fileContents = new StringBuilder();
-      for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst())
+      for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
       {
         // BLines is always the "new" version of the file, in comparison to the fork point
         fileContents.append(changeChunk.getBLines());
@@ -123,7 +129,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
                                      .orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG))
                                      .getTopLevelDirectory(), pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
     StringBuilder fileContents = new StringBuilder();
-    for (IFileChangeChunk changeChunk : pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks().blockingFirst())
+    for (IFileChangeChunk changeChunk : pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges()
+        .getChangeChunks().blockingFirst().getNewValue())
     {
       // BLines is always the "new" version of the file, in comparison to the fork point
       fileContents.append(changeChunk.getALines());
