@@ -4,9 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
-import de.adito.git.api.IFileOpener;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IUserPreferences;
+import de.adito.git.api.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.IEditorKitProvider;
@@ -49,5 +47,6 @@ public class AditoNbmModule extends AbstractModule
     bind(IAsyncProgressFacade.class).to(AsyncProgressFacadeImpl.class);
     bind(IPrefStore.class).to(NBPrefStore.class);
     bind(IFileOpener.class).to(NBFileOpenerImpl.class);
+    bind(IKeyStore.class).to(KeyStoreImpl.class);
   }
 }
