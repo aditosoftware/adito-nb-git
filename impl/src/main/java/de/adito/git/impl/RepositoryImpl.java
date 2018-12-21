@@ -7,6 +7,7 @@ import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.impl.data.*;
+import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -50,6 +51,7 @@ public class RepositoryImpl implements IRepository
 {
 
   private static final String VOID_PATH = "/dev/null";
+  private final ISshProvider sshProvider;
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<Optional<IFileStatus>> status;
@@ -58,9 +60,10 @@ public class RepositoryImpl implements IRepository
 
   @Inject
   public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette,
-                        @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
+                        ISshProvider pSshProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
     colorRoulette = pColorRoulette;
+    sshProvider = pSshProvider;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
     branchList = BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList(git)));
 
@@ -164,10 +167,11 @@ public class RepositoryImpl implements IRepository
   public Map<String, EPushResult> push()
   {
     Map<String, EPushResult> resultMap = new HashMap<>();
-    PushCommand push = git.push()
-        .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null));
     try
     {
+      TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(git);
+      PushCommand push = git.push()
+          .setTransportConfigCallback(transportConfigCallback);
       Iterable<PushResult> pushResults = push.call();
       for (PushResult pushResult : pushResults)
       {
@@ -211,7 +215,7 @@ public class RepositoryImpl implements IRepository
       if (!git.getRepository().getRepositoryState().isRebasing())
       {
         String currentHeadName = git.getRepository().getFullBranch();
-        String targetName = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
+        String targetName = RepositoryImplHelper.getRemoteTrackingBranch(git);
         PullCommand pullCommand = git.pull();
         pullCommand.setRebase(true);
 
@@ -445,7 +449,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       IndexDiff diff = new IndexDiff(git.getRepository(), "HEAD", new FileTreeIterator(git.getRepository()));
-      diff.setFilter(new PathFilterGroup().createFromStrings(getRelativePath(pFile, git)));
+      diff.setFilter(PathFilterGroup.createFromStrings(getRelativePath(pFile, git)));
       diff.diff();
       if (!diff.getAdded().isEmpty())
       {
@@ -514,13 +518,13 @@ public class RepositoryImpl implements IRepository
 
     if (Util.isDirEmpty(pLocalPath))
     {
-      CloneCommand cloneRepo = Git.cloneRepository()
-          // TODO: 25.09.2018 NetBeans pPassword
-          .setTransportConfigCallback(new TransportConfigCallbackImpl(null, null))
-          .setURI(pUrl)
-          .setDirectory(new File(pLocalPath, ""));
       try
       {
+        TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(git);
+        CloneCommand cloneRepo = Git.cloneRepository()
+            .setTransportConfigCallback(transportConfigCallback)
+            .setURI(pUrl)
+            .setDirectory(new File(pLocalPath, ""));
         cloneRepo.call();
       }
       catch (GitAPIException e)
