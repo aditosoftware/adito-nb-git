@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
-class RepositoryImplHelper
+public class RepositoryImplHelper
 {
 
   private RepositoryImplHelper()
@@ -46,6 +46,16 @@ class RepositoryImplHelper
       ObjectId commitId = ObjectId.fromString(pIdentifier);
       return revWalk.parseCommit(commitId);
     }
+  }
+
+  /**
+   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
+   * @return String with the name of the remote branch that the current branch is tracking
+   * @throws IOException if an exception occurs while JGit is reading the git config file
+   */
+  public static String getRemoteTrackingBranch(@NotNull Git pGit) throws IOException
+  {
+    return new BranchConfig(pGit.getRepository().getConfig(), pGit.getRepository().getBranch()).getRemoteTrackingBranch();
   }
 
   /**
@@ -115,7 +125,8 @@ class RepositoryImplHelper
       {
         return Optional.of(new BranchImpl(pGit.getRepository().resolve(branch)));
       }
-      return Optional.ofNullable(pGetBranchFunction.apply(branch)).orElseThrow(() -> new AditoGitException("Unable to find branch for name " + branch));
+      return Optional.ofNullable(pGetBranchFunction.apply(branch))
+          .orElseThrow(() -> new AditoGitException("Unable to find branch for name " + branch));
     }
     catch (Exception e)
     {
