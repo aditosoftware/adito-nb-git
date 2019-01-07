@@ -2,7 +2,7 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IFileOpener;
+import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 class StatusWindowContent extends JPanel implements IDiscardable
 {
 
-  private final IFileOpener fileOpener;
+  private final IFileSystemUtil fileOpener;
   private final Observable<Optional<IRepository>> repository;
   private IActionProvider actionProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
@@ -44,7 +44,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private JPopupMenu popupMenu;
 
   @Inject
-  StatusWindowContent(IFileOpener pFileOpener, IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  StatusWindowContent(IFileSystemUtil pFileOpener, IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     fileOpener = pFileOpener;
     repository = pRepository;
