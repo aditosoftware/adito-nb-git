@@ -35,8 +35,8 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptPassphrase(String pMessage)
   {
-    DialogResult result = dialogProvider.showPasswordPromptDialog(pMessage);
-    return new PromptResult(result.isPressedOk(), result.getMessage());
+    DialogResult<?, char[]> result = dialogProvider.showPasswordPromptDialog(pMessage);
+    return new PromptResult(result.isPressedOk(), result.getInformation());
   }
 
   /**

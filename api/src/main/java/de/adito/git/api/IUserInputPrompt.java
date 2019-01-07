@@ -49,11 +49,20 @@ public interface IUserInputPrompt
 
     private final boolean isPressedOK;
     private final String userInput;
+    private final char[] userArrayInput;
 
     public PromptResult(boolean pIsPressedOK, String pUserInput)
     {
       isPressedOK = pIsPressedOK;
       userInput = pUserInput;
+      userArrayInput = null;
+    }
+
+    public PromptResult(boolean pIsPressedOK, char[] pUserArrayInput)
+    {
+      isPressedOK = pIsPressedOK;
+      userInput = null;
+      userArrayInput = pUserArrayInput;
     }
 
     /**
@@ -70,6 +79,14 @@ public interface IUserInputPrompt
     public String getUserInput()
     {
       return userInput;
+    }
+
+    /**
+     * @return char array with input from the user (should be user for passwords/sensitive information)
+     */
+    public char[] getUserArrayInput()
+    {
+      return userArrayInput;
     }
   }
 

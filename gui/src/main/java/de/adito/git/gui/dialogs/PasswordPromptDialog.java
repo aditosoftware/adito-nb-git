@@ -10,11 +10,11 @@ import java.awt.*;
  *
  * @author m.kaspera, 20.12.2018
  */
-class PasswordPromptDialog extends AditoBaseDialog<Object>
+class PasswordPromptDialog extends AditoBaseDialog<char[]>
 {
 
-  private final static Insets PW_FIELD_INSETS = new Insets(0, 10, 0, 10);
-  private final static int PW_FIELD_NUM_CHARS = 30;
+  private static final Insets PW_FIELD_INSETS = new Insets(0, 10, 0, 10);
+  private static final int PW_FIELD_NUM_CHARS = 30;
   private final JPasswordField passwordField;
 
   @Inject
@@ -36,12 +36,12 @@ class PasswordPromptDialog extends AditoBaseDialog<Object>
   @Override
   public String getMessage()
   {
-    return String.valueOf(passwordField.getPassword());
+    return null;
   }
 
   @Override
-  public Object getInformation()
+  public char[] getInformation()
   {
-    return null;
+    return passwordField.getPassword();
   }
 }
