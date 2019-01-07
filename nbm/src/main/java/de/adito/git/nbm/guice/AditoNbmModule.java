@@ -46,7 +46,7 @@ public class AditoNbmModule extends AbstractModule
     bind(INotifyUtil.class).to(NotifyUtilImpl.class);
     bind(IAsyncProgressFacade.class).to(AsyncProgressFacadeImpl.class);
     bind(IPrefStore.class).to(NBPrefStore.class);
-    bind(IFileOpener.class).to(NBFileOpenerImpl.class);
+    bind(IFileSystemUtil.class).to(NBFileSystemUtilImpl.class);
     bind(IKeyStore.class).to(KeyStoreImpl.class);
   }
 }

@@ -1,15 +1,15 @@
 package de.adito.git.gui.dialogs.panels;
 
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.gui.IDiscardable;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.TextPanes.DiffPaneWrapper;
 import de.adito.git.impl.data.FileChangeChunkImpl;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
+import javax.swing.text.EditorKit;
+import java.awt.*;
 import java.util.Optional;
 
 /**
@@ -19,20 +19,22 @@ import java.util.Optional;
  */
 public class DiffPanel extends JPanel implements IDiscardable
 {
-
   private final BaseDiffPanel currentVersionPanel;
   private final BaseDiffPanel oldVersionPanel;
 
-  public DiffPanel(Observable<Optional<IFileDiff>> pFileDiffObs, ImageIcon pAcceptIcon)
+  public DiffPanel(Observable<Optional<IFileDiff>> pFileDiffObs, ImageIcon pAcceptIcon, IEditorKitProvider pEditorKitProvider)
   {
+
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(pFileDiffObs, pFileChunk -> pFileChunk.getBEnd() - pFileChunk.getBStart(),
                                                               IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines);
+    DiffPaneWrapper currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitProvider);
+    currentVersionPanel = new BaseDiffPanel(currentVersionDiffPane.getPane(), currentVersionDiffPane.getTextPane());
+
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(pFileDiffObs, pFilChunk -> pFilChunk.getAEnd() - pFilChunk.getAStart(),
                                                           IFileChangeChunk::getALines, IFileChangeChunk::getAParityLines);
-    DiffPaneWrapper currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel);
-    currentVersionPanel = new BaseDiffPanel(currentVersionDiffPane.getPane(), currentVersionDiffPane.getTextPane());
-    DiffPaneWrapper oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel);
+    DiffPaneWrapper oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitProvider);
     oldVersionPanel = new BaseDiffPanel(oldVersionDiffPane.getPane(), oldVersionDiffPane.getTextPane());
+
     currentVersionPanel.addLineNumPanel(currentDiffPanelModel, BorderLayout.WEST);
     oldVersionPanel.addLineNumPanel(oldDiffPanelModel, BorderLayout.EAST);
     oldVersionPanel.addChoiceButtonPanel(oldDiffPanelModel, null, pAcceptIcon,

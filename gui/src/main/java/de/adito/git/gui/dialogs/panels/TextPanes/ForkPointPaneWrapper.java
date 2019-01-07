@@ -1,16 +1,12 @@
 package de.adito.git.gui.dialogs.panels.TextPanes;
 
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
-import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.TextHighlightUtil;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.*;
 import javax.swing.text.BadLocationException;
 import java.util.List;
 
@@ -21,7 +17,7 @@ public class ForkPointPaneWrapper implements IDiscardable
 {
 
   private final JScrollPane textScrollPane;
-  private final JTextPane textPane;
+  private final JEditorPane textPane;
   private final IMergeDiff mergeDiff;
   private final Disposable disposable;
   private final _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
@@ -46,7 +42,7 @@ public class ForkPointPaneWrapper implements IDiscardable
     return textScrollPane;
   }
 
-  public JTextPane getTextPane()
+  public JEditorPane getTextPane()
   {
     return textPane;
   }
@@ -85,9 +81,8 @@ public class ForkPointPaneWrapper implements IDiscardable
    */
   private class _PaneDocumentListener implements DocumentListener
   {
-
     private boolean isActive = true;
-
+    
     @Override
     public void insertUpdate(DocumentEvent pEvent)
     {

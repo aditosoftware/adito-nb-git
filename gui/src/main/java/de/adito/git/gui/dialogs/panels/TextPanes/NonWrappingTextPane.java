@@ -1,8 +1,6 @@
 package de.adito.git.gui.dialogs.panels.TextPanes;
 
 import javax.swing.*;
-import javax.swing.plaf.ComponentUI;
-import java.awt.*;
 
 /**
  * JTextPane that does not wrap, which means it is actually useful in a ScrollPane
@@ -11,22 +9,13 @@ import java.awt.*;
  *
  * @author m.kaspera, 13.12.2018
  */
-class NonWrappingTextPane extends JTextPane
+class NonWrappingTextPane extends JEditorPane
 {
   NonWrappingTextPane()
   {
     super();
-  }
-
-  // Override getScrollableTracksViewportWidth
-  // to preserve the full width of the text
-  @Override
-  public boolean getScrollableTracksViewportWidth()
-  {
-    Component parent = getParent();
-    ComponentUI ui = getUI();
-
-    return parent == null || (ui.getPreferredSize(this).width <= parent
-        .getSize().width);
+    // this is the simpleValueName of NetBeans "TEXT_LINE_WRAP"
+    // here the second value can be replaced with "words" or "chars"
+    putClientProperty("text-line-wrap", "none");
   }
 }

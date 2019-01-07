@@ -7,11 +7,10 @@ import javax.swing.text.EditorKit;
  */
 public interface IEditorKitProvider
 {
-
   /**
-   * @param pMimeType mime type for which an editorKit should be retrieved
+   * @param pFileDirectory The file directory of the file to check the mime type
    * @return EditorKit that deals with the provided mime type
    */
-  EditorKit getEditorKit(String pMimeType);
+  EditorKit getEditorKit(String pFileDirectory);
 
 }

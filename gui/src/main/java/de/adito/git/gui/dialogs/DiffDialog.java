@@ -3,23 +3,19 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.ColorPicker;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tableModels.DiffTableModel;
-import de.adito.git.gui.tableModels.StatusTableModel;
+import de.adito.git.gui.tableModels.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Window that displays the list of changes found during a diff
@@ -28,7 +24,6 @@ import java.util.Optional;
  */
 class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
-
   private static final String ACCEPT_ICON_PATH = Constants.ACCEPT_CHANGE_YOURS_ICON;
   private static final Dimension PANEL_MIN_SIZE = new Dimension(800, 600);
   private static final Dimension PANEL_PREF_SIZE = new Dimension(1600, 900);
@@ -81,7 +76,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       else return Optional.empty();
     });
 
-    diffPanel = new DiffPanel(fileDiffObservable, iconLoader.getIcon(ACCEPT_ICON_PATH));
+    diffPanel = new DiffPanel(fileDiffObservable, iconLoader.getIcon(ACCEPT_ICON_PATH), editorKitProvider);
 
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEnabled(false);

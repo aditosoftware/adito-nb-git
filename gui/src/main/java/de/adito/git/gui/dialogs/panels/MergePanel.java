@@ -1,14 +1,12 @@
 package de.adito.git.gui.dialogs.panels;
 
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.dialogs.panels.TextPanes.DiffPaneWrapper;
-import de.adito.git.gui.dialogs.panels.TextPanes.ForkPointPaneWrapper;
+import de.adito.git.gui.dialogs.panels.TextPanes.*;
 import io.reactivex.Observable;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.Optional;
 
 /**
@@ -37,8 +35,6 @@ public class MergePanel extends JPanel implements IDiscardable
     _initTheirsPanel();
     _initForkPointPanel();
     _initGui();
-
-
   }
 
   private void _initGui()
@@ -59,7 +55,7 @@ public class MergePanel extends JPanel implements IDiscardable
                                                    pFileChangeChunk -> pFileChangeChunk.getBEnd() - pFileChangeChunk.getBStart(),
                                                    IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines
     );
-    DiffPaneWrapper diffPaneWrapper = new DiffPaneWrapper(yoursModel);
+    DiffPaneWrapper diffPaneWrapper = new DiffPaneWrapper(yoursModel, null);
     yoursPanel = new BaseDiffPanel(diffPaneWrapper.getPane(), diffPaneWrapper.getTextPane());
     yoursPanel.addLineNumPanel(yoursModel, BorderLayout.EAST);
     yoursPanel.addChoiceButtonPanel(yoursModel, discardIcon, acceptYoursIcon,
@@ -73,7 +69,7 @@ public class MergePanel extends JPanel implements IDiscardable
     DiffPanelModel theirsModel = new DiffPanelModel(Observable.just(Optional.of(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS))),
                                                     pFileChangeChunk -> pFileChangeChunk.getBEnd() - pFileChangeChunk.getBStart(),
                                                     IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines);
-    DiffPaneWrapper diffPaneWrapper = new DiffPaneWrapper(theirsModel);
+    DiffPaneWrapper diffPaneWrapper = new DiffPaneWrapper(theirsModel, null);
     theirsPanel = new BaseDiffPanel(diffPaneWrapper.getPane(), diffPaneWrapper.getTextPane());
     theirsPanel.addLineNumPanel(theirsModel, BorderLayout.WEST);
     theirsPanel.addChoiceButtonPanel(theirsModel, discardIcon, acceptTheirsIcon,

@@ -4,9 +4,9 @@ import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -23,12 +23,12 @@ public class BaseDiffPanel extends JPanel implements IDiscardable
   private final JScrollPane mainScrollPane;
   private final List<JScrollPane> componentScrollPaneList = new ArrayList<>();
   private final List<IDiscardable> discardAbles = new ArrayList<>();
-  private final JTextPane textPane;
+  private final JEditorPane textPane;
   // since the BorderLayout only has one spot for east/west, the components have to be added to nested Panel each time a component is added
   private JPanel outerEasternPanel = this;
   private JPanel outerWesternPanel = this;
 
-  BaseDiffPanel(JScrollPane pScrollPane, JTextPane pJTextPane)
+  BaseDiffPanel(JScrollPane pScrollPane, JEditorPane pJTextPane)
   {
     mainScrollPane = pScrollPane;
     mainScrollPane.setBorder(null);

@@ -85,19 +85,21 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
     }
   }
 
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        CommitHistoryTreeListItem commitHistoryTreeListItem = commitList.get(rowIndex);
-        switch (columnIndex) {
-            case BRANCHING:
-                return commitHistoryTreeListItem;
-            case AUTHOR:
-                return commitHistoryTreeListItem.getCommit().getAuthor();
-            case TIME:
-                return DateTimeRenderer.asString(commitHistoryTreeListItem.getCommit().getTime());
-            default:
-                return null;
-        }
+  @Override
+  public Object getValueAt(int pRowIndex, int pColumnIndex)
+  {
+    CommitHistoryTreeListItem commitHistoryTreeListItem = commitList.get(pRowIndex);
+    switch (pColumnIndex)
+    {
+      case BRANCHING:
+        return commitHistoryTreeListItem;
+      case AUTHOR:
+        return commitHistoryTreeListItem.getCommit().getAuthor();
+      case TIME:
+        return DateTimeRenderer.asString(commitHistoryTreeListItem.getCommit().getTime());
+      default:
+        return null;
     }
+  }
 
 }
