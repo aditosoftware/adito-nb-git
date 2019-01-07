@@ -19,6 +19,7 @@ interface INBActionPositions
   int SHOW_STATUS_WINDOW_ACTION_RIGHT_CLICK = 600;
   int COMMIT_ACTION_RIGHT_CLICK = 700;
   int RESOLVE_CONFLICTS_ACTION_RIGHT_CLICK = 800;
+  int GIT_CONFIG_ACTION_RIGHT_CLICK = 900;
 
   // --------------------------  toolbar positions -------------------------------
   int PULL_ACTION_TOOLBAR = 100;
