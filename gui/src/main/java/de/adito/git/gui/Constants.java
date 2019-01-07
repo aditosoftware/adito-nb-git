@@ -23,6 +23,10 @@ public class Constants
   public static final String IGNORE_ACTION_ICON = "/de/adito/git/nbm/actions/ignore_dark.png";
   public static final String EXCLUDE_ACTION_ICON = "/de/adito/git/nbm/actions/exclude_dark.png";
   public static final String DIFF_ACTION_ICON = "/de/adito/git/nbm/actions/diff_dark.png";
+  public static final String GIT_CONFIG_ICON = "/de/adito/git/gui/icons/settings_dark.png";
+
+  //Settings map keys
+  public static final String SSH_KEY_KEY = "sshKey";
 
   private Constants()
   {

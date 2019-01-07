@@ -35,4 +35,6 @@ interface IDialogFactory
   PasswordPromptDialog createPasswordPromptDialog();
 
   UserPromptDialog createUserPromptDialog();
+
+  GitConfigDialog createGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 }

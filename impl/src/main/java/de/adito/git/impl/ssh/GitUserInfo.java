@@ -93,10 +93,10 @@ public class GitUserInfo implements UserInfo
 
     }
     IUserInputPrompt.PromptResult result = userInputPrompt.promptPassphrase(pMessage);
-    passPhrase = result.getUserInput();
-    if (sshKeyFile != null && passPhrase != null && !passPhrase.isEmpty())
+    passPhrase = String.valueOf(result.getUserArrayInput());
+    if (sshKeyFile != null && !passPhrase.isEmpty())
     {
-      keyStore.save(sshKeyFile.getAbsolutePath(), result.getUserInput().toCharArray(), null);
+      keyStore.save(sshKeyFile.getAbsolutePath(), result.getUserArrayInput(), null);
     }
     return result.isPressedOK();
   }

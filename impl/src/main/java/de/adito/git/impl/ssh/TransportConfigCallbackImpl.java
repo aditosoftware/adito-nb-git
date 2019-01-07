@@ -6,16 +6,13 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import de.adito.git.api.IUserInputPrompt;
-import de.adito.git.impl.RepositoryImplHelper;
-import org.eclipse.jgit.api.Git;
+import de.adito.git.api.data.IConfig;
 import org.eclipse.jgit.api.TransportConfigCallback;
-import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Implementation of {@link org.eclipse.jgit.api.TransportConfigCallback})
@@ -28,15 +25,15 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
 
   private GitUserInfo gitUserInfo;
   private final IUserInputPrompt userInputPrompt;
-  private final Git git;
+  private final IConfig config;
   private String sshKeyPath;
 
   @Inject
-  TransportConfigCallbackImpl(IUserInputPrompt pUserInputPrompt, ISshProvider pSshProvider, @Assisted Git pGit)
+  TransportConfigCallbackImpl(IUserInputPrompt pUserInputPrompt, ISshProvider pSshProvider, @Assisted IConfig pConfig)
   {
     gitUserInfo = pSshProvider.getUserInfo(null, null);
     userInputPrompt = pUserInputPrompt;
-    git = pGit;
+    config = pConfig;
   }
 
   /**
@@ -46,6 +43,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   public void configure(Transport pTransport)
   {
     SshTransport sshTransport = (SshTransport) pTransport;
+    sshTransport.setCredentialsProvider(new ResetCredentialsProvider());
     sshTransport.setSshSessionFactory(new _SshSessionFactory());
   }
 
@@ -83,9 +81,6 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   private class _SshSessionFactory extends JschConfigSessionFactory
   {
 
-    private static final String SSH_KEY_CONFIG_KEY = "puttykeyfile";
-    private static final String SECTION_KEY = "remote";
-
     @Override
     protected void configure(OpenSshConfig.Host pHost, Session pSession)
     {
@@ -97,19 +92,10 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     {
       JSch defaultJSch = super.createDefaultJSch(pFs);
       String storedKeyFilePath;
-      try
+      storedKeyFilePath = config.getSshKeyLocation();
+      if (storedKeyFilePath != null && !new File(storedKeyFilePath).exists())
       {
-        storedKeyFilePath = git.getRepository()
-            .getConfig().getString(SECTION_KEY, git.getRepository()
-                .getRemoteName(RepositoryImplHelper.getRemoteTrackingBranch(git)), SSH_KEY_CONFIG_KEY);
-        if (storedKeyFilePath != null && !new File(storedKeyFilePath).exists())
-        {
-          storedKeyFilePath = null;
-        }
-      }
-      catch (IOException pE)
-      {
-        throw new RuntimeException(pE);
+        storedKeyFilePath = null;
       }
       if (storedKeyFilePath != null)
       {
@@ -129,17 +115,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
         IUserInputPrompt.PromptResult result = userInputPrompt.promptText("Please enter the path to your SSH key");
         if (result.isPressedOK())
         {
-          try
-          {
-            StoredConfig config = git.getRepository().getConfig();
-            config.setString(SECTION_KEY, git.getRepository()
-                .getRemoteName(RepositoryImplHelper.getRemoteTrackingBranch(git)), SSH_KEY_CONFIG_KEY, result.getUserInput());
-            config.save();
-          }
-          catch (IOException pE)
-          {
-            throw new RuntimeException(pE);
-          }
+          config.setSshKeyLocation(result.getUserInput());
           defaultJSch.addIdentity(result.getUserInput());
           gitUserInfo.setSshKeyFile(new File(result.getUserInput()));
         }
@@ -147,6 +123,37 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
       return defaultJSch;
     }
 
+  }
+
+  /**
+   * CredentialsProvider that implements the resetMethod by deleting the set passphrase
+   */
+  private class ResetCredentialsProvider extends CredentialsProvider
+  {
+
+    @Override
+    public boolean isInteractive()
+    {
+      return false;
+    }
+
+    @Override
+    public void reset(URIish pUri)
+    {
+      config.setPassphrase(null);
+    }
+
+    @Override
+    public boolean supports(CredentialItem... pItems)
+    {
+      return false;
+    }
+
+    @Override
+    public boolean get(URIish pUri, CredentialItem... pItems)
+    {
+      return false;
+    }
   }
 
 }

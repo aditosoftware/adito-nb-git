@@ -1,10 +1,13 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -50,4 +53,6 @@ interface IActionFactory
 
   ResolveConflictsAction createResolveConflictsAction(Observable<Optional<IRepository>> pRepository,
                                                       Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+
+  GitConfigAction createGitConfigAction(Observable<Optional<IRepository>> pRepository);
 }

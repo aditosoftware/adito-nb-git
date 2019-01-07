@@ -1,6 +1,6 @@
 package de.adito.git.impl.ssh;
 
-import org.eclipse.jgit.api.Git;
+import de.adito.git.api.data.IConfig;
 import org.eclipse.jgit.api.TransportConfigCallback;
 
 /**
@@ -9,7 +9,7 @@ import org.eclipse.jgit.api.TransportConfigCallback;
 public interface ISshProvider
 {
 
-  TransportConfigCallback getTransportConfigCallBack(Git pGit);
+  TransportConfigCallback getTransportConfigCallBack(IConfig pConfig);
 
   GitUserInfo getUserInfo(String pPassphrase, String pPassword);
 

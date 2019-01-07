@@ -18,6 +18,7 @@ import de.adito.git.gui.progress.SimpleAsyncProgressFacade;
 import de.adito.git.gui.window.WindowModule;
 import de.adito.git.impl.IFileSystemObserverProvider;
 import de.adito.git.impl.RepositoryImpl;
+import de.adito.git.impl.data.DataModule;
 import de.adito.git.impl.ssh.AditoSshModule;
 
 /**
@@ -37,6 +38,7 @@ public class AditoGitModule extends AbstractModule
     install(new ActionModule());
     install(new WindowModule());
     install(new AditoSshModule());
+    install(new DataModule());
 
     // bind IRepository to RepositoryImpl and construct the necessary factory
     install(new FactoryModuleBuilder().build(IRepositoryFactory.class));

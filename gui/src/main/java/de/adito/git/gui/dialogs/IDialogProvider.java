@@ -6,6 +6,7 @@ import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import io.reactivex.Observable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -32,7 +33,9 @@ public interface IDialogProvider
   DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(Observable<Optional<IRepository>> pRepository,
                                                                                       List<ICommit> pStashedCommits);
 
-  DialogResult showPasswordPromptDialog(String pMessage);
+  DialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(String pMessage);
 
   DialogResult showUserPromptDialog(String pMessage);
+
+  DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 }

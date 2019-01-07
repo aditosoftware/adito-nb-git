@@ -105,10 +105,10 @@ public interface IRepository
   String getFileContents(String pIdentifier) throws IOException;
   
   /**
-   * @param file the File to check the status
+   * @param pFile the File to check the status
    * @return returns the {@link IFileChangeType} of the file
    */
-  IFileChangeType getStatusOfSingleFile(@NotNull File file);
+  IFileChangeType getStatusOfSingleFile(@NotNull File pFile);
 
   /**
    * @param pCommitId the ID of the commit for the version of the file
@@ -382,4 +382,12 @@ public interface IRepository
    * @throws AditoGitException if an error occurs
    */
   void dropStashedCommit(@NotNull String pStashCommitId) throws AditoGitException;
+
+  /**
+   * Creates a new IConfig object that provides the latest information about the config
+   * with each call.
+   *
+   * @return IConfig object
+   */
+  IConfig getConfig();
 }

@@ -8,6 +8,7 @@ import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import io.reactivex.Observable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -114,13 +115,13 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(Observable<Optional<IRepository>> pRepository,
+  public DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(Observable<Optional<IRepository>> pRepo,
                                                                                              List<ICommit> pStashedCommits)
   {
     DialogResult<StashedCommitSelectionDialog, String> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashedCommitSelectionDialog(pValidConsumer, pRepository, pStashedCommits),
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashedCommitSelectionDialog(pValidConsumer, pRepo, pStashedCommits),
                                           "Choose stashed commit");
       return result;
     }
@@ -132,7 +133,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult showPasswordPromptDialog(String pMessage)
+  public DialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createPasswordPromptDialog(), pMessage);
   }
@@ -140,5 +141,13 @@ class DialogProviderImpl implements IDialogProvider
   public DialogResult showUserPromptDialog(String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createUserPromptDialog(), pMessage);
+  }
+
+  @Override
+  public DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository)
+  {
+    String repoName = pRepository.blockingFirst().map(pRepo -> pRepo.getTopLevelDirectory().getName()).orElse("unknown repository");
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createGitConfigDialog(pRepository),
+                                      "Setting for project: " + repoName);
   }
 }

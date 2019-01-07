@@ -40,20 +40,23 @@ public class RepositoryImpl implements IRepository
 
   private static final String VOID_PATH = "/dev/null";
   private final ISshProvider sshProvider;
+  private final IDataFactory dataFactory;
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<Optional<IFileStatus>> status;
   private final BehaviorSubject<Optional<IBranch>> currentBranchObservable;
-  private final de.adito.git.api.IFileSystemUtil fileSystemUtil;
+  private final IFileSystemUtil fileSystemUtil;
   private final ColorRoulette colorRoulette;
 
   @Inject
-  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette, IFileSystemUtil pIFileSystemUtil,
-                        ISshProvider pSshProvider, @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
+  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette,
+                        IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory,
+                        @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
     fileSystemUtil = pIFileSystemUtil;
     colorRoulette = pColorRoulette;
     sshProvider = pSshProvider;
+    dataFactory = pDataFactory;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
     branchList = BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList(git)));
 
@@ -159,7 +162,7 @@ public class RepositoryImpl implements IRepository
     Map<String, EPushResult> resultMap = new HashMap<>();
     try
     {
-      TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(git);
+      TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(getConfig());
       PushCommand push = git.push()
           .setTransportConfigCallback(transportConfigCallback);
       Iterable<PushResult> pushResults = push.call();
@@ -529,7 +532,7 @@ public class RepositoryImpl implements IRepository
     {
       try
       {
-        TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(git);
+        TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(getConfig());
         CloneCommand cloneRepo = Git.cloneRepository()
             .setTransportConfigCallback(transportConfigCallback)
             .setURI(pUrl)
@@ -1075,6 +1078,9 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Observable<Optional<IBranch>> getCurrentBranch()
   {
@@ -1091,12 +1097,18 @@ public class RepositoryImpl implements IRepository
     return branchList;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<ICommit> getStashedCommits() throws AditoGitException
   {
     return RepositoryImplHelper.getStashedCommits(git);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Nullable String peekStash() throws AditoGitException
   {
@@ -1115,6 +1127,9 @@ public class RepositoryImpl implements IRepository
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Nullable String stashChanges() throws AditoGitException
   {
@@ -1128,6 +1143,9 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<IMergeDiff> unStashIfAvailable() throws AditoGitException
   {
@@ -1139,6 +1157,9 @@ public class RepositoryImpl implements IRepository
     return Collections.emptyList();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException
   {
@@ -1178,6 +1199,9 @@ public class RepositoryImpl implements IRepository
     return Collections.emptyList();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void dropStashedCommit(@NotNull String pStashCommitId) throws AditoGitException
   {
@@ -1189,6 +1213,15 @@ public class RepositoryImpl implements IRepository
     {
       throw new AditoGitException(pE);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public IConfig getConfig()
+  {
+    return dataFactory.createConfig(git);
   }
 
 
