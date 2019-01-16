@@ -2,19 +2,24 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.INotifyUtil;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.IRebaseResult;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.api.progress.*;
+import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * PullAction to pull from one branch.
@@ -69,7 +74,7 @@ class PullAction extends AbstractAction
     boolean doAbort = false;
     try
     {
-      if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
+      if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty() || !pStatus.getConflicting().isEmpty()).orElse(true))
       {
         pProgressHandle.setDescription("Stashing Changes");
         prefStore.put(STASH_ID_KEY, pRepo.stashChanges());
