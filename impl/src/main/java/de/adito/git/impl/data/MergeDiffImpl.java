@@ -71,7 +71,7 @@ public class MergeDiffImpl implements IMergeDiff
         pChangeChunk.getALines(),
         pChangeChunk.getBLines(),
         EChangeType.SAME);
-    getDiff(pConflictSide).getFileChanges().replace(pChangeChunk, replaceWith, false);
+    getDiff(pConflictSide).getFileChanges().replace(pChangeChunk, replaceWith, true);
   }
 
   /**
@@ -346,6 +346,10 @@ public class MergeDiffImpl implements IMergeDiff
     while (intersectionIndex < pFileChangeChunkList.size() && pFileChangeChunkList.get(intersectionIndex).getAEnd() <= pToInsert.getAStart())
     {
       intersectionIndex++;
+      if (pFileChangeChunkList.get(intersectionIndex).getAEnd() == pToInsert.getAStart() && pToInsert.getAStart() == pToInsert.getAEnd())
+      {
+        break;
+      }
     }
     if (pToInsert.getChangeType() == EChangeType.ADD && pToInsert.getAStart() == pFileChangeChunkList.get(intersectionIndex).getAStart())
     {
@@ -354,7 +358,8 @@ public class MergeDiffImpl implements IMergeDiff
     // all chunks before the affected area are now excluded
     while (intersectionIndex < pFileChangeChunkList.size() && pFileChangeChunkList.get(intersectionIndex).getAStart() < pToInsert.getAEnd())
     {
-      affectedChunks.add(intersectionIndex);
+      if (!affectedChunks.contains(intersectionIndex))
+        affectedChunks.add(intersectionIndex);
       intersectionIndex++;
     }
     return affectedChunks;

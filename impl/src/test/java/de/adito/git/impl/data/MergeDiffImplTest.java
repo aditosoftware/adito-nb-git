@@ -3,9 +3,12 @@ package de.adito.git.impl.data;
 import de.adito.git.api.data.IFileChangeChunk;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author m.kaspera 19.10.2018
@@ -18,6 +21,18 @@ class MergeDiffImplTest
   private final String[] aLines = {"aa\nab\nac\nad\nae\n", "af\nag\n",
                                    "ah\nai\naj\nak\nal\nam\nan\nao\n", "ap\naq\nar\nas\nat\nau\nav\n",
                                    "aw\nax\nay\naz\na1\na2\n", "a3\n", "a4\n"};
+
+  @Test
+  void testInsertAffectedChunkIndizes()
+  {
+    final int[] aStart = {0, 4, 4, 8};
+    final int[] aEnd = {4, 4, 8, 12};
+    List<IFileChangeChunk> fileChangeChunkList = createFileChangeChunkList(aStart, aEnd);
+    IFileChangeChunk toInsert = new FileChangeChunkImpl(new Edit(4, 4, 4, 8), "", "");
+    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(toInsert, fileChangeChunkList);
+    Assertions.assertEquals(1, affectedIndizes.size());
+    Assertions.assertEquals(1, (int) affectedIndizes.get(0));
+  }
 
   /**
    * Test if the correct chunk indizes are returned when several chunks are affected by the change
