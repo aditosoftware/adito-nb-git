@@ -2,14 +2,19 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.INotifyUtil;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EResetType;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 05.11.2018
@@ -41,7 +46,7 @@ class ResetAction extends AbstractTableAction
   {
     DialogResult<?, EResetType> dialogResult = dialogProvider.showResetDialog();
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
-    if (selectedCommits.size() == 1)
+    if (selectedCommits.size() == 1 && dialogResult.isPressedOk())
     {
       progressFacade.executeInBackground("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
         repository.blockingFirst()
