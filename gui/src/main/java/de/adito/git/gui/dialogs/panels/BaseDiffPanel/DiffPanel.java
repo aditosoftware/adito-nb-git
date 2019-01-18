@@ -11,6 +11,7 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.text.EditorKit;
 import java.awt.BorderLayout;
 import java.awt.ComponentOrientation;
 import java.util.Collections;
@@ -31,7 +32,7 @@ public class DiffPanel extends JPanel implements IDiscardable
    * @param pFileDiffObs Observable of the IFileDiff
    * @param pAcceptIcon  ImageIcon that is used for the "accept these changes" button
    */
-  public DiffPanel(@NotNull Observable<Optional<IFileDiff>> pFileDiffObs, @NotNull ImageIcon pAcceptIcon)
+  public DiffPanel(@NotNull Observable<Optional<IFileDiff>> pFileDiffObs, @NotNull ImageIcon pAcceptIcon, Observable<EditorKit> pEditorKitObservable)
   {
     Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
@@ -39,14 +40,14 @@ public class DiffPanel extends JPanel implements IDiscardable
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable,
                                                               IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines,
                                                               IFileChangeChunk::getBStart, IFileChangeChunk::getBEnd);
-    currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel);
+    currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);
     currentVersionDiffPane.getPane().addLineNumPanel(currentDiffPanelModel, BorderLayout.WEST);
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable,
                                                           IFileChangeChunk::getALines, IFileChangeChunk::getAParityLines,
                                                           IFileChangeChunk::getAStart, IFileChangeChunk::getAEnd);
-    oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel);
+    oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
     oldVersionDiffPane.getPane().addLineNumPanel(oldDiffPanelModel, BorderLayout.EAST);
     oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, pChangeChunk -> pFileDiffObs.blockingFirst()
                                                           .ifPresent(pFileDiff -> pFileDiff.getFileChanges().resetChanges(pChangeChunk)), null,

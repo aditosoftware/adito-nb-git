@@ -10,8 +10,10 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.EditorKit;
 import java.util.List;
 
 /**
@@ -26,20 +28,23 @@ public class ForkPointPaneWrapper implements IDiscardable
   private final JEditorPane editorPane;
   private final DiffPane diffPane;
   private final IMergeDiff mergeDiff;
-  private final Disposable disposable;
+  private final Disposable mergeDiffDisposable;
+  private final Disposable editorKitDisposable;
   private final _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
 
   /**
    * @param pMergeDiff MergeDiff that has all the information about the conflict that should be displayed/resolvable
+   * @param pEditorKitObservable Observable of the editorKit that should be used in the editorPane
    */
-  public ForkPointPaneWrapper(IMergeDiff pMergeDiff)
+  public ForkPointPaneWrapper(IMergeDiff pMergeDiff, Observable<EditorKit> pEditorKitObservable)
   {
     mergeDiff = pMergeDiff;
     editorPane = new JEditorPane();
+    editorKitDisposable = pEditorKitObservable.subscribe(this::_setEditorKit);
     // disable manual text input for now, also no need for document listener as long as jEditorPane not editable
     diffPane = new DiffPane(editorPane);
     editorPane.getDocument().addDocumentListener(paneDocumentListener);
-    disposable = Observable.zip(
+    mergeDiffDisposable = Observable.zip(
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(), _ListPair::new)
         .subscribe(this::_refreshContent);
@@ -53,6 +58,14 @@ public class ForkPointPaneWrapper implements IDiscardable
   public JScrollPane getScrollPane()
   {
     return diffPane.getScrollPane();
+  }
+
+  private void _setEditorKit(EditorKit pEditorKit)
+  {
+    String currentText = editorPane.getText();
+    editorPane.setEditorKit(pEditorKit);
+    editorPane.setText(currentText);
+    editorPane.setCaretPosition(0);
   }
 
   private void _refreshContent(_ListPair pChangeChunkLists)
@@ -79,7 +92,8 @@ public class ForkPointPaneWrapper implements IDiscardable
   @Override
   public void discard()
   {
-    disposable.dispose();
+    mergeDiffDisposable.dispose();
+    editorKitDisposable.dispose();
   }
 
   /**

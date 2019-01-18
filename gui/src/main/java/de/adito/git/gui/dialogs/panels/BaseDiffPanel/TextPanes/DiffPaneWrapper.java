@@ -5,9 +5,11 @@ import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPanelModel;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane.DiffPane;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
+import javax.swing.text.EditorKit;
 import java.util.List;
 
 /**
@@ -22,22 +24,24 @@ public class DiffPaneWrapper implements IDiscardable
   private final JEditorPane editorPane;
   private final DiffPane diffPane;
   private final DiffPanelModel model;
-  private final Disposable disposable;
+  private final Disposable fileChangeDisposable;
+  private final Disposable editorKitDisposable;
 
   /**
    * @param pModel DiffPanelModel that defines what is done when inserting text/how the LineNumbers are retrieved
    */
-  public DiffPaneWrapper(DiffPanelModel pModel)
+  public DiffPaneWrapper(DiffPanelModel pModel, Observable<EditorKit> pEditorKitObservable)
   {
     model = pModel;
     editorPane = new JEditorPane();
     editorPane.setEditable(false);
     diffPane = new DiffPane(editorPane);
-    disposable = model.getFileChangesObservable()
+    fileChangeDisposable = model.getFileChangesObservable()
         .subscribe(pFileChangesEvent -> {
           if (pFileChangesEvent.isUpdateUI())
             _textChanged(pFileChangesEvent.getNewValue());
         });
+    editorKitDisposable = pEditorKitObservable.subscribe(this::_setEditorKit);
   }
 
   /**
@@ -57,6 +61,22 @@ public class DiffPaneWrapper implements IDiscardable
     return diffPane;
   }
 
+  @Override
+  public void discard()
+  {
+    diffPane.discard();
+    fileChangeDisposable.dispose();
+    editorKitDisposable.dispose();
+  }
+
+  private void _setEditorKit(EditorKit pEditorKit)
+  {
+    String currentText = editorPane.getText();
+    editorPane.setEditorKit(pEditorKit);
+    editorPane.setText(currentText);
+    editorPane.setCaretPosition(0);
+  }
+
   private void _textChanged(List<IFileChangeChunk> pChangeChunkList)
   {
     final int scrollBarPos = getScrollPane() != null ? getScrollPane().getVerticalScrollBar().getValue() : 0;
@@ -70,12 +90,4 @@ public class DiffPaneWrapper implements IDiscardable
     editorPane.revalidate();
     SwingUtilities.invokeLater(() -> getScrollPane().getVerticalScrollBar().setValue(scrollBarPos));
   }
-
-  @Override
-  public void discard()
-  {
-    diffPane.discard();
-    disposable.dispose();
-  }
-
 }

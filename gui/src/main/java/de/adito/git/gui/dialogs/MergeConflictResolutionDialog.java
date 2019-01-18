@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
 
@@ -30,13 +31,13 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
   private final MergePanel mergePanel;
 
   @Inject
-  MergeConflictResolutionDialog(IIconLoader pIconLoader, @Assisted IMergeDiff pMergeDiff)
+  MergeConflictResolutionDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeDiff pMergeDiff)
   {
     mergeDiff = pMergeDiff;
     ImageIcon acceptYoursIcon = pIconLoader.getIcon(ACCEPT_CHANGE_YOURS_ICON);
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
     ImageIcon discardIcon = pIconLoader.getIcon(DISCARD_CHANGE_ICON);
-    mergePanel = new MergePanel(mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon);
+    mergePanel = new MergePanel(mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui();
   }
 
