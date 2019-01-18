@@ -1,7 +1,11 @@
-package de.adito.git.gui.dialogs.panels.TextPanes;
+package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes;
 
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.TextHighlightUtil;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane.DiffPane;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -11,40 +15,44 @@ import javax.swing.text.BadLocationException;
 import java.util.List;
 
 /**
+ *  Wrapper around a DiffPane, similar to DiffPaneWrapper. Made so that both use a DiffPane for displaying the LineNumPanels/ChoiceButtonPanels
+ *  while having different functionality in the central editorPane
+ *
  * @author m.kaspera, 13.12.2018
  */
 public class ForkPointPaneWrapper implements IDiscardable
 {
 
-  private final JScrollPane textScrollPane;
-  private final JEditorPane textPane;
+  private final JEditorPane editorPane;
+  private final DiffPane diffPane;
   private final IMergeDiff mergeDiff;
   private final Disposable disposable;
   private final _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
-  private int caretPosition;
 
+  /**
+   * @param pMergeDiff MergeDiff that has all the information about the conflict that should be displayed/resolvable
+   */
   public ForkPointPaneWrapper(IMergeDiff pMergeDiff)
   {
     mergeDiff = pMergeDiff;
-    textPane = new NonWrappingTextPane();
-    textScrollPane = new JScrollPane(textPane);
-    // disable manual text input for now, also no need for document listener as long as textPane not editable
-    textPane.setEditable(false);
-    //textPane.getDocument().addDocumentListener(paneDocumentListener);
+    editorPane = new JEditorPane();
+    // disable manual text input for now, also no need for document listener as long as jEditorPane not editable
+    diffPane = new DiffPane(editorPane);
+    editorPane.getDocument().addDocumentListener(paneDocumentListener);
     disposable = Observable.zip(
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(), _ListPair::new)
         .subscribe(this::_refreshContent);
   }
 
-  public JScrollPane getPane()
+  public DiffPane getPane()
   {
-    return textScrollPane;
+    return diffPane;
   }
 
-  public JEditorPane getTextPane()
+  public JScrollPane getScrollPane()
   {
-    return textPane;
+    return diffPane.getScrollPane();
   }
 
   private void _refreshContent(_ListPair pChangeChunkLists)
@@ -52,18 +60,18 @@ public class ForkPointPaneWrapper implements IDiscardable
     if (pChangeChunkLists.doUpdate)
     {
       paneDocumentListener.disable();
-      caretPosition = textPane.getCaretPosition();
-      int scrollBarVal = textScrollPane.getVerticalScrollBar().getModel().getValue();
-      textScrollPane.getVerticalScrollBar().getModel().setValueIsAdjusting(true);
+      final int scrollBarPos = getScrollPane() != null ? getScrollPane().getVerticalScrollBar().getValue() : 0;
       // OLD because the content of the ForkPointTextPane is the version of the forkPoint (i.e. the old version in all cases since forkPoint
       // predates both commits)
-      TextHighlightUtil.insertColoredText(textPane, pChangeChunkLists.yourVersion, pChangeChunkLists.theirVersion,
-                                          IFileChangeChunk::getALines, pFileChangeChunk -> "");
-      SwingUtilities.invokeLater(() -> {
-        textPane.setCaretPosition(caretPosition);
-        textScrollPane.getVerticalScrollBar().getModel().setValue(scrollBarVal);
-        textScrollPane.getVerticalScrollBar().getModel().setValueIsAdjusting(false);
-      });
+      TextHighlightUtil.insertColoredText(editorPane,
+                                          pChangeChunkLists.yourVersion,
+                                          pChangeChunkLists.theirVersion,
+                                          IFileChangeChunk::getALines,
+                                          pFileChangeChunk -> "",
+                                          IFileChangeChunk::getAStart,
+                                          IFileChangeChunk::getAEnd);
+      editorPane.revalidate();
+      SwingUtilities.invokeLater(() -> getScrollPane().getVerticalScrollBar().setValue(scrollBarPos));
       paneDocumentListener.enable();
     }
   }
@@ -81,8 +89,9 @@ public class ForkPointPaneWrapper implements IDiscardable
    */
   private class _PaneDocumentListener implements DocumentListener
   {
+
     private boolean isActive = true;
-    
+
     @Override
     public void insertUpdate(DocumentEvent pEvent)
     {

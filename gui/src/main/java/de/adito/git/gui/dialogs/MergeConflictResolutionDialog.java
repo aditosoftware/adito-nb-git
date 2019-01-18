@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.dialogs.panels.MergePanel;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
 
 import javax.swing.*;

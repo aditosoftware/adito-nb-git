@@ -3,6 +3,13 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.ColorPicker;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileDiff;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPanel;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.DiffPanel;
@@ -24,6 +31,7 @@ import java.util.*;
  */
 class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
+
   private static final String ACCEPT_ICON_PATH = Constants.ACCEPT_CHANGE_YOURS_ICON;
   private static final Dimension PANEL_MIN_SIZE = new Dimension(800, 600);
   private static final Dimension PANEL_PREF_SIZE = new Dimension(1600, 900);
