@@ -121,6 +121,7 @@ class LineNumPanel extends JPanel implements IDiscardable
     if (startingLineElement != null && endingLineElement != null)
     {
       Rectangle bounds;
+      // case "insert stuff here", no parity lines and pNumLines was 0 -> endingLineElement is of line before startingLineElement
       if (startingLineElement.getStartOffset() == endingLineElement.getEndOffset())
       {
         bounds = pView.modelToView(startingLineElement.getStartOffset(), new Rectangle(), Position.Bias.Forward).getBounds();
