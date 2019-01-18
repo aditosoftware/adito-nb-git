@@ -1,10 +1,13 @@
 package de.adito.git.gui;
 
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
 
+import javax.swing.*;
 import javax.swing.text.*;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Handles inserting lists of IFileChangeChunks into textPanes and highlighting parts of the text
@@ -21,173 +24,117 @@ public class TextHighlightUtil
   }
 
   /**
-   * @param pTextPane         JTextPane that should be filled with text and colored
+   * @param pEditorPane       JEditorPane that should be filled with text and colored
    * @param pFileChangeChunks IFileChangeChunks determining the text and highlighting
    * @param pGetLines         Function that retrieves the fitting String from the IFileChangeChunk (A or B side)
    * @param pGetParityLines   Function that retrieves the fitting parity lines from the IFileChangeChunk.
    *                          Return "" in the function if parity lines should be ignored
    */
-  public static void insertColoredText(JTextComponent pTextPane, List<IFileChangeChunk> pFileChangeChunks,
-                                       Function<IFileChangeChunk, String> pGetLines, Function<IFileChangeChunk, String> pGetParityLines)
+  public static void insertColoredText(JEditorPane pEditorPane, List<IFileChangeChunk> pFileChangeChunks,
+                                       Function<IFileChangeChunk, String> pGetLines, Function<IFileChangeChunk, String> pGetParityLines,
+                                       Function<IFileChangeChunk, Integer> pGetStartLine, Function<IFileChangeChunk, Integer> pGetEndLine)
   {
-    _insertColoredText(pTextPane, pFileChangeChunks, pGetLines, pGetParityLines, new ArrayList<>());
+    _insertColoredText(pEditorPane, pFileChangeChunks, pGetLines, pGetParityLines, pGetStartLine, pGetEndLine, ArrayList::new);
   }
 
   /**
    * Combines the highlighting of two List of IFileChangeChunks, text is assumed to be identical
    *
-   * @param pTextPane              JTextPane that should be filled with text and colored
+   * @param pEditorPane            JEditorPane that should be filled with text and colored
    * @param pYourFileChangeChunks  IFileChangeChunks determining the text and highlighting
    * @param pTheirFileChangeChunks IFileChangeChunks determining the text and highlighting
    * @param pGetLines              Function that retrieves the fitting String from the IFileChangeChunk (A or B side)
    * @param pGetParityLines        Function that retrieves the fitting parity lines from the IFileChangeChunk.
    *                               Return "" in the function if parity lines should be ignored
    */
-  public static void insertColoredText(JTextComponent pTextPane, List<IFileChangeChunk> pYourFileChangeChunks,
-                                       List<IFileChangeChunk> pTheirFileChangeChunks,
-                                       Function<IFileChangeChunk, String> pGetLines,
-                                       Function<IFileChangeChunk, String> pGetParityLines)
+  public static void insertColoredText(JEditorPane pEditorPane, List<IFileChangeChunk> pYourFileChangeChunks,
+                                       List<IFileChangeChunk> pTheirFileChangeChunks, Function<IFileChangeChunk, String> pGetLines,
+                                       Function<IFileChangeChunk, String> pGetParityLines, Function<IFileChangeChunk, Integer> pGetStartLine,
+                                       Function<IFileChangeChunk, Integer> pGetEndLine)
   {
-    _insertColoredText(pTextPane, pYourFileChangeChunks, pGetLines, pGetParityLines,
-                       _getHighlightSpots(pTheirFileChangeChunks, pGetLines, pGetParityLines));
+    _insertColoredText(pEditorPane, pYourFileChangeChunks, pGetLines, pGetParityLines, pGetStartLine, pGetEndLine,
+                       () -> _getHighlightSpots(pEditorPane, pTheirFileChangeChunks, pGetStartLine, pGetEndLine));
   }
 
   /**
+   * @param pEditorPane       JEditorPane that should be filled with text and colored
    * @param pFileChangeChunks List of IFileChangeChunks for which the highlighted areas should be determined
-   * @param pGetLines         Function that retrieves the normal lines for an IFileChangeChunk
-   * @param pGetParityLines   Function that retrieves the parity lines for an IFileChangeChunk
+   * @param pGetStartLine     Function that return the starting line of one side (defined in the function) of the given IFileChangeChunk
+   * @param pGetEndLine       Function that return the end line of one side (defined in the function) of the given IFileChangeChunk
    * @return List of _Highlight
    */
-  private static List<_Highlight> _getHighlightSpots(List<IFileChangeChunk> pFileChangeChunks, Function<IFileChangeChunk, String> pGetLines,
-                                                     Function<IFileChangeChunk, String> pGetParityLines)
+  private static List<_Highlight> _getHighlightSpots(JEditorPane pEditorPane,
+                                                     List<IFileChangeChunk> pFileChangeChunks,
+                                                     Function<IFileChangeChunk, Integer> pGetStartLine,
+                                                     Function<IFileChangeChunk, Integer> pGetEndLine)
   {
     List<_Highlight> highlightSpots = new ArrayList<>();
-    int currentIndex = 0;
-    int currentLen;
     for (IFileChangeChunk changeChunk : pFileChangeChunks)
     {
-      currentLen = pGetLines.apply(changeChunk).length();
-      currentLen += pGetParityLines.apply(changeChunk).length();
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {
-        highlightSpots.add(new _Highlight(currentIndex, currentIndex + currentLen,
-                                          new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
+        int startOffset = pEditorPane.getDocument().getDefaultRootElement().getElement(pGetStartLine.apply(changeChunk)).getStartOffset();
+        // -1 because the end line is considered exclusive (also if endLine == startLine the offsets are the same this way)
+        int endOffset = pEditorPane.getDocument().getDefaultRootElement().getElement(pGetEndLine.apply(changeChunk) - 1).getEndOffset();
+        // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
+        if (startOffset < endOffset)
+          endOffset -= 1;
+        highlightSpots.add(new _Highlight(startOffset, endOffset,
+                                          new LineHighlightPainter(changeChunk.getChangeType().getDiffColor(),
+                                                                   startOffset == endOffset ? LineHighlightPainter.Mode.THIN_LINE
+                                                                       : LineHighlightPainter.Mode.WHOLE_LINE)));
       }
-      currentIndex += currentLen;
     }
     return highlightSpots;
   }
 
   /**
-   * @param pTextPane         JTextPane that should be filled with text and colored
-   * @param pFileChangeChunks List of IFileChangeChunks providing the text and the information about which areas to highlight
-   * @param pGetLines         Function that retrieves the normal lines for an IFileChangeChunk
-   * @param pGetParityLines   Function that retrieves the parity lines for an IFileChangeChunk
-   * @param pHighlightSpots   List of _Highlight determining which areas get colored and the color of the areas
+   * @param pJEditorPane                  JEditorPane that should be filled with text and colored
+   * @param pFileChangeChunks             List of IFileChangeChunks providing the text and the information about which areas to highlight
+   * @param pGetLines                     Function that retrieves the normal lines for an IFileChangeChunk
+   * @param pGetParityLines               Function that retrieves the parity lines for an IFileChangeChunk
+   * @param pAdditionalHighlightsSupplier Supplier of list of _Highlight determining which additional areas get colored and the color of the areas
    */
-  private static void _insertColoredText(JTextComponent pTextPane, List<IFileChangeChunk> pFileChangeChunks, Function<IFileChangeChunk,
-      String> pGetLines, Function<IFileChangeChunk, String> pGetParityLines, List<_Highlight> pHighlightSpots)
+  private static void _insertColoredText(JEditorPane pJEditorPane, List<IFileChangeChunk> pFileChangeChunks,
+                                         Function<IFileChangeChunk, String> pGetLines, Function<IFileChangeChunk, String> pGetParityLines,
+                                         Function<IFileChangeChunk, Integer> pGetStartLine, Function<IFileChangeChunk, Integer> pGetEndLIne,
+                                         Supplier<List<_Highlight>> pAdditionalHighlightsSupplier)
   {
     StringBuilder paneContentBuilder = new StringBuilder();
-    int currentIndex = 0;
-    int currentLen;
     for (IFileChangeChunk changeChunk : pFileChangeChunks)
     {
       paneContentBuilder.append(pGetLines.apply(changeChunk));
-      currentLen = pGetLines.apply(changeChunk).length();
       paneContentBuilder.append(pGetParityLines.apply(changeChunk));
-      currentLen += pGetParityLines.apply(changeChunk).length();
+    }
+    pJEditorPane.setText(paneContentBuilder.toString());
+    int numParityLines = 0;
+    List<_Highlight> highlights = pAdditionalHighlightsSupplier.get();
+    for (IFileChangeChunk changeChunk : pFileChangeChunks)
+    {
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {
-        pHighlightSpots.add(new _Highlight(currentIndex, currentIndex + currentLen,
-                                           new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
+        int startOffset = pJEditorPane.getDocument().getDefaultRootElement()
+            .getElement(pGetStartLine.apply(changeChunk) + numParityLines).getStartOffset();
+        numParityLines += pGetParityLines.apply(changeChunk).length();
+        // Minus one in the getElement() because the last line is not included
+        int endOffset = pJEditorPane.getDocument().getDefaultRootElement()
+            .getElement(pGetEndLIne.apply(changeChunk) + numParityLines - 1).getEndOffset();
+        // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
+        if (startOffset < endOffset)
+          endOffset -= 1;
+        highlights.add(new _Highlight(startOffset, endOffset,
+                                      new LineHighlightPainter(changeChunk.getChangeType().getDiffColor(),
+                                                               startOffset == endOffset ? LineHighlightPainter.Mode.THIN_LINE
+                                                                   : LineHighlightPainter.Mode.WHOLE_LINE)));
       }
-      currentIndex += currentLen;
     }
-    pTextPane.setText(paneContentBuilder.toString());
-    _colorHighlights(pTextPane, pHighlightSpots);
+    _colorHighlights(pJEditorPane, highlights);
   }
 
-  /**
-   * @param pLineNumberingPane JTextPane that should display the line numbers
-   * @param pChangeChunkList   List of IFileChangeChunks determining the line numbers and colored areas
-   * @param pChangeSide        which part of the IFileChangeChunks (A-/B-lines) should be used
-   */
-  public static void insertColoredLineNumbers(JTextComponent pLineNumberingPane, List<IFileChangeChunk> pChangeChunkList,
-                                              EChangeSide pChangeSide)
-  {
-    Function<IFileChangeChunk, Integer> getNumLines;
-    Function<IFileChangeChunk, String> getParityLines;
-    if (pChangeSide == EChangeSide.NEW)
-    {
-      getNumLines = pIFileChangeChunk -> pIFileChangeChunk.getBEnd() - pIFileChangeChunk.getBStart();
-      getParityLines = IFileChangeChunk::getBParityLines;
-    }
-    else
-    {
-      getNumLines = pIFileChangeChunk -> pIFileChangeChunk.getAEnd() - pIFileChangeChunk.getAStart();
-      getParityLines = IFileChangeChunk::getAParityLines;
-    }
-    insertColoredLineNumbers(pLineNumberingPane, pChangeChunkList, getNumLines, getParityLines);
-
-  }
-
-  /**
-   * @param pLineNumberingPane JTextPane that should display the line numbers
-   * @param pChangeChunkList   List of IFileChangeChunks determining the line numbers and colored areas
-   * @param pGetNumLines       Function that retrieves the normal lines for an IFileChangeChunk
-   * @param pGetParityLines    Function that retrieves the parity lines for an IFileChangeChunk
-   */
-  public static void insertColoredLineNumbers(JTextComponent pLineNumberingPane, List<IFileChangeChunk> pChangeChunkList,
-                                              Function<IFileChangeChunk, Integer> pGetNumLines,
-                                              Function<IFileChangeChunk, String> pGetParityLines)
-  {
-    List<_Highlight> highlightSpots = new ArrayList<>();
-    StringBuilder lineNumberingBuilder = new StringBuilder();
-    int lineNum = 1;
-    int currentIndex = 0;
-    int numNewLines;
-    int currentLen;
-    for (IFileChangeChunk changeChunk : pChangeChunkList)
-    {
-      numNewLines = pGetNumLines.apply(changeChunk);
-      String lineNums = _getLineNumString(lineNum, numNewLines);
-      lineNumberingBuilder.append(lineNums);
-      currentLen = lineNums.length();
-      lineNum += numNewLines;
-      // parity lines should only contain newlines anyway, so no filtering or counting newlines should be necessary
-      lineNumberingBuilder.append(pGetParityLines.apply(changeChunk));
-      currentLen += pGetParityLines.apply(changeChunk).length();
-      if (changeChunk.getChangeType() != EChangeType.SAME)
-      {
-        highlightSpots.add(new _Highlight(currentIndex, currentIndex + currentLen,
-                                          new DefaultHighlighter.DefaultHighlightPainter(changeChunk.getChangeType().getDiffColor())));
-      }
-      currentIndex += currentLen;
-    }
-    pLineNumberingPane.setText(lineNumberingBuilder.toString());
-    _colorHighlights(pLineNumberingPane, highlightSpots);
-  }
-
-  /**
-   * @param pStart number of the first line
-   * @param pCount number of lines
-   * @return String with the lineNumbers from pStart to pStart + pCount
-   */
-  private static String _getLineNumString(int pStart, int pCount)
-  {
-    StringBuilder lineNumStringBuilder = new StringBuilder();
-    for (int index = 0; index < pCount; index++)
-    {
-      lineNumStringBuilder.append(pStart + index).append("\n");
-    }
-    return lineNumStringBuilder.toString();
-  }
-
-  private static void _colorHighlights(JTextComponent pTextPane, List<_Highlight> pHighlightSpots)
+  private static void _colorHighlights(JEditorPane pJEditorPane, List<_Highlight> pHighlightSpots)
   {
     LineHighlighter highlighter = new LineHighlighter();
-    pTextPane.setHighlighter(highlighter);
+    pJEditorPane.setHighlighter(highlighter);
     try
     {
       for (_Highlight highlight : pHighlightSpots)
@@ -212,7 +159,7 @@ public class TextHighlightUtil
     private final int endOffset;
     private final DefaultHighlighter.DefaultHighlightPainter painter;
 
-    _Highlight(int startIndex, int endOffset, DefaultHighlighter.DefaultHighlightPainter painter)
+    _Highlight(int startIndex, int endOffset, LineHighlightPainter painter)
     {
       this.startIndex = startIndex;
       this.endOffset = endOffset;
