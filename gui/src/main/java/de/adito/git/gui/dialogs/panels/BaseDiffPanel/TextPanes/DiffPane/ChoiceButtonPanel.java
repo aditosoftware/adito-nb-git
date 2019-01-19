@@ -32,7 +32,9 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
   private final int acceptChangeIconXVal;
   private final int discardChangeIconXVal;
   private final Disposable disposable;
+  private Rectangle cachedViewRectangle;
   private List<IconInfo> iconInfoList = new ArrayList<>();
+  private List<IconInfo> iconInfosToDraw = new ArrayList<>();
 
   /**
    * @param pModel         DiffPanelModel that contains functions that retrieve information, such as start/end line, of an IFileChangeChunk
@@ -59,10 +61,10 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
         pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new)
         .subscribe(
             pPair -> SwingUtilities.invokeLater(() -> {
-              iconInfoList = new ArrayList<>(_calculateIconPositions(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle()));
+              _calculateButtonViewCoordinates(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle());
               repaint();
             }));
-    addMouseListener(new IconPressMouseAdapter(pAcceptIcon.getIconWidth(), pDoOnAccept, pDoOnDiscard, () -> iconInfoList,
+    addMouseListener(new IconPressMouseAdapter(pAcceptIcon.getIconWidth(), pDoOnAccept, pDoOnDiscard, () -> iconInfosToDraw,
                                                BorderLayout.WEST.equals(pOrientation)));
   }
 
@@ -76,7 +78,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
   protected void paintComponent(Graphics pGraphics)
   {
     super.paintComponent(pGraphics);
-    _paintIcons(pGraphics, iconInfoList);
+    _paintIcons(pGraphics, iconInfosToDraw);
   }
 
   /**
@@ -84,56 +86,64 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
    * @param pFileChangesEvent most recent IFileChangesEvent
    * @param pDisplayedArea    Coordinates of the viewPort window, in view coordinates
    */
-  private List<IconInfo> _calculateIconPositions(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pDisplayedArea)
+  private void _calculateButtonViewCoordinates(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pDisplayedArea)
   {
-    iconInfoList = new ArrayList<>();
-    try
+    if (cachedViewRectangle == null || cachedViewRectangle.width != pDisplayedArea.width || pDisplayedArea.equals(cachedViewRectangle))
     {
-      View view = pEditorPane.getUI().getRootView(pEditorPane);
-      int lineNumber = 0;
-      for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
+      List<IconInfo> iconInfos = new ArrayList<>();
+      try
       {
-        if (fileChange.getChangeType() != EChangeType.SAME)
+        View view = pEditorPane.getUI().getRootView(pEditorPane);
+        int lineNumber = 0;
+        for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
         {
-          _addIconsForLine(pEditorPane, lineNumber, view, pDisplayedArea, fileChange);
+          if (fileChange.getChangeType() != EChangeType.SAME)
+          {
+            Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(lineNumber);
+            if (lineElement == null)
+              throw new BadLocationException("lineElement for line was null", lineNumber);
+            int characterStartOffset = lineElement.getStartOffset();
+            int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
+                                                   Position.Bias.Forward, new Rectangle()).getBounds().y;
+            iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate + pEditorPane.getInsets().top, acceptChangeIconXVal, fileChange));
+            if (discardIcon != null)
+            {
+              iconInfos.add(new IconInfo(discardIcon, yViewCoordinate + pEditorPane.getInsets().top, discardChangeIconXVal, fileChange));
+            }
+          }
+          lineNumber += (model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange))
+              + model.getGetParityLines().apply(fileChange).length();
         }
-        lineNumber += (model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange))
-            + model.getGetParityLines().apply(fileChange).length();
+        iconInfoList = iconInfos;
+      }
+      catch (BadLocationException pE)
+      {
+        throw new RuntimeException(pE);
       }
     }
-    catch (BadLocationException pE)
-    {
-      throw new RuntimeException(pE);
-    }
-    return iconInfoList;
+    iconInfosToDraw = _calculateIconInfosToDraw(pEditorPane, pDisplayedArea, iconInfoList);
+    cachedViewRectangle = pDisplayedArea;
   }
 
   /**
-   * @param pEditorPane    JEditorPane that contains the text of the IFileChangeChunks
-   * @param pLineNumber    number of the line that the icons will be for
-   * @param pView          rootView of the EditorPane
-   * @param pDisplayedArea Rectangle with the viewPort on top of the EditorPane
-   * @param pFileChange    IFileChangeChunk that the icons will be for
-   * @throws BadLocationException if i.e. the line is not inside the document
+   *
+   * @param pEditorPane JEditorPane that contains the text of the IFileChangeChunks
+   * @param pDisplayedArea Coordinates of the viewPort window, in view coordinates
+   * @param pIconInfos List of all IconInfos of this Panel
+   * @return List of IconInfos filtered by "do they have to be drawn"
    */
-  private void _addIconsForLine(JEditorPane pEditorPane, int pLineNumber, View pView,
-                                Rectangle pDisplayedArea, IFileChangeChunk pFileChange) throws BadLocationException
+  private List<IconInfo> _calculateIconInfosToDraw(@NotNull JEditorPane pEditorPane, Rectangle pDisplayedArea, List<IconInfo> pIconInfos)
   {
-    Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineNumber);
-    if (lineElement == null)
-      return;
-    int characterStartOffset = lineElement.getStartOffset();
-    int yViewCoordinate = pView.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
-                                            Position.Bias.Forward, new Rectangle()).getBounds().y;
-    if (pDisplayedArea.intersects(new Rectangle(0, yViewCoordinate, Integer.MAX_VALUE, acceptIcon.getIconHeight())))
+    List<IconInfo> filteredIconInfos = new ArrayList<>();
+    for (IconInfo iconInfo : pIconInfos)
     {
-      int yDrawCoordinate = yViewCoordinate - pDisplayedArea.y;
-      iconInfoList.add(new IconInfo(acceptIcon, yDrawCoordinate + pEditorPane.getInsets().top, acceptChangeIconXVal, pFileChange));
-      if (discardIcon != null)
+      if (pDisplayedArea.intersects(iconInfo.getIconCoordinates()))
       {
-        iconInfoList.add(new IconInfo(discardIcon, yDrawCoordinate + pEditorPane.getInsets().top, discardChangeIconXVal, pFileChange));
+        filteredIconInfos.add(new IconInfo(iconInfo.getImageIcon(), iconInfo.getIconCoordinates().y - pDisplayedArea.y + pEditorPane.getInsets().top,
+                                           iconInfo.getIconCoordinates().x, iconInfo.getFileChangeChunk()));
       }
     }
+    return filteredIconInfos;
   }
 
   /**
