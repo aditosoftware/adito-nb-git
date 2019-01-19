@@ -80,7 +80,7 @@ class LineNumPanel extends JPanel implements IDiscardable
    */
   private void _calculateLineNumbers(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pViewWindow)
   {
-    if (pViewWindow.width != cachedViewRectangle.width || lineNumbers.isEmpty())
+    if (pViewWindow.width != cachedViewRectangle.width || lineNumbers.isEmpty() || pViewWindow.equals(cachedViewRectangle))
     {
       try
       {
@@ -154,7 +154,7 @@ class LineNumPanel extends JPanel implements IDiscardable
    */
   private void _calculateLineNumColors(JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pViewWindow)
   {
-    if (pViewWindow.width != cachedViewRectangle.width || lineNumberColors.isEmpty())
+    if (pViewWindow.width != cachedViewRectangle.width || lineNumberColors.isEmpty() || pViewWindow.equals(cachedViewRectangle))
     {
       try
       {
@@ -196,6 +196,7 @@ class LineNumPanel extends JPanel implements IDiscardable
         Rectangle toDrawRect = new Rectangle(lineNumberColor.getColoredArea());
         toDrawRect.y = toDrawRect.y - pViewRectangle.y;
         toDrawRect.x = toDrawRect.x + editorPaneInsets.left;
+        toDrawRect.width = LINE_NUM_FACADE_WIDTH;
         lineNumberColorsToDraw.add(new LineNumberColor(lineNumberColor.getColor(), toDrawRect));
       }
     }
@@ -233,7 +234,7 @@ class LineNumPanel extends JPanel implements IDiscardable
       else
       {
         bounds = pView.modelToView(startingLineElement.getStartOffset(), Position.Bias.Forward,
-                                   endingLineElement.getEndOffset(), Position.Bias.Backward, new Rectangle()).getBounds();
+                                   endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle()).getBounds();
       }
       return new LineNumberColor(pFileChange.getChangeType().getDiffColor(), bounds);
     }
