@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane;
 
+import de.adito.git.api.ColorPicker;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChangesEvent;
@@ -46,7 +47,7 @@ class LineNumPanel extends JPanel implements IDiscardable
   {
     editorPaneInsets = pEditorPane.getInsets();
     setPreferredSize(new Dimension(LINE_NUM_FACADE_WIDTH + editorPaneInsets.left + editorPaneInsets.right, 1));
-    setBackground(new Color(0xff313335, true));
+    setBackground(ColorPicker.DIFF_BACKGROUND);
     model = pModel;
     disposable = Observable.combineLatest(
         pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new)
@@ -259,7 +260,7 @@ class LineNumPanel extends JPanel implements IDiscardable
                          lineNumberColor.getColoredArea().width, lineNumberColor.getColoredArea().height);
     }
     ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    pGraphics.setColor(new Color(0xff888888, true));
+    pGraphics.setColor(ColorPicker.DIFF_LINE_NUM);
     for (LineNumber lineNumber : pLineNumbers)
     {
       pGraphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate(),

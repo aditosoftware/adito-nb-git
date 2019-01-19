@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane;
 
+import de.adito.git.api.ColorPicker;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChangesEvent;
@@ -54,7 +55,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
     discardIcon = pDiscardIcon;
     acceptIcon = pAcceptIcon;
     setPreferredSize(new Dimension(pAcceptIcon.getIconWidth() + (pDiscardIcon != null ? pDiscardIcon.getIconWidth() : 0), 1));
-    setBackground(new Color(0xff313335, true));
+    setBackground(ColorPicker.DIFF_BACKGROUND);
     acceptChangeIconXVal = BorderLayout.WEST.equals(pOrientation) || pDiscardIcon == null ? 0 : pDiscardIcon.getIconWidth();
     discardChangeIconXVal = BorderLayout.WEST.equals(pOrientation) ? pAcceptIcon.getIconWidth() : 0;
     disposable = Observable.combineLatest(

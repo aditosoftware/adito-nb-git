@@ -3,43 +3,55 @@ package de.adito.git.api;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.util.Map;
 
+/**
+ * Class that stores Colors in a central place, tries to retrieve the Color by UI manager key first. If no Color for the key is found,
+ * gets a pre-defined color for the key from a default-value map
+ *
+ * @author m.kaspera 28.11.2018
+ */
 public class ColorPicker
 {
 
-  public final static Color INFO_TEXT = getColor("infoText");
-  public final static Color VERSIONING_ADDED = getColor("nb.versioning.added.color");
-  public final static Color DIFF_ADDED = getColor("nb.diff.added.color");
-  public final static Color VERSIONING_MODIFIED = getColor("nb.versioning.modified.color");
-  public final static Color DIFF_MODIFIED = getColor("nb.diff.changed.color");
-  public final static Color VERSIONING_DELETED = getColor("nb.versioning.deleted.color");
-  public final static Color DIFF_DELETED = getColor("nb.diff.deleted.color");
-  public final static Color VERSIONING_CONFLICTING = getColor("nb.versioning.conflicted.color");
-  public final static Color DIFF_UNRESOLVED = getColor("nb.diff.unresolved.color");
-  public final static Color LIST_SELECTION_BACKGROUND = getColor("List.selectionBackground");
+  public static final Color INFO_TEXT = _getColor("infoText");
+  public static final Color VERSIONING_ADDED = _getColor("nb.versioning.added.color");
+  public static final Color DIFF_ADDED = _getColor("nb.diff.added.color");
+  public static final Color VERSIONING_MODIFIED = _getColor("nb.versioning.modified.color");
+  public static final Color DIFF_MODIFIED = _getColor("nb.diff.changed.color");
+  public static final Color VERSIONING_DELETED = _getColor("nb.versioning.deleted.color");
+  public static final Color DIFF_DELETED = _getColor("nb.diff.deleted.color");
+  public static final Color VERSIONING_CONFLICTING = _getColor("nb.versioning.conflicted.color");
+  public static final Color DIFF_UNRESOLVED = _getColor("nb.diff.unresolved.color");
+  public static final Color LIST_SELECTION_BACKGROUND = _getColor("List.selectionBackground");
+  public static final Color DIFF_LINE_NUM = _getColor("diff.line.num");
+  public static final Color DIFF_BACKGROUND = _getColor("diff.background");
+
+  private static Map<String, Color> defaultColors;
+
+  private ColorPicker()
+  {
+  }
 
   @NotNull
-  private static Color getColor(String key)
+  private static Color _getColor(String pKey)
   {
-    Color colorForKey = UIManager.getColor(key);
+    Color colorForKey = UIManager.getColor(pKey);
     if (defaultColors == null)
     {
       _initDefaultColors();
     }
     if (colorForKey == null)
     {
-      colorForKey = defaultColors.get(key);
+      colorForKey = defaultColors.get(pKey);
     }
     if (colorForKey == null)
     {
-      throw new RuntimeException("Could not find Color in both Look and Feel and default values for key" + key);
+      throw new RuntimeException("Could not find Color in both Look and Feel and default values for key" + pKey);
     }
     return colorForKey;
   }
-
-  private static Map<String, Color> defaultColors;
 
   private static void _initDefaultColors()
   {
@@ -53,7 +65,9 @@ public class ColorPicker
         Map.entry("nb.diff.deleted.color", new Color(85, 43, 43)),
         Map.entry("nb.versioning.conflicted.color", new Color(255, 100, 100)),
         Map.entry("nb.diff.unresolved.color", new Color(130, 30, 30)),
-        Map.entry("List.selectionBackground", new Color(52, 152, 219))
+        Map.entry("List.selectionBackground", new Color(52, 152, 219)),
+        Map.entry("diff.line.num", new Color(0xff888888, true)),
+        Map.entry("diff.background", new Color(0xff313335, true))
     );
   }
 
