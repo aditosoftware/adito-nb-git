@@ -15,7 +15,7 @@ import java.util.function.Supplier;
  *
  * @author m.kaspera, 10.01.2019
  */
-public class IconPressMouseAdapter extends MouseAdapter
+class IconPressMouseAdapter extends MouseAdapter
 {
 
   private final int iconWidth;
