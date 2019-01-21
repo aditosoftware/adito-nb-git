@@ -5,7 +5,7 @@ import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
-import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane.DiffPane;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.DiffPane;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 

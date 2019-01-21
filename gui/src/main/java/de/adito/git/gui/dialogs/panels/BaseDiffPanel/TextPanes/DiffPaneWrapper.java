@@ -3,8 +3,8 @@ package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.DiffPane;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPanelModel;
-import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane.DiffPane;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 

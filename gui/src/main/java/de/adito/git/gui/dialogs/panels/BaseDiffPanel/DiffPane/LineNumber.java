@@ -1,4 +1,4 @@
-package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane;
+package de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane;
 
 /**
  * Contains the line number and the y Coordinate for the baseline of the line number when drawn on the panel

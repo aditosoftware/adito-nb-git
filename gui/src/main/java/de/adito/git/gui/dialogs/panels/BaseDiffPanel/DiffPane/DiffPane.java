@@ -1,4 +1,4 @@
-package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane;
+package de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane;
 
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.OnionColumnLayout;

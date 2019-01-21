@@ -1,4 +1,4 @@
-package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane;
+package de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane;
 
 import java.awt.Color;
 import java.awt.Rectangle;

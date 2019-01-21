@@ -5,7 +5,7 @@ import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane.LineNumPanel;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.LineNumPanel;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPaneWrapper;
 import de.adito.git.impl.data.FileChangesEventImpl;
 import io.reactivex.Observable;
