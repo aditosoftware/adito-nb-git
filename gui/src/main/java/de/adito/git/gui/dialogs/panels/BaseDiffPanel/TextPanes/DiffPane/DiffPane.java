@@ -1,6 +1,5 @@
 package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane;
 
-import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPanelModel;
@@ -15,7 +14,6 @@ import java.awt.BorderLayout;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Contains a EditorPane, that is passed in the constructor, inside a ScrollPane. Around the EditorPane several LineNumPanels and ChoiceButtonPanels
@@ -53,26 +51,26 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pLineOrientation String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    *                         Defaults to BorderLayout.EAST if another String is passed
    */
-  public void addLineNumPanel(DiffPanelModel pModel, String pLineOrientation)
+  public LineNumPanel addLineNumPanel(DiffPanelModel pModel, String pLineOrientation)
   {
-    LineNumPanel lineNumFacade = new LineNumPanel(pModel, editorPane, viewPortObservable);
-    discardables.add(lineNumFacade);
-    add(lineNumFacade, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
+    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, viewPortObservable);
+    discardables.add(lineNumPanel);
+    add(lineNumPanel, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
+    return lineNumPanel;
   }
 
   /**
-   * @param pModel       DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pAcceptIcon  ImageIcon for the accept button
-   * @param pDiscardIcon ImageIcon for the discard button
-   * @param pDoOnAccept  Consumer that defines what happens if the accept button is pressed
-   * @param pDoOnDiscard Consumer that defines what happens if the discard button is pressed
-   * @param pOrientation String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
+   * @param pModel         DiffPanelModel with the Observable list of fileChangeChunks
+   * @param pAcceptIcon    ImageIcon for the accept button
+   * @param pDiscardIcon   ImageIcon for the discard button
+   * @param pLineNumPanels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane, 1 to the right
+   * @param pOrientation   String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    */
   public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
-                                   Consumer<IFileChangeChunk> pDoOnAccept, Consumer<IFileChangeChunk> pDoOnDiscard, String pOrientation)
+                                   LineNumPanel[] pLineNumPanels, @NotNull String pOrientation)
   {
     ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, viewPortObservable,
-                                                                pAcceptIcon, pDiscardIcon, pDoOnAccept, pDoOnDiscard, pOrientation);
+                                                                pAcceptIcon, pDiscardIcon, pLineNumPanels, pOrientation);
     discardables.add(choiceButtonPanel);
     add(choiceButtonPanel, pOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
   }

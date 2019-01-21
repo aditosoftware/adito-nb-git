@@ -3,7 +3,10 @@ package de.adito.git.gui.dialogs.panels.BaseDiffPanel;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChangesEvent;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -19,6 +22,8 @@ public class DiffPanelModel
   private final Function<IFileChangeChunk, Integer> getStartLine;
   private final Function<IFileChangeChunk, Integer> getEndLine;
   private final Observable<IFileChangesEvent> fileChangesObservable;
+  private Consumer<IFileChangeChunk> doOnAccept;
+  private Consumer<IFileChangeChunk> doOnDiscard;
 
   /**
    * @param pFileChangesObservable Observable of the IFileChangesEvents of the IFileDiff this model is for
@@ -76,5 +81,42 @@ public class DiffPanelModel
   public Function<IFileChangeChunk, Integer> getGetEndLine()
   {
     return getEndLine;
+  }
+
+  /**
+   * @return Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "accept changes" icon
+   */
+  public Consumer<IFileChangeChunk> getDoOnDiscard()
+  {
+    return doOnDiscard;
+  }
+
+  /**
+   * @return Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "discard changes" icon
+   */
+  @Nullable
+  public Consumer<IFileChangeChunk> getDoOnAccept()
+  {
+    return doOnAccept;
+  }
+
+  /**
+   * @param pDoOnAccept Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "accept changes" icon
+   * @return this Object for fluent calls
+   */
+  public DiffPanelModel setDoOnAccept(@NotNull Consumer<IFileChangeChunk> pDoOnAccept)
+  {
+    doOnAccept = pDoOnAccept;
+    return this;
+  }
+
+  /**
+   * @param pDoOnDiscard Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "discard changes" icon
+   * @return this Object for fluent calls
+   */
+  public DiffPanelModel setDoOnDiscard(@Nullable Consumer<IFileChangeChunk> pDoOnDiscard)
+  {
+    doOnDiscard = pDoOnDiscard;
+    return this;
   }
 }

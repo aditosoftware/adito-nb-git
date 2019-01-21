@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author m.kaspera 13.12.2018
  */
-class LineNumPanel extends JPanel implements IDiscardable
+public class LineNumPanel extends JPanel implements IDiscardable
 {
 
   private static final int INSERT_LINE_HEIGHT = 3;
@@ -57,6 +57,11 @@ class LineNumPanel extends JPanel implements IDiscardable
               _calculateLineNumColors(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle());
               repaint();
             }));
+  }
+
+  List<LineNumberColor> getLineNumberColors()
+  {
+    return lineNumberColors;
   }
 
   @Override

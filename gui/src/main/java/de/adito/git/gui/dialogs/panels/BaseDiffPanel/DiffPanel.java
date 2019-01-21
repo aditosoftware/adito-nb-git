@@ -5,6 +5,7 @@ import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPane.LineNumPanel;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPaneWrapper;
 import de.adito.git.impl.data.FileChangesEventImpl;
 import io.reactivex.Observable;
@@ -37,20 +38,23 @@ public class DiffPanel extends JPanel implements IDiscardable
     Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
         .orElse(Observable.just(new FileChangesEventImpl(true, Collections.emptyList()))));
+    LineNumPanel[] lineNumPanels = new LineNumPanel[2];
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable,
                                                               IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines,
                                                               IFileChangeChunk::getBStart, IFileChangeChunk::getBEnd);
     currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);
-    currentVersionDiffPane.getPane().addLineNumPanel(currentDiffPanelModel, BorderLayout.WEST);
+    // current panel is to the right, so index 1
+    lineNumPanels[1] = currentVersionDiffPane.getPane().addLineNumPanel(currentDiffPanelModel, BorderLayout.WEST);
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable,
                                                           IFileChangeChunk::getALines, IFileChangeChunk::getAParityLines,
-                                                          IFileChangeChunk::getAStart, IFileChangeChunk::getAEnd);
+                                                          IFileChangeChunk::getAStart, IFileChangeChunk::getAEnd)
+        .setDoOnAccept(pChangeChunk -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.getFileChanges().resetChanges(pChangeChunk)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
-    oldVersionDiffPane.getPane().addLineNumPanel(oldDiffPanelModel, BorderLayout.EAST);
-    oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, pChangeChunk -> pFileDiffObs.blockingFirst()
-                                                          .ifPresent(pFileDiff -> pFileDiff.getFileChanges().resetChanges(pChangeChunk)), null,
+    // old version is to the left, so index 0
+    lineNumPanels[0] = oldVersionDiffPane.getPane().addLineNumPanel(oldDiffPanelModel, BorderLayout.EAST);
+    oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, lineNumPanels,
                                                       BorderLayout.EAST);
     JScrollPane oldVersionScrollPane = oldVersionDiffPane.getScrollPane();
     oldVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);

@@ -16,7 +16,6 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Panel that contains buttons for accepting and discarding changes of a text displayed in a JTextPane
@@ -30,12 +29,14 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
   private final DiffPanelModel model;
   private final ImageIcon discardIcon;
   private final ImageIcon acceptIcon;
+  private final LineNumPanel[] lineNumPanels;
   private final int acceptChangeIconXVal;
   private final int discardChangeIconXVal;
   private final Disposable disposable;
   private Rectangle cachedViewRectangle;
   private List<IconInfo> iconInfoList = new ArrayList<>();
   private List<IconInfo> iconInfosToDraw = new ArrayList<>();
+  private List<ChangedChunkConnection> changedChunkConnectionsToDraw = new ArrayList<>();
 
   /**
    * @param pModel         DiffPanelModel that contains functions that retrieve information, such as start/end line, of an IFileChangeChunk
@@ -43,17 +44,16 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
    * @param pDisplayedArea Observable with the Rectangle that defines the viewPort on the EditorPane
    * @param pAcceptIcon    icon used for the accept action
    * @param pDiscardIcon   icon used for the discard option. Null if the panel should allow the accept action only
-   * @param pDoOnAccept    Consumer that defines what is done when the accept icon is clicked
-   * @param pDoOnDiscard   Consumer that defines what is done when the discard icon is clicked. May be null if no discardIcon is used
+   * @param pLineNumPanels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane, 1 to the right
    * @param pOrientation   String with the orientation (as BorderLayout.EAST/WEST) of this panel, determines the order of accept/discardButtons
    */
   ChoiceButtonPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, Observable<Rectangle> pDisplayedArea,
-                    @NotNull ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon, @NotNull Consumer<IFileChangeChunk> pDoOnAccept,
-                    @Nullable Consumer<IFileChangeChunk> pDoOnDiscard, String pOrientation)
+                    @NotNull ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon, LineNumPanel[] pLineNumPanels, String pOrientation)
   {
     model = pModel;
     discardIcon = pDiscardIcon;
     acceptIcon = pAcceptIcon;
+    lineNumPanels = pLineNumPanels;
     setPreferredSize(new Dimension(pAcceptIcon.getIconWidth() + (pDiscardIcon != null ? pDiscardIcon.getIconWidth() : 0), 1));
     setBackground(ColorPicker.DIFF_BACKGROUND);
     acceptChangeIconXVal = BorderLayout.WEST.equals(pOrientation) || pDiscardIcon == null ? 0 : pDiscardIcon.getIconWidth();
@@ -63,9 +63,10 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
         .subscribe(
             pPair -> SwingUtilities.invokeLater(() -> {
               _calculateButtonViewCoordinates(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle());
+              changedChunkConnectionsToDraw = _calculateChangeChunkConnectionsToDraw(pPair.getRectangle());
               repaint();
             }));
-    addMouseListener(new IconPressMouseAdapter(pAcceptIcon.getIconWidth(), pDoOnAccept, pDoOnDiscard, () -> iconInfosToDraw,
+    addMouseListener(new IconPressMouseAdapter(pAcceptIcon.getIconWidth(), pModel.getDoOnAccept(), pModel.getDoOnDiscard(), () -> iconInfosToDraw,
                                                BorderLayout.WEST.equals(pOrientation)));
   }
 
@@ -79,7 +80,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
   protected void paintComponent(Graphics pGraphics)
   {
     super.paintComponent(pGraphics);
-    _paintIcons(pGraphics, iconInfosToDraw);
+    _paintIcons(pGraphics, changedChunkConnectionsToDraw, iconInfosToDraw);
   }
 
   /**
@@ -122,7 +123,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
         throw new RuntimeException(pE);
       }
     }
-    iconInfosToDraw = _calculateIconInfosToDraw(pEditorPane, pDisplayedArea, iconInfoList);
+    iconInfosToDraw = _calculateIconsToDraw(pEditorPane, pDisplayedArea, iconInfoList);
     cachedViewRectangle = pDisplayedArea;
   }
 
@@ -133,7 +134,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
    * @param pIconInfos List of all IconInfos of this Panel
    * @return List of IconInfos filtered by "do they have to be drawn"
    */
-  private List<IconInfo> _calculateIconInfosToDraw(@NotNull JEditorPane pEditorPane, Rectangle pDisplayedArea, List<IconInfo> pIconInfos)
+  private List<IconInfo> _calculateIconsToDraw(@NotNull JEditorPane pEditorPane, Rectangle pDisplayedArea, List<IconInfo> pIconInfos)
   {
     List<IconInfo> filteredIconInfos = new ArrayList<>();
     for (IconInfo iconInfo : pIconInfos)
@@ -148,6 +149,39 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
   }
 
   /**
+   * @param pDisplayArea Coordinates of the viewPort window, in view coordinates
+   * @return List of ChangeChunkConnections that have to be drawn
+   */
+  @NotNull
+  private List<ChangedChunkConnection> _calculateChangeChunkConnectionsToDraw(Rectangle pDisplayArea)
+  {
+    List<ChangedChunkConnection> changeChunksConnections = new ArrayList<>();
+    List<LineNumberColor> leftLineNumberColors = lineNumPanels[0].getLineNumberColors();
+    List<LineNumberColor> rightLineNumberColors = lineNumPanels[1].getLineNumberColors();
+    assert (leftLineNumberColors.size() == rightLineNumberColors.size());
+    for (int index = 0; index < leftLineNumberColors.size(); index++)
+    {
+      int[] xCoordinates = {0, 0, getPreferredSize().width, getPreferredSize().width};
+      int[] yCoordinates = {leftLineNumberColors.get(index).getColoredArea().y + leftLineNumberColors.get(index).getColoredArea().height,
+                            leftLineNumberColors.get(index).getColoredArea().y,
+                            rightLineNumberColors.get(index).getColoredArea().y,
+                            rightLineNumberColors.get(index).getColoredArea().y + rightLineNumberColors.get(index).getColoredArea().height};
+      Polygon connectionArea = new Polygon(xCoordinates, yCoordinates, 4);
+      if (connectionArea.intersects(pDisplayArea))
+      {
+        int[] yViewPortCoordinates = new int[4];
+        for (int coordinateIndex = 0; coordinateIndex < yCoordinates.length; coordinateIndex++)
+        {
+          yViewPortCoordinates[coordinateIndex] = yCoordinates[coordinateIndex] - pDisplayArea.y;
+        }
+        connectionArea.ypoints = yViewPortCoordinates;
+        changeChunksConnections.add(new ChangedChunkConnection(connectionArea, leftLineNumberColors.get(index).getColor()));
+      }
+    }
+    return changeChunksConnections;
+  }
+
+  /**
    * Extracted to separate method to take advantage of the fact that java gives us a reference to the list we pass. If the list itself is never
    * changed and instead the list is only exchanged with another one (like above) this should mean that there are no concurrentModificationExceptions
    * and we do not need any locks or copied immutable lists
@@ -155,8 +189,13 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable
    * @param pGraphics     Graphics object to paint with
    * @param pIconInfoList the list buttons/icons to be drawn
    */
-  private void _paintIcons(Graphics pGraphics, List<IconInfo> pIconInfoList)
+  private void _paintIcons(Graphics pGraphics, List<ChangedChunkConnection> pChangedChunkConnectionsToDraw, List<IconInfo> pIconInfoList)
   {
+    for (ChangedChunkConnection chunkConnection : pChangedChunkConnectionsToDraw)
+    {
+      pGraphics.setColor(chunkConnection.getColor());
+      pGraphics.fillPolygon(chunkConnection.getShape());
+    }
     for (IconInfo iconInfo : pIconInfoList)
     {
       iconInfo.getImageIcon().paintIcon(this, pGraphics, iconInfo.getIconCoordinates().x, iconInfo.getIconCoordinates().y);
