@@ -10,6 +10,7 @@ import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
+import java.awt.Rectangle;
 import java.util.List;
 
 /**
@@ -35,6 +36,7 @@ public class DiffPaneWrapper implements IDiscardable
     model = pModel;
     editorPane = new JEditorPane();
     editorPane.setEditable(false);
+    editorPane.setEnabled(false);
     diffPane = new DiffPane(editorPane);
     fileChangeDisposable = model.getFileChangesObservable()
         .subscribe(pFileChangesEvent -> {
@@ -79,7 +81,8 @@ public class DiffPaneWrapper implements IDiscardable
 
   private void _textChanged(List<IFileChangeChunk> pChangeChunkList)
   {
-    final int scrollBarPos = getScrollPane() != null ? getScrollPane().getVerticalScrollBar().getValue() : 0;
+    final int caretPosition = editorPane.getCaretPosition();
+    final Rectangle visibleRect = getScrollPane() != null ? getScrollPane().getVisibleRect() : new Rectangle();
     // insert the text from the IFileDiffs
     TextHighlightUtil.insertColoredText(editorPane,
                                         pChangeChunkList,
@@ -88,6 +91,11 @@ public class DiffPaneWrapper implements IDiscardable
                                         model.getGetStartLine(),
                                         model.getGetEndLine());
     editorPane.revalidate();
-    SwingUtilities.invokeLater(() -> getScrollPane().getVerticalScrollBar().setValue(scrollBarPos));
+    SwingUtilities.invokeLater(() -> {
+      // For whatever reason the EditorCaret thinks it's a good idea to jump to the caret position on text change in a disabled EditorPane,
+      // this at least doesn't jump the editor to the bottom of the editor each time and jumps back if the user remembers to set the caret
+      editorPane.setCaretPosition(Math.min(caretPosition, editorPane.getDocument().getLength()));
+      editorPane.scrollRectToVisible(visibleRect);
+    });
   }
 }
