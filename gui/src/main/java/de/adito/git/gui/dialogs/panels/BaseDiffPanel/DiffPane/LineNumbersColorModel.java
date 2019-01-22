@@ -76,7 +76,11 @@ public class LineNumbersColorModel implements IDiscardable
         int numLines = model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange);
         if (fileChange.getChangeType() != EChangeType.SAME)
         {
-          lineNumberColors.add(_viewCoordinatesLineNumberColor(pEditorPane, lineCounter, numLines, fileChange, view, pViewRectangle));
+          LineNumberColor lineNumberColor = _viewCoordinatesLineNumberColor(pEditorPane, lineCounter, numLines, fileChange, view, pViewRectangle);
+          if (lineNumberColor != null)
+          {
+            lineNumberColors.add(lineNumberColor);
+          }
         }
         lineCounter += numLines + model.getGetParityLines().apply(fileChange).length();
       }
@@ -101,6 +105,8 @@ public class LineNumbersColorModel implements IDiscardable
   private LineNumberColor _viewCoordinatesLineNumberColor(JEditorPane pEditorPane, int pLineCounter, int pNumLines, IFileChangeChunk pFileChange,
                                                           View pView, Rectangle pViewRectangle) throws BadLocationException
   {
+    if (pLineCounter > pEditorPane.getDocument().getDefaultRootElement().getElementCount())
+      return null;
     Element startingLineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineCounter);
     Element endingLineElement = pEditorPane.getDocument().getDefaultRootElement()
         .getElement(pLineCounter + pNumLines + model.getGetParityLines().apply(pFileChange).length() - 1);
