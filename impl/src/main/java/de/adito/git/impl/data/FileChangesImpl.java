@@ -35,7 +35,10 @@ public class FileChangesImpl implements IFileChanges
     if (!pEditList.isEmpty())
     {
       // from beginning of the file to the first chunk
-      changeChunks.add(_getUnchangedChunk(null, pEditList.get(0)));
+      if ((pEditList.get(0).getEndB() != 0 || pEditList.get(0).getEndA() != 0))
+      {
+        changeChunks.add(_getUnchangedChunk(null, pEditList.get(0)));
+      }
       // first chunk extra, since the index in the for loop starts at 0
       changeChunks.add(_getChangedChunk(pEditList.get(0)));
       for (int index = 1; index < pEditList.size(); index++)
@@ -44,7 +47,10 @@ public class FileChangesImpl implements IFileChanges
         changeChunks.add(_getChangedChunk(pEditList.get(index)));
       }
       // from last chunk to end of file
-      changeChunks.add(_getUnchangedChunk(pEditList.get(pEditList.size() - 1), null));
+      if ((pEditList.get(pEditList.size() - 1).getEndB() != newLines.length || pEditList.get(pEditList.size() - 1).getEndA() != originalLines.length))
+      {
+        changeChunks.add(_getUnchangedChunk(pEditList.get(pEditList.size() - 1), null));
+      }
     }
     else
     {
@@ -97,32 +103,22 @@ public class FileChangesImpl implements IFileChanges
    * @param pNextEdit     {@code Edit} that describes the changes just after the unchanged part. Can be null(if unchanged part is the end of the file)
    * @return {@link IFileChangeChunk} with the lines of the unchanged part between the edits and EChangeType.SAME
    */
+  @Nullable
   private IFileChangeChunk _getUnchangedChunk(@Nullable Edit pPreviousEdit, @Nullable Edit pNextEdit)
   {
-    StringBuilder oldString = new StringBuilder();
-    StringBuilder newString = new StringBuilder();
-    int aStart, aEnd, bStart, bEnd;
-    aStart = aEnd = bStart = bEnd = 0;
+    IFileChangeChunk unchangedChunk = null;
     if (pPreviousEdit == null && pNextEdit != null)
     {
-      // aStart and bStart already set to 0
-      aEnd = pNextEdit.getBeginA();
-      bEnd = pNextEdit.getBeginB();
-      for (int index = 0; index < pNextEdit.getBeginA(); index++)
-      {
-        oldString.append(originalLines[index]).append("\n");
-      }
-      for (int index = 0; index < pNextEdit.getBeginB(); index++)
-      {
-        newString.append(newLines[index]).append("\n");
-      }
+      unchangedChunk = _firstUnchangedChunk(pNextEdit);
     }
     else if (pPreviousEdit != null && pNextEdit != null)
     {
-      aStart = pPreviousEdit.getEndA();
-      bStart = pPreviousEdit.getEndB();
-      aEnd = pNextEdit.getBeginA();
-      bEnd = pNextEdit.getBeginB();
+      StringBuilder oldString = new StringBuilder();
+      StringBuilder newString = new StringBuilder();
+      int aStart = pPreviousEdit.getEndA();
+      int bStart = pPreviousEdit.getEndB();
+      int aEnd = pNextEdit.getBeginA();
+      int bEnd = pNextEdit.getBeginB();
       for (int index = pPreviousEdit.getEndA(); index < pNextEdit.getBeginA(); index++)
       {
         oldString.append(originalLines[index]).append("\n");
@@ -131,26 +127,63 @@ public class FileChangesImpl implements IFileChanges
       {
         newString.append(newLines[index]).append("\n");
       }
-      // current has to be null here, so not in the parentheses
+      Edit currentEdit = new Edit(aStart, aEnd, bStart, bEnd);
+      unchangedChunk = new FileChangeChunkImpl(currentEdit, oldString.toString(), newString.toString(), EChangeType.SAME);
     }
+    // current has to be null here, so not in the parentheses
     else if (pPreviousEdit != null)
     {
-      aStart = pPreviousEdit.getEndA();
-      bStart = pPreviousEdit.getEndB();
-      aEnd = originalLines.length;
-      if (aEnd == 1 && "".equals(originalLines[0]))
-      {
-        aEnd = 0;
-      }
-      bEnd = newLines.length;
-      for (int index = pPreviousEdit.getEndA(); index < aEnd; index++)
-      {
-        oldString.append(originalLines[index]).append("\n");
-      }
-      for (int index = pPreviousEdit.getEndB(); index < bEnd; index++)
-      {
-        newString.append(newLines[index]).append("\n");
-      }
+      unchangedChunk = _finalUnchangedChunk(pPreviousEdit);
+    }
+    return unchangedChunk;
+  }
+
+  /**
+   * @param pNextEdit Edit that comes after the unchanged chunk
+   * @return FileChangeChunkImpl that symbolizes the unchanged part between two edits
+   */
+  private FileChangeChunkImpl _firstUnchangedChunk(@NotNull Edit pNextEdit)
+  {
+    StringBuilder oldString = new StringBuilder();
+    StringBuilder newString = new StringBuilder();
+    int aEnd = pNextEdit.getBeginA();
+    int bEnd = pNextEdit.getBeginB();
+    for (int index = 0; index < pNextEdit.getBeginA(); index++)
+    {
+      oldString.append(originalLines[index]).append("\n");
+    }
+    for (int index = 0; index < pNextEdit.getBeginB(); index++)
+    {
+      newString.append(newLines[index]).append("\n");
+    }
+    // aStart and bStart set to 0 because we're at the very start of the file
+    Edit currentEdit = new Edit(0, aEnd, 0, bEnd);
+    return new FileChangeChunkImpl(currentEdit, oldString.toString(), newString.toString(), EChangeType.SAME);
+  }
+
+  /**
+   * @param pPreviousEdit Edit that comes before the unchanged chunk
+   * @return FileChangeChunkImpl that symbolizes the unchanged part between two edits
+   */
+  private FileChangeChunkImpl _finalUnchangedChunk(@NotNull Edit pPreviousEdit)
+  {
+    StringBuilder oldString = new StringBuilder();
+    StringBuilder newString = new StringBuilder();
+    int aStart = pPreviousEdit.getEndA();
+    int bStart = pPreviousEdit.getEndB();
+    int aEnd = originalLines.length;
+    if (aEnd == 1 && "".equals(originalLines[0]))
+    {
+      aEnd = 0;
+    }
+    int bEnd = newLines.length;
+    for (int index = pPreviousEdit.getEndA(); index < aEnd; index++)
+    {
+      oldString.append(originalLines[index]).append("\n");
+    }
+    for (int index = pPreviousEdit.getEndB(); index < bEnd; index++)
+    {
+      newString.append(newLines[index]).append("\n");
     }
     Edit currentEdit = new Edit(aStart, aEnd, bStart, bEnd);
     return new FileChangeChunkImpl(currentEdit, oldString.toString(), newString.toString(), EChangeType.SAME);
@@ -160,6 +193,7 @@ public class FileChangesImpl implements IFileChanges
    * {@inheritDoc}
    */
   @Override
+
   public Observable<IFileChangesEvent> getChangeChunks()
   {
     return changeEventObservable;

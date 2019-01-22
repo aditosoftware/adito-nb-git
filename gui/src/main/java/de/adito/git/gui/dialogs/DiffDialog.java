@@ -3,19 +3,24 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.ColorPicker;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.*;
-import de.adito.git.gui.dialogs.panels.DiffPanel;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tableModels.*;
+import de.adito.git.gui.tableModels.DiffTableModel;
+import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.*;
+import javax.swing.text.EditorKit;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Window that displays the list of changes found during a diff
@@ -24,6 +29,7 @@ import java.util.*;
  */
 class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
+
   private static final String ACCEPT_ICON_PATH = Constants.ACCEPT_CHANGE_YOURS_ICON;
   private static final Dimension PANEL_MIN_SIZE = new Dimension(800, 600);
   private static final Dimension PANEL_PREF_SIZE = new Dimension(1600, 900);
@@ -75,8 +81,10 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
         return Optional.of(diffs.get(pSelectedRows[0]));
       else return Optional.empty();
     });
+    Observable<EditorKit> editorKitObservable = fileDiffObservable
+        .map(pFileDiff -> editorKitProvider.getEditorKit(pFileDiff.map(IFileDiff::getFilePath).orElse(null)));
 
-    diffPanel = new DiffPanel(fileDiffObservable, iconLoader.getIcon(ACCEPT_ICON_PATH), editorKitProvider);
+    diffPanel = new DiffPanel(fileDiffObservable, iconLoader.getIcon(ACCEPT_ICON_PATH), editorKitObservable);
 
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEnabled(false);

@@ -1,4 +1,4 @@
-package de.adito.git.gui.dialogs.panels.TextPanes;
+package de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes;
 
 import javax.swing.*;
 

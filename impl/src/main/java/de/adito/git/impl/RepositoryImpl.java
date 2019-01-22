@@ -41,7 +41,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -419,18 +418,15 @@ public class RepositoryImpl implements IRepository
         {
           FileHeader fileHeader = diffFormatter.toFileHeader(diffEntry);
           // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
-          StringBuilder newFileLines = new StringBuilder();
-          if (!"/dev/null".equals(diffEntry.getNewPath()))
+          byte[] newFileBytes = null;
+          if (!VOID_PATH.equals(diffEntry.getNewPath()))
           {
-            try (Stream<String> lines = Files.lines(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath()))
-            {
-              lines.forEach(line -> newFileLines.append(line).append("\n"));
-            }
+            newFileBytes = Files.readAllBytes(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath());
           }
-          String oldFileContents = "/dev/null".equals(diffEntry.getOldPath()) ? "" :
+          String oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? "" :
               getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
           returnList.add(new FileDiffImpl(diffEntry, fileHeader,
-                                          oldFileContents, newFileLines.toString()));
+                                          oldFileContents, newFileBytes == null ? "" : new String(newFileBytes)));
         }
       }
       return returnList;
