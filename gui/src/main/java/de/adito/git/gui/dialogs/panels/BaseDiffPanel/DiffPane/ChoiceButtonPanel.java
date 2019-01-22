@@ -107,6 +107,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
         int lineNumber = 0;
         for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
         {
+          // Chunks with type SAME have no buttons since contents are equal
           if (fileChange.getChangeType() != EChangeType.SAME)
           {
             Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(lineNumber);
@@ -116,6 +117,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
             int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
                                                    Position.Bias.Forward, new Rectangle()).getBounds().y;
             iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate, acceptChangeIconXVal, fileChange));
+            // discardIcon == null -> only accept button should be used (case DiffPanel)
             if (discardIcon != null)
             {
               iconInfos.add(new IconInfo(discardIcon, yViewCoordinate, discardChangeIconXVal, fileChange));
