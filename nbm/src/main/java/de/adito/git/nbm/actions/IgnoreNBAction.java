@@ -45,7 +45,8 @@ public class IgnoreNBAction extends NBAction
   protected void performAction(Node[] pActivatedNodes)
   {
     Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
-    IRepository currentRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+    IRepository currentRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(
+        NbBundle.getMessage(IgnoreNBAction.class, "Invalid.RepositoryNotValid")));
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     filesToIgnore.onNext(Optional.of(getUntrackedSelectedFiles(currentRepo, pActivatedNodes)));

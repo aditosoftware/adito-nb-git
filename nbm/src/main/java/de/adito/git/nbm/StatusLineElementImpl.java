@@ -10,6 +10,7 @@ import de.adito.git.nbm.util.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.openide.awt.StatusLineElementProvider;
+import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
@@ -27,7 +28,7 @@ import java.util.Optional;
 public class StatusLineElementImpl implements StatusLineElementProvider, IDiscardable
 {
   private IWindowContentProvider windowContentProvider = IGitConstants.INJECTOR.getInstance(IWindowContentProvider.class);
-  private JLabel label = new JLabel("not initialized...");
+  private JLabel label = new JLabel(NbBundle.getMessage(StatusLineElementImpl.class, "Invalid.Initialized"));
   private PopupWindow popupWindow;
   private Disposable disposable;
 

@@ -12,11 +12,14 @@ import java.util.Optional;
 /**
  * @author a.arnold, 07.11.2018
  */
-public class NBStatusLineWindow extends JPanel {
+@SuppressWarnings("unused")
+public class NBStatusLineWindow extends JPanel
+{
 
-    @Inject
-    public NBStatusLineWindow(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
-        JComponent statusLineWindowContent = pWindowContentProvider.createStatusLineWindowContent(pRepository);
-        add(statusLineWindowContent);
-    }
+  @Inject
+  public NBStatusLineWindow(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  {
+    JComponent statusLineWindowContent = pWindowContentProvider.createStatusLineWindowContent(pRepository);
+    add(statusLineWindowContent);
+  }
 }

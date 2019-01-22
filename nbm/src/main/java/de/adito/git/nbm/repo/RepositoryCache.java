@@ -30,7 +30,6 @@ public class RepositoryCache
   private PropertyChangeListener pcl = new _OpenProjectListener();
   private IRepositoryProviderFactory repositoryProviderFactory = IGitConstants.INJECTOR.getInstance(IRepositoryProviderFactory.class);
   private final BehaviorSubject<List<RepositoryProvider>> providers = BehaviorSubject.createDefault(List.of());
-
   private RepositoryCache()
   {
   }

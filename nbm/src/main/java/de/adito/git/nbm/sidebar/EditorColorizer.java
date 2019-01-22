@@ -48,7 +48,6 @@ class EditorColorizer extends JPanel implements IDiscardable
     Observable<String> actualText = DocumentObservable.create(pTarget.getDocument());
     file = new File(pDataObject.getPrimaryFile().toURI());
 
-
     /*
      * An observable to check the values on the ScrollPane.
      * this is important for the rectangles inside the editor bar.
@@ -64,7 +63,6 @@ class EditorColorizer extends JPanel implements IDiscardable
       protected AdjustmentListener registerListener(@NotNull JTextComponent pListenableValue, @NotNull IFireable<Integer> pFireable)
       {
         AdjustmentListener adjustmentListener = e -> pFireable.fireValueChanged(e.getValue());
-
         jScrollPane.getVerticalScrollBar().addAdjustmentListener(adjustmentListener);
         return adjustmentListener;
       }
@@ -83,7 +81,6 @@ class EditorColorizer extends JPanel implements IDiscardable
           {
             IRepository repo = pRepoOpt.get();
             EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
-
             // No changes if added or new, because the file can not be diffed -> not in index
             if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
               return List.of();

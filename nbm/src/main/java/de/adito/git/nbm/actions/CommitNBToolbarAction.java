@@ -35,7 +35,8 @@ public class CommitNBToolbarAction extends CommitNBAction
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
     Subject<Optional<List<IFileChangeType>>> listNodes;
     listNodes = BehaviorSubject.createDefault(Optional.of(repository.blockingFirst()
-                                                              .orElseThrow(() -> new RuntimeException("no valid repository found"))
+                                                              .orElseThrow(() -> new RuntimeException(
+                                                                  NbBundle.getMessage(CommitNBToolbarAction.class, "Invalid.RepositoryNotValid")))
                                                               .getStatus()
                                                               .blockingFirst().map(IFileStatus::getUncommitted)
                                                               .orElse(Collections.emptyList())));

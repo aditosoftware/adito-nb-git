@@ -15,7 +15,6 @@ import java.util.prefs.Preferences;
 @Singleton
 public class NBPrefStore implements IPrefStore
 {
-
   private final Preferences preferences = NbPreferences.forModule(IPrefStore.class);
 
   @Nullable

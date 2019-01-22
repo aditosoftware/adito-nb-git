@@ -4,7 +4,7 @@ import com.google.inject.Singleton;
 import de.adito.git.api.progress.*;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.progress.ProgressHandle;
-import org.openide.util.RequestProcessor;
+import org.openide.util.*;
 
 import java.util.concurrent.*;
 
@@ -64,7 +64,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
       {
         // Delegate all Exceptions to our uncaught exception handler -> otherwise they won't be shown on GUI
         Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
-        throw new RuntimeException("Error in async task " + handle.getDisplayName(), ex);
+        throw new RuntimeException(NbBundle.getMessage(AsyncProgressFacadeImpl.class, "Error.Async", handle.getDisplayName()), ex);
       }
       finally
       {

@@ -5,9 +5,11 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
+import org.eclipse.jgit.revwalk.DepthWalk;
+import org.openide.util.NbBundle;
 
 import javax.swing.table.TableModel;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.Optional;
 
 /**
@@ -15,29 +17,33 @@ import java.util.Optional;
  *
  * @author a.arnold, 24.10.2018
  */
-class CommitHistoryTopComponent extends AbstractRepositoryTopComponent {
+class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
+{
 
-    private final String displayableContext;
+  private final String displayableContext;
 
-    @Inject
-    CommitHistoryTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository,
-                              @Assisted TableModel tableModel, @Assisted Runnable loadMoreCallback, @Assisted String pDisplayableContext) {
-        super(pRepository);
-        displayableContext = pDisplayableContext;
-        setLayout(new BorderLayout());
-        add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallback), BorderLayout.CENTER);
-    }
+  @Inject
+  CommitHistoryTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository,
+                            @Assisted TableModel tableModel, @Assisted Runnable loadMoreCallback, @Assisted String pDisplayableContext)
+  {
+    super(pRepository);
+    displayableContext = pDisplayableContext;
+    setLayout(new BorderLayout());
+    add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallback), BorderLayout.CENTER);
+  }
 
-    @Override
-    public String getInitialMode() {
-        return "output";
-    }
+  @Override
+  public String getInitialMode()
+  {
+    return "output";
+  }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String getTopComponentName() {
-        return ("Commits - " + displayableContext);
-    }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected String getTopComponentName()
+  {
+    return (NbBundle.getMessage(CommitHistoryTopComponent.class, "Label.Commits") +" - " + displayableContext);
+  }
 }

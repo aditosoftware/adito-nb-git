@@ -8,6 +8,7 @@ import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.cookies.OpenCookie;
 import org.openide.filesystems.*;
 import org.openide.loaders.*;
+import org.openide.util.NbBundle;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -35,7 +36,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
       }
       else
       {
-        throw new AditoGitException("Could not find FileObject for file " + pFile.getAbsolutePath());
+        throw new AditoGitException(NbBundle.getMessage(NBFileSystemUtilImpl.class, "Invalid.FileObject", pFile.getAbsolutePath()));
       }
     }
     catch (DataObjectNotFoundException pE)

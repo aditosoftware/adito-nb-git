@@ -11,12 +11,14 @@ import java.util.Optional;
  *
  * @author a.arnold, 31.10.2018
  */
-interface ITopComponentFactory {
+interface ITopComponentFactory
+{
 
-    AllBranchTopComponent createAllBranchTopComponent(Observable<Optional<IRepository>> pRepository);
+  AllBranchTopComponent createAllBranchTopComponent(Observable<Optional<IRepository>> pRepository);
 
-    CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<Optional<IRepository>> pRepository, TableModel tableModel, Runnable loadMoreCallback, String pDisplayableContext);
+  CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<Optional<IRepository>> pRepository,
+                                                            TableModel pTableModel, Runnable pLoadMoreCallback, String pDisplayableContext);
 
-    StatusWindowTopComponent createStatusWindowTopComponent(Observable<Optional<IRepository>> pRepository);
+  StatusWindowTopComponent createStatusWindowTopComponent(Observable<Optional<IRepository>> pRepository);
 
 }

@@ -5,8 +5,9 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
+import org.openide.util.NbBundle;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.Optional;
 
 /**
@@ -14,26 +15,30 @@ import java.util.Optional;
  *
  * @author a.arnold, 23.10.2018
  */
-class AllBranchTopComponent extends AbstractRepositoryTopComponent {
+class AllBranchTopComponent extends AbstractRepositoryTopComponent
+{
 
-    /**
-     * @param pRepository The repository of which all branches should be shown
-     */
-    @Inject
-    AllBranchTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository) {
-        super(pRepository);
-        setLayout(new BorderLayout());
-        add(pWindowContentProvider.createBranchListWindowContent(pRepository), BorderLayout.CENTER);
-    }
+  /**
+   * @param pRepository The repository of which all branches should be shown
+   */
+  @Inject
+  AllBranchTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  {
+    super(pRepository);
+    setLayout(new BorderLayout());
+    add(pWindowContentProvider.createBranchListWindowContent(pRepository), BorderLayout.CENTER);
+  }
 
-    @Override
-    public String getInitialMode() {
-        return "output";
-    }
+  @Override
+  public String getInitialMode()
+  {
+    return "output";
+  }
 
-    @Override
-    protected String getTopComponentName() {
-        return ("Branches");
-    }
+  @Override
+  protected String getTopComponentName()
+  {
+    return (NbBundle.getMessage(AllBranchTopComponent.class, "Label.Branches"));
+  }
 
 }

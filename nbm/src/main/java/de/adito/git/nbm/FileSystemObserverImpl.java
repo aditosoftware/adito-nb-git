@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryDescription;
 import org.openide.filesystems.*;
+import org.openide.util.NbBundle;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,25 +30,25 @@ public class FileSystemObserverImpl implements IFileSystemObserver
     }
     else
     {
-      System.err.println("Couldn't add RecursiveListener, fileObject was null");
+      System.err.println(NbBundle.getMessage(FileSystemObserverImpl.class, "Invalid.RecursiveListener"));
     }
   }
 
   @Override
-  public void addListener(IFileSystemChangeListener changeListener)
+  public void addListener(IFileSystemChangeListener pChangeListener)
   {
     synchronized (fileSystemChangeListeners)
     {
-      fileSystemChangeListeners.add(changeListener);
+      fileSystemChangeListeners.add(pChangeListener);
     }
   }
 
   @Override
-  public void removeListener(IFileSystemChangeListener toRemove)
+  public void removeListener(IFileSystemChangeListener pToRemove)
   {
     synchronized (fileSystemChangeListeners)
     {
-      fileSystemChangeListeners.remove(toRemove);
+      fileSystemChangeListeners.remove(pToRemove);
     }
   }
 
@@ -69,37 +70,37 @@ public class FileSystemObserverImpl implements IFileSystemObserver
   private class _FileSystemListener implements FileChangeListener
   {
     @Override
-    public void fileFolderCreated(FileEvent fe)
+    public void fileFolderCreated(FileEvent pEvent)
     {
       _notifyListeners();
     }
 
     @Override
-    public void fileDataCreated(FileEvent fe)
+    public void fileDataCreated(FileEvent pEvent)
     {
       _notifyListeners();
     }
 
     @Override
-    public void fileChanged(FileEvent fe)
+    public void fileChanged(FileEvent pEvent)
     {
       _notifyListeners();
     }
 
     @Override
-    public void fileDeleted(FileEvent fe)
+    public void fileDeleted(FileEvent pEvent)
     {
       _notifyListeners();
     }
 
     @Override
-    public void fileRenamed(FileRenameEvent fe)
+    public void fileRenamed(FileRenameEvent pEvent)
     {
       _notifyListeners();
     }
 
     @Override
-    public void fileAttributeChanged(FileAttributeEvent fe)
+    public void fileAttributeChanged(FileAttributeEvent pEvent)
     {
       _notifyListeners();
     }
