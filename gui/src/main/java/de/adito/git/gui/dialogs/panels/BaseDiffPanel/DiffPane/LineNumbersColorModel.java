@@ -24,13 +24,11 @@ public class LineNumbersColorModel implements IDiscardable
 
   // line height if an insert between two lines should be displayed
   private static final int INSERT_LINE_HEIGHT = 3;
-  private static final int LINE_NUM_FACADE_WIDTH = 30;
   private final DiffPanelModel model;
   private final Insets editorPaneInsets;
   private final int modelNumber;
   private final Disposable disposable;
   private final List<ILineNumberColorsListener> listeners = new ArrayList<>();
-  private List<LineNumberColor> lineNumberColors = new ArrayList<>();
 
   LineNumbersColorModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull Observable<Rectangle> pViewPortObs,
                         int pModelNumber)
@@ -68,9 +66,9 @@ public class LineNumbersColorModel implements IDiscardable
    */
   private void _calculateLineNumColors(JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pViewRectangle)
   {
+    List<LineNumberColor> lineNumberColors = new ArrayList<>();
     try
     {
-      List<LineNumberColor> lineNumColors = new ArrayList<>();
       View view = pEditorPane.getUI().getRootView(pEditorPane);
       int lineCounter = 0;
       for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
@@ -78,11 +76,10 @@ public class LineNumbersColorModel implements IDiscardable
         int numLines = model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange);
         if (fileChange.getChangeType() != EChangeType.SAME)
         {
-          lineNumColors.add(_viewCoordinatesLineNumberColor(pEditorPane, lineCounter, numLines, fileChange, view, pViewRectangle));
+          lineNumberColors.add(_viewCoordinatesLineNumberColor(pEditorPane, lineCounter, numLines, fileChange, view, pViewRectangle));
         }
         lineCounter += numLines + model.getGetParityLines().apply(fileChange).length();
       }
-      lineNumberColors = lineNumColors;
     }
     catch (BadLocationException pE)
     {
@@ -127,7 +124,6 @@ public class LineNumbersColorModel implements IDiscardable
       // adjust coordinates from view to viewPort coordinates
       bounds.y = bounds.y - pViewRectangle.y;
       bounds.x = bounds.x + editorPaneInsets.left;
-      bounds.width = LINE_NUM_FACADE_WIDTH;
       return new LineNumberColor(pFileChange.getChangeType().getDiffColor(), bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
