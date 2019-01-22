@@ -72,7 +72,7 @@ class EditorColorizer extends JPanel implements IDiscardable
       @Override
       protected void removeListener(@NotNull JTextComponent pListenableValue, @NotNull AdjustmentListener pAdjustmentListener)
       {
-        jScrollPane.getHorizontalScrollBar().removeAdjustmentListener(pAdjustmentListener);
+        jScrollPane.getVerticalScrollBar().removeAdjustmentListener(pAdjustmentListener);
       }
     });
 
