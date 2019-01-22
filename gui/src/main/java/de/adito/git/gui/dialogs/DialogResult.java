@@ -3,13 +3,12 @@ package de.adito.git.gui.dialogs;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * a util class for the dialogs
+ * a util class for dialogs
  *
  * @author a.arnold 31.10.2018
  */
 public class DialogResult<S, T>
 {
-
   private S source;
   private boolean pressedOk;
   private String message;

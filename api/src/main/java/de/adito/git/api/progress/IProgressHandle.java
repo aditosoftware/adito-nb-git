@@ -9,7 +9,14 @@ public interface IProgressHandle
 {
 
   /**
-   * Sets the Description of this handle.
+   * Sets the display name of the task
+   *
+   * @param pMessage
+   */
+  void setDisplayName(@Nullable String pMessage);
+
+  /**
+   * Sets the Description of this handle. This is for the text above the process bar
    *
    * @param pMessage The new Message or <tt>null</tt>
    */

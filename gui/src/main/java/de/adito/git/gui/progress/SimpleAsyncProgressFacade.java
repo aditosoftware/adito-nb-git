@@ -31,6 +31,12 @@ public class SimpleAsyncProgressFacade implements IAsyncProgressFacade
   private static class _DummyHandle implements IProgressHandle
   {
     @Override
+    public void setDisplayName(@Nullable String pMessage)
+    {
+      //nothing
+    }
+
+    @Override
     public void setDescription(@Nullable String pMessage)
     {
       // nothing

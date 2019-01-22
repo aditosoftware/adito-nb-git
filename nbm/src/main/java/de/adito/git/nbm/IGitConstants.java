@@ -1,7 +1,6 @@
 package de.adito.git.nbm;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.*;
 import de.adito.git.nbm.guice.AditoNbmModule;
 
 /**
@@ -18,4 +17,8 @@ public interface IGitConstants
   String MENU_ACTION_PATH = "Menu/Git";
   //Projects
   String RIGHTCLICK_ACTION_PATH = "Actions/Git";
+
+  //Statics for the preferences
+  String GIT_SSH_KEY = "git.sshKey";
+  String GIT_PROJECT_LOCATION = "git.project.Location";
 }

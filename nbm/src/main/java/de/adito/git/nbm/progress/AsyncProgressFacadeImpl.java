@@ -3,7 +3,7 @@ package de.adito.git.nbm.progress;
 import com.google.inject.Singleton;
 import de.adito.git.api.progress.*;
 import org.jetbrains.annotations.*;
-import org.netbeans.api.progress.*;
+import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.RequestProcessor;
 
 import java.util.concurrent.*;
@@ -14,15 +14,28 @@ import java.util.concurrent.*;
 @Singleton
 public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
 {
+  private final RequestProcessor PROCESSOR = new RequestProcessor("ADITO VCS Async Processor");
 
-  private final RequestProcessor _PROCESSOR = new RequestProcessor("ADITO VCS Async Processor");
+  /**
+   * a wrapper for the {@link ProgressHandle}
+   *
+   * @param pHandle the progressHandler
+   * @return a NetBeans {@link ProgressHandle} wrap
+   */
+  @NotNull
+  public static IProgressHandle wrapNBHandle(@NotNull ProgressHandle pHandle)
+  {
+    _NetBeansHandle handle = new _NetBeansHandle(null, pHandle);
+    handle.inProgress = true; //workaround
+    return handle;
+  }
 
   @NotNull
   @Override
   public <T, Ex extends Throwable> Future<T> executeInBackground(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
   {
-    _NetBeansHandle handle = new _NetBeansHandle(pDisplayName);
-    return _PROCESSOR.submit(new _Runner<>(handle, pExecutor));
+    _NetBeansHandle handle = new _NetBeansHandle(pDisplayName, ProgressHandle.createHandle(pDisplayName));
+    return PROCESSOR.submit(new _Runner<>(handle, pExecutor));
   }
 
   /**
@@ -33,7 +46,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
     private final _NetBeansHandle handle;
     private final IExec<T, Ex> exec;
 
-    public _Runner(@NotNull _NetBeansHandle pProgressHandle, @NotNull IExec<T, Ex> pExec)
+    _Runner(@NotNull _NetBeansHandle pProgressHandle, @NotNull IExec<T, Ex> pExec)
     {
       handle = pProgressHandle;
       exec = pExec;
@@ -65,20 +78,26 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
    */
   private static class _NetBeansHandle implements IProgressHandle
   {
-    private final String displayName;
     private final ProgressHandle handle;
+    private String displayName;
     private boolean inProgress = false;
 
-    public _NetBeansHandle(@NotNull String pDisplayName)
+    _NetBeansHandle(@Nullable String pDisplayName, @NotNull ProgressHandle pHandle)
     {
       displayName = pDisplayName;
-      handle = ProgressHandle.createHandle(pDisplayName);
+      handle = pHandle;
+    }
+
+    @Override
+    public void setDisplayName(@Nullable String pMessage)
+    {
+      handle.setDisplayName(pMessage == null ? "" : pMessage);
     }
 
     @Override
     public void setDescription(@Nullable String pMessage)
     {
-      if(!inProgress)
+      if (!inProgress)
         return;
       handle.progress(pMessage == null ? "" : pMessage);
     }
@@ -86,7 +105,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
     @Override
     public void progress(int pUnitsCompleted)
     {
-      if(!inProgress)
+      if (!inProgress)
         return;
       handle.progress(pUnitsCompleted);
     }
@@ -94,7 +113,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
     @Override
     public void switchToDeterminate(int pUnits)
     {
-      if(!inProgress)
+      if (!inProgress)
         return;
       handle.switchToDeterminate(pUnits);
     }
@@ -102,7 +121,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
     @Override
     public void switchToIndeterminate()
     {
-      if(!inProgress)
+      if (!inProgress)
         return;
       handle.switchToIndeterminate();
     }
@@ -120,7 +139,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
     /**
      * @return Current displayName
      */
-    @NotNull
+    @Nullable
     protected String getDisplayName()
     {
       return displayName;
@@ -135,5 +154,4 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
       handle.start();
     }
   }
-
 }

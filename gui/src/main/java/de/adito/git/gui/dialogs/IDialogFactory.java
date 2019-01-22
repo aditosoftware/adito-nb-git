@@ -4,8 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -35,6 +34,8 @@ interface IDialogFactory
   PasswordPromptDialog createPasswordPromptDialog();
 
   UserPromptDialog createUserPromptDialog();
+
+  YesNoDialog createYesNoDialog(String pMessage);
 
   GitConfigDialog createGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 }

@@ -55,6 +55,8 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptYesNo(String pMessage)
   {
-    throw new RuntimeException("UserInputPromptImpl.promptYesNo not implemented yet");
+    DialogResult result = dialogProvider.showYesNoDialog(pMessage);
+    PromptResult promptResult = new PromptResult(result.isPressedOk(), result.getMessage());
+    return promptResult;
   }
 }

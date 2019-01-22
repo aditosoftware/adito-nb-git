@@ -2,9 +2,7 @@ package de.adito.git.impl.ssh;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 import de.adito.git.api.IUserInputPrompt;
 import de.adito.git.api.data.IConfig;
 import org.eclipse.jgit.api.TransportConfigCallback;
@@ -108,6 +106,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
          */
         defaultJSch.removeAllIdentity();
         defaultJSch.addIdentity(sshKeyPath);
+        defaultJSch.setKnownHosts(new File(new File(System.getProperty("user.home"), ".ssh"), "known_hosts").getAbsolutePath());
         gitUserInfo.setSshKeyFile(new File(sshKeyPath));
       }
       if (defaultJSch.getIdentityRepository().getIdentities().isEmpty())

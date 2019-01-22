@@ -7,7 +7,6 @@ import javax.swing.event.*;
  */
 public abstract class DocumentUpdateChangeListener implements DocumentListener
 {
-
   public void changedUpdate(DocumentEvent pEvent)
   {
     update(pEvent);
@@ -23,5 +22,5 @@ public abstract class DocumentUpdateChangeListener implements DocumentListener
     update(pEvent);
   }
 
-  abstract void update(DocumentEvent pE);
+  public abstract void update(DocumentEvent pE);
 }

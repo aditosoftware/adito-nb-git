@@ -8,4 +8,18 @@
       </file>
     </folder>
   </folder>
+
+  <folder name="Templates">
+    <folder name="Project">
+      <folder name="Adito">
+        <file name = "aditoProjectFromRepository">
+          <attr name="displayName" bundlevalue="de.adito.git.nbm.wizard.Bundle#aditoProjectFromRepository"/>
+          <attr name="instantiatingIterator" newvalue="de.adito.git.nbm.wizard.AditoRepositoryCloneWizard"/>
+          <attr name="template" boolvalue="true"/>
+          <attr name="SystemFileSystem.icon" methodvalue="de.adito.git.nbm.wizard.AditoRepositoryCloneWizard.getProjectImage"/>
+          <attr name="templateWizardURL" urlvalue="nbresloc:/de/adito/git/nbm/wizard/aditoProjectFromRepository.html"/>
+        </file>
+      </folder>
+    </folder>
+  </folder>
 </filesystem>
