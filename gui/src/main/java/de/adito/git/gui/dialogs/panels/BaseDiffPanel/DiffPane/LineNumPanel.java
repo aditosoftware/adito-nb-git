@@ -10,6 +10,7 @@ import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -24,15 +25,16 @@ import java.util.List;
 class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsListener
 {
 
-  private static final int LINE_NUM_FACADE_WIDTH = 30;
+  private final int lineNumFacadeWidth;
   private final DiffPanelModel model;
   private final Disposable disposable;
+  private final Insets panelInsets = new Insets(2, 5, 2, 5);
+  private final Insets editorInsets;
   private Rectangle cachedViewRectangle = new Rectangle();
   // lists with Objects that contain information about what to draw. Never modify these lists by themselves, only re-assign them
   private List<LineNumber> lineNumbers = new ArrayList<>(); // all LineNumbers for the file in the editor, irrespective of if they are shown
   private List<LineNumber> drawnLineNumbers = new ArrayList<>(); // LineNumbers currently in the viewPort, these have to be drawn
   private List<LineNumberColor> lineNumberColors = new ArrayList<>(); // all LineNumberColors for the file in the editor
-  private final Insets editorPaneInsets;
   private final LineNumbersColorModel lineNumbersColorModel;
 
 
@@ -44,9 +46,11 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   LineNumPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, @NotNull Observable<Rectangle> pDisplayedArea,
                @NotNull LineNumbersColorModel pLineNumbersColorModel)
   {
-    editorPaneInsets = pEditorPane.getInsets();
     lineNumbersColorModel = pLineNumbersColorModel;
-    setPreferredSize(new Dimension(LINE_NUM_FACADE_WIDTH + editorPaneInsets.left + editorPaneInsets.right, 1));
+    editorInsets = pEditorPane.getInsets();
+    lineNumFacadeWidth = getFontMetrics(getFont()).stringWidth(String.valueOf(_getLastLineNumber(pModel)));
+    setBorder(new EmptyBorder(panelInsets));
+    setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
     setBackground(ColorPicker.DIFF_BACKGROUND);
     model = pModel;
     pLineNumbersColorModel.addListener(this);
@@ -81,6 +85,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   {
     lineNumberColors = pNewValue;
   }
+
 
   /**
    * @param pEditorPane       JEditorPane that contains the text for which the line numbers should be drawn
@@ -130,7 +135,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     {
       if (pViewWindow.intersects(lineNumber.getXCoordinate(), lineNumber.getYCoordinate(), Integer.MAX_VALUE, 16))
       {
-        lineNumbersToDraw.add(new LineNumber(Integer.valueOf(lineNumber.getNumber()), lineNumber.getYCoordinate() - pViewWindow.y,
+        lineNumbersToDraw.add(new LineNumber(Integer.valueOf(lineNumber.getNumber()),
+                                             lineNumber.getYCoordinate() - pViewWindow.y - panelInsets.top - editorInsets.top,
                                              lineNumber.getXCoordinate()));
       }
     }
@@ -155,7 +161,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     int startOffset = lineElement.getStartOffset();
     int yViewCoordinate = pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle())
         .getBounds().y;
-    return new LineNumber(pNumberedLineCounter + pIndex, yViewCoordinate, editorPaneInsets.left + 2);
+    return new LineNumber(pNumberedLineCounter + pIndex, yViewCoordinate, panelInsets.left);
   }
 
   /**
@@ -170,11 +176,11 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   {
     for (LineNumberColor lineNumberColor : pLineNumColors)
     {
-      if (lineNumberColor.getColoredArea().intersects(0, 0, LINE_NUM_FACADE_WIDTH, cachedViewRectangle.height))
+      if (lineNumberColor.getColoredArea().intersects(0, 0, lineNumFacadeWidth, cachedViewRectangle.height))
       {
         pGraphics.setColor(lineNumberColor.getColor());
         pGraphics.fillRect(lineNumberColor.getColoredArea().x, lineNumberColor.getColoredArea().y,
-                           lineNumberColor.getColoredArea().width, lineNumberColor.getColoredArea().height);
+                           getWidth(), lineNumberColor.getColoredArea().height);
       }
     }
     ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -184,5 +190,11 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
       pGraphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate(),
                            lineNumber.getYCoordinate() + pGraphics.getFontMetrics().getHeight());
     }
+  }
+
+  private int _getLastLineNumber(DiffPanelModel pModel)
+  {
+    List<IFileChangeChunk> changeChunks = pModel.getFileChangesObservable().blockingFirst().getNewValue();
+    return pModel.getGetEndLine().apply(changeChunks.get(changeChunks.size() - 1));
   }
 }
