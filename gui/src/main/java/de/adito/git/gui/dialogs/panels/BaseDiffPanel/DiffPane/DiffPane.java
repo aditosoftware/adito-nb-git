@@ -50,27 +50,30 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pModel           DiffPanelModel with the Observable list of fileChangeChunks
    * @param pLineOrientation String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    *                         Defaults to BorderLayout.EAST if another String is passed
+   * @param pModelNumber number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
+   * @return LineNumbersColorModel describing the
    */
-  public LineNumPanel addLineNumPanel(DiffPanelModel pModel, String pLineOrientation)
+  public LineNumbersColorModel addLineNumPanel(DiffPanelModel pModel, String pLineOrientation, int pModelNumber)
   {
-    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, viewPortObservable);
+    LineNumbersColorModel lineNumbersColorModel = new LineNumbersColorModel(pModel, editorPane, viewPortObservable, pModelNumber);
+    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, viewPortObservable, lineNumbersColorModel);
     discardables.add(lineNumPanel);
     add(lineNumPanel, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
-    return lineNumPanel;
+    return lineNumbersColorModel;
   }
 
   /**
    * @param pModel         DiffPanelModel with the Observable list of fileChangeChunks
    * @param pAcceptIcon    ImageIcon for the accept button
    * @param pDiscardIcon   ImageIcon for the discard button
-   * @param pLineNumPanels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane, 1 to the right
+   * @param pLineNumbersColorModels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane, 1 to the right
    * @param pOrientation   String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    */
   public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
-                                   LineNumPanel[] pLineNumPanels, @NotNull String pOrientation)
+                                   LineNumbersColorModel[] pLineNumbersColorModels, @NotNull String pOrientation)
   {
     ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, viewPortObservable,
-                                                                pAcceptIcon, pDiscardIcon, pLineNumPanels, pOrientation);
+                                                                pAcceptIcon, pDiscardIcon, pLineNumbersColorModels, pOrientation);
     discardables.add(choiceButtonPanel);
     add(choiceButtonPanel, pOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
   }

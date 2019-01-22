@@ -5,7 +5,7 @@ import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.IEditorKitProvider;
-import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.LineNumPanel;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPaneWrapper;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.ForkPointPaneWrapper;
 import io.reactivex.Observable;
@@ -31,8 +31,8 @@ public class MergePanel extends JPanel implements IDiscardable
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
-  private LineNumPanel leftForkPointLineNumPanel;
-  private LineNumPanel rightForkPointLineNumPanel;
+  private LineNumbersColorModel leftForkPointLineNumColorModel;
+  private LineNumbersColorModel rightForkPointLineNumColorModel;
 
   public MergePanel(IMergeDiff pMergeDiff, ImageIcon pAcceptYoursIcon, ImageIcon pAcceptTheirsIcon, ImageIcon pDiscardIcon,
                     IEditorKitProvider pEditorKitProvider)
@@ -62,7 +62,7 @@ public class MergePanel extends JPanel implements IDiscardable
 
   private void _initYoursPanel()
   {
-    LineNumPanel[] lineNumPanels = new LineNumPanel[2];
+    LineNumbersColorModel[] lineNumColorModels = new LineNumbersColorModel[2];
     DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
                                                    IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines,
                                                    IFileChangeChunk::getBStart, IFileChangeChunk::getBEnd)
@@ -72,16 +72,16 @@ public class MergePanel extends JPanel implements IDiscardable
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     yoursPaneWrapper.getScrollPane().setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     // index 0 because the lineNumPanel is of the left-most panel, and thus to the left to the ChoiceButtonPanel
-    lineNumPanels[0] = yoursPaneWrapper.getPane().addLineNumPanel(yoursModel, BorderLayout.EAST);
-    lineNumPanels[1] = leftForkPointLineNumPanel;
+    lineNumColorModels[0] = yoursPaneWrapper.getPane().addLineNumPanel(yoursModel, BorderLayout.EAST, 0);
+    lineNumColorModels[1] = leftForkPointLineNumColorModel;
     yoursPaneWrapper.getPane().addChoiceButtonPanel(yoursModel, acceptYoursIcon, discardIcon,
-                                                    lineNumPanels,
+                                                    lineNumColorModels,
                                                     BorderLayout.EAST);
   }
 
   private void _initTheirsPanel()
   {
-    LineNumPanel[] lineNumPanels = new LineNumPanel[2];
+    LineNumbersColorModel[] lineNumPanels = new LineNumbersColorModel[2];
     DiffPanelModel theirsModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(),
                                                     IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines,
                                                     IFileChangeChunk::getBStart, IFileChangeChunk::getBEnd)
@@ -90,8 +90,8 @@ public class MergePanel extends JPanel implements IDiscardable
     theirsPaneWrapper = new DiffPaneWrapper(theirsModel, editorKitObservable);
     theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     // index 1 because the lineNumPanel is of the right-most panel, and thus to the right to the ChoiceButtonPanel
-    lineNumPanels[1] = theirsPaneWrapper.getPane().addLineNumPanel(theirsModel, BorderLayout.WEST);
-    lineNumPanels[0] = rightForkPointLineNumPanel;
+    lineNumPanels[1] = theirsPaneWrapper.getPane().addLineNumPanel(theirsModel, BorderLayout.WEST, 1);
+    lineNumPanels[0] = rightForkPointLineNumColorModel;
     theirsPaneWrapper.getPane().addChoiceButtonPanel(theirsModel, acceptTheirsIcon, discardIcon,
                                                      lineNumPanels,
                                                      BorderLayout.WEST);
@@ -111,8 +111,8 @@ public class MergePanel extends JPanel implements IDiscardable
                                                              pFileChangeChunk -> "",
                                                              IFileChangeChunk::getAStart,
                                                              IFileChangeChunk::getAEnd);
-    leftForkPointLineNumPanel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointYoursModel, BorderLayout.WEST);
-    rightForkPointLineNumPanel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, BorderLayout.EAST);
+    leftForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointYoursModel, BorderLayout.WEST, 1);
+    rightForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, BorderLayout.EAST, 0);
   }
 
   @Override
