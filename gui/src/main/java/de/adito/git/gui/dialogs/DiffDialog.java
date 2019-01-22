@@ -51,7 +51,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     observableListSelectionModel = new ObservableListSelectionModel(fileListTable.getSelectionModel());
     fileListTable.setSelectionModel(observableListSelectionModel);
     editorKitProvider = pEditorKitProvider;
-    this.diffs = pDiffs;
+    diffs = pDiffs;
     _initGui();
   }
 
@@ -89,27 +89,49 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEnabled(false);
     notificationArea.setForeground(ColorPicker.INFO_TEXT);
-    add(notificationArea, BorderLayout.NORTH);
     disposable = fileDiffObservable.subscribe(pFileDiff -> {
       if (pFileDiff.isPresent())
       {
-        List<IFileChangeChunk> currentChangeChunks = pFileDiff.get().getFileChanges().getChangeChunks().blockingFirst().getNewValue();
-        if (currentChangeChunks.size() == 1 && currentChangeChunks.get(0).getChangeType() == EChangeType.SAME)
-          notificationArea.setText("Files do not differ in actual content, trailing whitespaces may be different");
-        else
-        {
-          notificationArea.setText("");
-        }
+        _setNotificationArea(pFileDiff.get());
       }
       else
       {
         notificationArea.setText("");
       }
     });
-    // add table and DiffPanel to the SplitPane
-    JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, diffPanel, new JScrollPane(fileListTable));
-    diffToListSplitPane.setResizeWeight(1);
-    add(diffToListSplitPane, BorderLayout.CENTER);
+    if (diffs.size() > 1)
+    {
+      // add table and DiffPanel to the SplitPane
+      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, diffPanel, new JScrollPane(fileListTable));
+      diffToListSplitPane.setResizeWeight(1);
+      add(diffToListSplitPane, BorderLayout.CENTER);
+    }
+    else
+    {
+      diffPanel.setBorder(null);
+      add(diffPanel, BorderLayout.CENTER);
+    }
+  }
+
+  /**
+   * sets the text in the notificationArea according to the current status of the IFileDiff
+   *
+   * @param pFileDiff current IFileDiff
+   */
+  private void _setNotificationArea(IFileDiff pFileDiff)
+  {
+    List<IFileChangeChunk> currentChangeChunks = pFileDiff.getFileChanges().getChangeChunks().blockingFirst().getNewValue();
+    if ((currentChangeChunks.size() == 1 && currentChangeChunks.get(0).getChangeType() == EChangeType.SAME)
+        || currentChangeChunks.stream().allMatch(pChunk -> pChunk.getChangeType() == EChangeType.SAME))
+    {
+      add(notificationArea, BorderLayout.NORTH);
+      notificationArea.setText("Files do not differ in actual content, trailing whitespaces may be different");
+      revalidate();
+    }
+    else
+    {
+      notificationArea.setText("");
+    }
   }
 
   @Override
