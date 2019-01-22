@@ -33,6 +33,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   private final int acceptChangeIconXVal;
   private final int discardChangeIconXVal;
   private final Disposable disposable;
+  private final Insets panelInsets = new Insets(1, 0, 1, 0);
   private Rectangle cachedViewRectangle = new Rectangle();
   private List<IconInfo> iconInfoList = new ArrayList<>();
   private List<IconInfo> iconInfosToDraw = new ArrayList<>();
@@ -114,10 +115,10 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
             int characterStartOffset = lineElement.getStartOffset();
             int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
                                                    Position.Bias.Forward, new Rectangle()).getBounds().y;
-            iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate + pEditorPane.getInsets().top, acceptChangeIconXVal, fileChange));
+            iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate, acceptChangeIconXVal, fileChange));
             if (discardIcon != null)
             {
-              iconInfos.add(new IconInfo(discardIcon, yViewCoordinate + pEditorPane.getInsets().top, discardChangeIconXVal, fileChange));
+              iconInfos.add(new IconInfo(discardIcon, yViewCoordinate, discardChangeIconXVal, fileChange));
             }
           }
           lineNumber += (model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange))
@@ -147,7 +148,8 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
     {
       if (pDisplayedArea.intersects(iconInfo.getIconCoordinates()))
       {
-        filteredIconInfos.add(new IconInfo(iconInfo.getImageIcon(), iconInfo.getIconCoordinates().y - pDisplayedArea.y + pEditorPane.getInsets().top,
+        filteredIconInfos.add(new IconInfo(iconInfo.getImageIcon(),
+                                           iconInfo.getIconCoordinates().y - pDisplayedArea.y + pEditorPane.getInsets().top + panelInsets.top,
                                            iconInfo.getIconCoordinates().x, iconInfo.getFileChangeChunk()));
       }
     }
