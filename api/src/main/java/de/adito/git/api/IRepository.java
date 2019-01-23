@@ -3,14 +3,10 @@ package de.adito.git.api;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
 
 /**
  * @author m.kaspera 20.09.2018
@@ -103,7 +99,7 @@ public interface IRepository
    * @throws IOException if an error occurs during transport/reading of the file
    */
   String getFileContents(String pIdentifier) throws IOException;
-  
+
   /**
    * @param pFile the File to check the status
    * @return returns the {@link IFileChangeType} of the file
@@ -177,6 +173,14 @@ public interface IRepository
    */
   void deleteBranch(@NotNull String pBranchName) throws AditoGitException;
 
+
+  /**
+   * get the blame annotations for one file
+   * @param pFile the file to get the annotations
+   * @return an IBlame object
+   */
+  IBlame getBlame(@NotNull File pFile);
+
   /**
    * Checks out the commit with id pId
    *
@@ -208,7 +212,6 @@ public interface IRepository
   List<IMergeDiff> getConflicts() throws AditoGitException;
 
   /**
-   *
    * @param pStashedCommitId sha-1 id of the stashed commit that caused the conflicts
    * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
    * @throws AditoGitException if an error occurs
