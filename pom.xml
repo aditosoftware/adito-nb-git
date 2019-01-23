@@ -7,7 +7,7 @@
   <groupId>de.adito.git</groupId>
   <artifactId>adito-nb-git</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.3</version>
+  <version>1.0.4-SNAPSHOT</version>
 
   <properties>
     <netbeans.version>RELEASE90a</netbeans.version>
@@ -58,7 +58,7 @@
     <dependency>
       <groupId>de.adito.util</groupId>
       <artifactId>reactive</artifactId>
-      <version>1.0.3</version>
+      <version>1.0.4-SNAPSHOT</version>
     </dependency>
 
     <dependency>
