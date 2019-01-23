@@ -56,7 +56,7 @@ public class MergeDiffImpl implements IMergeDiff
     // list of changes the chunk should be applied to is the list of fileChangeChunks of the other side
     IFileChanges changes = getDiff(pConflictSide == CONFLICT_SIDE.YOURS ? CONFLICT_SIDE.THEIRS : CONFLICT_SIDE.YOURS).getFileChanges();
     _insertChangeChunk(pAcceptedChunk, changes.getChangeChunks().blockingFirst().getNewValue());
-    ((FileChangesImpl) changes).getSubject().onNext(changes.getChangeChunks().blockingFirst());
+    ((FileChangesImpl) changes).getSubject().onNext(new FileChangesEventImpl(true, changes.getChangeChunks().blockingFirst().getNewValue()));
     _applyChangesSelf(pAcceptedChunk, () -> (FileChangesImpl) getDiff(pConflictSide).getFileChanges());
   }
 

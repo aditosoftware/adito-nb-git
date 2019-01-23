@@ -41,7 +41,6 @@ public class ForkPointPaneWrapper implements IDiscardable
     mergeDiff = pMergeDiff;
     editorPane = new JEditorPane();
     editorKitDisposable = pEditorKitObservable.subscribe(this::_setEditorKit);
-    // disable manual text input for now, also no need for document listener as long as jEditorPane not editable
     diffPane = new DiffPane(editorPane);
     editorPane.getDocument().addDocumentListener(paneDocumentListener);
     mergeDiffDisposable = Observable.zip(
