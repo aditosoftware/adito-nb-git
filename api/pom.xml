@@ -7,7 +7,7 @@
   <parent>
     <artifactId>adito-nb-git</artifactId>
     <groupId>de.adito.git</groupId>
-    <version>1.0.4</version>
+    <version>1.0.5-SNAPSHOT</version>
   </parent>
 
   <artifactId>api</artifactId>
