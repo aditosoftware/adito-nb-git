@@ -1,7 +1,8 @@
 package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.nbm.util.DocumentObservable;
@@ -10,14 +11,18 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.loaders.DataObject;
+import org.openide.windows.WindowManager;
 
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static de.adito.git.gui.Constants.ARROW_RIGHT;
@@ -30,7 +35,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   private Disposable disposable;
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
-  private List<_ChangeHolder> changeList = new ArrayList();
+  private List<_ChangeHolder> changeList = new ArrayList<>();
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -47,6 +52,7 @@ class EditorColorizer extends JPanel implements IDiscardable
 
     Observable<String> actualText = DocumentObservable.create(pTarget.getDocument());
     file = new File(pDataObject.getPrimaryFile().toURI());
+    addMouseListener(new _ChunkPopupMouseListener(pRepository, pTarget));
 
     /*
      * An observable to check the values on the ScrollPane.
@@ -150,7 +156,7 @@ class EditorColorizer extends JPanel implements IDiscardable
 
       if (pScrollPaneRectangle.intersects(changeRectangle))
       {
-        changeList.add(new _ChangeHolder(changeRectangle, pChange.getChangeType()));
+        changeList.add(new _ChangeHolder(changeRectangle, pChange));
       }
     }
   }
@@ -173,13 +179,13 @@ class EditorColorizer extends JPanel implements IDiscardable
   {
     final Rectangle rectangle;
     final Color color;
-    final EChangeType changeType;
+    final IFileChangeChunk changeChunk;
 
-    _ChangeHolder(Rectangle pRectangle, EChangeType pChangeType)
+    _ChangeHolder(Rectangle pRectangle, IFileChangeChunk pChangeChunk)
     {
       rectangle = pRectangle;
-      color = pChangeType.getDiffColor();
-      changeType = pChangeType;
+      color = pChangeChunk.getChangeType().getDiffColor();
+      changeChunk = pChangeChunk;
     }
   }
 
@@ -189,7 +195,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     super.paintComponent(pG);
     Graphics2D g = (Graphics2D) pG;
     changeList.forEach(change -> {
-      if (change.changeType == EChangeType.DELETE)
+      if (change.changeChunk.getChangeType() == EChangeType.DELETE)
       {
         int y = change.rectangle.y;
         g.drawImage(rightArrow.getImage(), 0, y, null);
@@ -209,6 +215,40 @@ class EditorColorizer extends JPanel implements IDiscardable
     {
       disposable.dispose();
       disposable = null;
+    }
+  }
+
+  /**
+   * MouseListener that displays a ChunkPopupWindow if the mouse is pressed over one of the ChangeChunks in the EditorColorizer
+   */
+  private class _ChunkPopupMouseListener extends MouseAdapter
+  {
+
+    private final Observable<Optional<IRepository>> repository;
+    private final JTextComponent target;
+
+    _ChunkPopupMouseListener(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget)
+    {
+      repository = pRepository;
+      target = pTarget;
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent pEvent)
+    {
+      if (SwingUtilities.isLeftMouseButton(pEvent))
+      {
+        Point point = pEvent.getPoint();
+        for (_ChangeHolder changeHolder : changeList)
+        {
+          if (changeHolder.rectangle.contains(point))
+          {
+            ChunkPopupWindow menu = new ChunkPopupWindow(repository, WindowManager.getDefault().getMainWindow(),
+                                                         pEvent.getLocationOnScreen(), changeHolder.changeChunk, target, file);
+            menu.setVisible(true);
+          }
+        }
+      }
     }
   }
 }
