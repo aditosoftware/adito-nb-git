@@ -25,6 +25,9 @@ public class Constants
   public static final String DIFF_ACTION_ICON = "/de/adito/git/nbm/actions/diff_dark.png";
   public static final String GIT_CONFIG_ICON = "/de/adito/git/gui/icons/settings_dark.png";
 
+  // Sidebar Icon
+  public static final String ROLLBACK_ICON = "/de/adito/git/nbm/sidebar/rollback_dark.png";
+
   //Settings map keys
   public static final String SSH_KEY_KEY = "sshKey";
 
