@@ -4,6 +4,8 @@ import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.DiffPane;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.MarkedScrollbar;
+import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPane.ScrollbarMarkingsModel;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPanelModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -27,6 +29,7 @@ public class DiffPaneWrapper implements IDiscardable
   private final DiffPanelModel model;
   private final Disposable fileChangeDisposable;
   private final Disposable editorKitDisposable;
+  private final ScrollbarMarkingsModel scrollbarMarkingsModel;
 
   /**
    * @param pModel DiffPanelModel that defines what is done when inserting text/how the LineNumbers are retrieved
@@ -44,6 +47,9 @@ public class DiffPaneWrapper implements IDiscardable
             _textChanged(pFileChangesEvent.getNewValue());
         });
     editorKitDisposable = pEditorKitObservable.subscribe(this::_setEditorKit);
+    MarkedScrollbar markedScrollbar = new MarkedScrollbar();
+    getScrollPane().setVerticalScrollBar(markedScrollbar);
+    scrollbarMarkingsModel = new ScrollbarMarkingsModel(pModel, editorPane, markedScrollbar);
   }
 
   /**
@@ -69,6 +75,7 @@ public class DiffPaneWrapper implements IDiscardable
     diffPane.discard();
     fileChangeDisposable.dispose();
     editorKitDisposable.dispose();
+    scrollbarMarkingsModel.discard();
   }
 
   private void _setEditorKit(EditorKit pEditorKit)
