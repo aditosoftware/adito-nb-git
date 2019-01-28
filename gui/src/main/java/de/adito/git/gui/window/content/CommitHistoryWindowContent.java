@@ -2,9 +2,11 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
+import de.adito.git.api.CommitHistoryTreeListItem;
+import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.*;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
@@ -13,9 +15,10 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Class to display all commits
@@ -94,7 +97,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private void _setUpCommitTable()
   {
     commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
-
+    commitTable.setRowHeight(21);
     commitListPopupMenu.add(actionProvider.getResetAction(repository, selectedCommitObservable));
     commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
 

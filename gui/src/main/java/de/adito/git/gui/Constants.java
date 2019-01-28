@@ -28,6 +28,13 @@ public class Constants
   // Sidebar Icon
   public static final String ROLLBACK_ICON = "/de/adito/git/nbm/sidebar/rollback_dark.png";
 
+  // Branch Icon in CommitHistoryWindow
+  public static final String BRANCH_ICON_LOCAL = "/de/adito/git/gui/icons/branch_icon_local.png";
+  public static final String BRANCH_ICON_HEAD = "/de/adito/git/gui/icons/branch_icon_head.png";
+  public static final String BRANCH_ICON_ORIGIN = "/de/adito/git/gui/icons/branch_icon_origin.png";
+  public static final String STASH_COMMIT_ICON = "/de/adito/git/gui/icons/stash_icon.png";
+  public static final String TAG_ICON = "/de/adito/git/gui/icons/tag_icon.png";
+
   //Settings map keys
   public static final String SSH_KEY_KEY = "sshKey";
 
