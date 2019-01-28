@@ -179,7 +179,8 @@ public interface IRepository
    * @param pFile the file to get the annotations
    * @return an IBlame object
    */
-  IBlame getBlame(@NotNull File pFile);
+  @NotNull
+  Observable<Optional<IBlame>> getBlame(@NotNull File pFile);
 
   /**
    * Checks out the commit with id pId

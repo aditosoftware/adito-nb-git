@@ -9,11 +9,10 @@ import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
-import io.reactivex.annotations.NonNull;
+import io.reactivex.*;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.blame.*;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
@@ -723,22 +722,18 @@ public class RepositoryImpl implements IRepository
     }
   }
 
-  public IBlame getBlame(@NonNull File pFile)
+  @NotNull
+  public Observable<Optional<IBlame>> getBlame(@NotNull File pFile)
   {
 
-    String relativePath = getRelativePath(pFile, git);
-    BlameGenerator blameGenerator = new BlameGenerator(git.getRepository(), relativePath);
-    BlameResult blameResult;
-    blameGenerator.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-    try
-    {
-      blameResult = BlameResult.create(blameGenerator);
-    }
-    catch (IOException pE)
-    {
-      throw new RuntimeException("can't get blame results for file:  " + pFile, pE);
-    }
-    return new BlameImpl(blameResult);
+    // TODO: 25.01.2019 Map of observables? -> actualy for each getBlame new observable
+    return Observable.create(emitter -> {
+      BlameCommand blameCommand = git
+          .blame()
+          .setFilePath(getRelativePath(pFile, git))
+          .setTextComparator(RawTextComparator.WS_IGNORE_ALL);
+      emitter.onNext(Optional.of(new BlameImpl(blameCommand.call())));
+    });
   }
 
   /**

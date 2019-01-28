@@ -1,11 +1,11 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.IBlame;
-import org.eclipse.jgit.blame.*;
+import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.util.Date;
@@ -43,23 +43,27 @@ public class BlameImpl implements IBlame
   }
 
   @Override
+  @Nullable
   public String getSourceAuthor(int pIndex)
   {
     return blame.getSourceAuthor(pIndex).getName();
   }
 
+  @NotNull
   @Override
   public Date getTimeStamp(int pIndex)
   {
     return blame.getSourceAuthor(pIndex).getWhen();
   }
 
+  @NotNull
   @Override
   public RevCommit getSourceCommit(int pIndex)
   {
     return blame.getSourceCommit(pIndex);
   }
 
+  @NotNull
   @Override
   public String getSourcePath(int pIndex)
   {
@@ -71,6 +75,14 @@ public class BlameImpl implements IBlame
   {
     return blame.getResultContents();
   }
+
+  @Override
+  @NotNull
+  public int getLineCount()
+  {
+    return blame.getResultContents().size();
+  }
+
 
   @Override
   public String toString()

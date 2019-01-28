@@ -6,6 +6,10 @@
       <file name="de-adito-git-nbm-sidebar-EditorColorizerFactory.instance">
         <attr name="position" intvalue="1500"/>
       </file>
+      <file name="de-adito-git-nbm-sidebar-AnnotatorFactory.instance">
+        <attr name="position" intvalue="1400"/>
+      </file>
+
     </folder>
   </folder>
 
