@@ -16,6 +16,7 @@ public class MarkedScrollbar extends JScrollBar
 {
 
   private static final int MARKINGS_OPACITY = 150;
+  private static final int MIN_MARKING_HEIGHT = 3;
   private List<ScrollbarMarking> markings = new ArrayList<>();
   private BufferedImage bufferedImage;
 
@@ -77,7 +78,7 @@ public class MarkedScrollbar extends JScrollBar
     {
       int paintFrom = (int) (marking.getYCoordinate() * distortionFactor);
       // if the maxValue is very high and the marking small this could be 0 height without the Math.max (should always be shown though)
-      int paintHeight = Math.max(1, (int) (marking.getExtent() * distortionFactor));
+      int paintHeight = Math.max(MIN_MARKING_HEIGHT, (int) (marking.getExtent() * distortionFactor));
       // set an alpha value so if a marking takes a big part of the scrollbar, the current position is still visible through the marking
       graphics.setColor(new Color(marking.getColor().getRed(), marking.getColor().getGreen(), marking.getColor().getBlue(), MARKINGS_OPACITY));
       graphics.fillRect(0, paintFrom, this.getWidth(), paintHeight);
