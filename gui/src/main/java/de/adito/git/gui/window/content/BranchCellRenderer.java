@@ -6,7 +6,9 @@ import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Rectangle;
 
 import static de.adito.git.gui.Constants.ARROW_RIGHT;
 
@@ -53,7 +55,7 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
 
     SwingIconLoaderImpl swingIconLoader = new SwingIconLoaderImpl();
     rightLabel.setIcon(swingIconLoader.getIcon(ARROW_RIGHT));
-    leftLabel.setText(pBranch.getName());
+    leftLabel.setText(pBranch.getSimpleName());
     return this;
   }
 
