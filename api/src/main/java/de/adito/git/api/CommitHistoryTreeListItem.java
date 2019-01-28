@@ -2,6 +2,7 @@ package de.adito.git.api;
 
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.ITag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,8 +25,10 @@ public class CommitHistoryTreeListItem
 
   private final ICommit commit;
   private final List<IBranch> branches;
-  private final List<AncestryLine> ancestryLines;
   private final List<IBranch> allBranches;
+  private final List<ITag> allTags;
+  private final List<ITag> tags;
+  private final List<AncestryLine> ancestryLines;
   private final ColorRoulette colorRoulette;
   private final List<ColoredLineCoordinates> linesToDraw = new ArrayList<>();
   private KnotCoordinates knotCoordinates = null;
@@ -38,17 +41,31 @@ public class CommitHistoryTreeListItem
    * @param pAncestryLines AncestryLines leading up to this commit
    * @param pColorRoulette ColorRoulette to retrieve Colors for the AncestryLines from
    * @param pAllBranches   List of all IBranches
+   * @param pAllTags       List of all ITags in the repository
    */
   public CommitHistoryTreeListItem(@NotNull ICommit pCommit, @NotNull List<AncestryLine> pAncestryLines, @NotNull ColorRoulette pColorRoulette,
-                                   @NotNull List<IBranch> pAllBranches)
+                                   @NotNull List<IBranch> pAllBranches, List<ITag> pAllTags)
   {
     this.commit = pCommit;
     this.ancestryLines = pAncestryLines;
     allBranches = pAllBranches;
     branches = _getBelongingBranches(pAllBranches);
+    allTags = pAllTags;
+    tags = _getBelongingTags(pAllTags);
     colorRoulette = pColorRoulette;
     _resolveLines();
     maxLineWidth = _calculateMaxLineWidth();
+  }
+
+  private List<ITag> _getBelongingTags(List<ITag> pAllTags)
+  {
+    List<ITag> belongingTags = new ArrayList<>();
+    for (ITag tag : pAllTags)
+    {
+      if (tag.getId().equals(commit.getId()))
+        belongingTags.add(tag);
+    }
+    return belongingTags;
   }
 
   private List<IBranch> _getBelongingBranches(List<IBranch> pAllBranches)
@@ -76,6 +93,14 @@ public class CommitHistoryTreeListItem
   public List<IBranch> getBranches()
   {
     return branches;
+  }
+
+  /**
+   * @return List of ITags that point to this commit
+   */
+  public List<ITag> getTags()
+  {
+    return tags;
   }
 
   /**
@@ -170,7 +195,7 @@ public class CommitHistoryTreeListItem
     {
       checkForStillborns.get(index).hasStillbornChildren(pAfterNext, updatedAncestryLines, index);
     }
-    return new CommitHistoryTreeListItem(pNext, updatedAncestryLines, colorRoulette, allBranches);
+    return new CommitHistoryTreeListItem(pNext, updatedAncestryLines, colorRoulette, allBranches, allTags);
   }
 
   /**

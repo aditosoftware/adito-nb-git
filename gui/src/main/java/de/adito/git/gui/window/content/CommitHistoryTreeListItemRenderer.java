@@ -3,6 +3,7 @@ package de.adito.git.gui.window.content;
 import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ITag;
 import de.adito.git.gui.Constants;
 
 import javax.swing.*;
@@ -45,7 +46,7 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
       JPanel field = new JPanel(new BorderLayout());
       JComponent lineContainer = new CommitHistoryTreeListItemComponent(itemVal);
       JLabel shortMessageLabel = new JLabel(itemVal.getCommit().getShortMessage());
-      JPanel branchTags = new _BranchTagPanel(itemVal.getBranches());
+      JPanel branchTags = new _BranchTagPanel(itemVal.getBranches(), itemVal.getTags());
       lineContainer.setBackground(comp.getBackground());
       lineContainer.setForeground(comp.getForeground());
       lineContainer.setFont(comp.getFont());
@@ -150,11 +151,13 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
     private static final int MARGIN_RIGHT = 3;
     private static final int MARGIN_ICONS_TEXT = 5;
     private final java.util.List<IBranch> branches;
+    private final List<ITag> tags;
     private String branchString = "";
 
-    _BranchTagPanel(List<IBranch> pBranches)
+    _BranchTagPanel(List<IBranch> pBranches, List<ITag> pTags)
     {
       branches = pBranches;
+      tags = pTags;
       if (!branches.isEmpty())
       {
         StringBuilder toolTipBuilder = new StringBuilder("<html>");
@@ -164,11 +167,15 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
           toolTipBuilder.append(branch.getSimpleName()).append("<br>");
           textBuilder.append(branch.getSimpleName()).append(" & ");
         }
+        for (ITag tag : tags)
+        {
+          toolTipBuilder.append(tag.getName()).append("<br>");
+        }
         toolTipBuilder.append("</html>");
         setToolTipText(toolTipBuilder.toString());
         branchString = textBuilder.delete(textBuilder.length() - 3, textBuilder.length() - 1).toString();
         setPreferredSize(new Dimension(getFontMetrics(getFont()).stringWidth(branchString)
-                                           + ((branches.size() - 1) * ICON_SEPARATION + localBranchIcon.getIconWidth())
+                                           + (branches.size() + tags.size() - 1) * ICON_SEPARATION + localBranchIcon.getIconWidth()
                                            + MARGIN_ICONS_TEXT + MARGIN_RIGHT,
                                        localBranchIcon.getIconHeight()));
       }
@@ -179,9 +186,13 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
     {
       super.paintComponent(pGraphics);
       ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+      int yCoordinate = (getHeight() - localBranchIcon.getIconHeight()) / 2;
+      for (int index = tags.size() - 1; index >= 0; index--)
+      {
+        tagIcon.paintIcon(this, pGraphics, (index + branches.size()) * ICON_SEPARATION, yCoordinate);
+      }
       for (int index = branches.size() - 1; index >= 0; index--)
       {
-        int yCoordinate = (getHeight() - localBranchIcon.getIconHeight()) / 2;
         IBranch currentBranch = branches.get(index);
         if (currentBranch.getType() == EBranchType.LOCAL)
           localBranchIcon.paintIcon(this, pGraphics, (index) * ICON_SEPARATION, yCoordinate);
