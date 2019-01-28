@@ -1054,7 +1054,10 @@ public class RepositoryImpl implements IRepository
     List<IBranch> branches;
     try
     {
-      branches = git.getRepository().getRefDatabase().getRefs().stream().map(BranchImpl::new).collect(Collectors.toList());
+      branches = git.getRepository().getRefDatabase().getRefs().stream()
+          .filter(pRef -> !pRef.getName().startsWith("refs/tags/"))
+          .map(BranchImpl::new)
+          .collect(Collectors.toList());
     }
     catch (IOException pE)
     {
@@ -1072,7 +1075,7 @@ public class RepositoryImpl implements IRepository
       {
         List<AncestryLine> ancestryLines = new ArrayList<>();
         ancestryLines.add(new AncestryLine(pCommits.get(0), colorRoulette.get(), colorRoulette, true));
-        commitHistoryTreeList.add(new CommitHistoryTreeListItem(pCommits.get(0), ancestryLines, colorRoulette, branches));
+        commitHistoryTreeList.add(new CommitHistoryTreeListItem(pCommits.get(0), ancestryLines, colorRoulette, branches, getTags()));
       }
       // main loop iterating over the commits
       for (int index = 1; index < pCommits.size() - 1; index++)
@@ -1136,6 +1139,33 @@ public class RepositoryImpl implements IRepository
   public Observable<Optional<List<IBranch>>> getBranches()
   {
     return branchList;
+  }
+
+  @Override
+  public void createTag(@NotNull String pName, @Nullable String pCommitId)
+  {
+    try (RevWalk walk = new RevWalk(git.getRepository()))
+    {
+      git.tag().setName(pName).setObjectId(pCommitId == null ? null : walk.parseAny(ObjectId.fromString(pCommitId))).call();
+    }
+    catch (IOException | GitAPIException pE)
+    {
+      throw new RuntimeException(pE);
+    }
+  }
+
+  @NotNull
+  @Override
+  public List<ITag> getTags()
+  {
+    try
+    {
+      return git.tagList().call().stream().map(TagImpl::new).collect(Collectors.toList());
+    }
+    catch (GitAPIException pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
   /**

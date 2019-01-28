@@ -3,10 +3,14 @@ package de.adito.git.api;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 20.09.2018
@@ -333,6 +337,21 @@ public interface IRepository
    */
   @NotNull
   Observable<Optional<List<IBranch>>> getBranches() throws AditoGitException;
+
+  /**
+   * create a new tag
+   *
+   * @param pName     name that the tag should have
+   * @param pCommitId ID (sha-1) of the commit that the tag should point to. Null if the tag should point to current HEAD
+   */
+  void createTag(String pName, String pCommitId);
+
+  /**
+   * fetch a list of all tags of this repository
+   *
+   * @return List containing all the tags in this repository
+   */
+  List<ITag> getTags();
 
   /**
    * retrieve all stashed commits
