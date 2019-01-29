@@ -1,13 +1,12 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.IBlame;
-import org.eclipse.jgit.blame.*;
-import org.eclipse.jgit.diff.RawText;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
+import de.adito.git.api.data.ICommit;
+import org.eclipse.jgit.blame.BlameResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -23,6 +22,9 @@ public class BlameImpl implements IBlame
     blame = pBlame;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int computeNext()
   {
@@ -36,52 +38,71 @@ public class BlameImpl implements IBlame
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int getSourceLine(int pIndex)
   {
     return blame.getSourceLine(pIndex);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
+  @Nullable
   public String getSourceAuthor(int pIndex)
   {
     return blame.getSourceAuthor(pIndex).getName();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @NotNull
   @Override
   public Date getTimeStamp(int pIndex)
   {
     return blame.getSourceAuthor(pIndex).getWhen();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @NotNull
   @Override
-  public RevCommit getSourceCommit(int pIndex)
+  public ICommit getSourceCommit(int pIndex)
   {
-    return blame.getSourceCommit(pIndex);
+    return new CommitImpl(blame.getSourceCommit(pIndex));
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @NotNull
   @Override
   public String getSourcePath(int pIndex)
   {
     return blame.getSourcePath(pIndex);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public RawText getRawText()
+  public int getLineCount()
   {
-    return blame.getResultContents();
+    return blame.getResultContents().size();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString()
   {
     return blame.getResultPath();
   }
 
-  private String _getRelativPath(@NotNull File pFile, @NotNull Repository pRepository)
-  {
-    String base = pRepository.getDirectory().getParent();
-    String path = pFile.getAbsolutePath();
-    return new File(base).toURI().relativize(new File(path).toURI()).getPath();
-  }
 }

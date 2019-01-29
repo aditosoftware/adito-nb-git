@@ -1,11 +1,13 @@
 package de.adito.git.api.data;
 
-import org.eclipse.jgit.diff.RawText;
-import org.eclipse.jgit.revwalk.RevCommit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
 /**
+ * Collects line annotations for inspection by applications.
+ *
  * @author a.arnold, 22.01.2019
  */
 public interface IBlame
@@ -33,6 +35,7 @@ public interface IBlame
    * @param pIndex line to read data of, 0 based.
    * @return the author of the line
    */
+  @Nullable
   String getSourceAuthor(int pIndex);
 
   /**
@@ -41,6 +44,7 @@ public interface IBlame
    * @param pIndex the line to get the timestamp
    * @return the timestamp
    */
+  @NotNull
   Date getTimeStamp(int pIndex);
 
   /**
@@ -49,19 +53,22 @@ public interface IBlame
    * @param pIndex line to read data of, 0 based.
    * @return the commit of the line
    */
-  RevCommit getSourceCommit(int pIndex);
+  @NotNull
+  ICommit getSourceCommit(int pIndex);
 
   /**
    * Get the file path that provided the specified line of the result
    *
+   * @param pIndex number of the line
    * @return the path of the file
    */
+  @NotNull
   String getSourcePath(int pIndex);
 
   /**
-   * Get result contents
+   * Get the number of lines
    *
-   * @return contents of the result file, available for display
+   * @return the number of lines
    */
-  RawText getRawText();
+  int getLineCount();
 }

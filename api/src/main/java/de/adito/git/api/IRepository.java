@@ -75,9 +75,29 @@ public interface IRepository
    */
   void fetch(boolean pPrune) throws AditoGitException;
 
+  /**
+   * Diff two strings
+   *
+   * @param pString String to be compared with pFile
+   * @param pFile   File whose current contents on the disk should be compared to pString
+   * @return List of IFileChangeChunks containing the changed lines between the two versions
+   * @throws IOException if an error during file read occurs
+   */
+  List<IFileChangeChunk> diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException;
+
+  /**
+   * get the changed lines between a string and the contents of a file
+   *
+   * @param pFileContents String (with i.e. the current, unsaved contents of a file) that should be compared to the contents of pCompareWith
+   * @param pCompareWith  File whose HEAD version should be compared to pFileContents
+   * @return List of IFileChangeChunks containing the changed lines between the two versions
+   * @throws IOException if an error during file read occurs
+   */
   List<IFileChangeChunk> diff(@NotNull String pFileContents, File pCompareWith) throws IOException;
 
   /**
+   * compare two commits, returns a list of IFileDiffs. Each IFileDiff contains the changes that occurred to one file between the commits
+   *
    * @param pOriginal  the older ICommit
    * @param pCompareTo the later ICommit
    * @return IFileDiff that contains the differences between the two files
@@ -183,7 +203,8 @@ public interface IRepository
    * @param pFile the file to get the annotations
    * @return an IBlame object
    */
-  IBlame getBlame(@NotNull File pFile);
+  @NotNull
+  Observable<Optional<IBlame>> getBlame(@NotNull File pFile);
 
   /**
    * Checks out the commit with id pId

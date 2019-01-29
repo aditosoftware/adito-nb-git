@@ -10,14 +10,11 @@ import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.StashApplyFailureException;
-import org.eclipse.jgit.blame.BlameGenerator;
-import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
@@ -323,6 +320,21 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
+  public List<IFileChangeChunk> diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException
+  {
+    RawText fileContents = new RawText(Files.readAllBytes(pFile.toPath()));
+    RawText currentFileContents = new RawText(pString.getBytes());
+
+    EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, fileContents, currentFileContents);
+    List<IFileChangeChunk> changeChunks = new ArrayList<>();
+    for (Edit edit : linesChanged)
+    {
+      changeChunks.add(new FileChangeChunkImpl(edit, "", "", EnumMappings.toEChangeType(edit.getType())));
+    }
+    return changeChunks;
+  }
+
+  @Override
   public List<IFileChangeChunk> diff(@NotNull String pFileContents, File pCompareWith) throws IOException
   {
 
@@ -472,34 +484,36 @@ public class RepositoryImpl implements IRepository
       IndexDiff diff = new IndexDiff(git.getRepository(), "HEAD", new FileTreeIterator(git.getRepository()));
       diff.setFilter(PathFilterGroup.createFromStrings(getRelativePath(pFile, git)));
       diff.diff();
+      IFileChangeType result;
       if (!diff.getAdded().isEmpty())
       {
-        return new FileChangeTypeImpl(pFile, EChangeType.ADD);
+        result = new FileChangeTypeImpl(pFile, EChangeType.ADD);
       }
-      if (!diff.getChanged().isEmpty())
+      else if (!diff.getChanged().isEmpty())
       {
-        return new FileChangeTypeImpl(pFile, EChangeType.CHANGED);
+        result = new FileChangeTypeImpl(pFile, EChangeType.CHANGED);
       }
-      if (!diff.getRemoved().isEmpty())
+      else if (!diff.getRemoved().isEmpty())
       {
-        return new FileChangeTypeImpl(pFile, EChangeType.DELETE);
+        result = new FileChangeTypeImpl(pFile, EChangeType.DELETE);
       }
-      if (!diff.getModified().isEmpty())
+      else if (!diff.getModified().isEmpty())
       {
-        return new FileChangeTypeImpl(pFile, EChangeType.MODIFY);
+        result = new FileChangeTypeImpl(pFile, EChangeType.MODIFY);
       }
-      if (!diff.getUntracked().isEmpty())
+      else if (!diff.getUntracked().isEmpty())
       {
-        return new FileChangeTypeImpl(pFile, EChangeType.NEW);
+        result = new FileChangeTypeImpl(pFile, EChangeType.NEW);
       }
-      if (!diff.getConflicting().isEmpty())
+      else if (!diff.getConflicting().isEmpty())
       {
-        return new FileChangeTypeImpl(pFile, EChangeType.CONFLICTING);
+        result = new FileChangeTypeImpl(pFile, EChangeType.CONFLICTING);
       }
       else
       {
-        return new FileChangeTypeImpl(pFile, EChangeType.SAME);
+        result = new FileChangeTypeImpl(pFile, EChangeType.SAME);
       }
+      return result;
     }
     catch (IOException pE)
     {
@@ -736,22 +750,18 @@ public class RepositoryImpl implements IRepository
     }
   }
 
-  public IBlame getBlame(@NonNull File pFile)
+  @NotNull
+  public Observable<Optional<IBlame>> getBlame(@NotNull File pFile)
   {
 
-    String relativePath = getRelativePath(pFile, git);
-    BlameGenerator blameGenerator = new BlameGenerator(git.getRepository(), relativePath);
-    BlameResult blameResult;
-    blameGenerator.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-    try
-    {
-      blameResult = BlameResult.create(blameGenerator);
-    }
-    catch (IOException pE)
-    {
-      throw new RuntimeException("can't get blame results for file:  " + pFile, pE);
-    }
-    return new BlameImpl(blameResult);
+    // TODO: 25.01.2019 Map of observables? -> actualy for each getBlame new observable
+    return Observable.create(emitter -> {
+      BlameCommand blameCommand = git
+          .blame()
+          .setFilePath(getRelativePath(pFile, git))
+          .setTextComparator(RawTextComparator.WS_IGNORE_ALL);
+      emitter.onNext(Optional.of(new BlameImpl(blameCommand.call())));
+    });
   }
 
   /**
