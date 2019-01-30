@@ -5,6 +5,7 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
+import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
@@ -32,6 +33,7 @@ import static de.adito.git.gui.Constants.ARROW_RIGHT;
  */
 class EditorColorizer extends JPanel implements IDiscardable
 {
+  private final JTextComponent targetEditor;
   private Disposable disposable;
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
@@ -45,23 +47,24 @@ class EditorColorizer extends JPanel implements IDiscardable
    */
   EditorColorizer(Observable<Optional<IRepository>> pRepository, DataObject pDataObject, JTextComponent pTarget)
   {
+    targetEditor = pTarget;
     setMinimumSize(new Dimension(10, 0));
     setPreferredSize(new Dimension(10, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
 
-    Observable<String> actualText = DocumentObservable.create(pTarget.getDocument());
+    Observable<String> actualText = DocumentObservable.create(targetEditor.getDocument());
     file = new File(pDataObject.getPrimaryFile().toURI());
-    addMouseListener(new _ChunkPopupMouseListener(pRepository, pTarget));
+    addMouseListener(new _ChunkPopupMouseListener(pRepository, targetEditor));
 
     /*
      * An observable to check the values on the ScrollPane.
      * this is important for the rectangles inside the editor bar.
      * The rectangles will be only rendered if the clipping is shown.
      */
-    Observable<Integer> scrollObservable = Observable.create(new AbstractListenerObservable<AdjustmentListener, JTextComponent, Integer>(pTarget)
+    Observable<Integer> scrollObservable = Observable.create(new AbstractListenerObservable<AdjustmentListener, JTextComponent, Integer>(targetEditor)
     {
-      JScrollPane jScrollPane = _getJScollPane(pTarget);
+      JScrollPane jScrollPane = _getJScrollPane(targetEditor);
 
 
       @NotNull
@@ -98,12 +101,12 @@ class EditorColorizer extends JPanel implements IDiscardable
     disposable = Observable.combineLatest(chunkObservable, scrollObservable, (pChunks, pScroll) -> pChunks)
         .subscribe(chunkList -> {
           changeList.clear();
-          Rectangle scrollPaneRectangle = _getJScollPane(pTarget).getViewport().getViewRect();
+          Rectangle scrollPaneRectangle = _getJScrollPane(targetEditor).getViewport().getViewRect();
 
           try
           {
             for (IFileChangeChunk chunk : chunkList)
-              _calculateRec(pTarget, chunk, scrollPaneRectangle);
+              _calculateRec(targetEditor, chunk, scrollPaneRectangle);
           }
           catch (Throwable e) // Catch Throwables because of NetBeans Execution Exceptions, if this Method is called too often
           {
@@ -165,7 +168,7 @@ class EditorColorizer extends JPanel implements IDiscardable
    * @param pTarget The JTextComponent of the editor
    * @return The JScrollPane of the editor
    */
-  private JScrollPane _getJScollPane(JTextComponent pTarget)
+  private JScrollPane _getJScrollPane(JTextComponent pTarget)
   {
     Container parent = pTarget.getParent();
     while (!(parent instanceof JScrollPane))
@@ -248,6 +251,12 @@ class EditorColorizer extends JPanel implements IDiscardable
             menu.setVisible(true);
           }
         }
+      }
+      else if (pEvent.isPopupTrigger())
+      {
+        JPopupMenu popupMenu = new JPopupMenu();
+        popupMenu.add(new ShowAnnotationNBAction(targetEditor));
+        popupMenu.show(EditorColorizer.this, pEvent.getX(), pEvent.getY());
       }
     }
   }

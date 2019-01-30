@@ -5,14 +5,13 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IBlame;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
+import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.util.DocumentObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.editor.settings.FontColorNames;
 import org.netbeans.editor.BaseTextUI;
 import org.netbeans.editor.Coloring;
@@ -24,6 +23,7 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.AdjustmentListener;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -41,7 +41,6 @@ import java.util.Optional;
 public class Annotator extends JPanel implements IDiscardable
 {
   private static final String NOT_COMMITTED_YET = "Not Committed Yet";
-  private static final Subject<Boolean> isActive = BehaviorSubject.createDefault(true);
   private static final int FREE_SPACE = 6; // have to be modulo 2
   private static DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
   private final JTextComponent target;
@@ -50,13 +49,61 @@ public class Annotator extends JPanel implements IDiscardable
   private Color foregroundColor;
   private Color backgroundColor;
   private Font nbFont;
+  private boolean isActiveFlag = false;
 
+  /**
+   * @param pRepository Observable of the current Repository that also contains the File currently open in the editor
+   * @param pDataObject DataObject from Netbeans
+   * @param pTarget     JTextComponent of the Netbeans editor
+   */
   Annotator(Observable<Optional<IRepository>> pRepository, DataObject pDataObject, JTextComponent pTarget)
   {
     target = pTarget;
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
+    foregroundColor = pTarget.getForeground();
+    backgroundColor = pTarget.getBackground();
+    nbFont = pTarget.getFont();
     File file = new File(pDataObject.getPrimaryFile().toURI());
+    _buildObservableChain(pRepository, pTarget, file);
+  }
+
+  /**
+   * Method overridden to provide 0 max size if the annotator is inactive
+   *
+   * @return dimension of 0 width and height if inactive, the value from super otherwise
+   */
+  @Override
+  public Dimension getMaximumSize()
+  {
+    if (isActiveFlag)
+      return super.getMaximumSize();
+    else
+      return new Dimension(0, 0);
+  }
+
+  @Override
+  public void discard()
+  {
+    if (!disposables.isDisposed())
+      disposables.dispose();
+  }
+
+  @Override
+  protected void paintComponent(Graphics pG)
+  {
+    super.paintComponent(pG);
+    pG.drawImage(blameImage, 0, 0, null);
+  }
+
+
+  /**
+   * @param pRepository Observable of the current Repository that also contains the File currently open in the editor
+   * @param pTarget     JTextComponent of the Netbeans editor
+   * @param pFile       File that is currently opened in the editor
+   */
+  private void _buildObservableChain(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget, File pFile)
+  {
     Observable<String> actualText = DocumentObservable.create(target.getDocument());
 
     // Observable to check the File changes between the latest version of the file on disk and the actual content of the file
@@ -65,33 +112,47 @@ public class Annotator extends JPanel implements IDiscardable
           if (pRepoOpt.isPresent())
           {
             IRepository repo = pRepoOpt.get();
-            EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
+            EChangeType changeType = repo.getStatusOfSingleFile(pFile).getChangeType();
             // No changes if added or new, because the file can not be diffed -> not in index
             if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
               return List.of();
-            return repo.diffOffline(pText, file);
+            return repo.diffOffline(pText, pFile);
           }
           return List.of();
         });
 
-    Observable<Boolean> triggerUpdate = Observable.combineLatest(Observable.create(new _ScrollObservable(_getJScollPane(target))), isActive,
-                                                                 (pRect, pIsActive) -> pIsActive && blameImage == null ||
-                                                                     !pIsActive && blameImage != null).filter(pVal -> pVal);
+    Observable<Boolean> isActive = BehaviorSubject.create(new _ActiveObservable(pTarget)).startWith(false);
+    Observable<Boolean> triggerUpdate = Observable.combineLatest(Observable.create(new _ScrollObservable(_getJScrollPane(target))), isActive,
+                                                                 (pRect, pIsActive) -> {
+                                                                   isActiveFlag = pIsActive;
+                                                                   return pIsActive;
+                                                                 }).filter(pVal -> pVal);
     Observable<Optional<IBlame>> blameObservable = pRepository
-        .switchMap(optRepo -> optRepo.map(pRepo -> pRepo.getBlame(file)).orElse(Observable.just(Optional.<IBlame>empty())));
+        .switchMap(optRepo -> optRepo.map(pRepo -> pRepo.getBlame(pFile)).orElse(Observable.just(Optional.<IBlame>empty())));
     disposables.add(Observable.combineLatest(blameObservable, chunkObservable, isActive, triggerUpdate,
                                              (pBlame, pChunks, pIsActive, pTriggerUpdate) -> {
                                                if (!pBlame.isPresent() || target.getHeight() <= 0)
                                                  return Optional.<BufferedImage>empty();
                                                else
                                                  return _calculateImage(pIsActive, pBlame.get(), pChunks);
-
-                                             }).subscribe(pBufferedImageOpt -> blameImage = pBufferedImageOpt.orElse(null)));
-  }
-
-  public static void setActive(boolean pIsActive)
-  {
-    isActive.onNext(pIsActive);
+                                             })
+                        .subscribe(pBufferedImageOpt -> {
+                          if (pBufferedImageOpt.isPresent())
+                          {
+                            blameImage = pBufferedImageOpt.get();
+                            setSize(new Dimension(100, 100));
+                          }
+                          else
+                          {
+                            blameImage = null;
+                            setSize(new Dimension(0, 0));
+                            setPreferredSize(new Dimension(0, 0));
+                          }
+                          SwingUtilities.invokeLater(() -> {
+                            pTarget.revalidate();
+                            repaint();
+                          });
+                        }));
   }
 
   /**
@@ -104,90 +165,62 @@ public class Annotator extends JPanel implements IDiscardable
   {
     if (pIsActive)
     {
-      List<String> stringList = _calculateStringList(pBlame, pChunks);
+      List<String> annotatedLines = _calculateStringList(pBlame, pChunks);
       View view = target.getUI().getRootView(target);
       BufferedImage rawBlameImage = new BufferedImage(getPreferredSize().width, target.getHeight(), BufferedImage.TYPE_INT_ARGB);
       _updateColorsAndFont(target);
       setBackground(backgroundColor);
-      Graphics imageGraphics = rawBlameImage.getGraphics();
-      imageGraphics.setFont(nbFont);
-      imageGraphics.setColor(foregroundColor);
-      int fontHeight = imageGraphics.getFontMetrics().getAscent();
-      ((Graphics2D) imageGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-      imageGraphics.setColor(foregroundColor);
-      for (int i = 0; i < stringList.size(); i++)
-      {
-        _LineHolder holder = _calculateRec(stringList.get(i), i, view);
-        if (holder != null)
-        {
-          Rectangle viewRect = holder.viewRect;
-          int x = viewRect.x;
-          int y = viewRect.y + fontHeight + Math.round((viewRect.height - getFontMetrics(nbFont).getHeight()) / 2f);
-          imageGraphics.drawString(holder.text, x, y);
-        }
-      }
+      _drawImage(rawBlameImage.getGraphics(), annotatedLines, view);
       return Optional.of(rawBlameImage);
     }
     return Optional.empty();
   }
 
   /**
-   * Sets the Font and background/foregroundColor in the same way that the Netbeans GlyphGutter does
-   * Copied from the GlyphGutter
    *
-   * @param pTextComponent JTextComponent of the editor that this annotator belongs to
+   * @param pImageGraphics Graphics object of i.e. a bufferedImage
+   * @param pLines List of Strings with the information about what to write for each line. Sorted by order in which they appear
+   * @param pView View of the JTextComponent, used to get the y Coordinates of the lines
    */
-  private void _updateColorsAndFont(JTextComponent pTextComponent)
+  private void _drawImage(Graphics pImageGraphics, List<String> pLines, View pView)
   {
-    EditorUI eui = ((BaseTextUI) pTextComponent.getUI()).getEditorUI();
-    if (eui == null)
-      return;
-    Coloring lineColoring = eui.getColoringMap().get(FontColorNames.LINE_NUMBER_COLORING);
-    Coloring defaultColoring = eui.getDefaultColoring();
+    pImageGraphics.setFont(nbFont);
+    pImageGraphics.setColor(foregroundColor);
+    int fontHeight = pImageGraphics.getFontMetrics().getAscent();
+    ((Graphics2D) pImageGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    pImageGraphics.setColor(foregroundColor);
+    if (pView != null)
+    {
+      for (int lineIndex = 0; lineIndex < pLines.size(); lineIndex++)
+      {
+        // get the offset to set the annotation at the right height and width
+        Element lineElement = target.getDocument().getDefaultRootElement().getElement(lineIndex);
+        int startOffset = lineElement.getStartOffset();
+        int endOffset;
+        if (lineIndex + 1 == pLines.size())
+        {
+          endOffset = lineElement.getEndOffset();
+        }
+        else
+        {
+          endOffset = target.getDocument().getDefaultRootElement().getElement(lineIndex + 1).getStartOffset();
+        }
 
-    // fix for issue #16940
-    // the real cause of this problem is that closed document is not garbage collected,
-    // because of *some* references (see #16072) and so any change in AnnotationTypes.PROP_*
-    // properties is fired which must update this component although it is not visible anymore
-    if (lineColoring == null)
-      return;
-
-
-    final Color backColor = lineColoring.getBackColor();
-    // set to white by o.n.swing.plaf/src/org/netbeans/swing/plaf/aqua/AquaLFCustoms
-    if (org.openide.util.Utilities.isMac())
-    {
-      backgroundColor = backColor;
+        Rectangle changeRectangle;
+        try
+        {
+          changeRectangle = pView.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
+          changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
+          int x = changeRectangle.x;
+          int y = changeRectangle.y + fontHeight + Math.round((changeRectangle.height - getFontMetrics(nbFont).getHeight()) / 2f);
+          pImageGraphics.drawString(pLines.get(lineIndex), x, y);
+        }
+        catch (BadLocationException pE)
+        {
+          throw new RuntimeException(pE);
+        }
+      }
     }
-    else
-    {
-      backgroundColor = UIManager.getColor("NbEditorGlyphGutter.background"); //NOI18N
-    }
-    if (null == backgroundColor && backColor != null)
-    {
-      backgroundColor = backColor;
-    }
-    if (backgroundColor != null)
-    {
-      setBackground(backgroundColor);
-    }
-    if (lineColoring.getForeColor() != null)
-      foregroundColor = lineColoring.getForeColor();
-    else
-      foregroundColor = defaultColoring.getForeColor();
-
-    Font lineFont;
-    if (lineColoring.getFont() != null)
-    {
-      Font f = lineColoring.getFont();
-      lineFont = (f != null) ? f.deriveFont((float) f.getSize() - 1) : null;
-    }
-    else
-    {
-      lineFont = defaultColoring.getFont();
-      lineFont = new Font("Monospaced", Font.PLAIN, lineFont.getSize() - 1); //NOI18N
-    }
-    nbFont = lineFont;
   }
 
   /**
@@ -249,8 +282,8 @@ public class Annotator extends JPanel implements IDiscardable
    */
   private void _addLines(IFileChangeChunk pChunk, List<String> pStringList)
   {
-    int linesToAdd = pChunk.getBEnd() - pChunk.getBStart() - 1;
-    for (int i = 0; i <= linesToAdd; i++)
+    int linesToAdd = pChunk.getBEnd() - pChunk.getBStart();
+    for (int i = 0; i < linesToAdd; i++)
       pStringList.add(pChunk.getBStart(), "");
   }
 
@@ -268,70 +301,10 @@ public class Annotator extends JPanel implements IDiscardable
   }
 
   /**
-   * Calculates one single annotation, for one line. It checks the if the line intersects the viewPort (pScrollRectangle)
-   * and returns a _LineHolder if that is the case, or null if not
-   *
-   * @param pSourceAuthor The author of the line of code
-   * @param pLine         the line of the code
-   * @return return a {@code _LineHolder} which combines the size and position of an annotation and the source author
-   */
-  @Nullable
-  private _LineHolder _calculateRec(String pSourceAuthor, int pLine, View pView)
-  {
-    // get the offset to set the annotation at the right height and width
-    Element lineElement = target.getDocument().getDefaultRootElement().getElement(pLine);
-    int startOffset = lineElement.getStartOffset();
-    int endOffset = lineElement.getEndOffset();
-
-
-    if (pView != null)
-    {
-      Rectangle changeRectangle;
-      try
-      {
-        changeRectangle = pView.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
-        changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
-      }
-      catch (BadLocationException pE)
-      {
-        throw new RuntimeException("can't get the model of the rectangle", pE);
-      }
-
-      return new _LineHolder(changeRectangle, pSourceAuthor);
-    }
-
-    return null;
-  }
-
-  @Override
-  protected void paintComponent(Graphics pG)
-  {
-    super.paintComponent(pG);
-    pG.drawImage(blameImage, 0, 0, null);
-  }
-
-  /**
-   * A static class to save the single lines of annotations
-   */
-  private static class _LineHolder
-  {
-    private final Rectangle viewRect;
-    private final String text;
-
-    _LineHolder(Rectangle pViewRect, String pText)
-    {
-      viewRect = pViewRect;
-      text = pText;
-    }
-  }
-
-
-  /**
    * @param pTarget The JTextComponent of the editor
    * @return The JScrollPane of the editor
    */
-
-  private JScrollPane _getJScollPane(JTextComponent pTarget)
+  private JScrollPane _getJScrollPane(JTextComponent pTarget)
   {
     Container parent = pTarget.getParent();
     while (!(parent instanceof JScrollPane))
@@ -341,21 +314,78 @@ public class Annotator extends JPanel implements IDiscardable
     return (JScrollPane) parent;
   }
 
-  @Override
-  public void discard()
+  /**
+   * Sets the Font and background/foregroundColor in the same way that the Netbeans GlyphGutter does
+   * Copied from the GlyphGutter
+   *
+   * @param pTextComponent JTextComponent of the editor that this annotator belongs to
+   */
+  private void _updateColorsAndFont(JTextComponent pTextComponent)
   {
-    if (!disposables.isDisposed())
-      disposables.dispose();
+    if (pTextComponent.getUI() instanceof BaseTextUI)
+    {
+      EditorUI eui = ((BaseTextUI) pTextComponent.getUI()).getEditorUI();
+      if (eui == null)
+        return;
+      Coloring lineColoring = eui.getColoringMap().get(FontColorNames.LINE_NUMBER_COLORING);
+      Coloring defaultColoring = eui.getDefaultColoring();
+
+      // fix for issue #16940
+      // the real cause of this problem is that closed document is not garbage collected,
+      // because of *some* references (see #16072) and so any change in AnnotationTypes.PROP_*
+      // properties is fired which must update this component although it is not visible anymore
+      if (lineColoring == null)
+        return;
+
+
+      final Color backColor = lineColoring.getBackColor();
+      // set to white by o.n.swing.plaf/src/org/netbeans/swing/plaf/aqua/AquaLFCustoms
+      if (org.openide.util.Utilities.isMac())
+      {
+        backgroundColor = backColor;
+      }
+      else
+      {
+        backgroundColor = UIManager.getColor("NbEditorGlyphGutter.background"); //NOI18N
+      }
+      if (null == backgroundColor && backColor != null)
+      {
+        backgroundColor = backColor;
+      }
+      if (backgroundColor != null)
+      {
+        setBackground(backgroundColor);
+      }
+      if (lineColoring.getForeColor() != null)
+        foregroundColor = lineColoring.getForeColor();
+      else
+        foregroundColor = defaultColoring.getForeColor();
+
+      Font lineFont;
+      if (lineColoring.getFont() != null)
+      {
+        Font f = lineColoring.getFont();
+        lineFont = (f != null) ? f.deriveFont((float) f.getSize() - 1) : null;
+      }
+      else
+      {
+        lineFont = defaultColoring.getFont();
+        lineFont = new Font("Monospaced", Font.PLAIN, lineFont.getSize() - 1); //NOI18N
+      }
+      nbFont = lineFont;
+    }
   }
+
 
   /*
    * An observable to check the values on the ScrollPane.
    * this is important for the rectangles inside the editor bar.
    * The rectangles will only be rendered if the clipping is shown.
    */
-  private class _ScrollObservable extends AbstractListenerObservable<AdjustmentListener, JScrollPane, Rectangle>
+  private class _ScrollObservable extends AbstractListenerObservable<AdjustmentListener, JScrollPane, Integer>
   {
     private final JScrollPane target;
+    private int lastMaxValue = 0;
 
     _ScrollObservable(JScrollPane pTarget)
     {
@@ -365,9 +395,15 @@ public class Annotator extends JPanel implements IDiscardable
 
     @NotNull
     @Override
-    protected AdjustmentListener registerListener(@NotNull JScrollPane pTarget, @NotNull IFireable<Rectangle> pFireable)
+    protected AdjustmentListener registerListener(@NotNull JScrollPane pTarget, @NotNull IFireable<Integer> pFireable)
     {
-      AdjustmentListener adjustmentListener = e -> pFireable.fireValueChanged(pTarget.getViewport().getViewRect());
+      AdjustmentListener adjustmentListener = e -> {
+        if (lastMaxValue != pTarget.getVerticalScrollBar().getMaximum())
+        {
+          lastMaxValue = pTarget.getVerticalScrollBar().getMaximum();
+          pFireable.fireValueChanged(pTarget.getVerticalScrollBar().getMaximum());
+        }
+      };
       target.getVerticalScrollBar().addAdjustmentListener(adjustmentListener);
       return adjustmentListener;
     }
@@ -376,6 +412,40 @@ public class Annotator extends JPanel implements IDiscardable
     protected void removeListener(@NotNull JScrollPane pListenableValue, @NotNull AdjustmentListener pAdjustmentListener)
     {
       target.getVerticalScrollBar().removeAdjustmentListener(pAdjustmentListener);
+    }
+  }
+
+  /**
+   * Observable that keeps track of the clientProperty with key IGitConstants
+   */
+  private class _ActiveObservable extends AbstractListenerObservable<PropertyChangeListener, JTextComponent, Boolean>
+  {
+    private final JTextComponent target;
+
+    _ActiveObservable(JTextComponent pTarget)
+    {
+      super(pTarget);
+      target = pTarget;
+    }
+
+    @NotNull
+    @Override
+    protected PropertyChangeListener registerListener(@NotNull JTextComponent pTarget, @NotNull IFireable<Boolean> pFireable)
+    {
+      PropertyChangeListener propertyChangeListener = e -> {
+        if (e.getPropertyName().equals(IGitConstants.ANNOTATOR_ACTIVF_FLAG) && e.getNewValue() instanceof Boolean)
+        {
+          pFireable.fireValueChanged(e.getNewValue() == null || (Boolean) e.getNewValue());
+        }
+      };
+      target.addPropertyChangeListener(propertyChangeListener);
+      return propertyChangeListener;
+    }
+
+    @Override
+    protected void removeListener(@NotNull JTextComponent pListenableValue, @NotNull PropertyChangeListener pPropertyChangeListener)
+    {
+      target.removePropertyChangeListener(pPropertyChangeListener);
     }
   }
 }
