@@ -21,16 +21,9 @@ public class ShowAnnotationNBAction extends AbstractAction
   }
 
   @Override
-  public void actionPerformed(ActionEvent e)
+  public void actionPerformed(ActionEvent pEvent)
   {
-    Object annotator_active_flag = targetEditor.getClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG);
-    if (annotator_active_flag == null || !(Boolean) annotator_active_flag)
-    {
-      targetEditor.putClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG, true);
-    }
-    else
-    {
-      targetEditor.putClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG, false);
-    }
+    Object annotatorActiveFlag = targetEditor.getClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG);
+    targetEditor.putClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG, annotatorActiveFlag == null || !(Boolean) annotatorActiveFlag);
   }
 }
