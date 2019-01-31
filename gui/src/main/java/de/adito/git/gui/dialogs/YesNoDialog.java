@@ -10,7 +10,7 @@ import javax.swing.*;
 /**
  * @author a.arnold, 16.01.2019
  */
-public class YesNoDialog extends AditoBaseDialog<Object>
+class YesNoDialog extends AditoBaseDialog<Object>
 {
   private final JLabel label = new JLabel();
 

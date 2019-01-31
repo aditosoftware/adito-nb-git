@@ -12,11 +12,12 @@ import io.reactivex.Observable;
 import javax.inject.Inject;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 
-public class PushDialog extends AditoBaseDialog<Object> implements IDiscardable
+class PushDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
   private final JTable commitListTable = new JTable();
