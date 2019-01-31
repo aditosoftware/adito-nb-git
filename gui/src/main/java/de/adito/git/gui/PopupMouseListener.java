@@ -1,8 +1,9 @@
 package de.adito.git.gui;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * @author m.kaspera 07.11.2018
@@ -11,16 +12,36 @@ public class PopupMouseListener extends MouseAdapter
 {
 
   private final JPopupMenu popupMenu;
+  private Action doubleClickAction;
 
   public PopupMouseListener(JPopupMenu pPopupMenu)
   {
     popupMenu = pPopupMenu;
   }
 
+  /**
+   * sets the Action that is executed when a doubleClick event is noticed
+   *
+   * @param pDoubleClickAction Action
+   */
+  public void setDoubleClickAction(Action pDoubleClickAction)
+  {
+    doubleClickAction = pDoubleClickAction;
+  }
+
+  @Override
+  public void mousePressed(MouseEvent pEvent)
+  {
+    if (pEvent.getClickCount() == 2)
+    {
+      doubleClickAction.actionPerformed(null);
+    }
+  }
+
   @Override
   public void mouseReleased(MouseEvent pE)
   {
-    if (SwingUtilities.isRightMouseButton(pE))
+    if (pE.isPopupTrigger())
     {
       JTable source = (JTable) pE.getSource();
       int row = source.rowAtPoint(pE.getPoint());
