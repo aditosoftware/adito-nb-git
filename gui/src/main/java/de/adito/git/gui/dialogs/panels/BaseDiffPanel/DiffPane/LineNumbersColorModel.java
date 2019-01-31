@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.*;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,6 @@ public class LineNumbersColorModel implements IDiscardable
   // line height if an insert between two lines should be displayed
   private static final int INSERT_LINE_HEIGHT = 3;
   private final DiffPanelModel model;
-  private final Insets editorPaneInsets;
   private final int modelNumber;
   private final Disposable disposable;
   private final List<ILineNumberColorsListener> listeners = new ArrayList<>();
@@ -35,7 +33,6 @@ public class LineNumbersColorModel implements IDiscardable
   {
 
     model = pModel;
-    editorPaneInsets = pEditorPane.getInsets();
     modelNumber = pModelNumber;
     Observable<FileChangesRectanglePair> pairObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewPortObs,
                                                                                    FileChangesRectanglePair::new);
@@ -132,7 +129,6 @@ public class LineNumbersColorModel implements IDiscardable
       }
       // adjust coordinates from view to viewPort coordinates
       bounds.y = bounds.y - pViewRectangle.y;
-      bounds.x = bounds.x + editorPaneInsets.left;
       return new LineNumberColor(pFileChange.getChangeType().getDiffColor(), bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
