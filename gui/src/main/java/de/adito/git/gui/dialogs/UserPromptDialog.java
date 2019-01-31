@@ -1,11 +1,10 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
+import de.adito.git.gui.TableLayoutUtil;
+import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 
 /**
  * Dialog that only has a textField in which the user can input information, such as a filePath or a userName
@@ -15,8 +14,7 @@ import java.awt.Insets;
 class UserPromptDialog extends AditoBaseDialog<Object>
 {
 
-  private final static Insets TEXT_FIELD_INSETS = new Insets(0, 10, 0, 10);
-  private final static int PATH_NUM_CHARS = 60;
+  private static final int PATH_NUM_CHARS = 60;
   private final JTextField textField;
 
   @Inject
@@ -28,10 +26,16 @@ class UserPromptDialog extends AditoBaseDialog<Object>
 
   private void _initGui()
   {
-    setLayout(new GridBagLayout());
-    GridBagConstraints gbConstraints = new GridBagConstraints();
-    gbConstraints.insets = TEXT_FIELD_INSETS;
-    add(textField, gbConstraints);
+    double fill = TableLayout.FILL;
+    double pref = TableLayout.PREFERRED;
+    final double gap = 15;
+    double[] cols = {gap, fill, gap};
+    double[] rows = {gap,
+                     pref,
+                     gap};
+    setLayout(new TableLayout(cols, rows));
+    TableLayoutUtil tlu = new TableLayoutUtil(this);
+    tlu.add(1, 1, textField);
   }
 
   @Override
