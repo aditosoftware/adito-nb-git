@@ -31,7 +31,7 @@ public class DiffCommitsAction extends AbstractTableAction
                     @Assisted Observable<Optional<IRepository>> pRepository,
                     @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
-    super("Show Diff");
+    super("Show Diff", _getIsEnabledObservable(pSelectedCommitObservable));
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
     repository = pRepository;
@@ -60,5 +60,14 @@ public class DiffCommitsAction extends AbstractTableAction
         dialogProvider.showDiffDialog(fileDiffs);
       }
     });
+  }
+
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  {
+    return pSelectedCommitObservable.map(pICommits -> pICommits.map(pCommitList -> {
+      if (pCommitList.isEmpty())
+        return true;
+      return pCommitList.get(pCommitList.size() - 1).getParents().size() == 1;
+    }));
   }
 }
