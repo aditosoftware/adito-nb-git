@@ -60,7 +60,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
       return Optional.of(selectedCommits);
     });
-    commitDetailsPanel = new CommitDetailsPanel(pRepository, selectedCommitObservable);
+    commitDetailsPanel = new CommitDetailsPanel(actionProvider, pRepository, selectedCommitObservable);
     _initGUI(pLoadMoreCallback);
   }
 

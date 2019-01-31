@@ -1,10 +1,11 @@
 package de.adito.git.gui.dialogs.panels;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.DateTimeRenderer;
-import de.adito.git.gui.FileStatusCellRenderer;
-import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.*;
+import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.tableModels.ChangedFilesTableModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
@@ -26,12 +27,18 @@ public class CommitDetailsPanel implements IDiscardable
   private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
   private final JTextPane messageTextArea = new JTextPane(new DefaultStyledDocument());
   private final JTable changedFilesTable = new JTable();
+  private final IActionProvider actionProvider;
+  private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final ChangedFilesTableModel changedFilesTableModel;
   private Disposable disposable;
 
-  public CommitDetailsPanel(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  @Inject
+  public CommitDetailsPanel(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
+                            @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
+    actionProvider = pActionProvider;
+    repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
     changedFilesTableModel = new ChangedFilesTableModel(selectedCommitObservable, pRepository);
     _setUpChangedFilesTable();
@@ -53,6 +60,11 @@ public class CommitDetailsPanel implements IDiscardable
     changedFilesTable.getColumnModel()
         .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
         .setCellRenderer(new FileStatusCellRenderer());
+    JPopupMenu popupMenu = new JPopupMenu();
+    popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable));
+    PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
+    popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable));
+    changedFilesTable.addMouseListener(popupMouseListener);
   }
 
   /**
@@ -97,5 +109,12 @@ public class CommitDetailsPanel implements IDiscardable
   public void discard()
   {
     disposable.dispose();
+  }
+
+  public interface IPanelFactory
+  {
+
+    CommitDetailsPanel createCommitDetailsPanel(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+
   }
 }

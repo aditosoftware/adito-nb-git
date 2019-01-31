@@ -12,7 +12,9 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Dialog for showing the user all stashed commits so he can pick one (single selection only)
@@ -30,7 +32,7 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
   private String selectedCommitId = "";
 
   @Inject
-  public StashedCommitSelectionDialog(@Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+  public StashedCommitSelectionDialog(CommitDetailsPanel.IPanelFactory pPanelFactory, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
                                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<ICommit> pStashedCommits)
   {
     isValidDescriptor = pIsValidDescriptor;
@@ -46,7 +48,7 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
       isValidDescriptor.setValid(pOptSelectedCommits.map(pCommits -> !pCommits.isEmpty()).orElse(false));
       selectedCommitId = pOptSelectedCommits.map(pCommits -> pCommits.get(0).getId()).orElse("");
     });
-    commitDetailsPanel = new CommitDetailsPanel(pRepository, selectedCommitObservable);
+    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable);
     commitListTable.setSelectionModel(observableListSelectionModel);
     commitListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     _initGui();
