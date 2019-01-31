@@ -12,10 +12,13 @@ import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
-import java.awt.BorderLayout;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +37,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static final int AUTHOR_COL_PREF_WIDTH = 160;
   private static final double MAIN_SPLIT_PANE_SIZE_RATIO = 0.75;
   private final CommitDetailsPanel commitDetailsPanel;
-  private final JTable commitTable = new JTable();
+  private final JTable commitTable = new _CommitTable();
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
@@ -99,6 +102,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
     commitTable.setRowHeight(21);
     commitListPopupMenu.add(actionProvider.getResetAction(repository, selectedCommitObservable));
+    commitListPopupMenu.add(actionProvider.getAddTagAction(repository, selectedCommitObservable));
     commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
 
     // cannot set preferred width of only last columns, so have to set a width for the first one as well
@@ -113,6 +117,43 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitTable.getColumnModel()
         .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME))
         .setPreferredWidth(AUTHOR_COL_PREF_WIDTH);
+  }
+
+  /**
+   * JTable whose tooltip depends on the component that the mouse is hovering over (so if one cell consists of more than one component, the tooltip
+   * of the component that the mouse is over is shown)
+   */
+  private class _CommitTable extends JTable
+  {
+    @Override
+    public String getToolTipText(@NotNull MouseEvent pEvent)
+    {
+      Point p = pEvent.getPoint();
+
+      // Locate the renderer under the event location
+      int hitColumnIndex = columnAtPoint(p);
+      int hitRowIndex = rowAtPoint(p);
+
+      if (hitColumnIndex != -1 && hitRowIndex != -1)
+      {
+        TableCellRenderer renderer = getCellRenderer(hitRowIndex, hitColumnIndex);
+        Component component = prepareRenderer(renderer, hitRowIndex, hitColumnIndex);
+        Rectangle cellRect = getCellRect(hitRowIndex, hitColumnIndex, false);
+        component.setBounds(cellRect);
+        component.validate();
+        component.doLayout();
+        p.translate(-cellRect.x, -cellRect.y);
+        Component comp = component.getComponentAt(p);
+        if (comp instanceof JComponent)
+        {
+          return ((JComponent) comp).getToolTipText();
+        }
+      }
+
+      // No tip from the renderer get our own tip
+      return getToolTipText();
+
+    }
   }
 
 }
