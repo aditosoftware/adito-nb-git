@@ -46,7 +46,7 @@ public class DiffPaneWrapper implements IDiscardable
           if (pFileChangesEvent.isUpdateUI())
             _textChanged(pFileChangesEvent.getNewValue());
         });
-    editorKitDisposable = pEditorKitObservable.subscribe(this::_setEditorKit);
+    editorKitDisposable = pEditorKitObservable.subscribe(pEditorKit -> SwingUtilities.invokeLater(() -> _setEditorKit(pEditorKit)));
     MarkedScrollbar markedScrollbar = new MarkedScrollbar();
     getScrollPane().setVerticalScrollBar(markedScrollbar);
     scrollbarMarkingsModel = new ScrollbarMarkingsModel(pModel, editorPane, markedScrollbar);
