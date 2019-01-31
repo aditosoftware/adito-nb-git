@@ -175,4 +175,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createGitConfigAction(pRepository);
   }
 
+  @Override
+  public Action getAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  {
+    return actionFactory.createAddTagAction(pRepository, pSelectedCommitObservable);
+  }
+
 }
