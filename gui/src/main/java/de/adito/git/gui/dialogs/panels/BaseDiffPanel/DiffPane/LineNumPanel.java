@@ -28,7 +28,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   private final int lineNumFacadeWidth;
   private final DiffPanelModel model;
   private final Disposable disposable;
-  private final Insets panelInsets = new Insets(2, 5, 2, 5);
+  private final Insets panelInsets = new Insets(0, 5, 0, 5);
   private final Insets editorInsets;
   private Rectangle cachedViewRectangle = new Rectangle();
   // lists with Objects that contain information about what to draw. Never modify these lists by themselves, only re-assign them
@@ -136,7 +136,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
       if (pViewWindow.intersects(lineNumber.getXCoordinate(), lineNumber.getYCoordinate(), Integer.MAX_VALUE, 16))
       {
         lineNumbersToDraw.add(new LineNumber(Integer.valueOf(lineNumber.getNumber()),
-                                             lineNumber.getYCoordinate() - pViewWindow.y - panelInsets.top - editorInsets.top,
+                                             lineNumber.getYCoordinate() - pViewWindow.y - editorInsets.top,
                                              lineNumber.getXCoordinate()));
       }
     }
