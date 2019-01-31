@@ -181,4 +181,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createAddTagAction(pRepository, pSelectedCommitObservable);
   }
 
+  @Override
+  public Action getDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  {
+    return actionFactory.createDiffCommitsAction(pRepository, pSelectedCommitObservable);
+  }
+
 }

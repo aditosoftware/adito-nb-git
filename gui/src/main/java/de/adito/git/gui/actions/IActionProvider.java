@@ -135,4 +135,11 @@ public interface IActionProvider
    * @return Action whose actionPerformed method shows a dialog with which to enter the tag name in order to assign a tag to the selected commit
    */
   Action getAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+
+  /**
+   * @param pRepository               Observable with the current Repository
+   * @param pSelectedCommitObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @return Action whose actionPerformed method shows a dialog with which to enter the tag name in order to assign a tag to the selected commit
+   */
+  Action getDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
 }

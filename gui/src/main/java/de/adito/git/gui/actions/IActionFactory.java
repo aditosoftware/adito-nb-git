@@ -57,4 +57,6 @@ interface IActionFactory
   GitConfigAction createGitConfigAction(Observable<Optional<IRepository>> pRepository);
 
   AddTagAction createAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+
+  DiffCommitsAction createDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
 }
