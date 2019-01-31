@@ -32,7 +32,7 @@ public class PopupMouseListener extends MouseAdapter
   @Override
   public void mousePressed(MouseEvent pEvent)
   {
-    if (pEvent.getClickCount() == 2)
+    if (pEvent.getClickCount() == 2 && doubleClickAction != null)
     {
       doubleClickAction.actionPerformed(null);
     }
