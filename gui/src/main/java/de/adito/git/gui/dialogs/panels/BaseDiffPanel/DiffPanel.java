@@ -10,6 +10,7 @@ import de.adito.git.gui.dialogs.panels.BaseDiffPanel.TextPanes.DiffPaneWrapper;
 import de.adito.git.impl.data.FileChangesEventImpl;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
@@ -33,7 +34,7 @@ public class DiffPanel extends JPanel implements IDiscardable
    * @param pFileDiffObs Observable of the IFileDiff
    * @param pAcceptIcon  ImageIcon that is used for the "accept these changes" button
    */
-  public DiffPanel(@NotNull Observable<Optional<IFileDiff>> pFileDiffObs, @NotNull ImageIcon pAcceptIcon, Observable<EditorKit> pEditorKitObservable)
+  public DiffPanel(@NotNull Observable<Optional<IFileDiff>> pFileDiffObs, @Nullable ImageIcon pAcceptIcon, Observable<EditorKit> pEditorKitObservable)
   {
     Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())

@@ -69,7 +69,7 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pLineNumbersColorModels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane, 1 to the right
    * @param pOrientation   String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    */
-  public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
+  public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
                                    LineNumbersColorModel[] pLineNumbersColorModels, @NotNull String pOrientation)
   {
     ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, viewPortObservable,

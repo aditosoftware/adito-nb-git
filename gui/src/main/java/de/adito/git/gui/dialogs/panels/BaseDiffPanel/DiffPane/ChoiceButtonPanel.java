@@ -52,7 +52,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
    * @param pOrientation        String with the orientation (as BorderLayout.EAST/WEST) of this panel, determines the order of accept/discardButtons
    */
   ChoiceButtonPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, Observable<Rectangle> pDisplayedArea,
-                    @NotNull ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon, LineNumbersColorModel[] pLineNumColorModels,
+                    @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon, LineNumbersColorModel[] pLineNumColorModels,
                     String pOrientation)
   {
     model = pModel;
@@ -60,10 +60,13 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
     acceptIcon = pAcceptIcon;
     lineNumbersColorModels = pLineNumColorModels;
     orientation = pOrientation;
-    setPreferredSize(new Dimension(pAcceptIcon.getIconWidth() + (pDiscardIcon != null ? pDiscardIcon.getIconWidth() : 0), 1));
+    int acceptIconWidth = pAcceptIcon != null ? pAcceptIcon.getIconWidth() : 16;
+    setPreferredSize(new Dimension(acceptIconWidth + (pDiscardIcon != null ? pDiscardIcon.getIconWidth() : 0), 1));
     setBackground(ColorPicker.DIFF_BACKGROUND);
     acceptChangeIconXVal = BorderLayout.WEST.equals(pOrientation) || pDiscardIcon == null ? 0 : pDiscardIcon.getIconWidth();
-    discardChangeIconXVal = BorderLayout.WEST.equals(pOrientation) ? pAcceptIcon.getIconWidth() : 0;
+    discardChangeIconXVal = BorderLayout.WEST.equals(pOrientation) ? acceptIconWidth : 0;
+    addMouseListener(new IconPressMouseAdapter(acceptIconWidth, pModel.getDoOnAccept(), pModel.getDoOnDiscard(), () -> iconInfosToDraw,
+                                               BorderLayout.WEST.equals(pOrientation)));
     pLineNumColorModels[0].addListener(this);
     pLineNumColorModels[1].addListener(this);
     disposable = Observable.combineLatest(
@@ -74,8 +77,6 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
               changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(pPair.getRectangle(), leftLineNumberColors, rightLineNumberColors);
               repaint();
             }));
-    addMouseListener(new IconPressMouseAdapter(pAcceptIcon.getIconWidth(), pModel.getDoOnAccept(), pModel.getDoOnDiscard(), () -> iconInfosToDraw,
-                                               BorderLayout.WEST.equals(pOrientation)));
   }
 
   @Override
@@ -100,7 +101,8 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
    */
   private void _calculateButtonViewCoordinates(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pDisplayedArea)
   {
-    if (cachedViewRectangle.height == 0 || cachedViewRectangle.width != pDisplayedArea.width || pDisplayedArea.equals(cachedViewRectangle))
+    if ((cachedViewRectangle.height == 0 || cachedViewRectangle.width != pDisplayedArea.width || pDisplayedArea.equals(cachedViewRectangle))
+        && acceptIcon != null)
     {
       List<IconInfo> iconInfos = new ArrayList<>();
       try

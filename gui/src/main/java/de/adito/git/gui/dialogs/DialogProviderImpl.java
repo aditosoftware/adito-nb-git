@@ -1,12 +1,15 @@
 package de.adito.git.gui.dialogs;
 
-import com.google.inject.*;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import io.reactivex.Observable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -50,12 +53,12 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult showDiffDialog(List<IFileDiff> pFileDiffs)
+  public DialogResult showDiffDialog(List<IFileDiff> pFileDiffs, boolean pAcceptChange)
   {
     DialogResult<DiffDialog, ?> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs), "DiffDialog");
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs, pAcceptChange), "DiffDialog");
       return result;
     }
     finally

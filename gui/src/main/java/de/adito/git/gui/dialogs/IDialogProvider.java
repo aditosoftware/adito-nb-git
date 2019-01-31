@@ -5,7 +5,9 @@ import de.adito.git.api.data.*;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import io.reactivex.Observable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -17,7 +19,7 @@ public interface IDialogProvider
 
   DialogResult showMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
 
-  DialogResult showDiffDialog(List<IFileDiff> pFileDiffs);
+  DialogResult showDiffDialog(List<IFileDiff> pFileDiffs, boolean pAcceptChange);
 
   DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository,
                                                                   Observable<Optional<List<IFileChangeType>>> pFilesToCommit);

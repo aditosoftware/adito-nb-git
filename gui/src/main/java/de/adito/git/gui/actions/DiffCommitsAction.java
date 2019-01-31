@@ -57,7 +57,7 @@ public class DiffCommitsAction extends AbstractTableAction
             throw new RuntimeException(pE);
           }
         }).orElse(Collections.emptyList());
-        dialogProvider.showDiffDialog(fileDiffs);
+        dialogProvider.showDiffDialog(fileDiffs, false);
       }
     });
   }

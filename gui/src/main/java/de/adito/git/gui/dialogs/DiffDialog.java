@@ -39,15 +39,17 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IEditorKitProvider editorKitProvider;
   private final IIconLoader iconLoader;
+  private final boolean acceptChange;
   private final JTextPane notificationArea = new JTextPane();
   private DiffPanel diffPanel;
   private Disposable disposable;
   private List<IFileDiff> diffs;
 
   @Inject
-  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs)
+  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs, @Assisted boolean pAcceptChange)
   {
     iconLoader = pIconLoader;
+    acceptChange = pAcceptChange;
     observableListSelectionModel = new ObservableListSelectionModel(fileListTable.getSelectionModel());
     fileListTable.setSelectionModel(observableListSelectionModel);
     editorKitProvider = pEditorKitProvider;
@@ -84,7 +86,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     Observable<EditorKit> editorKitObservable = fileDiffObservable
         .map(pFileDiff -> editorKitProvider.getEditorKit(pFileDiff.map(IFileDiff::getFilePath).orElse(null)));
 
-    diffPanel = new DiffPanel(fileDiffObservable, iconLoader.getIcon(ACCEPT_ICON_PATH), editorKitObservable);
+    diffPanel = new DiffPanel(fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
 
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEnabled(false);
