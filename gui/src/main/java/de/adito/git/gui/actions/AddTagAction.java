@@ -19,7 +19,7 @@ import java.util.Optional;
  *
  * @author m.kaspera, 30.01.2019
  */
-public class AddTagAction extends AbstractTableAction
+class AddTagAction extends AbstractTableAction
 {
 
   private static final String NOTIFY_CATEGORY = "Adding Tag";
@@ -30,9 +30,9 @@ public class AddTagAction extends AbstractTableAction
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
 
   @Inject
-  public AddTagAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil,
-                      @Assisted Observable<Optional<IRepository>> pRepository,
-                      @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  AddTagAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil,
+               @Assisted Observable<Optional<IRepository>> pRepository,
+               @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     super(ACTION_NAME, _getIsEnabledObservable(pSelectedCommitObservable));
     dialogProvider = pDialogProvider;
