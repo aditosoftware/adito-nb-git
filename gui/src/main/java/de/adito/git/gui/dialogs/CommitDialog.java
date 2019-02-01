@@ -3,8 +3,10 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
@@ -12,11 +14,16 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.net.URI;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -38,12 +45,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
   private IDialogDisplayer.IDescriptor isValidDescriptor;
+  private final Observable<Optional<IRepository>> repository;
 
   @Inject
   public CommitDialog(@Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit)
   {
     isValidDescriptor = pIsValidDescriptor;
+    repository = pRepository;
     // disable OK button at the start since the commit message is empty then
     isValidDescriptor.setValid(false);
     Observable<Optional<IFileStatus>> statusObservable = pRepository
@@ -184,14 +193,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   /**
    * TableModel for the Table, has the list of files to commit. Similar to {@link StatusTableModel}
    */
-  private static class _SelectedCommitTableModel extends AbstractTableModel implements IDiscardable
+  private class _SelectedCommitTableModel extends AbstractTableModel implements IDiscardable
   {
 
     static final String IS_SELECTED_COLUMN_NAME = "commit file";
     static final String FILE_NAME_COLUMN_NAME = StatusTableModel.FILE_NAME_COLUMN_NAME;
     static final String FILE_PATH_COLUMN_NAME = StatusTableModel.FILE_PATH_COLUMN_NAME;
     static final String CHANGE_TYPE_COLUMN_NAME = StatusTableModel.CHANGE_TYPE_COLUMN_NAME;
-    static final String[] columnNames = {IS_SELECTED_COLUMN_NAME, FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
+    final String[] columnNames = {IS_SELECTED_COLUMN_NAME, FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
 
     private Disposable disposable;
     private List<SelectedFileChangeType> fileList;
@@ -266,7 +275,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       }
       else if (pColumnIndex == findColumn(FILE_PATH_COLUMN_NAME))
       {
-        returnValue = fileList.get(pRowIndex).getChangeType().getFile().getPath();
+        final URI fileUri = fileList.get(pRowIndex).getChangeType().getFile().toURI();
+        returnValue = repository.blockingFirst().map(pRepository -> pRepository.getTopLevelDirectory().toURI().relativize(fileUri)).orElse(fileUri);
       }
       else if (pColumnIndex == findColumn(CHANGE_TYPE_COLUMN_NAME))
       {
