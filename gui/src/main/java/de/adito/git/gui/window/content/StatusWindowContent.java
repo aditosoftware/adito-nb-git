@@ -2,10 +2,12 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.*;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IDiscardable;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
@@ -13,11 +15,14 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
-import java.util.stream.*;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * class to display the results of the status command to git (i.e. lists all changes made to the
@@ -28,18 +33,17 @@ import java.util.stream.*;
 class StatusWindowContent extends JPanel implements IDiscardable
 {
 
-  private final IFileSystemUtil fileOpener;
   private final Observable<Optional<IRepository>> repository;
-  private IActionProvider actionProvider;
+  private final IActionProvider actionProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
   private final JTable statusTable;
+  private final Action openFileAction;
   private Disposable disposable;
   private JPopupMenu popupMenu;
 
   @Inject
-  StatusWindowContent(IFileSystemUtil pFileOpener, IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  StatusWindowContent(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository)
   {
-    fileOpener = pFileOpener;
     repository = pRepository;
     actionProvider = pActionProvider;
     Observable<Optional<IFileStatus>> status = repository
@@ -56,6 +60,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
                              .map(uncommittedListCached::get)
                              .collect(Collectors.toList()));
     });
+    openFileAction = actionProvider.getOpenFileAction(selectionObservable);
     _initGui();
   }
 
@@ -73,6 +78,8 @@ class StatusWindowContent extends JPanel implements IDiscardable
 
     disposable = repository.subscribe(pRepository -> {
       popupMenu = new JPopupMenu();
+      popupMenu.add(actionProvider.getOpenFileAction(selectionObservable));
+      popupMenu.addSeparator();
       popupMenu.add(actionProvider.getCommitAction(repository, selectionObservable));
       popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
       popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
@@ -103,17 +110,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
     {
       if (pEvent.getClickCount() == 2)
       {
-        String filePath = (String) statusTable.getModel().getValueAt(statusTable.rowAtPoint(pEvent.getPoint()),
-                                                                     ((StatusTableModel) statusTable.getModel())
-                                                                         .findColumn(StatusTableModel.FILE_PATH_COLUMN_NAME));
-        try
-        {
-          fileOpener.openFile(filePath);
-        }
-        catch (AditoGitException pE)
-        {
-          throw new RuntimeException(pE);
-        }
+        openFileAction.actionPerformed(null);
       }
     }
   }

@@ -187,4 +187,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createDiffCommitsAction(pRepository, pSelectedCommitObservable);
   }
 
+  @Override
+  public Action getOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  {
+    return actionFactory.createOpenFileAction(pSelectedFilesObservable);
+  }
+
 }
