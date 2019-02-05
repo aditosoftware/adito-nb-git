@@ -20,6 +20,7 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
+import java.awt.event.ActionEvent;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -103,8 +104,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       _setColumnSize(index);
       fileStatusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
     }
+    JToolBar toolBar = new JToolBar();
+    toolBar.add(new _SelectAllAction());
+    toolBar.add(new _DeselectAllAction());
     // Size for the Table with the list of files to commit
     JScrollPane tableScrollPane = new JScrollPane(fileStatusTable);
+    JPanel toolbarFileStatusTablePanel = new JPanel(new BorderLayout());
+    toolbarFileStatusTablePanel.add(tableScrollPane, BorderLayout.CENTER);
+    toolbarFileStatusTablePanel.add(toolBar, BorderLayout.NORTH);
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
     messagePane.setPreferredSize(MESSAGE_PANE_PREF_SIZE);
@@ -116,7 +123,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     messageOptionsPanel.add(amendCheckBox, BorderLayout.SOUTH);
     messageOptionsPanel.setBorder(tableScrollPane.getBorder());
     // Splitpane so the user can choose how big each element should be
-    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tableScrollPane, messageOptionsPanel);
+    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, toolbarFileStatusTablePanel, messageOptionsPanel);
     splitPane.setResizeWeight(0.5);
     add(splitPane, BorderLayout.CENTER);
   }
@@ -162,7 +169,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     commitTableModel.discard();
   }
 
-  public static class SelectedFileChangeType
+  private static class SelectedFileChangeType
   {
 
     private final IFileChangeType changeType;
@@ -174,17 +181,17 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       changeType = pChangeType;
     }
 
-    public IFileChangeType getChangeType()
+    IFileChangeType getChangeType()
     {
       return changeType;
     }
 
-    public boolean isSelected()
+    boolean isSelected()
     {
       return isSelected;
     }
 
-    public void setSelected(boolean pIsSelected)
+    void setSelected(boolean pIsSelected)
     {
       isSelected = pIsSelected;
     }
@@ -256,7 +263,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     public void setValueAt(Object pAValue, int pRowIndex, int pColumnIndex)
     {
       if (pColumnIndex == findColumn(IS_SELECTED_COLUMN_NAME) && pAValue instanceof Boolean)
+      {
         fileList.get(pRowIndex).setSelected((Boolean) pAValue);
+        fireTableDataChanged();
+      }
       else
         super.setValueAt(pAValue, pRowIndex, pColumnIndex);
     }
@@ -295,6 +305,57 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     public void discard()
     {
       disposable.dispose();
+    }
+
+    /**
+     * Sets the selection state of all files in this tableModel to the passed value and fires a tableDataChanged event afterwards
+     *
+     * @param pSelectionState whether all files are selected or not
+     */
+    void setSelectionStateForAll(boolean pSelectionState)
+    {
+      for (SelectedFileChangeType selectedFileChangeType : fileList)
+      {
+        selectedFileChangeType.setSelected(pSelectionState);
+      }
+      fireTableDataChanged();
+    }
+
+  }
+
+  /**
+   * Action that selects all files in the list of files to commit
+   */
+  private class _SelectAllAction extends AbstractAction
+  {
+
+    _SelectAllAction()
+    {
+      super("Select all");
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent pEvent)
+    {
+      ((_SelectedCommitTableModel) fileStatusTable.getModel()).setSelectionStateForAll(true);
+    }
+  }
+
+  /**
+   * Action that deselects all files in the list of files to commit
+   */
+  private class _DeselectAllAction extends AbstractAction
+  {
+
+    _DeselectAllAction()
+    {
+      super("Deselect all");
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent pEvent)
+    {
+      ((_SelectedCommitTableModel) fileStatusTable.getModel()).setSelectionStateForAll(false);
     }
   }
 
