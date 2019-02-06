@@ -148,4 +148,12 @@ public interface IActionProvider
    * @return Action whose actionPerformed method opens the currently selected files (those the observable returns)
    */
   Action getOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+
+  /**
+   * returns an action that executes the passed Runnable when the action is called
+   *
+   * @param pRefreshContentCallBack Runnable that updates the model with the latest information
+   * @return Action whose actionPerformed method executes the passed Runnable
+   */
+  Action getRefreshContentAction(Runnable pRefreshContentCallBack);
 }

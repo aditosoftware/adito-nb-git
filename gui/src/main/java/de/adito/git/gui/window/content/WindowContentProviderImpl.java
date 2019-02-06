@@ -35,9 +35,10 @@ public class WindowContentProviderImpl implements IWindowContentProvider
   }
 
   @Override
-  public JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadCallback)
+  public JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadCallback,
+                                                     Runnable pRefreshContentCallBack)
   {
-    return windowContentFactory.createCommitHistoryWindowContent(pRepository, pTableModel, pLoadCallback);
+    return windowContentFactory.createCommitHistoryWindowContent(pRepository, pTableModel, pLoadCallback, pRefreshContentCallBack);
   }
 
   @Override

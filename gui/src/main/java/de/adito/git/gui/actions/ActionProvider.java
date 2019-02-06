@@ -193,4 +193,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createOpenFileAction(pSelectedFilesObservable);
   }
 
+  @Override
+  public Action getRefreshContentAction(Runnable pRefreshContentCallBack)
+  {
+    return actionFactory.createRefreshAction(pRefreshContentCallBack);
+  }
+
 }

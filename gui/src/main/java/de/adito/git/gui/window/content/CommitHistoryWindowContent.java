@@ -38,14 +38,23 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static final double MAIN_SPLIT_PANE_SIZE_RATIO = 0.75;
   private final CommitDetailsPanel commitDetailsPanel;
   private final JTable commitTable = new _CommitTable();
+  private final JToolBar toolBar = new JToolBar();
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
+  /**
+   * @param pActionProvider         IActionProvider from which actions can be retrieved
+   * @param pRepository             Observable with the Repository of the current project
+   * @param pTableModel             TableModel used for the table with all commits. Should already be filled with information about the commits
+   * @param pLoadMoreCallback       Runnable that puts addition entries into the tableModel, if any more are available
+   * @param pRefreshContentCallBack Runnable that resets the current entries in the tableModel and fills them with the latest values
+   */
   @Inject
   CommitHistoryWindowContent(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
-                             @Assisted TableModel pTableModel, @Assisted Runnable pLoadMoreCallback)
+                             @Assisted TableModel pTableModel, @Assisted("loadMore") Runnable pLoadMoreCallback,
+                             @Assisted("refreshContent") Runnable pRefreshContentCallBack)
   {
     ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
     commitTable.setSelectionModel(observableCommitListSelectionModel);
@@ -61,7 +70,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       return Optional.of(selectedCommits);
     });
     commitDetailsPanel = new CommitDetailsPanel(actionProvider, pRepository, selectedCommitObservable);
-    _initGUI(pLoadMoreCallback);
+    _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
   }
 
   @Override
@@ -70,10 +79,11 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitDetailsPanel.discard();
   }
 
-  private void _initGUI(Runnable pLoadMoreCallback)
+  private void _initGUI(Runnable pLoadMoreCallback, Runnable pRefreshContentCallBack)
   {
     setLayout(new BorderLayout());
     _setUpCommitTable();
+    _setUpToolbar(pRefreshContentCallBack);
 
     JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -94,7 +104,13 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
     JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitScrollPane, commitDetailsPanel.getPanel());
     mainSplitPane.setResizeWeight(MAIN_SPLIT_PANE_SIZE_RATIO);
-    add(mainSplitPane);
+    add(mainSplitPane, BorderLayout.CENTER);
+    add(toolBar, BorderLayout.NORTH);
+  }
+
+  private void _setUpToolbar(Runnable pRefreshContentCallBack)
+  {
+    toolBar.add(actionProvider.getRefreshContentAction(pRefreshContentCallBack));
   }
 
   private void _setUpCommitTable()

@@ -62,4 +62,6 @@ interface IActionFactory
                                             Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
   OpenFileAction createOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+
+  RefreshContentAction createRefreshAction(Runnable pRefreshContentCallBack);
 }

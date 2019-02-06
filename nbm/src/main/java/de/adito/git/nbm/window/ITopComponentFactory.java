@@ -1,5 +1,6 @@
 package de.adito.git.nbm.window;
 
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
 
@@ -17,7 +18,9 @@ interface ITopComponentFactory
   AllBranchTopComponent createAllBranchTopComponent(Observable<Optional<IRepository>> pRepository);
 
   CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<Optional<IRepository>> pRepository,
-                                                            TableModel pTableModel, Runnable pLoadMoreCallback, String pDisplayableContext);
+                                                            TableModel pTableModel, @Assisted("loadMore") Runnable pLoadMoreCallback,
+                                                            @Assisted("refreshContent") Runnable pRefreshContentCallBack,
+                                                            String pDisplayableContext);
 
   StatusWindowTopComponent createStatusWindowTopComponent(Observable<Optional<IRepository>> pRepository);
 

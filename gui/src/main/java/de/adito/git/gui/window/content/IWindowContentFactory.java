@@ -1,5 +1,6 @@
 package de.adito.git.gui.window.content;
 
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
 
@@ -17,7 +18,8 @@ interface IWindowContentFactory
   BranchListWindowContent createBranchListWindowContent(Observable<Optional<IRepository>> pRepository);
 
   CommitHistoryWindowContent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel,
-                                                              Runnable pLoadMoreCallback);
+                                                              @Assisted("loadMore") Runnable pLoadMoreCallback,
+                                                              @Assisted("refreshContent") Runnable pRefreshContentCallBack);
 
   StatusLineWindowContent createStatusLineWindowContent(Observable<Optional<IRepository>> pRepository);
 

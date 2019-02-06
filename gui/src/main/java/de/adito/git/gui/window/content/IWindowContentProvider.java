@@ -17,7 +17,8 @@ public interface IWindowContentProvider
 
   JComponent createBranchListWindowContent(Observable<Optional<IRepository>> pRepository);
 
-  JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback);
+  JComponent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel, Runnable pLoadMoreCallback,
+                                              Runnable pRefreshContent);
 
   JComponent createStatusLineWindowContent(Observable<Optional<IRepository>> pRepository);
 

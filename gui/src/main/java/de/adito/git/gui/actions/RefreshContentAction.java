@@ -9,9 +9,11 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 /**
+ * Action that executes a passed Runnable in the actionPerformed method, has a refresh icon as symbol
+ *
  * @author m.kaspera, 06.02.2019
  */
-public class RefreshContentAction extends AbstractAction
+class RefreshContentAction extends AbstractAction
 {
 
   private final Runnable refreshCallBack;

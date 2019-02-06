@@ -5,11 +5,10 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
-import org.eclipse.jgit.revwalk.DepthWalk;
 import org.openide.util.NbBundle;
 
 import javax.swing.table.TableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.Optional;
 
 /**
@@ -24,12 +23,14 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
 
   @Inject
   CommitHistoryTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository,
-                            @Assisted TableModel tableModel, @Assisted Runnable loadMoreCallback, @Assisted String pDisplayableContext)
+                            @Assisted TableModel tableModel, @Assisted("loadMore") Runnable loadMoreCallback,
+                            @Assisted("refreshContent") Runnable pRefreshContent,
+                            @Assisted String pDisplayableContext)
   {
     super(pRepository);
     displayableContext = pDisplayableContext;
     setLayout(new BorderLayout());
-    add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallback), BorderLayout.CENTER);
+    add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallback, pRefreshContent), BorderLayout.CENTER);
   }
 
   @Override
@@ -44,6 +45,6 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
   @Override
   protected String getTopComponentName()
   {
-    return (NbBundle.getMessage(CommitHistoryTopComponent.class, "Label.Commits") +" - " + displayableContext);
+    return (NbBundle.getMessage(CommitHistoryTopComponent.class, "Label.Commits") + " - " + displayableContext);
   }
 }

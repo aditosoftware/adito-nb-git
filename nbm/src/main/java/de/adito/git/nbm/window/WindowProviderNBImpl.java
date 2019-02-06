@@ -6,6 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.IUserPreferences;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import de.adito.git.gui.window.IWindowProvider;
 import io.reactivex.Observable;
@@ -63,8 +64,21 @@ class WindowProviderNBImpl implements IWindowProvider
           throw new RuntimeException(e);
         }
       };
-      _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, pBranch != null ?
-          pBranch.getSimpleName() : NbBundle.getMessage(WindowProviderNBImpl.class, "Label.CommitsProject")));
+      Runnable refreshContentCallBack = () -> {
+        try
+        {
+          tableModel.resetData(repo.getCommitHistoryTreeList(
+              repo.getCommits(pBranch, 0, userPreferences.getNumLoadAdditionalCHEntries()), null));
+        }
+        catch (AditoGitException pE)
+        {
+          throw new RuntimeException(pE);
+        }
+      };
+      _openTCinEDT(topComponentFactory
+                       .createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack,
+                                                        pBranch != null ? pBranch.getSimpleName()
+                                                            : NbBundle.getMessage(WindowProviderNBImpl.class, "Label.CommitsProject")));
     }
     catch (Exception e)
     {
@@ -94,7 +108,19 @@ class WindowProviderNBImpl implements IWindowProvider
           throw new RuntimeException(e);
         }
       };
-      _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, pFile.getAbsolutePath()));
+      Runnable refreshContentCallBack = () -> {
+        try
+        {
+          tableModel.resetData(repo.getCommitHistoryTreeList(
+              repo.getCommits(pFile, 0, userPreferences.getNumLoadAdditionalCHEntries()), null));
+        }
+        catch (AditoGitException pE)
+        {
+          throw new RuntimeException(pE);
+        }
+      };
+      _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack,
+                                                                       pFile.getAbsolutePath()));
     }
     catch (Exception e)
     {

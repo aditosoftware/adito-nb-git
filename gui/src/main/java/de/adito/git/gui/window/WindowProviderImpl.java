@@ -1,15 +1,20 @@
 package de.adito.git.gui.window;
 
 import com.google.inject.Inject;
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.CommitHistoryTreeListItem;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.IUserPreferences;
+import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * A provider for all windows (not dialogs). This class only displays the windows
@@ -56,7 +61,18 @@ class WindowProviderImpl implements IWindowProvider
           throw new RuntimeException(e);
         }
       };
-      _showInFrame(factory.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallBack));
+      Runnable refreshContentCallBack = () -> {
+        try
+        {
+          tableModel.resetData(repo.getCommitHistoryTreeList(
+              repo.getCommits(pBranch, 0, userPreferences.getNumLoadAdditionalCHEntries()), null));
+        }
+        catch (AditoGitException pE)
+        {
+          throw new RuntimeException(pE);
+        }
+      };
+      _showInFrame(factory.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack));
     }
     catch (Exception e)
     {
@@ -85,7 +101,18 @@ class WindowProviderImpl implements IWindowProvider
           throw new RuntimeException(e);
         }
       };
-      _showInFrame(factory.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallBack));
+      Runnable refreshContentCallBack = () -> {
+        try
+        {
+          tableModel.resetData(repo.getCommitHistoryTreeList(
+              repo.getCommits(pFile, 0, userPreferences.getNumLoadAdditionalCHEntries()), null));
+        }
+        catch (AditoGitException pE)
+        {
+          throw new RuntimeException(pE);
+        }
+      };
+      _showInFrame(factory.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack));
     }
     catch (Exception e)
     {
