@@ -6,6 +6,7 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,4 +65,6 @@ interface IActionFactory
   OpenFileAction createOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
   RefreshContentAction createRefreshAction(Runnable pRefreshContentCallBack);
+
+  FileHistoryAction createShowCommitsForFileAction(Observable<Optional<IRepository>> pRepository, Observable<List<File>> pFile);
 }

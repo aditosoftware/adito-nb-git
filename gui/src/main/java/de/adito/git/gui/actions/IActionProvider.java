@@ -7,6 +7,7 @@ import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -94,6 +95,13 @@ public interface IActionProvider
    * @return Action whose actionPerformed method opens a window with a list of all commits that belong to the project
    */
   Action getShowAllCommitsAction(Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * @param pRepository Observable with the current Repository
+   * @param pFile       Observable of a List of files for which to find the affecting commits. List size should be 1 for the action to be enabled
+   * @return Action whose actionPerformed method opens a window with a list of all commits that affected the passed file
+   */
+  Action getShowCommitsForFileAction(Observable<Optional<IRepository>> pRepository, Observable<List<File>> pFile);
 
   /**
    * @param pRepository              Observable with the current Repository

@@ -85,6 +85,12 @@ class StatusWindowContent extends JPanel implements IDiscardable
       popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
       popupMenu.addSeparator();
       popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable));
+      popupMenu.add(actionProvider.getShowCommitsForFileAction(repository, selectionObservable
+          .map(pFileChangeTypes -> pFileChangeTypes
+              .map(pChangeTypes -> pChangeTypes.stream()
+                  .map(IFileChangeType::getFile)
+                  .collect(Collectors.toList()))
+              .orElse(Collections.emptyList()))));
       popupMenu.addSeparator();
       popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
       popupMenu.addSeparator();

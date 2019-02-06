@@ -9,6 +9,7 @@ import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -135,6 +136,12 @@ class ActionProvider implements IActionProvider
   public Action getShowAllCommitsAction(Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createShowAllCommitsAction(pRepository);
+  }
+
+  @Override
+  public Action getShowCommitsForFileAction(Observable<Optional<IRepository>> pRepository, Observable<List<File>> pFile)
+  {
+    return actionFactory.createShowCommitsForFileAction(pRepository, pFile);
   }
 
   /**
