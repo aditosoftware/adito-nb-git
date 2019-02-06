@@ -22,7 +22,7 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 14.12.2018
  */
-public class ResolveConflictsAction extends AbstractTableAction
+class ResolveConflictsAction extends AbstractTableAction
 {
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;

@@ -34,7 +34,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   private final IDialogProvider dialogProvider;
   private IDialogDisplayer.IDescriptor isValidDescriptor;
-  private Observable<Optional<IRepository>> repository;
+  private IRepository repository;
   private final Subject<List<IMergeDiff>> mergeConflictDiffs;
   private final JTable mergeConflictTable = new JTable();
   private final Observable<Optional<IMergeDiff>> selectedMergeDiffObservable;
@@ -47,12 +47,11 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   {
     dialogProvider = pDialogProvider;
     isValidDescriptor = pIsValidDescriptor;
-    repository = pRepository;
+    repository = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG));
     ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
     mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
-    Observable<Optional<IFileStatus>> obs = pRepository
-        .flatMap(pRepo -> pRepo.orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG)).getStatus());
+    Observable<Optional<IFileStatus>> obs = repository.getStatus();
     Observable<List<IMergeDiff>> mergeDiffListObservable = Observable.combineLatest(obs,
                                                                                     mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
             .filter(pMergeDiff -> pStatus.map(IFileStatus::getConflicting).orElse(Collections.emptySet())
@@ -108,10 +107,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     if (mergeDiffOptional.isPresent())
     {
       IMergeDiff selectedMergeDiff = mergeDiffOptional.get();
-      File selectedFile = new File(repository
-                                       .blockingFirst()
-                                       .orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG))
-                                       .getTopLevelDirectory(), selectedMergeDiff.getDiff(pConflictSide).getFilePath());
+      File selectedFile = new File(repository.getTopLevelDirectory(), selectedMergeDiff.getDiff(pConflictSide).getFilePath());
       StringBuilder fileContents = new StringBuilder();
       for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
       {
@@ -124,10 +120,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   private void _acceptManualVersion(IMergeDiff pIMergeDiff)
   {
-    File selectedFile = new File(repository
-                                     .blockingFirst()
-                                     .orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG))
-                                     .getTopLevelDirectory(), pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
+    File selectedFile = new File(repository.getTopLevelDirectory(), pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
     StringBuilder fileContents = new StringBuilder();
     for (IFileChangeChunk changeChunk : pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges()
         .getChangeChunks().blockingFirst().getNewValue())
@@ -153,10 +146,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     }
     try
     {
-      repository
-          .blockingFirst()
-          .orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG))
-          .add(Collections.singletonList(pSelectedFile));
+      repository.add(Collections.singletonList(pSelectedFile));
     }
     catch (Exception pE)
     {

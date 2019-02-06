@@ -3,7 +3,8 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EPushResult;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -56,7 +57,8 @@ class PushAction extends AbstractAction
           throw new RuntimeException("Error while finding un-pushed commits", pE);
         }
       });
-      boolean doCommit = dialogProvider.showPushDialog(repository, commitList.orElse(Collections.emptyList())).isPressedOk();
+      boolean doCommit = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()), commitList.orElse(Collections.emptyList()))
+          .isPressedOk();
       if (doCommit)
       {
         pHandle.setDescription("Pushing");

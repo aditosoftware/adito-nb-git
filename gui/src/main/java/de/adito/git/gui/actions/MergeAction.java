@@ -6,13 +6,16 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.api.progress.*;
+import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 24.10.2018
@@ -66,7 +69,7 @@ class MergeAction extends AbstractTableAction
       List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst().orElseThrow(), pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(repositoryObservable, mergeConflictDiffs);
+        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(repositoryObservable.blockingFirst()), mergeConflictDiffs);
         if (dialogResult.isPressedOk())
         {
           repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
@@ -85,7 +88,7 @@ class MergeAction extends AbstractTableAction
       String stashedCommitId = prefStore.get(STASH_ID_KEY);
       if (stashedCommitId != null)
       {
-        StashCommand.doUnStashing(dialogProvider, stashedCommitId, repositoryObservable);
+        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repositoryObservable.blockingFirst()));
       }
       prefStore.put(STASH_ID_KEY, null);
     }

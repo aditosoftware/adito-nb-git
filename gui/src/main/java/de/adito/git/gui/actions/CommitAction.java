@@ -48,7 +48,8 @@ class CommitAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    DialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repository, selectedFilesObservable);
+    Observable<Optional<IRepository>> repo = Observable.just(repository.blockingFirst());
+    DialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repo, selectedFilesObservable);
     // if user didn't cancel the dialogs
     if (dialogResult.isPressedOk())
     {
@@ -57,7 +58,7 @@ class CommitAction extends AbstractTableAction
             .stream()
             .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
             .collect(Collectors.toList());
-        repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
+        repo.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
             .commit(dialogResult.getMessage(), files, dialogResult.getInformation().isDoAmend());
       });
     }

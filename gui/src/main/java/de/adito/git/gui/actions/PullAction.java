@@ -92,7 +92,7 @@ class PullAction extends AbstractAction
         {
           pProgressHandle.setDescription("Resolving Conflicts");
           // if the pull should be aborted, _handleConflictDialog returns true
-          doAbort = _handleConflictDialog(rebaseResult.getMergeConflicts());
+          doAbort = _handleConflictDialog(Observable.just(repository.blockingFirst()), rebaseResult.getMergeConflicts());
         }
       }
     }
@@ -106,7 +106,7 @@ class PullAction extends AbstractAction
       if (stashedCommitId != null)
       {
         pProgressHandle.setDescription("Unstashing Changes");
-        StashCommand.doUnStashing(dialogProvider, stashedCommitId, repository);
+        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
         prefStore.put(STASH_ID_KEY, null);
       }
     }
@@ -119,14 +119,14 @@ class PullAction extends AbstractAction
    * @return true if the user pressed cancel and the pull should be aborted, false otherwise
    * @throws AditoGitException if an error occurred during the pull
    */
-  private boolean _handleConflictDialog(List<IMergeDiff> pMergeConflicts) throws AditoGitException
+  private boolean _handleConflictDialog(Observable<Optional<IRepository>> pRepo, List<IMergeDiff> pMergeConflicts) throws AditoGitException
   {
-    DialogResult dialogResult = dialogProvider.showMergeConflictDialog(repository, pMergeConflicts);
+    DialogResult dialogResult = dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts);
     if (!dialogResult.isPressedOk())
     {
       // user pressed cancel -> abort
       IRebaseResult abortedRebaseResult =
-          repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG)).pull(true);
+          pRepo.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG)).pull(true);
       if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
         throw new RuntimeException("The abort of the rebase failed with state: " + abortedRebaseResult.getResultType());
       // abort was successful -> notify user
