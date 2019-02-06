@@ -88,9 +88,15 @@ class MergeAction extends AbstractTableAction
       String stashedCommitId = prefStore.get(STASH_ID_KEY);
       if (stashedCommitId != null)
       {
-        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repositoryObservable.blockingFirst()));
+        try
+        {
+          StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repositoryObservable.blockingFirst()));
+        }
+        finally
+        {
+          prefStore.put(STASH_ID_KEY, null);
+        }
       }
-      prefStore.put(STASH_ID_KEY, null);
     }
   }
 
