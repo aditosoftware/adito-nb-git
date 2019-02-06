@@ -26,6 +26,19 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   }
 
   @Override
+  public String getColumnName(int pColumn)
+  {
+    String columnName;
+    if (pColumn == 0)
+      columnName = "fileName";
+    else if (pColumn == 1)
+      columnName = "filePath";
+    else
+      columnName = super.getColumnName(pColumn);
+    return columnName;
+  }
+
+  @Override
   public int getRowCount()
   {
     return mergeDiffs.size();

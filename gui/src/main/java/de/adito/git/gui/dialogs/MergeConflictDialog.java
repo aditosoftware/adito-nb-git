@@ -16,6 +16,7 @@ import io.reactivex.subjects.Subject;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -75,6 +76,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private void _initGui()
   {
     setLayout(new BorderLayout());
+    setMinimumSize(new Dimension(1200, 1));
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
     JButton manualMergeButton = new JButton("Manual Merge");
@@ -89,7 +91,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     add(buttonPanel, BorderLayout.EAST);
     mergeConflictTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     mergeConflictTable.setModel(mergeDiffStatusModel);
-    add(mergeConflictTable, BorderLayout.WEST);
+    JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
+    add(mergeConflictTableScrollPane, BorderLayout.WEST);
   }
 
   private void _doManualResolve(Observable<Optional<IMergeDiff>> pSelectedMergeDiffObservable)
