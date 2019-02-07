@@ -195,6 +195,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   private int _getLastLineNumber(DiffPanelModel pModel)
   {
     List<IFileChangeChunk> changeChunks = pModel.getFileChangesObservable().blockingFirst().getNewValue();
+    if (changeChunks.size() == 0)
+      return 0;
     return pModel.getGetEndLine().apply(changeChunks.get(changeChunks.size() - 1));
   }
 }

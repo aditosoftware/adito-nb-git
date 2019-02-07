@@ -84,7 +84,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       else return Optional.empty();
     });
     Observable<EditorKit> editorKitObservable = fileDiffObservable
-        .map(pFileDiff -> editorKitProvider.getEditorKit(pFileDiff.map(IFileDiff::getFilePath).orElse(null)));
+        .map(pFileDiff -> editorKitProvider.getEditorKit(pFileDiff.map(IFileDiff::getFilePath).orElse("text/plain")));
 
     diffPanel = new DiffPanel(fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
 
