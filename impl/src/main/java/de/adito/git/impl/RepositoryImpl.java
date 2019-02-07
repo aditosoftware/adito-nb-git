@@ -16,6 +16,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.StashApplyFailureException;
 import org.eclipse.jgit.diff.*;
+import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -396,9 +397,11 @@ public class RepositoryImpl implements IRepository
     try
     {
       List<IFileDiff> returnList = new ArrayList<>();
+      _checkExcludedIgnoredFiles(pFilesToDiff);
 
       // prepare the TreeIterators for the local working copy and the files in HEAD
       FileTreeIterator fileTreeIterator = new FileTreeIterator(git.getRepository());
+      fileTreeIterator.setWalkIgnoredDirectories(true);
       ObjectId compareWithId = git.getRepository().resolve(pCompareWith == null ? Constants.HEAD : pCompareWith.getId());
       CanonicalTreeParser treeParser = RepositoryImplHelper.prepareTreeParser(git.getRepository(), compareWithId);
 
@@ -449,6 +452,30 @@ public class RepositoryImpl implements IRepository
     catch (IOException pE)
     {
       throw new AditoGitException(pE);
+    }
+  }
+
+  /**
+   * @param pFileList List of files to check
+   * @throws IOException if an error occurs during reading the ignore/exclude file
+   */
+  private void _checkExcludedIgnoredFiles(List<File> pFileList) throws IOException
+  {
+    File gitIgnore = new File(getTopLevelDirectory(), ".gitignore");
+    File gitExclude = new File(git.getRepository().getDirectory(), "info/exclude");
+    IgnoreNode ignoreNode = new IgnoreNode();
+    ignoreNode.parse(new FileInputStream(gitIgnore));
+    ignoreNode.parse(new FileInputStream(gitExclude));
+    if (pFileList != null)
+    {
+      for (File file : pFileList)
+      {
+        Boolean isIgnored = ignoreNode.checkIgnored(getRelativePath(file, git), false);
+        if (isIgnored != null && isIgnored)
+        {
+          throw new RuntimeException("File " + file.getAbsolutePath() + " is in exclude or ignore file, cannot perform a diff");
+        }
+      }
     }
   }
 
