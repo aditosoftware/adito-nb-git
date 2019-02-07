@@ -69,7 +69,7 @@ class MergeAction extends AbstractTableAction
       List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst().orElseThrow(), pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(repositoryObservable.blockingFirst()), mergeConflictDiffs);
+        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs);
         if (dialogResult.isPressedOk())
         {
           repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
@@ -90,7 +90,7 @@ class MergeAction extends AbstractTableAction
       {
         try
         {
-          StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repositoryObservable.blockingFirst()));
+          StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(repository)));
         }
         finally
         {
