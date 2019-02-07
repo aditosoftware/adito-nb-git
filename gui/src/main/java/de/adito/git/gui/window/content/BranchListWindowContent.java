@@ -57,8 +57,9 @@ class BranchListWindowContent extends JPanel
   {
     setLayout(new BorderLayout());
     Observable<Optional<List<IBranch>>> branchObservable = repository
-        .flatMap(pRepo -> pRepo
-            .orElseThrow(() -> new RuntimeException("no valid repository found")).getBranches());
+        .switchMap(pRepo -> pRepo
+            .orElseThrow(() -> new RuntimeException("no valid repository found"))
+            .getBranches());
 
     //the local Status Table
     Observable<List<IBranch>> localSelectionObservable = Observable

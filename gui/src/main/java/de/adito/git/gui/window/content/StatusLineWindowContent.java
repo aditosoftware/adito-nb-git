@@ -35,18 +35,19 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
   {
     actionProvider = pProvider;
     observableOptRepo = pObservableOptRepo;
-    observableBranches = observableOptRepo.flatMap(pOptRepo -> pOptRepo
-        .map(pRepo -> {
-          try
-          {
-            return pRepo.getBranches();
-          }
-          catch (Exception e)
-          {
-            return Observable.just(Optional.<List<IBranch>>empty());
-          }
-        })
-        .orElse(Observable.just(Optional.empty())));
+    observableBranches = observableOptRepo
+        .switchMap(pOptRepo -> pOptRepo
+            .map(pRepo -> {
+              try
+              {
+                return pRepo.getBranches();
+              }
+              catch (Exception e)
+              {
+                return Observable.just(Optional.<List<IBranch>>empty());
+              }
+            })
+            .orElse(Observable.just(Optional.empty())));
     _initGUI();
   }
 

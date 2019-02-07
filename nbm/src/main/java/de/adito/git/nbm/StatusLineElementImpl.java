@@ -6,7 +6,7 @@ import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import de.adito.git.nbm.observables.ActivatedNodesObservable;
-import de.adito.git.nbm.util.*;
+import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.openide.awt.StatusLineElementProvider;
@@ -54,7 +54,7 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
   {
     //noinspection StatusLineElement only exists once
     disposable = _observeRepository()
-        .flatMap(pRepo -> pRepo.isPresent() ? pRepo.get().getCurrentBranch() : Observable.just(Optional.<IBranch>empty()))
+        .switchMap(pRepo -> pRepo.isPresent() ? pRepo.get().getCurrentBranch() : Observable.just(Optional.<IBranch>empty()))
         .subscribe(pBranch -> label.setText(pBranch.map(IBranch::getSimpleName).orElse("<no branch>")));
   }
 

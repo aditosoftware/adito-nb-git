@@ -3,11 +3,8 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.FileStatusCellRenderer;
-import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
@@ -15,14 +12,11 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Collections;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.stream.*;
 
 /**
  * class to display the results of the status command to git (i.e. lists all changes made to the
@@ -47,7 +41,9 @@ class StatusWindowContent extends JPanel implements IDiscardable
     repository = pRepository;
     actionProvider = pActionProvider;
     Observable<Optional<IFileStatus>> status = repository
-        .flatMap(pRepo -> pRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())));
+        .switchMap(pRepo -> pRepo
+            .map(IRepository::getStatus)
+            .orElse(Observable.just(Optional.empty())));
     statusTable = new JTable(new StatusTableModel(status));
     statusTable.addMouseListener(new _DoubleClickListener());
     ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());
