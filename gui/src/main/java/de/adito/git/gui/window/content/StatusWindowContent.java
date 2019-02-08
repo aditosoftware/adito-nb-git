@@ -21,9 +21,7 @@ import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,8 +53,12 @@ class StatusWindowContent extends JPanel implements IDiscardable
         .switchMap(pRepo -> pRepo
             .map(IRepository::getStatus)
             .orElse(Observable.just(Optional.empty())));
-    statusTable = new SearchableTable(new StatusTableModel(status), tableViewPanel);
-    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(statusTable, List.of(0, 1)));
+    StatusTableModel statusTableModel = new StatusTableModel(status);
+    statusTable = new SearchableTable(statusTableModel, tableViewPanel);
+    List<Integer> searchableColumns = new ArrayList<>();
+    searchableColumns.add(statusTableModel.findColumn(StatusTableModel.FILE_NAME_COLUMN_NAME));
+    searchableColumns.add(statusTableModel.findColumn(StatusTableModel.FILE_PATH_COLUMN_NAME));
+    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(statusTable, searchableColumns));
     tableViewPanel.add(new JScrollPane(statusTable), BorderLayout.CENTER);
     statusTable.addMouseListener(new _DoubleClickListener());
     ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());

@@ -43,6 +43,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final CommitDetailsPanel commitDetailsPanel;
   private final JPanel commitTableView = new JPanel(new BorderLayout());
   private final JTable commitTable;
+  private final CommitHistoryTreeListTableModel commitTableModel;
   private final JToolBar toolBar = new JToolBar();
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
@@ -62,12 +63,17 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
                              @Assisted("loadMore") Runnable pLoadMoreCallback,
                              @Assisted("refreshContent") Runnable pRefreshContentCallBack)
   {
-    commitTable = new _SearchableCommitTable(pTableModel, commitTableView);
-    pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(commitTable, List.of(0, 1, 2)));
-    ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
-    commitTable.setSelectionModel(observableCommitListSelectionModel);
     actionProvider = pActionProvider;
     repository = pRepository;
+    commitTableModel = (CommitHistoryTreeListTableModel) pTableModel;
+    commitTable = new _SearchableCommitTable(commitTableModel, commitTableView);
+    List<Integer> searchAbleColumns = new ArrayList<>();
+    searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.BRANCHING_COL_NAME));
+    searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME));
+    searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.DATE_COL_NAME));
+    pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(commitTable, searchAbleColumns));
+    ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
+    commitTable.setSelectionModel(observableCommitListSelectionModel);
     selectedCommitObservable = observableCommitListSelectionModel.selectedRows().map(selectedRows -> {
       List<ICommit> selectedCommits = new ArrayList<>();
       for (int selectedRow : selectedRows)
@@ -134,13 +140,13 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     // since the total width is not know the width for the first one has to be a guess that works for most screens
     // and makes it so the last two columns get approx. the desired space (less if guess is too high, more if guess is too low)
     commitTable.getColumnModel()
-        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.BRANCHING_COL_NAME))
+        .getColumn(commitTableModel.findColumn(CommitHistoryTreeListTableModel.BRANCHING_COL_NAME))
         .setPreferredWidth(BRANCHING_AREA_PREF_WIDTH);
     commitTable.getColumnModel()
-        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.DATE_COL_NAME))
+        .getColumn(commitTableModel.findColumn(CommitHistoryTreeListTableModel.DATE_COL_NAME))
         .setPreferredWidth(DATE_COL_PREF_WIDTH);
     commitTable.getColumnModel()
-        .getColumn(CommitHistoryTreeListTableModel.getColumnIndex(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME))
+        .getColumn(commitTableModel.findColumn(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME))
         .setPreferredWidth(AUTHOR_COL_PREF_WIDTH);
   }
 

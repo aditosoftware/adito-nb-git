@@ -38,7 +38,8 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
     commitList = pCommitList;
   }
 
-  public static int getColumnIndex(@NotNull String pColumnName)
+  @Override
+  public int findColumn(@NotNull String pColumnName)
   {
     for (int index = 0; index < columnNames.size(); index++)
     {

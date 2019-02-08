@@ -26,9 +26,7 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -73,7 +71,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
             .collect(Collectors.toList()));
     commitTableModel = new _SelectedCommitTableModel(filesToCommitObservable);
     fileStatusTable = new SearchableTable(commitTableModel, tableSearchView);
-    pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileStatusTable, List.of(1, 2)));
+    List<Integer> searchableColumns = new ArrayList<>();
+    searchableColumns.add(commitTableModel.findColumn(_SelectedCommitTableModel.FILE_NAME_COLUMN_NAME));
+    searchableColumns.add(commitTableModel.findColumn(_SelectedCommitTableModel.FILE_PATH_COLUMN_NAME));
+    pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileStatusTable, searchableColumns));
     tableSearchView.add(new JScrollPane(fileStatusTable), BorderLayout.CENTER);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
