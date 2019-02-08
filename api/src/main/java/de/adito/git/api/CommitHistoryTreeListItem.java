@@ -79,6 +79,12 @@ public class CommitHistoryTreeListItem
     return belongingBranches;
   }
 
+  @Override
+  public String toString()
+  {
+    return "commitId: " + commit.getId() + ", message: " + commit.getShortMessage();
+  }
+
   /**
    * @return the commit for which the AncestryLines were gathered
    */

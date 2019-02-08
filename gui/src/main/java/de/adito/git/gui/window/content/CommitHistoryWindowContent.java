@@ -3,16 +3,20 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.CommitHistoryTreeListItem;
+import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
+import de.adito.git.gui.quickSearch.QuickSearchCallbackImpl;
+import de.adito.git.gui.quickSearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -37,7 +41,8 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static final int AUTHOR_COL_PREF_WIDTH = 160;
   private static final double MAIN_SPLIT_PANE_SIZE_RATIO = 0.75;
   private final CommitDetailsPanel commitDetailsPanel;
-  private final JTable commitTable = new _CommitTable();
+  private final JPanel commitTableView = new JPanel(new BorderLayout());
+  private final JTable commitTable;
   private final JToolBar toolBar = new JToolBar();
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
@@ -52,15 +57,17 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
    * @param pRefreshContentCallBack Runnable that resets the current entries in the tableModel and fills them with the latest values
    */
   @Inject
-  CommitHistoryWindowContent(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
-                             @Assisted TableModel pTableModel, @Assisted("loadMore") Runnable pLoadMoreCallback,
+  CommitHistoryWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
+                             @Assisted Observable<Optional<IRepository>> pRepository, @Assisted TableModel pTableModel,
+                             @Assisted("loadMore") Runnable pLoadMoreCallback,
                              @Assisted("refreshContent") Runnable pRefreshContentCallBack)
   {
+    commitTable = new _SearchableCommitTable(pTableModel, commitTableView);
+    pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(commitTable, List.of(0, 1, 2)));
     ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
     commitTable.setSelectionModel(observableCommitListSelectionModel);
     actionProvider = pActionProvider;
     repository = pRepository;
-    commitTable.setModel(pTableModel);
     selectedCommitObservable = observableCommitListSelectionModel.selectedRows().map(selectedRows -> {
       List<ICommit> selectedCommits = new ArrayList<>();
       for (int selectedRow : selectedRows)
@@ -87,6 +94,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
 
     JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    commitTableView.add(commitScrollPane, BorderLayout.CENTER);
     // Listener on the vertical scrollbar to check if the user has reached the bottom. In that , load the next batch of commits into the list
     commitScrollPane.getVerticalScrollBar().addAdjustmentListener(e -> {
       // check if the scrollBar is still being dragged
@@ -102,7 +110,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
     });
     commitScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
-    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitScrollPane, commitDetailsPanel.getPanel());
+    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitTableView, commitDetailsPanel.getPanel());
     mainSplitPane.setResizeWeight(MAIN_SPLIT_PANE_SIZE_RATIO);
     add(mainSplitPane, BorderLayout.CENTER);
     add(toolBar, BorderLayout.NORTH);
@@ -140,8 +148,14 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
    * JTable whose tooltip depends on the component that the mouse is hovering over (so if one cell consists of more than one component, the tooltip
    * of the component that the mouse is over is shown)
    */
-  private class _CommitTable extends JTable
+  private class _SearchableCommitTable extends SearchableTable
   {
+
+    _SearchableCommitTable(@Nullable TableModel pTableModel, @NotNull JPanel pView)
+    {
+      super(pTableModel, pView);
+    }
+
     @Override
     public String getToolTipText(@NotNull MouseEvent pEvent)
     {
