@@ -147,7 +147,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       if (currentWidth > maxWidth)
         maxWidth = currentWidth;
     }
-    fileStatusTable.getColumnModel().getColumn(pColumnNum).setPreferredWidth(maxWidth);
+    fileStatusTable.getColumnModel().getColumn(pColumnNum).setMinWidth(maxWidth);
   }
 
   @Override
