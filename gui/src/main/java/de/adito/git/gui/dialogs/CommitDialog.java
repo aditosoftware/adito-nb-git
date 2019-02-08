@@ -2,18 +2,22 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.quickSearch.SearchableTable;
+import de.adito.git.gui.quickSearch.SearchableView;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
@@ -41,7 +45,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private static final int SELECTION_COL_MAX_WIDTH = 25;
   private static final Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(200, 200);
   private static final Dimension MESSAGE_PANE_PREF_SIZE = new Dimension(450, 750);
-  private final JTable fileStatusTable = new JTable();
+  private final SearchableTable fileStatusTable;
+  private final SearchableView tableSearchView = new SearchableView();
   private final _SelectedCommitTableModel commitTableModel;
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
@@ -49,7 +54,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final Observable<Optional<IRepository>> repository;
 
   @Inject
-  public CommitDialog(@Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+  public CommitDialog(IQuickSearchProvider pQuickSearchProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit)
   {
     isValidDescriptor = pIsValidDescriptor;
@@ -67,7 +72,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
             .map(pUncommitted -> new SelectedFileChangeType(pSelectedFiles.orElse(Collections.emptyList()).contains(pUncommitted), pUncommitted))
             .collect(Collectors.toList()));
     commitTableModel = new _SelectedCommitTableModel(filesToCommitObservable);
-    fileStatusTable.setModel(commitTableModel);
+    fileStatusTable = new SearchableTable(commitTableModel, pQuickSearchProvider, List.of(1, 2), tableSearchView);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
@@ -110,20 +115,21 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     toolBar.add(new _SelectAllAction());
     toolBar.add(new _DeselectAllAction());
     // Size for the Table with the list of files to commit
-    JScrollPane tableScrollPane = new JScrollPane(fileStatusTable);
+    tableSearchView.setSearchableComponent(fileStatusTable);
     JPanel toolbarFileStatusTablePanel = new JPanel(new BorderLayout());
-    toolbarFileStatusTablePanel.add(tableScrollPane, BorderLayout.CENTER);
+    toolbarFileStatusTablePanel.add(tableSearchView, BorderLayout.CENTER);
     toolbarFileStatusTablePanel.add(toolBar, BorderLayout.NORTH);
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
     messagePane.setPreferredSize(MESSAGE_PANE_PREF_SIZE);
-    messagePane.setBorder(tableScrollPane.getBorder());
     // Listener for enabling/disabling the OK button
     messagePane.getDocument().addDocumentListener(new _EmptyDocumentListener());
     JPanel messageOptionsPanel = new JPanel(new BorderLayout());
     messageOptionsPanel.add(messagePane, BorderLayout.CENTER);
     messageOptionsPanel.add(amendCheckBox, BorderLayout.SOUTH);
-    messageOptionsPanel.setBorder(tableScrollPane.getBorder());
+    Border scrollPaneBorder = new JScrollPane().getBorder();
+    messagePane.setBorder(scrollPaneBorder);
+    messageOptionsPanel.setBorder(scrollPaneBorder);
     // Splitpane so the user can choose how big each element should be
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, toolbarFileStatusTablePanel, messageOptionsPanel);
     splitPane.setResizeWeight(0.5);
