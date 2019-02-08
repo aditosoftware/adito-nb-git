@@ -110,6 +110,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
 
   private void _setUpToolbar(Runnable pRefreshContentCallBack)
   {
+    toolBar.setFloatable(false);
     toolBar.add(actionProvider.getRefreshContentAction(pRefreshContentCallBack));
   }
 

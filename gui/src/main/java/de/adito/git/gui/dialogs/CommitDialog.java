@@ -3,8 +3,10 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
@@ -12,13 +14,17 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -100,6 +106,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       fileStatusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
     }
     JToolBar toolBar = new JToolBar();
+    toolBar.setFloatable(false);
     toolBar.add(new _SelectAllAction());
     toolBar.add(new _DeselectAllAction());
     // Size for the Table with the list of files to commit
