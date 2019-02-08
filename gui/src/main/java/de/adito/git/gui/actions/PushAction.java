@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EPushResult;
 import de.adito.git.api.data.ICommit;
@@ -22,6 +23,7 @@ import java.util.*;
  */
 class PushAction extends AbstractAction
 {
+  private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
@@ -30,8 +32,10 @@ class PushAction extends AbstractAction
    * @param pRepository The repository to push
    */
   @Inject
-  PushAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  PushAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+             @Assisted Observable<Optional<IRepository>> pRepository)
   {
+    notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
     putValue(Action.NAME, "Push");
@@ -63,6 +67,7 @@ class PushAction extends AbstractAction
       {
         pHandle.setDescription("Pushing");
         _doPush();
+        notifyUtil.notify("Push", "Push was successful", true);
       }
     });
   }
