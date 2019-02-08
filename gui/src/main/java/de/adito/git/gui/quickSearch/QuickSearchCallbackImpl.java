@@ -20,7 +20,7 @@ public class QuickSearchCallbackImpl implements IQuickSearch.ICallback
   private String searchString = null;
   private int searchResultIndex = 0;
 
-  QuickSearchCallbackImpl(JTable pTable, List<Integer> pColumnsToSearch)
+  public QuickSearchCallbackImpl(JTable pTable, List<Integer> pColumnsToSearch)
   {
     table = pTable;
     for (Integer columnToSearch : pColumnsToSearch)

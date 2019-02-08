@@ -9,8 +9,8 @@ import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.quickSearch.QuickSearchCallbackImpl;
 import de.adito.git.gui.quickSearch.SearchableTable;
-import de.adito.git.gui.quickSearch.SearchableView;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
@@ -46,7 +46,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private static final Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(200, 200);
   private static final Dimension MESSAGE_PANE_PREF_SIZE = new Dimension(450, 750);
   private final SearchableTable fileStatusTable;
-  private final SearchableView tableSearchView = new SearchableView();
+  private final JPanel tableSearchView = new JPanel(new BorderLayout());
   private final _SelectedCommitTableModel commitTableModel;
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
@@ -72,7 +72,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
             .map(pUncommitted -> new SelectedFileChangeType(pSelectedFiles.orElse(Collections.emptyList()).contains(pUncommitted), pUncommitted))
             .collect(Collectors.toList()));
     commitTableModel = new _SelectedCommitTableModel(filesToCommitObservable);
-    fileStatusTable = new SearchableTable(commitTableModel, pQuickSearchProvider, List.of(1, 2), tableSearchView);
+    fileStatusTable = new SearchableTable(commitTableModel, tableSearchView);
+    pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileStatusTable, List.of(1, 2)));
+    tableSearchView.add(new JScrollPane(fileStatusTable), BorderLayout.CENTER);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
@@ -115,7 +117,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     toolBar.add(new _SelectAllAction());
     toolBar.add(new _DeselectAllAction());
     // Size for the Table with the list of files to commit
-    tableSearchView.setSearchableComponent(fileStatusTable);
     JPanel toolbarFileStatusTablePanel = new JPanel(new BorderLayout());
     toolbarFileStatusTablePanel.add(tableSearchView, BorderLayout.CENTER);
     toolbarFileStatusTablePanel.add(toolBar, BorderLayout.NORTH);

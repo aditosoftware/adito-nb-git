@@ -1,75 +1,56 @@
 package de.adito.git.gui.quickSearch;
 
-import de.adito.git.api.IQuickSearch;
-import de.adito.git.api.IQuickSearchProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.util.List;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 /**
- * Table that has QuickSearch attached to it.
- * The search field is displayed in a view, which is why the add/remove/revalidate/repaint methods all point to the view. The view also has to
- * contain this table, else the revalidate/repaint methods have no effect
+ * Table that is supposed to have QuickSearch attached to it. Since QuickSearch cannot attach itself to the table itself, QuickSearch is attached to
+ * a JPanel instead, and all KeyEvents from this table are forwarded to the JPanel at which the QuickSearch is attached. The QuickSearch uses
+ * the tableModel of this table for matching results
  *
  * @author m.kaspera, 08.02.2019
  */
 public class SearchableTable extends JTable
 {
 
-  private final SearchableView view;
-
-  public SearchableTable(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull List<Integer> pSearchableColumns, SearchableView pView)
+  public SearchableTable(JPanel pView)
   {
-    this(null, pQuickSearchProvider, pSearchableColumns, pView);
+    this(null, pView);
   }
 
   /**
    * @param pTableModel          The TableModel for this table
-   * @param pQuickSearchProvider QuickSearchProvider that can attach QuickSearch to this table
-   * @param pSearchableColumns   List with the indexes of the columns that should be factored into the search
    * @param pView                Component that can accommodate the searchField (if it is added to the table, the field is not shown)
    */
-  public SearchableTable(@Nullable TableModel pTableModel, @NotNull IQuickSearchProvider pQuickSearchProvider,
-                         @NotNull List<Integer> pSearchableColumns, SearchableView pView)
+  public SearchableTable(@Nullable TableModel pTableModel, @NotNull JPanel pView)
   {
     super(pTableModel);
-    view = pView;
-    IQuickSearch quickSearch = pQuickSearchProvider.attach(this, BorderLayout.SOUTH, new QuickSearchCallbackImpl(this, pSearchableColumns));
-    quickSearch.setEnabled(true);
+    addKeyListener(new _KeyForwardAdapter(pView));
   }
 
-  @Override
-  public void add(@NotNull Component pComp, Object pConstraints)
+  /**
+   * KeyAdapter that forwards all KeyEvents to the Component that the QuickSearch is attached to
+   */
+  private class _KeyForwardAdapter extends KeyAdapter
   {
-    if (view != null)
-      view.add(pComp, pConstraints);
+
+    private JPanel receiver;
+
+    _KeyForwardAdapter(JPanel pReceiver)
+    {
+      receiver = pReceiver;
+    }
+
+    @Override
+    public void keyTyped(KeyEvent pEvent)
+    {
+      receiver.dispatchEvent(pEvent);
+    }
   }
 
-  @Override
-  public void remove(Component pComp)
-  {
-    if (view != null)
-      view.remove(pComp);
-  }
-
-  @Override
-  public void revalidate()
-  {
-    if (view == null)
-      super.revalidate();
-    else
-      view.revalidate();
-  }
-
-  @Override
-  public void repaint()
-  {
-    if (view != null)
-      view.repaint();
-  }
 }

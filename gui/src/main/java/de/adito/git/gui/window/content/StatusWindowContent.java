@@ -10,8 +10,8 @@ import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.quickSearch.QuickSearchCallbackImpl;
 import de.adito.git.gui.quickSearch.SearchableTable;
-import de.adito.git.gui.quickSearch.SearchableView;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
@@ -39,7 +39,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private final Observable<Optional<IRepository>> repository;
   private final IActionProvider actionProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
-  private final SearchableView tableViewPanel = new SearchableView();
+  private final JPanel tableViewPanel = new JPanel(new BorderLayout());
   private final SearchableTable statusTable;
   private final Action openFileAction;
   private Disposable disposable;
@@ -55,7 +55,9 @@ class StatusWindowContent extends JPanel implements IDiscardable
         .switchMap(pRepo -> pRepo
             .map(IRepository::getStatus)
             .orElse(Observable.just(Optional.empty())));
-    statusTable = new SearchableTable(new StatusTableModel(status), pQuickSearchProvider, List.of(0, 1), tableViewPanel);
+    statusTable = new SearchableTable(new StatusTableModel(status), tableViewPanel);
+    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(statusTable, List.of(0, 1)));
+    tableViewPanel.add(new JScrollPane(statusTable), BorderLayout.CENTER);
     statusTable.addMouseListener(new _DoubleClickListener());
     ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());
     statusTable.setSelectionModel(observableListSelectionModel);
@@ -105,7 +107,6 @@ class StatusWindowContent extends JPanel implements IDiscardable
     });
 
     statusTable.addMouseListener(new PopupMouseListener(popupMenu));
-    tableViewPanel.setSearchableComponent(statusTable);
     add(tableViewPanel, BorderLayout.CENTER);
   }
 
