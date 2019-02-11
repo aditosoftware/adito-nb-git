@@ -1,12 +1,14 @@
 package de.adito.git.gui.tableModels;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.IDiscardable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.table.AbstractTableModel;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -22,6 +24,7 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
   @SuppressWarnings("WeakerAccess")
   public static final String CHANGE_TYPE_COLUMN_NAME = StatusTableModel.CHANGE_TYPE_COLUMN_NAME;
   private static final String[] columnNames = {FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
+  private File repositoryFolder;
   private Disposable disposable;
   private List<IFileChangeType> changedFiles = new ArrayList<>();
 
@@ -32,6 +35,7 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
       Set<IFileChangeType> changedFilesSet = new HashSet<>();
       if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
       {
+        repositoryFolder = currentRepo.get().getTopLevelDirectory();
         for (ICommit selectedCommit : pSelectedCommitsOpt.get())
         {
           changedFilesSet.addAll(currentRepo.get().getCommittedFiles(selectedCommit.getId()));
@@ -40,6 +44,7 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
       }
       else
       {
+        repositoryFolder = null;
         changedFiles = Collections.emptyList();
       }
       fireTableDataChanged();
@@ -91,7 +96,7 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
     if (pColumnIndex == findColumn(FILE_NAME_COLUMN_NAME))
       returnValue = changedFiles.get(pRowIndex).getFile().getName();
     else if (pColumnIndex == findColumn(FILE_PATH_COLUMN_NAME))
-      returnValue = changedFiles.get(pRowIndex).getFile().getAbsolutePath();
+      returnValue = changedFiles.get(pRowIndex).getFile().getPath();
     else if (pColumnIndex == findColumn(CHANGE_TYPE_COLUMN_NAME))
       returnValue = changedFiles.get(pRowIndex).getChangeType();
     else returnValue = changedFiles.get(pRowIndex);

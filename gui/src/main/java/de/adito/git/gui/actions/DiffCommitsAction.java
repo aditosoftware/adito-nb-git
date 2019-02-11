@@ -9,6 +9,7 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;
 import java.util.Collections;
@@ -25,17 +26,20 @@ public class DiffCommitsAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
+  private final Observable<Optional<String>> selectedFile;
 
   @Inject
   DiffCommitsAction(IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
                     @Assisted Observable<Optional<IRepository>> pRepository,
-                    @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+                    @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                    @Assisted @Nullable Observable<Optional<String>> pSelectedFile)
   {
     super("Show Diff", _getIsEnabledObservable(pSelectedCommitObservable));
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
+    selectedFile = pSelectedFile;
   }
 
   @Override
@@ -57,7 +61,7 @@ public class DiffCommitsAction extends AbstractTableAction
             throw new RuntimeException(pE);
           }
         }).orElse(Collections.emptyList());
-        dialogProvider.showDiffDialog(fileDiffs, false);
+        dialogProvider.showDiffDialog(fileDiffs, selectedFile.blockingFirst().orElse(null), false);
       }
     });
   }

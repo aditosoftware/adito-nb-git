@@ -3,6 +3,8 @@ package de.adito.git.gui.dialogs;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +23,7 @@ interface IDialogFactory
   CommitDialog createCommitDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
                                   Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
 
-  DiffDialog createDiffDialog(List<IFileDiff> pDiffs, boolean pAcceptChange);
+  DiffDialog createDiffDialog(@NotNull List<IFileDiff> pDiffs, @Nullable String pSelectedFile, boolean pAcceptChange);
 
   NewBranchDialog createNewBranchDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor, Observable<Optional<IRepository>> pRepository);
 

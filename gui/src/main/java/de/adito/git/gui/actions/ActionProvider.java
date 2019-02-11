@@ -189,9 +189,10 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
-  public Action getDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  public Action getDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                     Observable<Optional<String>> pSelectedFile)
   {
-    return actionFactory.createDiffCommitsAction(pRepository, pSelectedCommitObservable);
+    return actionFactory.createDiffCommitsAction(pRepository, pSelectedCommitObservable, pSelectedFile);
   }
 
   @Override

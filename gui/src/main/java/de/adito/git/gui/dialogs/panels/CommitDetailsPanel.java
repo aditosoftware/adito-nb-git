@@ -6,6 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.ChangedFilesTableModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
@@ -60,10 +61,19 @@ public class CommitDetailsPanel implements IDiscardable
     changedFilesTable.getColumnModel()
         .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
         .setCellRenderer(new FileStatusCellRenderer());
+    ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(changedFilesTable.getSelectionModel());
+    changedFilesTable.setSelectionModel(observableListSelectionModel);
+    Observable<Optional<String>> selectedFile = observableListSelectionModel.selectedRows().map(pSelectedRows -> {
+      if (pSelectedRows.length > 0)
+        return Optional.of((String) changedFilesTableModel.getValueAt(pSelectedRows[0],
+                                                                      changedFilesTableModel.findColumn(StatusTableModel.FILE_PATH_COLUMN_NAME)));
+      else
+        return Optional.empty();
+    });
     JPopupMenu popupMenu = new JPopupMenu();
-    popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable));
+    popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
-    popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable));
+    popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
     changedFilesTable.addMouseListener(popupMouseListener);
   }
 
@@ -98,6 +108,8 @@ public class CommitDetailsPanel implements IDiscardable
   {
     if (pCommits.isEmpty())
       return "";
+    if (pCommits.size() > 1)
+      return "More than one commit selected";
     return String.format(DETAILS_FORMAT_STRING, "ID:", pCommits.get(0).getId(), "\n")
         + String.format(DETAILS_FORMAT_STRING, "Author:", pCommits.get(0).getAuthor(), "\n")
         + String.format(DETAILS_FORMAT_STRING, "Date:", DateTimeRenderer.asString(pCommits.get(0).getTime()), "\n\n")
@@ -114,7 +126,8 @@ public class CommitDetailsPanel implements IDiscardable
   public interface IPanelFactory
   {
 
-    CommitDetailsPanel createCommitDetailsPanel(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+    CommitDetailsPanel createCommitDetailsPanel(Observable<Optional<IRepository>> pRepository,
+                                                Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
 
   }
 }

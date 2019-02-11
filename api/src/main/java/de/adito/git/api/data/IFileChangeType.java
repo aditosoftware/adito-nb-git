@@ -7,17 +7,18 @@ import java.io.File;
  *
  * @author m.kaspera 27.09.2018
  */
-public interface IFileChangeType {
+public interface IFileChangeType
+{
 
-    /**
-     *
-     * @return File the File that was changed in any way
-     */
-    File getFile();
+  /**
+   * returns the file that was changes in any way
+   *
+   * @return File with path starting from the top level directory of the repository
+   */
+  File getFile();
 
-    /**
-     *
-     * @return EChangeType the kind of change that happened to the file
-     */
-    EChangeType getChangeType();
+  /**
+   * @return EChangeType the kind of change that happened to the file
+   */
+  EChangeType getChangeType();
 }

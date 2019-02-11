@@ -60,7 +60,8 @@ interface IActionFactory
   AddTagAction createAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
   DiffCommitsAction createDiffCommitsAction(Observable<Optional<IRepository>> pRepository,
-                                            Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
+                                            Observable<Optional<List<ICommit>>> pSelectedCommitsObservable,
+                                            Observable<Optional<String>> pSelectedFile);
 
   OpenFileAction createOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 

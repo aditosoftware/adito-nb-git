@@ -1,6 +1,7 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeType;
 
 import java.io.File;
 import java.util.Objects;
@@ -13,6 +14,10 @@ public class FileChangeTypeImpl implements IFileChangeType
   private File file;
   private EChangeType changeType;
 
+  /**
+   * @param pFile        File for which the statusChange is recorded, path of the file is from top-level directory of the repo to the file itself
+   * @param pEChangeType Type of change that happened to the file
+   */
   public FileChangeTypeImpl(File pFile, EChangeType pEChangeType)
   {
     file = pFile;

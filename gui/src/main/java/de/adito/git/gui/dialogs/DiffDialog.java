@@ -14,11 +14,13 @@ import de.adito.git.gui.tableModels.DiffTableModel;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +48,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private List<IFileDiff> diffs;
 
   @Inject
-  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs, @Assisted boolean pAcceptChange)
+  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs,
+                    @Assisted @javax.annotation.Nullable String pSelectedFile, @Assisted boolean pAcceptChange)
   {
     iconLoader = pIconLoader;
     acceptChange = pAcceptChange;
@@ -54,13 +57,13 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     fileListTable.setSelectionModel(observableListSelectionModel);
     editorKitProvider = pEditorKitProvider;
     diffs = pDiffs;
-    _initGui();
+    _initGui(pSelectedFile);
   }
 
   /**
    * sets up the GUI
    */
-  private void _initGui()
+  private void _initGui(@Nullable String pSelectedFile)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
@@ -76,7 +79,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     fileListTableScrollPane.setPreferredSize(TABLE_PREF_SIZE);
     // display the first entry as default
     if (!diffs.isEmpty())
-      fileListTable.getSelectionModel().setSelectionInterval(0, 0);
+      _setSelectedFile(pSelectedFile);
     // pSelectedRows[0] because with SINGLE_SELECTION only one row can be selected
     Observable<Optional<IFileDiff>> fileDiffObservable = observableListSelectionModel.selectedRows().map(pSelectedRows -> {
       if (pSelectedRows != null && pSelectedRows.length == 1)
@@ -112,6 +115,19 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     {
       diffPanel.setBorder(null);
       add(diffPanel, BorderLayout.CENTER);
+    }
+  }
+
+  private void _setSelectedFile(@Nullable String pSelectedFile)
+  {
+    fileListTable.getSelectionModel().setSelectionInterval(0, 0);
+    if (pSelectedFile != null)
+    {
+      for (int index = 0; index < diffs.size(); index++)
+      {
+        if (new File(diffs.get(index).getFilePath()).equals(new File(pSelectedFile)))
+          fileListTable.getSelectionModel().setSelectionInterval(index, index);
+      }
     }
   }
 
