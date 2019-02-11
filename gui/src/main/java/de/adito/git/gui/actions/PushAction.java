@@ -83,7 +83,15 @@ class PushAction extends AbstractAction
       StringBuilder infoText = new StringBuilder();
       for (Map.Entry<String, EPushResult> failedResult : failedPushResults.entrySet())
       {
-        infoText.append("Push to remote ref ").append(failedResult.getKey()).append(" failed with reason: ").append(failedResult.getValue());
+        infoText.append("Push to remote ref ").append(failedResult.getKey()).append(" failed: ");
+        if (failedResult.getValue() == EPushResult.REJECTED_NON_FAST_FORWARD)
+        {
+          infoText.append("Push was rejected, probably due to existing changes on the remote. Update the local repository via pull and try again");
+        }
+        else
+        {
+          infoText.append(failedResult.getValue());
+        }
       }
       throw new RuntimeException(infoText.toString());
     }
