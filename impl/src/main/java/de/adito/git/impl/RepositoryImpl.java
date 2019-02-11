@@ -464,8 +464,10 @@ public class RepositoryImpl implements IRepository
     File gitIgnore = new File(getTopLevelDirectory(), ".gitignore");
     File gitExclude = new File(git.getRepository().getDirectory(), "info/exclude");
     IgnoreNode ignoreNode = new IgnoreNode();
-    ignoreNode.parse(new FileInputStream(gitIgnore));
-    ignoreNode.parse(new FileInputStream(gitExclude));
+    if (gitIgnore.exists())
+      ignoreNode.parse(new FileInputStream(gitIgnore));
+    if (gitExclude.exists())
+      ignoreNode.parse(new FileInputStream(gitExclude));
     if (pFileList != null)
     {
       for (File file : pFileList)
