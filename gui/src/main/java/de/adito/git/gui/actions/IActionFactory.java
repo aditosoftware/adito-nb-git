@@ -19,7 +19,7 @@ interface IActionFactory
   MergeAction createMergeAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pTargetBranch);
 
   CommitAction createCommitAction(Observable<Optional<IRepository>> pRepository,
-                                  Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+                                  Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, String pMessageTemplate);
 
   DiffToHeadAction createDiffAction(Observable<Optional<IRepository>> pRepository,
                                     Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);

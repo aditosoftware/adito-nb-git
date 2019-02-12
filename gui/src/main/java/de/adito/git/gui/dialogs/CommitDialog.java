@@ -53,12 +53,13 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
   @Inject
   public CommitDialog(IQuickSearchProvider pQuickSearchProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit)
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                      @Assisted String pMessageTemplate)
   {
     isValidDescriptor = pIsValidDescriptor;
     repository = pRepository;
     // disable OK button at the start since the commit message is empty then
-    isValidDescriptor.setValid(false);
+    isValidDescriptor.setValid(pMessageTemplate != null && !pMessageTemplate.isEmpty());
     Observable<Optional<IFileStatus>> statusObservable = pRepository
         .switchMap(pRepo -> pRepo
             .orElseThrow(() -> new RuntimeException("no valid repository found"))
@@ -76,6 +77,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     searchableColumns.add(commitTableModel.findColumn(_SelectedCommitTableModel.FILE_PATH_COLUMN_NAME));
     pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileStatusTable, searchableColumns));
     tableSearchView.add(new JScrollPane(fileStatusTable), BorderLayout.CENTER);
+    messagePane.setText(pMessageTemplate);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {

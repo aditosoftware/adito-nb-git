@@ -27,9 +27,11 @@ public interface IActionProvider
   /**
    * @param pRepository              Observable with the current Repository
    * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @param pMessageTemplate         String that will be the text that is pre-set as commit message, "" for no pre-set message
    * @return Action whose actionPerformed method commits the selected files to HEAD
    */
-  Action getCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+  Action getCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable,
+                         String pMessageTemplate);
 
   /**
    * @param pRepository              Observable with the current Repository

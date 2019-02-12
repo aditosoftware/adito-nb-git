@@ -51,7 +51,7 @@ public class CommitNBAction extends NBAction
     {
       listNodes = BehaviorSubject.createDefault(getUncommittedFilesOfNodes(pActivatedNodes, repository));
     }
-    actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
+    actionProvider.getCommitAction(repository, listNodes, "").actionPerformed(null);
   }
 
   @Override

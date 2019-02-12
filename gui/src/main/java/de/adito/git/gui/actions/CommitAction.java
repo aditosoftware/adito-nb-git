@@ -28,6 +28,7 @@ class CommitAction extends AbstractTableAction
 {
 
   private final IAsyncProgressFacade progressFacade;
+  private final String messageTemplate;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
@@ -35,9 +36,10 @@ class CommitAction extends AbstractTableAction
   @Inject
   CommitAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
                @Assisted Observable<Optional<IRepository>> pRepository,
-               @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+               @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @Assisted String pMessageTemplate)
   {
     super("Commit");
+    messageTemplate = pMessageTemplate;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.COMMIT_ACTION_ICON));
     progressFacade = pProgressFacade;
     repository = pRepository;
@@ -49,7 +51,7 @@ class CommitAction extends AbstractTableAction
   public void actionPerformed(ActionEvent pEvent)
   {
     Observable<Optional<IRepository>> repo = Observable.just(repository.blockingFirst());
-    DialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repo, selectedFilesObservable);
+    DialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repo, selectedFilesObservable, messageTemplate);
     // if user didn't cancel the dialogs
     if (dialogResult.isPressedOk())
     {

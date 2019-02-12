@@ -1,16 +1,22 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
-import io.reactivex.subjects.*;
-import org.openide.awt.*;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * An action class which opens the commit dialog, responsible for the action in the toolbar
@@ -40,7 +46,7 @@ public class CommitNBToolbarAction extends CommitNBAction
                                                               .getStatus()
                                                               .blockingFirst().map(IFileStatus::getUncommitted)
                                                               .orElse(Collections.emptyList())));
-    actionProvider.getCommitAction(repository, listNodes).actionPerformed(null);
+    actionProvider.getCommitAction(repository, listNodes, "").actionPerformed(null);
   }
 
   /**

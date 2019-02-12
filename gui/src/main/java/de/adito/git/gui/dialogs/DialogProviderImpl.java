@@ -72,12 +72,14 @@ class DialogProviderImpl implements IDialogProvider
 
   @Override
   public DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository,
-                                                                         Observable<Optional<List<IFileChangeType>>> pFilesToCommit)
+                                                                         Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                                                         String pMessageTemplate)
   {
     DialogResult<CommitDialog, CommitDialogResult> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pIsValidDescriptor -> dialogFactory.createCommitDialog(pIsValidDescriptor, pRepository, pFilesToCommit),
+      result = dialogDisplayer.showDialog(pIsValidDescriptor -> dialogFactory.createCommitDialog(pIsValidDescriptor, pRepository, pFilesToCommit,
+                                                                                                 pMessageTemplate),
                                           "Commit");
       return result;
     }

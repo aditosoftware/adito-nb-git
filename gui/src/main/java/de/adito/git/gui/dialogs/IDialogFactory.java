@@ -21,7 +21,8 @@ interface IDialogFactory
   MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
 
   CommitDialog createCommitDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                                  Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit);
+                                  Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                  String pMessageTemplate);
 
   DiffDialog createDiffDialog(@NotNull List<IFileDiff> pDiffs, @Nullable String pSelectedFile, boolean pAcceptChange);
 

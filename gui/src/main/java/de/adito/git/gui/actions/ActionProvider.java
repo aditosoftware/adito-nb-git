@@ -42,9 +42,9 @@ class ActionProvider implements IActionProvider
    */
   @Override
   public CommitAction getCommitAction(Observable<Optional<IRepository>> pRepository,
-                                      Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+                                      Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, String pMessageTemplate)
   {
-    return actionFactory.createCommitAction(pRepository, pSelectedFilesObservable);
+    return actionFactory.createCommitAction(pRepository, pSelectedFilesObservable, pMessageTemplate);
   }
 
   /**

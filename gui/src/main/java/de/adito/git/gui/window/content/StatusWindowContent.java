@@ -91,7 +91,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
       popupMenu = new JPopupMenu();
       popupMenu.add(actionProvider.getOpenFileAction(selectionObservable));
       popupMenu.addSeparator();
-      popupMenu.add(actionProvider.getCommitAction(repository, selectionObservable));
+      popupMenu.add(actionProvider.getCommitAction(repository, selectionObservable, ""));
       popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
       popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
       popupMenu.addSeparator();
