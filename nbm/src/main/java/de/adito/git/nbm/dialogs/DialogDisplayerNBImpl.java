@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import de.adito.git.gui.dialogs.*;
 import org.openide.*;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.function.Function;
 
@@ -33,7 +35,10 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     DialogDescriptor dialogDescriptor = new DialogDescriptor(null, pTitle, true, buttons,
                                                              DialogDescriptor.OK_OPTION, DialogDescriptor.BOTTOM_ALIGN, null, null);
     S content = pDialogContentSupplier.apply(dialogDescriptor::setValid);
-    dialogDescriptor.setMessage(content);
+    JPanel borderPane = new JPanel(new BorderLayout());
+    borderPane.add(content, BorderLayout.CENTER);
+    borderPane.setBorder(new EmptyBorder(7, 7, 0, 7));
+    dialogDescriptor.setMessage(borderPane);
     Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
     dialog.setResizable(true);
     dialog.setMinimumSize(new Dimension(250, 200));
