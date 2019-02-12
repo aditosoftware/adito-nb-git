@@ -134,6 +134,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitTable.setRowHeight(21);
     commitListPopupMenu.add(actionProvider.getResetAction(repository, selectedCommitObservable));
     commitListPopupMenu.add(actionProvider.getAddTagAction(repository, selectedCommitObservable));
+    commitListPopupMenu.add(actionProvider.getCherryPickAction(repository, selectedCommitObservable));
     commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
 
     // cannot set preferred width of only last columns, so have to set a width for the first one as well

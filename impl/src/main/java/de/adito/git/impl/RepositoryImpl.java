@@ -269,6 +269,34 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  @Override
+  public ICherryPickResult cherryPick(List<ICommit> pCommitList) throws AditoGitException
+  {
+    CherryPickCommand cherryPickCommand = git.cherryPick();
+    for (ICommit commit : pCommitList)
+    {
+      cherryPickCommand.include(ObjectId.fromString(commit.getId()));
+    }
+    try
+    {
+      CherryPickResult cherryPickResult = cherryPickCommand.call();
+      List<IMergeDiff> mergeConflicts = new ArrayList<>();
+      ICommit cherryPickCommit = null;
+      if (cherryPickResult == CherryPickResult.CONFLICT)
+      {
+        cherryPickCommit = getCommit(ObjectId.toString(git.getRepository().readCherryPickHead()));
+        String headId = ObjectId.toString(git.getRepository().resolve(Constants.HEAD));
+        mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, headId, cherryPickCommit.getId(), cherryPickCommit.getParents().get(0),
+                                                                RepositoryImplHelper.status(git).getConflicting(), this::diff);
+      }
+      return new CherryPickResultImpl(cherryPickResult, cherryPickCommit, mergeConflicts);
+    }
+    catch (GitAPIException | IOException pE)
+    {
+      throw new AditoGitException(pE);
+    }
+  }
+
   @NotNull
   private IRebaseResult _handlePullResult(@NotNull Supplier<RebaseResult> pResultSupplier,
                                           String pCurrHeadName, String pTargetName, CommitImpl pForkPoint) throws AditoGitException

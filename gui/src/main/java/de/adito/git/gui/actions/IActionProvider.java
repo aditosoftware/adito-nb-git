@@ -168,4 +168,11 @@ public interface IActionProvider
    * @return Action whose actionPerformed method executes the passed Runnable
    */
   Action getRefreshContentAction(Runnable pRefreshContentCallBack);
+
+  /**
+   * @param pRepository               Observable with the current Repository
+   * @param pSelectedCommitObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @return Action whose actionPerformed method cherry picks the selected commits on top of the current HEAD
+   */
+  Action getCherryPickAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
 }

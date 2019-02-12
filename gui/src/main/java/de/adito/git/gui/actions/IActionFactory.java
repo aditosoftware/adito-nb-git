@@ -68,4 +68,7 @@ interface IActionFactory
   RefreshContentAction createRefreshAction(Runnable pRefreshContentCallBack);
 
   FileHistoryAction createShowCommitsForFileAction(Observable<Optional<IRepository>> pRepository, Observable<List<File>> pFile);
+
+  CherryPickAction createCherryPickAction(Observable<Optional<IRepository>> pRepository,
+                                          Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 }

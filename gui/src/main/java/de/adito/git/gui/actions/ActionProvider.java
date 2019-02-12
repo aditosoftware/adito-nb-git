@@ -207,4 +207,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createRefreshAction(pRefreshContentCallBack);
   }
 
+  @Override
+  public Action getCherryPickAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  {
+    return actionFactory.createCherryPickAction(pRepository, pSelectedCommitObservable);
+  }
+
 }

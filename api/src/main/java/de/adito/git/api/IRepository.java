@@ -59,6 +59,14 @@ public interface IRepository
   IRebaseResult pull(boolean pDoAbort) throws AditoGitException;
 
   /**
+   * Cherry picks the passed commits and puts them on top of the current HEAD
+   *
+   * @param pCommitList List of commits that should be cherry picked on top of the current HEAD
+   * @return ICherryPickResult that describes the outcome of the operation. If the result is CONFLICT, the conflicting files can be found in getConflicts
+   */
+  ICherryPickResult cherryPick(List<ICommit> pCommitList) throws AditoGitException;
+
+  /**
    * Fetches the current state of the remote and stores it internally. Does not affect the working directory.
    * See also the "git fetch" command
    *
