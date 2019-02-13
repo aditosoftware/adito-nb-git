@@ -18,7 +18,6 @@ import io.reactivex.subjects.BehaviorSubject;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -76,9 +75,8 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
                                                       .getColumn(((AbstractTableModel) commitListTable.getModel())
                                                                      .findColumn(CommitListTableModel.COMMIT_OBJ_COL_NAME)));
     JScrollPane commitListScrollPane = new JScrollPane(commitListTable);
-    JToolBar toolBar = new JToolBar();
+    JToolBar toolBar = new JToolBar(SwingConstants.VERTICAL);
     toolBar.setFloatable(false);
-    toolBar.setLayout(new FlowLayout());
     toolBar.add(deleteButton);
     add(toolBar, BorderLayout.WEST);
     deleteButton.addActionListener(e -> {
