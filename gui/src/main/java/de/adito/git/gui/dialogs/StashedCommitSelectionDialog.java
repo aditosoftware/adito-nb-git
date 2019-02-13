@@ -89,7 +89,7 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
       stashedCommits.remove(commitListTable.getSelectionModel().getMinSelectionIndex());
       ((AbstractTableModel) commitListTable.getModel()).fireTableDataChanged();
     });
-    add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitListScrollPane, commitDetailsPanel.getPanel()), BorderLayout.CENTER);
+    add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, commitListScrollPane, commitDetailsPanel.getPanel()), BorderLayout.CENTER);
   }
 
 

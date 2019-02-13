@@ -64,7 +64,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     oldVersionScrollPane.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     _bridge(oldVersionScrollPane.getVerticalScrollBar().getModel(), currentVersionScrollPane.getVerticalScrollBar().getModel());
     setLayout(new BorderLayout());
-    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, oldVersionDiffPane.getPane(), currentVersionDiffPane.getPane());
+    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, oldVersionDiffPane.getPane(), currentVersionDiffPane.getPane());
     mainSplitPane.setResizeWeight(0.5);
     setBorder(new JScrollPane().getBorder());
     add(mainSplitPane, BorderLayout.CENTER);

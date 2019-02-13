@@ -25,7 +25,7 @@ public class CommitDetailsPanel implements IDiscardable
 
   private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
   private static final String DETAILS_FORMAT_STRING = "%-10s\t%s%s";
-  private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+  private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
   private final JTextPane messageTextArea = new JTextPane(new DefaultStyledDocument());
   private final JTable changedFilesTable = new JTable();
   private final IActionProvider actionProvider;

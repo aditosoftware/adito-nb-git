@@ -116,7 +116,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
     });
     commitScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_INCREMENT);
-    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitTableView, commitDetailsPanel.getPanel());
+    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, commitTableView, commitDetailsPanel.getPanel());
     mainSplitPane.setResizeWeight(MAIN_SPLIT_PANE_SIZE_RATIO);
     add(mainSplitPane, BorderLayout.CENTER);
     add(toolBar, BorderLayout.NORTH);

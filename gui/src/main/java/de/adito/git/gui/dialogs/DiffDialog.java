@@ -107,7 +107,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     if (diffs.size() > 1)
     {
       // add table and DiffPanel to the SplitPane
-      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, diffPanel, new JScrollPane(fileListTable));
+      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, new JScrollPane(fileListTable));
       diffToListSplitPane.setResizeWeight(1);
       add(diffToListSplitPane, BorderLayout.CENTER);
     }

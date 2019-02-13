@@ -51,7 +51,7 @@ class PushDialog extends AditoBaseDialog<Object> implements IDiscardable
   {
     setLayout(new BorderLayout());
     add(headerLabel, BorderLayout.NORTH);
-    add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, commitListTableScrollP, commitDetailsPanel.getPanel()), BorderLayout.CENTER);
+    add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, commitListTableScrollP, commitDetailsPanel.getPanel()), BorderLayout.CENTER);
   }
 
   @Override

@@ -51,8 +51,8 @@ public class MergePanel extends JPanel implements IDiscardable
   private void _initGui()
   {
     setLayout(new BorderLayout());
-    JSplitPane forkMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, forkPointPaneWrapper.getPane(), theirsPaneWrapper.getPane());
-    JSplitPane threeWayPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, yoursPaneWrapper.getPane(), forkMergeSplit);
+    JSplitPane forkMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, forkPointPaneWrapper.getPane(), theirsPaneWrapper.getPane());
+    JSplitPane threeWayPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, yoursPaneWrapper.getPane(), forkMergeSplit);
     // 0.5 so the initial split is equal. For perfect feel on resizing set to 1, this would make the right pane almost invisible at the start though
     forkMergeSplit.setResizeWeight(0.5);
     // 0.33 because the right side contains two sub-windows, the left only one
