@@ -269,7 +269,7 @@ public interface IRepository
   List<IFileChangeType> getCommittedFiles(String pCommitId) throws AditoGitException;
 
   /**
-   * @param pIdentifier String with identifier of the commit, or NULL for the latest commit
+   * @param pIdentifier String with identifier of the commit, or NULL for HEAD
    * @return ICommit describing the commit
    * @throws AditoGitException if an error occurs
    */

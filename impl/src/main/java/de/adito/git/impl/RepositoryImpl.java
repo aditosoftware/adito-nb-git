@@ -1027,7 +1027,7 @@ public class RepositoryImpl implements IRepository
       if (pIdentifier == null)
       {
         // only one RevCommit expected as result, so only take the first RevCommit
-        return new CommitImpl(git.log().setMaxCount(1).call().iterator().next());
+        return new CommitImpl(git.log().add(git.getRepository().resolve(Constants.HEAD)).setMaxCount(1).call().iterator().next());
       }
       return new CommitImpl(RepositoryImplHelper.getRevCommit(git, pIdentifier));
     }
