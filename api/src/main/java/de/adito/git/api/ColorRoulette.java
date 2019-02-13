@@ -29,7 +29,7 @@ public class ColorRoulette
       new Color(30, 171, 227),
       new Color(235, 91, 38),
       new Color(13, 104, 56),
-      new Color(73, 73, 73),
+      new Color(141, 129, 188),
       new Color(39, 40, 91),
       new Color(215, 219, 45),
       new Color(193, 39, 47),
