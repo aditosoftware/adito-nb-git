@@ -1,18 +1,16 @@
 package de.adito.git.nbm.guice;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Key;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.assistedinject.FactoryProvider;
+import com.google.inject.*;
+import com.google.inject.assistedinject.*;
 import de.adito.git.api.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.IDialogDisplayer;
-import de.adito.git.gui.guice.AditoGitModule;
-import de.adito.git.gui.guice.GuiceUtil;
+import de.adito.git.gui.guice.*;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.IFileSystemObserverProvider;
+import de.adito.git.nbm.FileSystemObserverProviderImpl;
 import de.adito.git.nbm.*;
 import de.adito.git.nbm.dialogs.NBDialogsModule;
 import de.adito.git.nbm.prefs.NBPrefStore;
@@ -33,7 +31,8 @@ public class AditoNbmModule extends AbstractModule
   {
     install(GuiceUtil.filterModule(new AditoGitModule(), Key.get(IDialogDisplayer.class), Key.get(IWindowProvider.class),
                                    Key.get(IFileSystemObserverProvider.class), Key.get(IUserPreferences.class), Key.get(IAsyncProgressFacade.class),
-                                   Key.get(IPrefStore.class)));
+                                   Key.get(IPrefStore.class), Key.get(IFileSystemUtil.class), Key.get(IEditorKitProvider.class), Key.get(INotifyUtil.class),
+                                   Key.get(IKeyStore.class), Key.get(IQuickSearchProvider.class)));
     install(new NBTopComponentsModule());
     install(new NBDialogsModule());
     install(new FactoryModuleBuilder().build(IFileSystemObserverImplFactory.class));

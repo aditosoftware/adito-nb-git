@@ -2,30 +2,25 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IQuickSearchProvider;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.FileStatusCellRenderer;
-import de.adito.git.gui.IDiscardable;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
-import de.adito.git.gui.quickSearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quickSearch.SearchableTable;
+import de.adito.git.gui.quickSearch.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
+import de.adito.git.gui.swing.LinedDecorator;
 import de.adito.git.gui.tableModels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.*;
 import javax.swing.table.AbstractTableModel;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.net.URI;
+import java.util.List;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -38,11 +33,10 @@ import java.util.stream.Collectors;
 class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDiscardable
 {
 
-  private static final int PREFERRED_WIDTH = 1200;
-  private static final int PREFERRED_HEIGHT = 800;
+  private static final int PREFERRED_WIDTH = 750;
+  private static final int PREFERRED_HEIGHT = 700;
   private static final int SELECTION_COL_MAX_WIDTH = 25;
-  private static final Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(200, 200);
-  private static final Dimension MESSAGE_PANE_PREF_SIZE = new Dimension(450, 750);
+  private static final Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(100, 100);
   private final SearchableTable fileStatusTable;
   private final JPanel tableSearchView = new JPanel(new BorderLayout());
   private final _SelectedCommitTableModel commitTableModel;
@@ -54,19 +48,21 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   @Inject
   public CommitDialog(IQuickSearchProvider pQuickSearchProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                      @Assisted String pMessageTemplate)
+                      @Assisted String pMessageTemplate, IEditorKitProvider pEditorKitProvider)
   {
     isValidDescriptor = pIsValidDescriptor;
     repository = pRepository;
+    messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
     // disable OK button at the start since the commit message is empty then
     isValidDescriptor.setValid(pMessageTemplate != null && !pMessageTemplate.isEmpty());
     Observable<Optional<IFileStatus>> statusObservable = pRepository
         .switchMap(pRepo -> pRepo
             .orElseThrow(() -> new RuntimeException("no valid repository found"))
             .getStatus());
-    Observable<List<SelectedFileChangeType>> filesToCommitObservable = Observable.combineLatest(
-        statusObservable, pFilesToCommit, (pStatusObservable, pSelectedFiles)
-            -> pStatusObservable.map(IFileStatus::getUncommitted).orElse(Collections.emptyList())
+    Observable<List<SelectedFileChangeType>> filesToCommitObservable = Observable
+        .combineLatest(statusObservable, pFilesToCommit, (pStatusObservable, pSelectedFiles) -> pStatusObservable
+            .map(IFileStatus::getUncommitted)
+            .orElse(Collections.emptyList())
             .stream()
             .map(pUncommitted -> new SelectedFileChangeType(pSelectedFiles.orElse(Collections.emptyList()).contains(pUncommitted), pUncommitted))
             .collect(Collectors.toList()));
@@ -101,8 +97,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    */
   private void _initGui()
   {
-    setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
-    setLayout(new BorderLayout());
     fileStatusTable.setSelectionModel(new ObservableListSelectionModel(fileStatusTable.getSelectionModel()));
     fileStatusTable.getColumnModel().getColumn(commitTableModel.findColumn(_SelectedCommitTableModel.IS_SELECTED_COLUMN_NAME))
         .setMaxWidth(SELECTION_COL_MAX_WIDTH);
@@ -115,29 +109,59 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       _setColumnSize(index);
       fileStatusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
     }
+
+    // EditorPane for the Commit message
+    messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
+    messagePane.getDocument().addDocumentListener(new _EmptyDocumentListener()); // Listener for enabling/disabling the OK button
+
+    JPanel messagePaneWithHeader = new JPanel(new BorderLayout());
+    LinedDecorator cmDecorator = new LinedDecorator("Commit Message", 32);
+    cmDecorator.setBorder(new EmptyBorder(7, 7, 7, 7));
+    messagePaneWithHeader.add(cmDecorator, BorderLayout.NORTH);
+    messagePaneWithHeader.add(messagePane, BorderLayout.CENTER);
+    messagePaneWithHeader.setBorder(null);
+
+    // mainContent center
+    JSplitPane content = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, tableSearchView, messagePaneWithHeader);
+    content.setResizeWeight(0.9D);
+
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
     toolBar.add(new _SelectAllAction());
     toolBar.add(new _DeselectAllAction());
-    // Size for the Table with the list of files to commit
-    JPanel toolbarFileStatusTablePanel = new JPanel(new BorderLayout());
-    toolbarFileStatusTablePanel.add(tableSearchView, BorderLayout.CENTER);
-    toolbarFileStatusTablePanel.add(toolBar, BorderLayout.NORTH);
-    // EditorPane for the Commit message
-    messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
-    messagePane.setPreferredSize(MESSAGE_PANE_PREF_SIZE);
-    // Listener for enabling/disabling the OK button
-    messagePane.getDocument().addDocumentListener(new _EmptyDocumentListener());
-    JPanel messageOptionsPanel = new JPanel(new BorderLayout());
-    messageOptionsPanel.add(messagePane, BorderLayout.CENTER);
-    messageOptionsPanel.add(amendCheckBox, BorderLayout.SOUTH);
-    Border scrollPaneBorder = new JScrollPane().getBorder();
-    messagePane.setBorder(scrollPaneBorder);
-    messageOptionsPanel.setBorder(scrollPaneBorder);
-    // Splitpane so the user can choose how big each element should be
-    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, toolbarFileStatusTablePanel, messageOptionsPanel);
-    splitPane.setResizeWeight(0.5);
-    add(splitPane, BorderLayout.CENTER);
+
+    JPanel contentWithToolbar = new JPanel(new BorderLayout());
+    contentWithToolbar.add(toolBar, BorderLayout.NORTH);
+    contentWithToolbar.add(content, BorderLayout.CENTER);
+
+    setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
+    setLayout(new BorderLayout());
+    add(contentWithToolbar, BorderLayout.CENTER);
+    add(_createDetailsPanel(), BorderLayout.EAST);
+  }
+
+  private JPanel _createDetailsPanel()
+  {
+    JPanel details = new JPanel();
+    details.setPreferredSize(new Dimension(200, 0));
+    details.setLayout(new BoxLayout(details, BoxLayout.Y_AXIS));
+    details.setBorder(new EmptyBorder(2, 12, 0, 0));
+
+    _addDetailsCategory(details, "Git", amendCheckBox);
+
+    return details;
+  }
+
+  private void _addDetailsCategory(JPanel pDetailsPanel, String pTitle, JComponent... pComponents)
+  {
+    pDetailsPanel.add(new LinedDecorator(pTitle, 32));
+
+    JPanel content = new JPanel();
+    content.setBorder(new EmptyBorder(0, 16, 0, 0));
+    content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+    for (JComponent component : pComponents)
+      content.add(component);
+    pDetailsPanel.add(content);
   }
 
   private void _setColumnSize(int pColumnNum)
@@ -222,7 +246,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     final String[] columnNames = {IS_SELECTED_COLUMN_NAME, FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
 
     private Disposable disposable;
-    private List<SelectedFileChangeType> fileList;
+    private List<SelectedFileChangeType> fileList = List.of();
 
     _SelectedCommitTableModel(Observable<List<SelectedFileChangeType>> pSelectedFileChangeTypes)
     {
