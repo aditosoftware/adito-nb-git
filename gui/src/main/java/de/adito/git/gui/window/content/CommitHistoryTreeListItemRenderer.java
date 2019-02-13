@@ -155,6 +155,7 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
     private static final int ICON_SEPARATION = 6;
     private static final int MARGIN_RIGHT = 3;
     private static final int MARGIN_ICONS_TEXT = 5;
+    private static final int MAX_NUM_BRANCHES_IN_TEXT = 2;
     private final java.util.List<IBranch> branches;
     private final List<ITag> tags;
     private String branchString = "";
@@ -170,11 +171,18 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
         for (IBranch branch : branches)
         {
           toolTipBuilder.append(branch.getSimpleName()).append("<br>");
-          textBuilder.append(branch.getSimpleName()).append(" & ");
+        }
+        for (int index = 0; index < branches.size() && index < MAX_NUM_BRANCHES_IN_TEXT; index++)
+        {
+          textBuilder.append(branches.get(index).getSimpleName()).append(" & ");
         }
         // branchString only has to be set if there are actually branches pointing to the commit
         if (!branches.isEmpty())
           branchString = textBuilder.delete(textBuilder.length() - 3, textBuilder.length() - 1).toString();
+        if (branches.size() > MAX_NUM_BRANCHES_IN_TEXT)
+        {
+          branchString = branchString + "...";
+        }
         for (ITag tag : tags)
         {
           toolTipBuilder.append(tag.getName()).append("<br>");
