@@ -63,7 +63,7 @@ class MergeAction extends AbstractTableAction
       if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
       {
         pProgressHandle.setDescription("Stashing uncommitted local changes");
-        prefStore.put(STASH_ID_KEY, repository.stashChanges());
+        prefStore.put(STASH_ID_KEY, repository.stashChanges(null, false));
       }
       pProgressHandle.setDescription("Merging branches");
       List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst().orElseThrow(), pSelectedBranch);

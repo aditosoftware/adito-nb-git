@@ -77,7 +77,7 @@ class PullAction extends AbstractAction
       if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty() || !pStatus.getConflicting().isEmpty()).orElse(true))
       {
         pProgressHandle.setDescription("Stashing Changes");
-        prefStore.put(STASH_ID_KEY, pRepo.stashChanges());
+        prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, false));
       }
       while (!doAbort)
       {

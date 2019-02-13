@@ -1269,11 +1269,23 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @Nullable String stashChanges() throws AditoGitException
+  public @Nullable String stashChanges(String pMessage, boolean pIncludeUnTracked) throws AditoGitException
   {
     try
     {
-      return git.stashCreate().call().getName();
+      StashCreateCommand stashCreate = git.stashCreate();
+      if (pMessage != null)
+      {
+        stashCreate.setWorkingDirectoryMessage(pMessage);
+        stashCreate.setIndexMessage(pMessage);
+      }
+      stashCreate.setIncludeUntracked(pIncludeUnTracked);
+      RevCommit stashCommit = stashCreate.call();
+      if (stashCommit != null)
+      {
+        return stashCommit.getName();
+      }
+      return null;
     }
     catch (GitAPIException pE)
     {
@@ -1341,11 +1353,14 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void dropStashedCommit(@NotNull String pStashCommitId) throws AditoGitException
+  public void dropStashedCommit(@Nullable String pStashCommitId) throws AditoGitException
   {
     try
     {
-      git.stashDrop().setStashRef(RepositoryImplHelper.getStashIndexForId(git, pStashCommitId)).call();
+      StashDropCommand stashDropCommand = git.stashDrop();
+      if (pStashCommitId != null)
+        stashDropCommand.setStashRef(RepositoryImplHelper.getStashIndexForId(git, pStashCommitId));
+      stashDropCommand.call();
     }
     catch (GitAPIException pE)
     {

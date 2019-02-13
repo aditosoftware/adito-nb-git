@@ -208,6 +208,7 @@ public interface IRepository
 
   /**
    * get the blame annotations for one file
+   *
    * @param pFile the file to get the annotations
    * @return an IBlame object
    */
@@ -402,11 +403,13 @@ public interface IRepository
   /**
    * Stash the uncommitted changes in the current working directory
    *
+   * @param pMessage          Message that should be used as commit message for the stash commit
+   * @param pIncludeUnTracked whether to stash ignored files or not. Default is false
    * @return sha-1 id that the stashed commit with the changes that existed in the working directory got
    * @throws AditoGitException if an error occurs
    */
   @Nullable
-  String stashChanges() throws AditoGitException;
+  String stashChanges(@Nullable String pMessage, boolean pIncludeUnTracked) throws AditoGitException;
 
   /**
    * un-stashed the latest stashed commit
@@ -429,10 +432,10 @@ public interface IRepository
   /**
    * drop the specified stashed commit
    *
-   * @param pStashCommitId sha-1 id for the commit to deleted
+   * @param pStashCommitId sha-1 id for the commit to deleted. If null the latest stashed commit is dropped
    * @throws AditoGitException if an error occurs
    */
-  void dropStashedCommit(@NotNull String pStashCommitId) throws AditoGitException;
+  void dropStashedCommit(@Nullable String pStashCommitId) throws AditoGitException;
 
   /**
    * Creates a new IConfig object that provides the latest information about the config
