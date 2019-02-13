@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.dialogs.results.StashChangesResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -158,5 +159,11 @@ class DialogProviderImpl implements IDialogProvider
     String repoName = pRepository.blockingFirst().map(pRepo -> pRepo.getTopLevelDirectory().getName()).orElse("unknown repository");
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createGitConfigDialog(pRepository),
                                       "Setting for project: " + repoName);
+  }
+
+  @Override
+  public DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog()
+  {
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashChangesDialog(), "Reset");
   }
 }

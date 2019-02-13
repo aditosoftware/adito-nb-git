@@ -3,6 +3,7 @@ package de.adito.git.gui.dialogs;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.dialogs.results.StashChangesResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,4 +44,6 @@ public interface IDialogProvider
   DialogResult showYesNoDialog(String pMessage);
 
   DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository);
+
+  DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog();
 }

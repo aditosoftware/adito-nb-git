@@ -26,6 +26,7 @@ public class Constants
   public static final String FILE_HISTORY_ACTION_ICON = "/de/adito/git/gui/icons/file_history_dark.png";
   public static final String GIT_CONFIG_ICON = "/de/adito/git/gui/icons/settings_dark.png";
   public static final String REFRESH_CONTENT_ICON = "/de/adito/git/gui/icons/refresh_dark.png";
+  public static final String DELETE_ICON = "/de/adito/git/gui/icons/delete_dark.png";
 
   // Sidebar Icon
   public static final String ROLLBACK_ICON = "/de/adito/git/nbm/sidebar/rollback_dark.png";

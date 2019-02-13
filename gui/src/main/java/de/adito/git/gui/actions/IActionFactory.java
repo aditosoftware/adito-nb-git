@@ -71,4 +71,10 @@ interface IActionFactory
 
   CherryPickAction createCherryPickAction(Observable<Optional<IRepository>> pRepository,
                                           Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
+
+  StashChangesAction createStashChangesAction(Observable<Optional<IRepository>> pRepository);
+
+  UnStashChangesAction createUnStashChangesAction(Observable<Optional<IRepository>> pRepository);
+
+  DeleteStashCommitAction createDeleteStashedCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pCommitId);
 }

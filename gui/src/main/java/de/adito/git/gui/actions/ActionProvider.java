@@ -213,4 +213,22 @@ class ActionProvider implements IActionProvider
     return actionFactory.createCherryPickAction(pRepository, pSelectedCommitObservable);
   }
 
+  @Override
+  public Action getStashChangesAction(Observable<Optional<IRepository>> pRepository)
+  {
+    return actionFactory.createStashChangesAction(pRepository);
+  }
+
+  @Override
+  public Action getUnStashChangesAction(Observable<Optional<IRepository>> pRepository)
+  {
+    return actionFactory.createUnStashChangesAction(pRepository);
+  }
+
+  @Override
+  public Action getDeleteStashedCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pCommitId)
+  {
+    return actionFactory.createDeleteStashedCommitAction(pRepository, pCommitId);
+  }
+
 }

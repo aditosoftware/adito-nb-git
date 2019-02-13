@@ -175,4 +175,25 @@ public interface IActionProvider
    * @return Action whose actionPerformed method cherry picks the selected commits on top of the current HEAD
    */
   Action getCherryPickAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+
+  /**
+   * @param pRepository Observable with the current Repository
+   * @return Action whose actionPerformed method shows a dialog where the specifics of the stash command can be set and then stashes
+   * the current changes
+   */
+  Action getStashChangesAction(Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * @param pRepository Observable with the current Repository
+   * @return Action whose actionPerformed method shows a dialog where the specifics of the stash command can be set and then stashes
+   * the current changes
+   */
+  Action getUnStashChangesAction(Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * @param pRepository Observable with the current Repository
+   * @param pCommitId   Observable that contains the commit id of the stash commit to delete. If empty/null the latest stashed commit is dropped instead
+   * @return Action whose actionPerformed method deletes the stashed commit specified in pCommitId
+   */
+  Action getDeleteStashedCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pCommitId);
 }

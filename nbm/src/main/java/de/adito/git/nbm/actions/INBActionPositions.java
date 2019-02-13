@@ -13,6 +13,8 @@ interface INBActionPositions
   // --------------------------  right click positions ---------------------------
   int PULL_ACTION_RIGHT_CLICK = 100;
   int PUSH_ACTION_RIGHT_CLICK = 200;
+  int STASH_CHANGES_ACTION_RIGHT_CLICK = 250;
+  int UN_STASH_CHANGES_ACTION_RIGHT_CLICK = 275;
   int REVERT_ACTION_RIGHT_CLICK = 300;
   int IGNORE_ACTION_RIGHT_CLICK = 400;
   int EXCLUDE_ACTION_RIGHT_CLICK = 500;
