@@ -1,5 +1,7 @@
 package de.adito.git.api;
 
+import org.jetbrains.annotations.Nullable;
+
 import javax.swing.*;
 
 /**
@@ -20,6 +22,7 @@ public interface IQuickSearchProvider
    * @param pCallback    Implementation of the callback that gets called when a user types something, handles search and highlighting
    * @return IQuickSearch object
    */
+  @Nullable
   IQuickSearch attach(JComponent pComponent, Object pConstraints, IQuickSearch.ICallback pCallback);
 
 }
