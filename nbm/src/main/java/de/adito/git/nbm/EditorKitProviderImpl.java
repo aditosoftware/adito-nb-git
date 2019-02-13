@@ -7,8 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.openide.text.CloneableEditorSupport;
 
 import javax.swing.text.EditorKit;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 
 /**
@@ -34,9 +33,16 @@ public class EditorKitProviderImpl implements IEditorKitProvider
 
     if (mimeType == null)
       mimeType = new Tika().detect(pFileDirectory);
-    if ("application/javascript".equals(mimeType))
-      mimeType = "text/javascript";
 
-    return CloneableEditorSupport.getEditorKit(mimeType);
+    return getEditorKitForContentType(mimeType);
+  }
+
+  @Override
+  public EditorKit getEditorKitForContentType(@NotNull String pContentType)
+  {
+    if ("application/javascript".equals(pContentType))
+      pContentType = "text/javascript";
+
+    return CloneableEditorSupport.getEditorKit(pContentType);
   }
 }

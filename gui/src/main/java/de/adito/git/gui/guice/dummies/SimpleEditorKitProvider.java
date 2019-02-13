@@ -1,6 +1,7 @@
 package de.adito.git.gui.guice.dummies;
 
 import de.adito.git.gui.IEditorKitProvider;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.text.*;
 
@@ -10,13 +11,13 @@ import javax.swing.text.*;
 public class SimpleEditorKitProvider implements IEditorKitProvider
 {
   @Override
-  public EditorKit getEditorKit(String pFileDirectory)
+  public EditorKit getEditorKit(@NotNull String pFileDirectory)
   {
     return new StyledEditorKit();
   }
 
   @Override
-  public EditorKit getEditorKitForContentType(String pContentType)
+  public EditorKit getEditorKitForContentType(@NotNull String pContentType)
   {
     return new StyledEditorKit();
   }
