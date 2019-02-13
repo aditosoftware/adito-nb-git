@@ -45,6 +45,13 @@
       <artifactId>org-openide-filesystems-nb</artifactId>
       <version>RELEASE90a</version>
     </dependency>
+
+    <dependency>
+      <groupId>de.adito.aditoweb.nbm</groupId>
+      <artifactId>nb-darcula</artifactId>
+      <version>1.0.2-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>

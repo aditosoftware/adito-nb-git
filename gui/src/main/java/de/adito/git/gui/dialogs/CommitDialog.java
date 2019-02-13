@@ -72,7 +72,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     searchableColumns.add(commitTableModel.findColumn(_SelectedCommitTableModel.FILE_NAME_COLUMN_NAME));
     searchableColumns.add(commitTableModel.findColumn(_SelectedCommitTableModel.FILE_PATH_COLUMN_NAME));
     pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileStatusTable, searchableColumns));
-    tableSearchView.add(new JScrollPane(fileStatusTable), BorderLayout.CENTER);
+    JScrollPane scroller = new JScrollPane(fileStatusTable);
+    tableSearchView.add(scroller, BorderLayout.CENTER);
     messagePane.setText(pMessageTemplate);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
@@ -109,6 +110,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       _setColumnSize(index);
       fileStatusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
     }
+    fileStatusTable.setBorder(BorderFactory.createEmptyBorder());
 
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
@@ -116,7 +118,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
     JPanel messagePaneWithHeader = new JPanel(new BorderLayout());
     LinedDecorator cmDecorator = new LinedDecorator("Commit Message", 32);
-    cmDecorator.setBorder(new EmptyBorder(7, 7, 7, 7));
+    cmDecorator.setBorder(new EmptyBorder(0, 0, 7, 0));
     messagePaneWithHeader.add(cmDecorator, BorderLayout.NORTH);
     messagePaneWithHeader.add(messagePane, BorderLayout.CENTER);
     messagePaneWithHeader.setBorder(null);
