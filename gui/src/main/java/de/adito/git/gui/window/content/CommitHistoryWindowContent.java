@@ -2,30 +2,23 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.CommitHistoryTreeListItem;
-import de.adito.git.api.IQuickSearchProvider;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.IDiscardable;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
-import de.adito.git.gui.quickSearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quickSearch.SearchableTable;
+import de.adito.git.gui.quickSearch.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Class to display all commits
@@ -119,11 +112,12 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, commitTableView, commitDetailsPanel.getPanel());
     mainSplitPane.setResizeWeight(MAIN_SPLIT_PANE_SIZE_RATIO);
     add(mainSplitPane, BorderLayout.CENTER);
-    add(toolBar, BorderLayout.NORTH);
+    add(toolBar, BorderLayout.WEST);
   }
 
   private void _setUpToolbar(Runnable pRefreshContentCallBack)
   {
+    toolBar.setOrientation(JToolBar.VERTICAL);
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getRefreshContentAction(pRefreshContentCallBack));
   }
