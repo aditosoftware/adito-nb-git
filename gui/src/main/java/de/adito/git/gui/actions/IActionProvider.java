@@ -150,10 +150,19 @@ public interface IActionProvider
    * @param pRepository               Observable with the current Repository
    * @param pSelectedCommitObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
    * @param pSelectedFile             File that is currently selected and should also be selected in the diff dialog. Can be optional.empty
-   * @return Action whose actionPerformed method shows a dialog with which to enter the tag name in order to assign a tag to the selected commit
+   * @return Action whose actionPerformed method shows a dialog that shows the differences between the commit and its parent
    */
   Action getDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
                               Observable<Optional<String>> pSelectedFile);
+
+  /**
+   * @param pRepository               Observable with the current Repository
+   * @param pSelectedCommitObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @param pSelectedFile             File that is currently selected and should also be selected in the diff dialog. Can be optional.empty
+   * @return Action whose actionPerformed method shows a dialog that shows the differences from the selected commit to HEAD
+   */
+  Action getDiffCommitToHeadAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                   Observable<Optional<String>> pSelectedFile);
 
   /**
    * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
@@ -192,7 +201,8 @@ public interface IActionProvider
 
   /**
    * @param pRepository Observable with the current Repository
-   * @param pCommitId   Observable that contains the commit id of the stash commit to delete. If empty/null the latest stashed commit is dropped instead
+   * @param pCommitId   Observable that contains the commit id of the stash commit to delete. If empty/null the latest stashed commit is dropped
+   *                    instead
    * @return Action whose actionPerformed method deletes the stashed commit specified in pCommitId
    */
   Action getDeleteStashedCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pCommitId);

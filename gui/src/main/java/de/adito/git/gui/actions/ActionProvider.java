@@ -196,6 +196,14 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
+  public Action getDiffCommitToHeadAction(Observable<Optional<IRepository>> pRepository,
+                                          Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                          Observable<Optional<String>> pSelectedFile)
+  {
+    return actionFactory.createDiffCommitToHeadAction(pRepository, pSelectedCommitObservable, pSelectedFile);
+  }
+
+  @Override
   public Action getOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createOpenFileAction(pSelectedFilesObservable);

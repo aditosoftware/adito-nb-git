@@ -63,6 +63,10 @@ interface IActionFactory
                                             Observable<Optional<List<ICommit>>> pSelectedCommitsObservable,
                                             Observable<Optional<String>> pSelectedFile);
 
+  DiffCommitToHeadAction createDiffCommitToHeadAction(Observable<Optional<IRepository>> pRepository,
+                                                      Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                                      Observable<Optional<String>> pSelectedFile);
+
   OpenFileAction createOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
   RefreshContentAction createRefreshAction(Runnable pRefreshContentCallBack);

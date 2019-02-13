@@ -132,6 +132,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   {
     commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
     commitTable.setRowHeight(21);
+    commitListPopupMenu.add(actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, Observable.just(Optional.empty())));
     commitListPopupMenu.add(actionProvider.getResetAction(repository, selectedCommitObservable));
     commitListPopupMenu.add(actionProvider.getAddTagAction(repository, selectedCommitObservable));
     commitListPopupMenu.add(actionProvider.getCherryPickAction(repository, selectedCommitObservable));
