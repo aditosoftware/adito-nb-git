@@ -10,7 +10,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
-import org.eclipse.jgit.revwalk.filter.RevFilter;
+import org.eclipse.jgit.revwalk.filter.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -357,6 +357,8 @@ public class RepositoryImplHelper
   }
 
   /**
+   * Returns all commits matching the criteria, always filters out any stashed commits
+   *
    * @param pGit          Git object to call for retrieving commits/objects/info about the repository status
    * @param pSourceBranch IBranch that the retrieved commits should be from
    * @param pFile         File that is affected by all commits that are retrieved
@@ -373,6 +375,7 @@ public class RepositoryImplHelper
       List<ICommit> commitList = new ArrayList<>();
       Iterable<RevCommit> refCommits;
       LogCommand logCommand = pGit.log();
+      RevFilter revFilter = new StashCommitFilter(pGit);
       if (pSourceBranch != null)
       {
         logCommand.add(pGit.getRepository().resolve(pSourceBranch.getName()));
@@ -387,12 +390,15 @@ public class RepositoryImplHelper
       }
       if (pIndexFrom >= 0)
       {
-        logCommand.setSkip(pIndexFrom);
+        // Since setting an explicit revFilter overrides the skip and max options, create the filters and AND them together with our filter
+        revFilter = AndRevFilter.create(revFilter, SkipRevFilter.create(pIndexFrom));
       }
       if (pNumCommits >= 0)
       {
-        logCommand.setMaxCount(pNumCommits);
+        // Since setting an explicit revFilter overrides the skip and max options, create the filters and AND them together with our filter
+        revFilter = AndRevFilter.create(revFilter, MaxCountRevFilter.create(pNumCommits));
       }
+      logCommand.setRevFilter(revFilter);
       refCommits = logCommand.call();
       if (refCommits != null)
       {
