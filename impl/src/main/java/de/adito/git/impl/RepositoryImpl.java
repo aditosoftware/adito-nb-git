@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -75,7 +76,7 @@ public class RepositoryImpl implements IRepository
 
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
-        .distinctUntilChanged()
+        .debounce(500, TimeUnit.MILLISECONDS)
         .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))));
 
     // Current Branch
