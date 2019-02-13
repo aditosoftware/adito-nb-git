@@ -5,10 +5,13 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.Collections;
 import java.util.List;
@@ -30,11 +33,12 @@ class AddTagAction extends AbstractTableAction
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
 
   @Inject
-  AddTagAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil,
+  AddTagAction(IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, IIconLoader pIconLoader,
                @Assisted Observable<Optional<IRepository>> pRepository,
                @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     super(ACTION_NAME, _getIsEnabledObservable(pSelectedCommitObservable));
+    putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.ADD_TAG_ACTION_ICON));
     dialogProvider = pDialogProvider;
     notifyUtil = pNotifyUtil;
     repository = pRepository;
