@@ -1,12 +1,11 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.*;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -198,7 +197,7 @@ public class MergeDiffImpl implements IMergeDiff
           */
         if ((pOffset >= currentOffset && pOffset < nextOffset) || (pOffset + pLenString >= currentOffset && pOffset < currentOffset))
         {
-          affectedIndices.add(new Pair<>(index, currentOffset));
+          affectedIndices.add(Pair.of(index, currentOffset));
         }
         // the upper end of this IFileChangeChunk is the lower end of the next
         currentOffset = nextOffset;
