@@ -1,4 +1,6 @@
 *.iml
 /.idea/*
 /.idea/vcs.xml
+!/.idea/codeStyleSettings.xml
+!/.idea/projectCodeStyle.xml
 target/
