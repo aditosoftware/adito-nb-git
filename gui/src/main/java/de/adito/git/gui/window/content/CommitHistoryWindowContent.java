@@ -11,6 +11,7 @@ import de.adito.git.gui.quickSearch.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;
@@ -41,6 +42,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
+  private final Disposable disposable;
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
   /**
@@ -75,6 +77,8 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
       return Optional.of(selectedCommits);
     });
+    disposable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
+        .subscribe(pStatus -> pRefreshContentCallBack.run());
     commitDetailsPanel = new CommitDetailsPanel(actionProvider, pRepository, selectedCommitObservable);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
   }
@@ -82,6 +86,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   @Override
   public void discard()
   {
+    disposable.dispose();
     commitDetailsPanel.discard();
   }
 
