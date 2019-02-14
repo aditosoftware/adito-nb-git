@@ -3,14 +3,10 @@ package de.adito.git.api;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
 
 /**
  * @author m.kaspera 20.09.2018
@@ -342,6 +338,12 @@ public interface IRepository
    * @return the directory of the actual repository
    */
   String getDirectory();
+
+  /**
+   * @return Repository-DisplayName
+   */
+  @NotNull
+  Observable<String> displayName();
 
   /**
    * @return the directory of the top-most directory covered by the VCS

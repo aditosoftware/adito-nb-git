@@ -4,6 +4,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
 
+import javax.annotation.Nullable;
 import javax.swing.table.TableModel;
 import java.util.Optional;
 
@@ -20,7 +21,7 @@ interface ITopComponentFactory
   CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<Optional<IRepository>> pRepository,
                                                             TableModel pTableModel, @Assisted("loadMore") Runnable pLoadMoreCallback,
                                                             @Assisted("refreshContent") Runnable pRefreshContentCallBack,
-                                                            String pDisplayableContext);
+                                                            @Nullable String pDisplayableContext);
 
   StatusWindowTopComponent createStatusWindowTopComponent(Observable<Optional<IRepository>> pRepository);
 

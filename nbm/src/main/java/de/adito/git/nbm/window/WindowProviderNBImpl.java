@@ -1,11 +1,8 @@
 package de.adito.git.nbm.window;
 
 import com.google.inject.Inject;
-import de.adito.git.api.CommitHistoryTreeListItem;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.IUserPreferences;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
 import de.adito.git.gui.window.IWindowProvider;
@@ -16,8 +13,7 @@ import org.openide.windows.WindowManager;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * A provider for all Windows in NetBeans
@@ -77,8 +73,7 @@ class WindowProviderNBImpl implements IWindowProvider
       };
       _openTCinEDT(topComponentFactory
                        .createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack,
-                                                        pBranch != null ? pBranch.getSimpleName()
-                                                            : NbBundle.getMessage(WindowProviderNBImpl.class, "Label.CommitsProject")));
+                                                        pBranch != null ? pBranch.getSimpleName() : null));
     }
     catch (Exception e)
     {

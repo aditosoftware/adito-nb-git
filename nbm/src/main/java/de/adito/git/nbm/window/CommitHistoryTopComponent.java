@@ -7,8 +7,9 @@ import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 import org.openide.util.NbBundle;
 
+import javax.annotation.Nullable;
 import javax.swing.table.TableModel;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.Optional;
 
 /**
@@ -25,7 +26,7 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
   CommitHistoryTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                             @Assisted TableModel tableModel, @Assisted("loadMore") Runnable loadMoreCallback,
                             @Assisted("refreshContent") Runnable pRefreshContent,
-                            @Assisted String pDisplayableContext)
+                            @Assisted @Nullable String pDisplayableContext)
   {
     super(pRepository);
     displayableContext = pDisplayableContext;
@@ -45,6 +46,9 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
   @Override
   protected String getTopComponentName()
   {
-    return (NbBundle.getMessage(CommitHistoryTopComponent.class, "Label.Commits") + " - " + displayableContext);
+    if (displayableContext == null)
+      return (NbBundle.getMessage(CommitHistoryTopComponent.class, "Label.Commits"));
+    else
+      return displayableContext;
   }
 }
