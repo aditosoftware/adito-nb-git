@@ -9,11 +9,12 @@ import de.adito.git.gui.window.IWindowProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
-import org.openide.windows.WindowManager;
+import org.openide.windows.*;
 
 import javax.swing.*;
 import java.io.File;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * A provider for all Windows in NetBeans
@@ -35,16 +36,16 @@ class WindowProviderNBImpl implements IWindowProvider
   @Override
   public void showBranchListWindow(Observable<Optional<IRepository>> pRepository)
   {
-    _openTCinEDT(topComponentFactory.createAllBranchTopComponent(pRepository));
+    _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showBranchListWindow");
+    _openTCinEDT(identifier, () -> topComponentFactory.createAllBranchTopComponent(pRepository));
   }
 
   @Override
   public void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch)
   {
-    IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(
-        NbBundle.getMessage(WindowProviderNBImpl.class, "Invalid.RepositoryNotValid")));
     try
     {
+      IRepository repo = _getRepository(pRepository);
       List<ICommit> commits = repo.getCommits(pBranch, userPreferences.getNumLoadAdditionalCHEntries());
       CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
       Runnable loadMoreCallBack = () -> {
@@ -71,7 +72,9 @@ class WindowProviderNBImpl implements IWindowProvider
           throw new RuntimeException(pE);
         }
       };
-      _openTCinEDT(topComponentFactory
+
+      _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showCommitHistoryWindow", pBranch == null ? "null" : pBranch.getName());
+      _openTCinEDT(identifier, () -> topComponentFactory
                        .createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack,
                                                         pBranch != null ? pBranch.getSimpleName() : null));
     }
@@ -84,10 +87,9 @@ class WindowProviderNBImpl implements IWindowProvider
   @Override
   public void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile)
   {
-    IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(
-        NbBundle.getMessage(WindowProviderNBImpl.class, "Invalid.RepositoryNotValid")));
     try
     {
+      IRepository repo = _getRepository(pRepository);
       List<ICommit> commits = repo.getCommits(pFile, userPreferences.getNumLoadAdditionalCHEntries());
       CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
       Runnable loadMoreCallBack = () -> {
@@ -114,8 +116,11 @@ class WindowProviderNBImpl implements IWindowProvider
           throw new RuntimeException(pE);
         }
       };
-      _openTCinEDT(topComponentFactory.createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack,
-                                                                       pFile.getAbsolutePath()));
+
+      String path = pFile.getAbsolutePath();
+      _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showFileCommitHistoryWindow", path);
+      _openTCinEDT(identifier, () -> topComponentFactory
+          .createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack, path));
     }
     catch (Exception e)
     {
@@ -126,21 +131,87 @@ class WindowProviderNBImpl implements IWindowProvider
   @Override
   public void showStatusWindow(Observable<Optional<IRepository>> pRepository)
   {
-    _openTCinEDT(topComponentFactory.createStatusWindowTopComponent(pRepository));
+    _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showStatusWindow");
+    _openTCinEDT(identifier, () -> topComponentFactory.createStatusWindowTopComponent(pRepository));
+  }
+
+  @NotNull
+  private static IRepository _getRepository(@NotNull Observable<Optional<IRepository>> pRepo)
+  {
+    return pRepo
+        .blockingFirst()
+        .orElseThrow(() -> new RuntimeException(NbBundle.getMessage(WindowProviderNBImpl.class,
+                                                                    "Invalid.RepositoryNotValid")));
   }
 
   /**
    * A helper class to open TopComponents in EDT
    *
-   * @param pComponent The AbstractRepositoryTopComponent that should be displayed
+   * @param pComponentSupplier The supplier for the AbstractRepositoryTopComponent that should be displayed
    */
-  private static void _openTCinEDT(@NotNull AbstractRepositoryTopComponent pComponent)
+  private static void _openTCinEDT(@NotNull _SingletonIdentifier pIdentifier, @NotNull Supplier<AbstractRepositoryTopComponent> pComponentSupplier)
   {
+    for (TopComponent openedTC : TopComponent.getRegistry().getOpened())
+    {
+      if (Objects.equals(pIdentifier, openedTC.getClientProperty("adito.git.windowprovider.key")))
+      {
+        SwingUtilities.invokeLater(openedTC::requestActive);
+        return;
+      }
+    }
+
     SwingUtilities.invokeLater(() -> {
-      WindowManager.getDefault().findMode(pComponent.getInitialMode()).dockInto(pComponent);
-      if (!pComponent.isOpened())
-        pComponent.open();
-      pComponent.requestActive();
+      AbstractRepositoryTopComponent tc = pComponentSupplier.get();
+      tc.putClientProperty("adito.git.windowprovider.key", pIdentifier);
+      WindowManager.getDefault().findMode(tc.getInitialMode()).dockInto(tc);
+      if (!tc.isOpened())
+        tc.open();
+      tc.requestActive();
     });
+  }
+
+  private static class _SingletonIdentifier
+  {
+    private Observable<Optional<IRepository>> repoObservable;
+    private Set<Object> objects;
+
+    public _SingletonIdentifier(Observable<Optional<IRepository>> pRepoObservable, Object... pObjects)
+    {
+      repoObservable = pRepoObservable;
+      objects = Set.of(pObjects);
+    }
+
+    @Override
+    public boolean equals(Object pO)
+    {
+      if (this == pO) return true;
+      if (pO == null || getClass() != pO.getClass()) return false;
+      _SingletonIdentifier that = (_SingletonIdentifier) pO;
+
+      try
+      {
+        IRepository repo1 = _getRepository(repoObservable);
+        IRepository repo2 = _getRepository(that.repoObservable);
+        return Objects.equals(repo1, repo2) && Objects.equals(objects, that.objects);
+      }
+      catch (Exception e)
+      {
+        return false;
+      }
+    }
+
+    @Override
+    public int hashCode()
+    {
+      try
+      {
+        IRepository repo = _getRepository(repoObservable);
+        return Objects.hash(repo, objects);
+      }
+      catch (Exception e)
+      {
+        return Objects.hash(repoObservable, objects);
+      }
+    }
   }
 }
