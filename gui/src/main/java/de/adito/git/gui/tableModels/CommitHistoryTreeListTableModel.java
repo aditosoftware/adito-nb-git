@@ -5,9 +5,7 @@ import de.adito.git.gui.DateTimeRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * The table model for the commits
@@ -18,7 +16,7 @@ import java.util.List;
 public class CommitHistoryTreeListTableModel extends AbstractTableModel
 {
 
-  public static final String BRANCHING_COL_NAME = "Branching/Commit Message";
+  public static final String BRANCHING_COL_NAME = "Branching / Commit Message";
   public static final String AUTHOR_COL_NAME = "Author";
   public static final String DATE_COL_NAME = "Date";
 

@@ -14,8 +14,11 @@ import java.util.Locale;
 public class DateTimeRenderer
 {
 
+  private static final Locale _REAL_USER_LOCALE = System.getProperty("user.country") != null ?
+      new Locale(System.getProperty("user.country")) :
+      Locale.getDefault();
   private static final DateTimeFormatter _FORMATTER = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT)
-      .withLocale(Locale.ENGLISH)
+      .withLocale(_REAL_USER_LOCALE)
       .withZone(ZoneId.systemDefault());
 
   private DateTimeRenderer()
