@@ -1,18 +1,13 @@
 package de.adito.git.gui.dialogs;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.*;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
-import de.adito.git.gui.dialogs.results.CommitDialogResult;
-import de.adito.git.gui.dialogs.results.StashChangesResult;
+import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -56,12 +51,13 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange)
+  public DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange, boolean pShowFileTable)
   {
     DialogResult<DiffDialog, ?> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs, pSelectedFile, pAcceptChange), "DiffDialog");
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs, pSelectedFile, pAcceptChange, pShowFileTable),
+                                          "DiffDialog"); //todo
       return result;
     }
     finally

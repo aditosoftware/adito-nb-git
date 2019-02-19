@@ -1,13 +1,12 @@
 package de.adito.git.gui.dialogs;
 
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -24,7 +23,8 @@ interface IDialogFactory
                                   Observable<Optional<IRepository>> pRepository, Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
                                   String pMessageTemplate);
 
-  DiffDialog createDiffDialog(@NotNull List<IFileDiff> pDiffs, @Nullable String pSelectedFile, boolean pAcceptChange);
+  DiffDialog createDiffDialog(@NotNull List<IFileDiff> pDiffs, @Nullable String pSelectedFile, @Assisted("acceptChange") boolean pAcceptChange,
+                              @Assisted("showFileTable") boolean pShowFileTable);
 
   NewBranchDialog createNewBranchDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor, Observable<Optional<IRepository>> pRepository);
 

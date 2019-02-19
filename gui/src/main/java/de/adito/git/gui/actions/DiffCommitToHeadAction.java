@@ -3,8 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -12,9 +11,7 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Action that shows the differences between the selected commit (the list in the observable should contain only one commit for the action to be
@@ -38,7 +35,7 @@ public class DiffCommitToHeadAction extends AbstractTableAction
                          @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
                          @Assisted @Nullable Observable<Optional<String>> pSelectedFile)
   {
-    super("Diff to HEAD", _getIsEnabledObservable(pSelectedCommitObservable));
+    super("Compare with HEAD", _getIsEnabledObservable(pSelectedCommitObservable));
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
     repository = pRepository;
@@ -64,7 +61,7 @@ public class DiffCommitToHeadAction extends AbstractTableAction
             throw new RuntimeException(pE);
           }
         }).orElse(Collections.emptyList());
-        dialogProvider.showDiffDialog(fileDiffs, selectedFile.blockingFirst().orElse(null), false);
+        dialogProvider.showDiffDialog(fileDiffs, selectedFile.blockingFirst().orElse(null), false, true);
       }
     });
   }

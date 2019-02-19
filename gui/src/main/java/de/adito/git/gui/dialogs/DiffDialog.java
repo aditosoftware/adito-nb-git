@@ -3,26 +3,22 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.ColorPicker;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.BaseDiffPanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tableModels.DiffTableModel;
-import de.adito.git.gui.tableModels.StatusTableModel;
+import de.adito.git.gui.tableModels.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Window that displays the list of changes found during a diff
@@ -42,6 +38,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final IEditorKitProvider editorKitProvider;
   private final IIconLoader iconLoader;
   private final boolean acceptChange;
+  private final boolean showFileTable;
   private final JTextPane notificationArea = new JTextPane();
   private DiffPanel diffPanel;
   private Disposable disposable;
@@ -49,10 +46,12 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 
   @Inject
   public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs,
-                    @Assisted @javax.annotation.Nullable String pSelectedFile, @Assisted boolean pAcceptChange)
+                    @Assisted @javax.annotation.Nullable String pSelectedFile,
+                    @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTable") boolean pShowFileTable)
   {
     iconLoader = pIconLoader;
     acceptChange = pAcceptChange;
+    showFileTable = pShowFileTable;
     observableListSelectionModel = new ObservableListSelectionModel(fileListTable.getSelectionModel());
     fileListTable.setSelectionModel(observableListSelectionModel);
     editorKitProvider = pEditorKitProvider;
@@ -104,10 +103,10 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
         notificationArea.setText("");
       }
     });
-    if (diffs.size() > 1)
+    if (diffs.size() > 1 && showFileTable)
     {
       // add table and DiffPanel to the SplitPane
-      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, new JScrollPane(fileListTable));
+      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, fileListTableScrollPane);
       diffToListSplitPane.setResizeWeight(1);
       add(diffToListSplitPane, BorderLayout.CENTER);
     }

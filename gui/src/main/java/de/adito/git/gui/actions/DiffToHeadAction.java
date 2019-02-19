@@ -3,21 +3,17 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.*;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.DialogResult;
-import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.*;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +32,7 @@ class DiffToHeadAction extends AbstractTableAction
                    @Assisted Observable<Optional<IRepository>> pRepository,
                    @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
-    super("Show Diff");
+    super("Compare with local");
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.DIFF_ACTION_ICON));
     progressFacade = pProgressFacade;
     repository = pRepository;
@@ -57,7 +53,7 @@ class DiffToHeadAction extends AbstractTableAction
 
       //Show Dialog in EDT -> Handle gets finished
       SwingUtilities.invokeLater(() -> {
-        DialogResult dialogResult = dialogProvider.showDiffDialog(fileDiffs, null, true);
+        DialogResult dialogResult = dialogProvider.showDiffDialog(fileDiffs, null, true, false);
         if (dialogResult.isPressedOk())
         {
           for (IFileDiff fileDiff : fileDiffs)
