@@ -54,6 +54,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
    */
   @Inject
   CommitHistoryWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
+                             CommitDetailsPanel.IPanelFactory pPanelFactory,
                              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted TableModel pTableModel,
                              @Assisted("loadMore") Runnable pLoadMoreCallback,
                              @Assisted("refreshContent") Runnable pRefreshContentCallBack)
@@ -79,7 +80,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     });
     disposable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
         .subscribe(pStatus -> pRefreshContentCallBack.run());
-    commitDetailsPanel = new CommitDetailsPanel(actionProvider, pRepository, selectedCommitObservable);
+    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
   }
 
