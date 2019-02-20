@@ -5,7 +5,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -285,7 +286,7 @@ public class MergeDiffImpl implements IMergeDiff
         */
       terminateAt = pToChange.getAEnd() >= pToInsert.getAEnd() ? toInsertLines.length - indexOffset : pToChange.getAEnd() - pToInsert.getAStart() - 1;
       // if the change starts on the last line of this chunk, we have to add that line. Without this, the line is not added
-      if (pToChange.getAEnd() == pToInsert.getAStart() + 1)
+      if (pToChange.getAEnd() == pToInsert.getAStart() + 1 && terminateAt == 0)
       {
         terminateAt = 1;
       }
