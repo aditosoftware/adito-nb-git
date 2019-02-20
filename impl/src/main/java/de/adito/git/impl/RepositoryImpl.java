@@ -76,7 +76,7 @@ public class RepositoryImpl implements IRepository
 
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
-        .throttleLast(500, TimeUnit.MILLISECONDS)
+        .throttleLatest(500, TimeUnit.MILLISECONDS)
         .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))));
 
     // Current Branch
