@@ -39,7 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -1403,7 +1403,7 @@ public class RepositoryImpl implements IRepository
                                                          @NotNull IFireable<Optional<IFileStatus>> pIFireable)
     {
       // todo better threadhandling
-      Executor service = Executors.newFixedThreadPool(1);
+      Executor service = new ThreadPoolExecutor(1, 1, 5, TimeUnit.SECONDS, new VoidingPseudoBlockingArrayQueue<>(5));
       IFileSystemChangeListener listener = () -> service.execute(() -> pIFireable.fireValueChanged(Optional.of(RepositoryImplHelper.status(git))));
       pIFileSystemObserver.addListener(listener);
       return listener;
