@@ -25,7 +25,6 @@ import java.util.List;
 class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsListener
 {
 
-  private final int lineNumFacadeWidth;
   private final DiffPanelModel model;
   private final Disposable disposable;
   private final Insets panelInsets = new Insets(0, 5, 0, 5);
@@ -36,6 +35,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   private List<LineNumber> drawnLineNumbers = new ArrayList<>(); // LineNumbers currently in the viewPort, these have to be drawn
   private List<LineNumberColor> lineNumberColors = new ArrayList<>(); // all LineNumberColors for the file in the editor
   private final LineNumbersColorModel lineNumbersColorModel;
+  private int lineNumFacadeWidth;
 
 
   /**
@@ -49,8 +49,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     lineNumbersColorModel = pLineNumbersColorModel;
     editorInsets = pEditorPane.getInsets();
     lineNumFacadeWidth = getFontMetrics(getFont()).stringWidth(String.valueOf(_getLastLineNumber(pModel)));
-    setBorder(new EmptyBorder(panelInsets));
     setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
+    setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
     model = pModel;
     pLineNumbersColorModel.addListener(this);
@@ -58,6 +58,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
         pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new)
         .subscribe(
             pPair -> SwingUtilities.invokeLater(() -> {
+              lineNumFacadeWidth = getFontMetrics(getFont()).stringWidth(String.valueOf(_getLastLineNumber(pModel)));
+              setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
               _calculateLineNumbers(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle());
               repaint();
             }));
