@@ -109,7 +109,9 @@ public class LineNumbersColorModel implements IDiscardable
   {
     Element startingLineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineCounter);
     Element endingLineElement = pEditorPane.getDocument().getDefaultRootElement()
-        .getElement(pLineCounter + pNumLines + model.getGetParityLines().apply(pFileChange).length() - 1);
+        .getElement(
+            Math.min(pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1,
+                     Math.max(0, pLineCounter + pNumLines + model.getGetParityLines().apply(pFileChange).length() - 1)));
     Rectangle bounds;
     if (startingLineElement != null && endingLineElement != null)
     {

@@ -4,8 +4,10 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 
 import javax.swing.*;
-import javax.swing.text.*;
-import java.util.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -74,8 +76,9 @@ public class TextHighlightUtil
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {
         int startOffset = pEditorPane.getDocument().getDefaultRootElement().getElement(pGetStartLine.apply(changeChunk)).getStartOffset();
-        // -1 because the end line is considered exclusive (also if endLine == startLine the offsets are the same this way)
-        int endOffset = pEditorPane.getDocument().getDefaultRootElement().getElement(pGetEndLine.apply(changeChunk) - 1).getEndOffset();
+        // -1 because the end line is considered exclusive (also if endLine == startLine the offsets are the same this way).
+        // Edge case here: empty file -> endLine - 1 would result in -1, so need to use Math.max(0, endLine - 1)
+        int endOffset = pEditorPane.getDocument().getDefaultRootElement().getElement(Math.max(0, pGetEndLine.apply(changeChunk) - 1)).getEndOffset();
         // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
         if (startOffset < endOffset)
           endOffset -= 1;
@@ -116,9 +119,9 @@ public class TextHighlightUtil
         int startOffset = pJEditorPane.getDocument().getDefaultRootElement()
             .getElement(pGetStartLine.apply(changeChunk) + numParityLines).getStartOffset();
         numParityLines += pGetParityLines.apply(changeChunk).length();
-        // Minus one in the getElement() because the last line is not included
+        // Minus one in the getElement() because the last line is not included. In an empty file this would be -1, so use Math.max(0, x)
         int endOffset = pJEditorPane.getDocument().getDefaultRootElement()
-            .getElement(pGetEndLIne.apply(changeChunk) + numParityLines - 1).getEndOffset();
+            .getElement(Math.max(0, pGetEndLIne.apply(changeChunk) + numParityLines - 1)).getEndOffset();
         // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
         if (startOffset < endOffset)
           endOffset -= 1;
