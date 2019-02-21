@@ -15,6 +15,8 @@ import javax.swing.*;
 import javax.swing.text.EditorKit;
 import javax.swing.text.SimpleAttributeSet;
 import java.awt.Rectangle;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -49,8 +51,22 @@ public class DiffPaneWrapper implements IDiscardable
   {
     model = pModel;
     editorPane = new JEditorPane();
+    editorPane.addFocusListener(new FocusListener()
+    {
+
+      @Override
+      public void focusGained(FocusEvent pFocusEvent)
+      {
+        editorPane.getCaret().setVisible(true);
+      }
+
+      @Override
+      public void focusLost(FocusEvent pFocusEvent)
+      {
+        editorPane.getCaret().setVisible(false);
+      }
+    });
     editorPane.setEditable(false);
-    editorPane.setEnabled(false);
     diffPane = new DiffPane(editorPane);
     fileChangeDisposable = model.getFileChangesObservable()
         .subscribe(pFileChangesEvent -> {
