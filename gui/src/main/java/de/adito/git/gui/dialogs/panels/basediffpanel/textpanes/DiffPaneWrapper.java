@@ -107,7 +107,7 @@ public class DiffPaneWrapper implements IDiscardable
    */
   public void moveCaretToNextChunk()
   {
-    IDiffPaneUtil.moveCaretToNextChunk(editorPane, model);
+    IDiffPaneUtil.moveCaretToNextChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getGetStartLine());
   }
 
   /**
@@ -115,7 +115,9 @@ public class DiffPaneWrapper implements IDiscardable
    */
   public void moveCaretToPreviousChunk()
   {
-    IDiffPaneUtil.moveCaretToPreviousChunk(editorPane, model);
+    IDiffPaneUtil.moveCaretToPreviousChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getGetStartLine(),
+                                           model.getGetEndLine()
+    );
   }
 
   @Override
