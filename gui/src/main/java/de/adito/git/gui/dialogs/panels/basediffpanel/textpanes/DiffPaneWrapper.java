@@ -3,8 +3,8 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
-import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPaneUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPane;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.MarkedScrollbar;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.ScrollbarMarkingsModel;
@@ -107,7 +107,7 @@ public class DiffPaneWrapper implements IDiscardable
    */
   public void moveCaretToNextChunk()
   {
-    DiffPaneUtil.moveCaretToNextChunk(editorPane, model);
+    IDiffPaneUtil.moveCaretToNextChunk(editorPane, model);
   }
 
   /**
@@ -115,7 +115,7 @@ public class DiffPaneWrapper implements IDiscardable
    */
   public void moveCaretToPreviousChunk()
   {
-    DiffPaneUtil.moveCaretToPreviousChunk(editorPane, model);
+    IDiffPaneUtil.moveCaretToPreviousChunk(editorPane, model);
   }
 
   @Override
