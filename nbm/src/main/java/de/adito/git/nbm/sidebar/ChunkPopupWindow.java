@@ -5,6 +5,7 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
@@ -16,6 +17,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,23 +33,31 @@ class ChunkPopupWindow extends JWindow
   private static final int INSET_RIGHT = 25;
   private static final int MIN_HEIGHT = 16;
   private static final Dimension MAX_SIZE = new Dimension(400, 500);
+  private final IIconLoader iconLoader = IGitConstants.INJECTOR.getInstance(IIconLoader.class);
+  private final IFileChangeChunk changeChunk;
+  private final Observable<List<IFileChangeChunk>> changeChunkList;
+  private final EditorColorizer editorColorizer;
   private _WindowDisposer windowDisposer;
   private JScrollPane scrollPane;
   private JToolBar toolBar;
 
   /**
-   * @param pRepository    Observable that contains the IRepository, used for retrieving the HEAD version of the file in pTextComponent
-   * @param pParent        Window who should be the owner of this window
-   * @param pLocation      Absolute position that this window should appear at
-   * @param pChangeChunk   IFileChangeChunk for which this window offers rollback functionality
-   * @param pTextComponent JTextComponent that contains the text which the pChangeChunks is part of
-   * @param pFile          File whose contents are opened in pTextComponent
+   * @param pRepository      Observable that contains the IRepository, used for retrieving the HEAD version of the file in pTextComponent
+   * @param pParent          Window who should be the owner of this window
+   * @param pLocation        Absolute position that this window should appear at
+   * @param pChangeChunk     IFileChangeChunk for which this window offers rollback functionality
+   * @param pChangeChunkList Observable of the list of IFileChangeChunk that is kept up-to-date
+   * @param pTextComponent   JTextComponent that contains the text which the pChangeChunks is part of
+   * @param pEditorColorizer EditorColorizer that spawns this PopupWindow. Needed to fire mouseEvents (that spawn a new PopupWindow)
+   * @param pFile            File whose contents are opened in pTextComponent
    */
   ChunkPopupWindow(Observable<Optional<IRepository>> pRepository, Window pParent, Point pLocation, IFileChangeChunk pChangeChunk,
-                   JTextComponent pTextComponent,
-                   File pFile)
+                   Observable<List<IFileChangeChunk>> pChangeChunkList, JTextComponent pTextComponent, EditorColorizer pEditorColorizer, File pFile)
   {
     super(pParent);
+    changeChunk = pChangeChunk;
+    changeChunkList = pChangeChunkList;
+    editorColorizer = pEditorColorizer;
     windowDisposer = new _WindowDisposer();
     pLocation.x = pTextComponent.getLocationOnScreen().x - new JScrollPane().getInsets().left;
     setLocation(pLocation);
@@ -92,14 +102,6 @@ class ChunkPopupWindow extends JWindow
    */
   private void _initGui(_RollbackInformation pRollbackInformation, JTextComponent pTextComponent)
   {
-    JButton button = new JButton(IGitConstants.INJECTOR.getInstance(IIconLoader.class).getIcon(Constants.ROLLBACK_ICON));
-    button.setToolTipText("Undo changes");
-    button.addActionListener(e -> {
-      _performRollback(pRollbackInformation, pTextComponent);
-      windowDisposer.disposeWindow();
-    });
-    toolBar = new JToolBar(SwingConstants.HORIZONTAL);
-    toolBar.add(button);
     JEditorPane editorPane = new JEditorPane();
     if (pTextComponent instanceof JEditorPane)
     {
@@ -109,6 +111,43 @@ class ChunkPopupWindow extends JWindow
     editorPane.setEnabled(false);
     scrollPane = new JScrollPane(editorPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     add(scrollPane, BorderLayout.CENTER);
+    JButton button = new JButton(iconLoader.getIcon(Constants.ROLLBACK_ICON));
+    button.setToolTipText("Undo changes");
+    button.addActionListener(e -> {
+      _performRollback(pRollbackInformation, pTextComponent);
+      windowDisposer.disposeWindow();
+    });
+    toolBar = new JToolBar(SwingConstants.HORIZONTAL);
+    toolBar.setFloatable(false);
+    toolBar.add(button);
+    JButton nextChangeButton = new JButton(iconLoader.getIcon(Constants.NEXT_OCCURRENCE));
+    nextChangeButton.addActionListener(e -> {
+      IFileChangeChunk nextChunk = IDiffPaneUtil.moveCaretToNextChunk(pTextComponent, this.changeChunk, changeChunkList.blockingFirst(),
+                                                                      IFileChangeChunk::getBStart);
+      try
+      {
+        editorColorizer.showPopupForChunk(nextChunk);
+      }
+      catch (BadLocationException pE)
+      {
+        // nothing, no popup is shown
+      }
+    });
+    JButton previousChangeButton = new JButton(iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE));
+    previousChangeButton.addActionListener(e -> {
+      IFileChangeChunk previousChunk = IDiffPaneUtil.moveCaretToPreviousChunk(pTextComponent, this.changeChunk, changeChunkList.blockingFirst(),
+                                                                              IFileChangeChunk::getBStart);
+      try
+      {
+        editorColorizer.showPopupForChunk(previousChunk);
+      }
+      catch (BadLocationException pE)
+      {
+        // nothing, no popup is shown
+      }
+    });
+    toolBar.add(nextChangeButton);
+    toolBar.add(previousChangeButton);
     add(toolBar, BorderLayout.NORTH);
   }
 
@@ -223,7 +262,8 @@ class ChunkPopupWindow extends JWindow
         {
           disposeWindow();
         }
-        if (pEvent instanceof WindowEvent && pEvent.getID() != WindowEvent.WINDOW_OPENED)
+        if (pEvent instanceof WindowEvent && pEvent.getID() != WindowEvent.WINDOW_OPENED
+            && !(pEvent.getID() == WindowEvent.WINDOW_CLOSED && pEvent.getSource() instanceof ChunkPopupWindow))
         {
           disposeWindow();
         }

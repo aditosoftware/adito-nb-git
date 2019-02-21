@@ -17,9 +17,7 @@ import org.openide.windows.WindowManager;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +32,7 @@ import static de.adito.git.gui.Constants.ARROW_RIGHT;
 class EditorColorizer extends JPanel implements IDiscardable
 {
   private final JTextComponent targetEditor;
+  private final Observable<List<IFileChangeChunk>> chunkObservable;
   private Disposable disposable;
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
@@ -84,7 +83,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     });
 
 
-    Observable<List<IFileChangeChunk>> chunkObservable = Observable
+    chunkObservable = Observable
         .combineLatest(pRepository, actualText.debounce(0, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
           if (pRepoOpt.isPresent())
           {
@@ -115,6 +114,28 @@ class EditorColorizer extends JPanel implements IDiscardable
 
           repaint();
         });
+  }
+
+  /**
+   * Shows a popup via the way they are normally shown: By sending a mouseEvent
+   *
+   * @param pChangeChunk for which a ChunkWindowPopup should be shown
+   */
+  void showPopupForChunk(IFileChangeChunk pChangeChunk) throws BadLocationException
+  {
+    if (pChangeChunk != null)
+    {
+      int offset = targetEditor.getDocument().getDefaultRootElement().getElement(pChangeChunk.getBStart()).getStartOffset();
+      MouseEvent mouseEvent = new MouseEvent(this, 0, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, 0,
+                                             targetEditor.getUI().getRootView(targetEditor)
+                                                 .modelToView(offset, new Rectangle(), Position.Bias.Forward)
+                                                 .getBounds().y,
+                                             1, false, MouseEvent.BUTTON1);
+      for (MouseListener listener : this.getMouseListeners())
+      {
+        listener.mouseReleased(mouseEvent);
+      }
+    }
   }
 
 
@@ -246,8 +267,11 @@ class EditorColorizer extends JPanel implements IDiscardable
         {
           if (changeHolder.rectangle.contains(point))
           {
+            Point locationOnScreen = pEvent.getLocationOnScreen();
+            locationOnScreen.y = locationOnScreen.y + (changeHolder.rectangle.y + changeHolder.rectangle.height - point.y);
             ChunkPopupWindow menu = new ChunkPopupWindow(repository, WindowManager.getDefault().getMainWindow(),
-                                                         pEvent.getLocationOnScreen(), changeHolder.changeChunk, target, file);
+                                                         locationOnScreen, changeHolder.changeChunk, chunkObservable, target,
+                                                         EditorColorizer.this, file);
             menu.setVisible(true);
           }
         }

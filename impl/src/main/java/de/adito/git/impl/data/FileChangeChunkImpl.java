@@ -1,8 +1,11 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 /**
  * @author m.kaspera 05.10.2018
@@ -145,5 +148,23 @@ public class FileChangeChunkImpl implements IFileChangeChunk
   public String getBParityLines()
   {
     return newParityLines;
+  }
+
+  @Override
+  public boolean equals(Object pO)
+  {
+    if (this == pO) return true;
+    if (pO == null || getClass() != pO.getClass()) return false;
+    FileChangeChunkImpl that = (FileChangeChunkImpl) pO;
+    return Objects.equals(edit, that.edit) &&
+        Objects.equals(oldString, that.oldString) &&
+        Objects.equals(newString, that.newString) &&
+        changeType == that.changeType;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return Objects.hash(edit, oldString, newString, oldParityLines, newParityLines, changeType);
   }
 }
