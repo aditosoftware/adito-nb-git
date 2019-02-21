@@ -3,6 +3,7 @@ package de.adito.git.nbm.sidebar;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileChanges;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
@@ -121,31 +122,45 @@ class ChunkPopupWindow extends JWindow
     toolBar.setFloatable(false);
     toolBar.add(button);
     JButton nextChangeButton = new JButton(iconLoader.getIcon(Constants.NEXT_OCCURRENCE));
-    nextChangeButton.addActionListener(e -> {
-      IFileChangeChunk nextChunk = IDiffPaneUtil.moveCaretToNextChunk(pTextComponent, this.changeChunk, changeChunkList.blockingFirst(),
-                                                                      IFileChangeChunk::getBStart);
-      try
-      {
-        editorColorizer.showPopupForChunk(nextChunk);
-      }
-      catch (BadLocationException pE)
-      {
-        // nothing, no popup is shown
-      }
-    });
+    IFileChangeChunk nextChunk = IFileChanges.getNextChangedChunk(this.changeChunk, changeChunkList.blockingFirst());
+    if (nextChunk != null)
+    {
+      nextChangeButton.addActionListener(e -> {
+        IDiffPaneUtil.moveCaretToChunk(pTextComponent, nextChunk, IFileChangeChunk::getBStart);
+        try
+        {
+          editorColorizer.showPopupForChunk(nextChunk);
+        }
+        catch (BadLocationException pE)
+        {
+          // nothing, no popup is shown
+        }
+      });
+    }
+    else
+    {
+      nextChangeButton.setEnabled(false);
+    }
     JButton previousChangeButton = new JButton(iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE));
-    previousChangeButton.addActionListener(e -> {
-      IFileChangeChunk previousChunk = IDiffPaneUtil.moveCaretToPreviousChunk(pTextComponent, this.changeChunk, changeChunkList.blockingFirst(),
-                                                                              IFileChangeChunk::getBStart);
-      try
-      {
-        editorColorizer.showPopupForChunk(previousChunk);
-      }
-      catch (BadLocationException pE)
-      {
-        // nothing, no popup is shown
-      }
-    });
+    IFileChangeChunk previousChunk = IFileChanges.getPreviousChangedChunk(changeChunk, changeChunkList.blockingFirst());
+    if (previousChunk != null)
+    {
+      previousChangeButton.addActionListener(e -> {
+        IDiffPaneUtil.moveCaretToChunk(pTextComponent, previousChunk, IFileChangeChunk::getBStart);
+        try
+        {
+          editorColorizer.showPopupForChunk(previousChunk);
+        }
+        catch (BadLocationException pE)
+        {
+          // nothing, no popup is shown
+        }
+      });
+    }
+    else
+    {
+      previousChangeButton.setEnabled(false);
+    }
     toolBar.add(nextChangeButton);
     toolBar.add(previousChangeButton);
     add(toolBar, BorderLayout.NORTH);
