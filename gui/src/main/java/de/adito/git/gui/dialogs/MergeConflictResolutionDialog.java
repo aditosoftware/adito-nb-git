@@ -6,7 +6,7 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.IEditorKitProvider;
-import de.adito.git.gui.dialogs.panels.BaseDiffPanel.MergePanel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
 
 import javax.swing.*;

@@ -1,15 +1,19 @@
 package de.adito.git.nbm.window;
 
 import com.google.inject.Inject;
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.CommitHistoryTreeListItem;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.IUserPreferences;
+import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
+import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import de.adito.git.gui.window.IWindowProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
-import org.openide.windows.*;
+import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
 
 import javax.swing.*;
 import java.io.File;

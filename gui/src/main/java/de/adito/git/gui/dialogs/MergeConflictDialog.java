@@ -8,7 +8,7 @@ import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tableModels.MergeDiffStatusModel;
+import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;

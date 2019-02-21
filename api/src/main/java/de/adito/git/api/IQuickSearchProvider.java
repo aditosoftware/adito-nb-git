@@ -16,9 +16,9 @@ public interface IQuickSearchProvider
    * attaches QuickSearch to a component. Component should either be able to add a searchField or handle the display of the search string in another
    * way
    *
-   * @param pComponent   JComponent that the quickSearch is registered on, quickSearch listens to keyEvents from this component and tries to attach
+   * @param pComponent   JComponent that the quicksearch is registered on, quicksearch listens to keyEvents from this component and tries to attach
    *                     the searchField to this component
-   * @param pConstraints Constraints for when the quickSearch attaches the searchField to the component (Layout constraints)
+   * @param pConstraints Constraints for when the quicksearch attaches the searchField to the component (Layout constraints)
    * @param pCallback    Implementation of the callback that gets called when a user types something, handles search and highlighting
    * @return IQuickSearch object
    */

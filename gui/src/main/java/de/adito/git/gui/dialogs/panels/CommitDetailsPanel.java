@@ -7,7 +7,8 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tableModels.*;
+import de.adito.git.gui.tablemodels.ChangedFilesTableModel;
+import de.adito.git.gui.tablemodels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

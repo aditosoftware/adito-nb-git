@@ -1,21 +1,23 @@
 package de.adito.git.nbm.guice;
 
-import com.google.inject.*;
-import com.google.inject.assistedinject.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.assistedinject.FactoryProvider;
 import de.adito.git.api.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.IDialogDisplayer;
-import de.adito.git.gui.guice.*;
+import de.adito.git.gui.guice.AditoGitModule;
+import de.adito.git.gui.guice.GuiceUtil;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.IFileSystemObserverProvider;
-import de.adito.git.nbm.FileSystemObserverProviderImpl;
 import de.adito.git.nbm.*;
 import de.adito.git.nbm.dialogs.NBDialogsModule;
 import de.adito.git.nbm.prefs.NBPrefStore;
 import de.adito.git.nbm.progress.AsyncProgressFacadeImpl;
-import de.adito.git.nbm.quickSearch.QuickSearchProviderImpl;
+import de.adito.git.nbm.quicksearch.QuickSearchProviderImpl;
 import de.adito.git.nbm.window.NBTopComponentsModule;
 
 /**

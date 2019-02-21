@@ -10,10 +10,10 @@ import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.quickSearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quickSearch.SearchableTable;
+import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tableModels.StatusTableModel;
+import de.adito.git.gui.tablemodels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 

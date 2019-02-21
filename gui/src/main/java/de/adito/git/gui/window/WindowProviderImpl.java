@@ -7,7 +7,7 @@ import de.adito.git.api.IUserPreferences;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.tableModels.CommitHistoryTreeListTableModel;
+import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 

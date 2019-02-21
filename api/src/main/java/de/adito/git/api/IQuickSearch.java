@@ -9,12 +9,12 @@ public interface IQuickSearch
 {
 
   /**
-   * @param pEnabled whether or not quickSearch is active
+   * @param pEnabled whether or not quicksearch is active
    */
   void setEnabled(boolean pEnabled);
 
   /**
-   * @return whether or not quickSearch is active
+   * @return whether or not quicksearch is active
    */
   boolean isEnabled();
 
@@ -29,7 +29,7 @@ public interface IQuickSearch
   boolean isAlwaysShown();
 
   /**
-   * removes quickSearch from the component it is attached to
+   * removes quicksearch from the component it is attached to
    */
   void detach();
 
@@ -48,12 +48,12 @@ public interface IQuickSearch
     String findMaxPrefix(String pPrefix);
 
     /**
-     * called when the user cancels the quickSearch, either by hitting esc or clicking somewhere not in the searchField
+     * called when the user cancels the quicksearch, either by hitting esc or clicking somewhere not in the searchField
      */
     void quickSearchCancelled();
 
     /**
-     * called when the user confirms the quickSearch
+     * called when the user confirms the quicksearch
      */
     void quickSearchConfirmed();
 
