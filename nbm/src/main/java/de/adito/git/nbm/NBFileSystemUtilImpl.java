@@ -13,6 +13,7 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.NbBundle;
 
 import java.awt.Image;
+import java.beans.BeanInfo;
 import java.io.File;
 import java.nio.charset.Charset;
 
@@ -50,12 +51,12 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
 
   public Image getIcon(File pFile, boolean pIsOpened) throws AditoGitException
   {
-    final int imageType16X16 = 1;
     try
     {
       FileObject fileObject = FileUtil.toFileObject(pFile);
       DataObject dataObject = DataObject.find(fileObject);
-      return pIsOpened ? dataObject.getNodeDelegate().getOpenedIcon(imageType16X16) : dataObject.getNodeDelegate().getIcon(imageType16X16);
+      return pIsOpened ? dataObject.getNodeDelegate().getOpenedIcon(BeanInfo.ICON_COLOR_16x16)
+          : dataObject.getNodeDelegate().getIcon(BeanInfo.ICON_COLOR_16x16);
     }
     catch (DataObjectNotFoundException pE)
     {

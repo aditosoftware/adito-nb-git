@@ -16,13 +16,13 @@ public class SimpleFileSystemUtil implements IFileSystemUtil
   @Override
   public void openFile(String pAbsolutePath) throws AditoGitException
   {
-
+    // no implementation
   }
 
   @Override
   public void openFile(File pFile) throws AditoGitException
   {
-
+    // no implementation
   }
 
   @Override
