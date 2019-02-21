@@ -2,19 +2,26 @@ package de.adito.git.nbm.repo;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.guice.*;
+import de.adito.git.nbm.guice.IRepositoryProviderFactory;
+import de.adito.git.nbm.guice.RepositoryProvider;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.filesystems.FileObject;
 
-import java.beans.*;
-import java.util.*;
-import java.util.logging.*;
-import java.util.stream.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class is a cache for all Repositories. If a project has a repository the cache put it in his own map.
@@ -26,10 +33,12 @@ public class RepositoryCache
 {
 
   private static final Logger LOGGER = Logger.getLogger(RepositoryCache.class.getName());
+  private static final String GIT_FOLDER_NAME = ".git";
   private static RepositoryCache instance;
   private PropertyChangeListener pcl = new _OpenProjectListener();
   private IRepositoryProviderFactory repositoryProviderFactory = IGitConstants.INJECTOR.getInstance(IRepositoryProviderFactory.class);
   private final BehaviorSubject<List<RepositoryProvider>> providers = BehaviorSubject.createDefault(List.of());
+
   private RepositoryCache()
   {
   }
@@ -97,9 +106,12 @@ public class RepositoryCache
   {
     try
     {
-      RepositoryProvider provider = _getProvider(pProjectDirectory, true);
-      assert provider != null;
-      provider.setRepositoryDescription(new ProjectRepositoryDescription(pProjectDirectory));
+      if (_isGitRepository(pProjectDirectory))
+      {
+        RepositoryProvider provider = _getProvider(pProjectDirectory, true);
+        assert provider != null;
+        provider.setRepositoryDescription(new ProjectRepositoryDescription(pProjectDirectory));
+      }
     }
     catch (Exception e)
     {
@@ -172,6 +184,22 @@ public class RepositoryCache
       if (provider == null)
         _doOnProjectOpened(openedProject);
     }
+  }
+
+  /**
+   * checks if a folder contains a ".git" folder and thus is a git repository
+   *
+   * @param pProjectDirectory top-level folder of a project
+   * @return whether or not pProjectDirectory contains a folder named ".git" and thus is a git repository
+   */
+  private boolean _isGitRepository(FileObject pProjectDirectory)
+  {
+    for (FileObject childFolder : pProjectDirectory.getChildren())
+    {
+      if (GIT_FOLDER_NAME.equals(childFolder.getName()))
+        return true;
+    }
+    return false;
   }
 
   /**

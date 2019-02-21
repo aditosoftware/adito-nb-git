@@ -32,7 +32,7 @@ public class GitConfigNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pNodes)
   {
-    return true;
+    return findOneRepositoryFromNode(pNodes).blockingFirst().isPresent();
   }
 
   @Override

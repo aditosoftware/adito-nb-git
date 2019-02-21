@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 24.12.2018
  */
-public class GitConfigAction extends AbstractAction
+public class GitConfigAction extends AbstractTableAction
 {
 
   private final IDialogProvider dialogProvider;
@@ -25,7 +25,7 @@ public class GitConfigAction extends AbstractAction
   @Inject
   public GitConfigAction(IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository)
   {
-    super("Repository settings");
+    super("Repository settings", _getIsEnabledObservable(pRepository));
     putValue(Action.SMALL_ICON, Constants.GIT_CONFIG_ICON);
     repository = pRepository;
     dialogProvider = pDialogProvider;
@@ -37,5 +37,10 @@ public class GitConfigAction extends AbstractAction
     DialogResult<?, Map<String, String>> dialogResult = dialogProvider.showGitConfigDialog(repository);
     // only set sshKeyLocation for now since that is the only supported setting (for now)
     repository.blockingFirst().ifPresent(pRepo -> pRepo.getConfig().setSshKeyLocation(dialogResult.getInformation().get(Constants.SSH_KEY_KEY)));
+  }
+
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IRepository>> pRepository)
+  {
+    return pRepository.map(pRepo -> Optional.of(pRepo.isPresent()));
   }
 }
