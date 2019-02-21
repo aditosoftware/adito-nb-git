@@ -1,6 +1,7 @@
 package de.adito.git.gui;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -43,20 +44,30 @@ public class PopupMouseListener extends MouseAdapter
   {
     if (pE.isPopupTrigger())
     {
-      JTable source = (JTable) pE.getSource();
-      int row = source.rowAtPoint(pE.getPoint());
-      int column = source.columnAtPoint(pE.getPoint());
+      if (pE.getSource() instanceof JTable)
+      {
+        JTable source = (JTable) pE.getSource();
+        int row = source.rowAtPoint(pE.getPoint());
+        int column = source.columnAtPoint(pE.getPoint());
 
-      // if the row the user right-clicked on is not selected -> set it selected
-      if (!source.isRowSelected(row))
-        source.changeSelection(row, column, false, false);
+        // if the row the user right-clicked on is not selected -> set it selected
+        if (!source.isRowSelected(row))
+          source.changeSelection(row, column, false, false);
 
+      }
+      else if (pE.getSource() instanceof JTree)
+      {
+        JTree source = (JTree) pE.getSource();
+        TreePath sourcePath = source.getClosestPathForLocation(pE.getX(), pE.getY());
+        if (!source.isPathSelected(sourcePath))
+          source.getSelectionModel().setSelectionPath(sourcePath);
+      }
       if (popupMenu != null)
       {
         for (Component component : popupMenu.getComponents())
           component.setEnabled(component.isEnabled());
 
-        popupMenu.show(source, pE.getX(), pE.getY());
+        popupMenu.show((JComponent) pE.getSource(), pE.getX(), pE.getY());
       }
 
     }
