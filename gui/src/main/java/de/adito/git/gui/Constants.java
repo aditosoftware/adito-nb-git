@@ -16,6 +16,10 @@ public class Constants
   public static final String DISCARD_CHANGE_ICON = "/de/adito/git/gui/icons/discardChange_dark.png";
   public static final String ARROW_RIGHT = "/de/adito/git/gui/icons/arrowRight.png";
 
+  // Diff Dialog Icons
+  public static final String NEXT_OCCURRENCE = "/de/adito/git/gui/icons/next_dark.png";
+  public static final String PREVIOUS_OCCURRENCE = "/de/adito/git/gui/icons/previous_dark.png";
+
   // Action Icons
   public static final String COMMIT_ACTION_ICON = "/de/adito/git/nbm/actions/commit.png";
   public static final String RESOLVE_CONFLICTS_ACTION_ICON = "/de/adito/git/nbm/actions/fix_conflicts_dark.png";

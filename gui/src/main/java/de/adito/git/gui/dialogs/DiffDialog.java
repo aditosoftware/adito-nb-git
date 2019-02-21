@@ -60,13 +60,13 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     fileListTable.setSelectionModel(observableListSelectionModel);
     editorKitProvider = pEditorKitProvider;
     diffs = pDiffs;
-    _initGui(pSelectedFile);
+    _initGui(pSelectedFile, pIconLoader);
   }
 
   /**
    * sets up the GUI
    */
-  private void _initGui(@Nullable String pSelectedFile)
+  private void _initGui(@Nullable String pSelectedFile, IIconLoader pIconLoader)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
@@ -92,7 +92,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     Observable<EditorKit> editorKitObservable = fileDiffObservable
         .map(pFileDiff -> editorKitProvider.getEditorKit(pFileDiff.map(IFileDiff::getFilePath).orElse("text/plain")));
 
-    diffPanel = new DiffPanel(fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
+    diffPanel = new DiffPanel(pIconLoader, fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
 
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEnabled(false);

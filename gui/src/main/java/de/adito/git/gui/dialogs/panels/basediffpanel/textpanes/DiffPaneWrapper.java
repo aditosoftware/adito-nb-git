@@ -3,6 +3,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
+import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPaneUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPane;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.MarkedScrollbar;
@@ -94,6 +95,27 @@ public class DiffPaneWrapper implements IDiscardable
   public DiffPane getPane()
   {
     return diffPane;
+  }
+
+  public boolean isEditorFocusOwner()
+  {
+    return editorPane.isFocusOwner();
+  }
+
+  /**
+   * moves the caret to the position of the next changed chunk, as seen from the current position of the caret
+   */
+  public void moveCaretToNextChunk()
+  {
+    DiffPaneUtil.moveCaretToNextChunk(editorPane, model);
+  }
+
+  /**
+   * moves the caret to the position of the previous changed chunk, as seen from the current position of the caret
+   */
+  public void moveCaretToPreviousChunk()
+  {
+    DiffPaneUtil.moveCaretToPreviousChunk(editorPane, model);
   }
 
   @Override

@@ -50,7 +50,7 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pModel           DiffPanelModel with the Observable list of fileChangeChunks
    * @param pLineOrientation String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    *                         Defaults to BorderLayout.EAST if another String is passed
-   * @param pModelNumber number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
+   * @param pModelNumber     number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
    * @return LineNumbersColorModel describing the
    */
   public LineNumbersColorModel addLineNumPanel(DiffPanelModel pModel, String pLineOrientation, int pModelNumber)
@@ -63,11 +63,12 @@ public class DiffPane extends JPanel implements IDiscardable
   }
 
   /**
-   * @param pModel         DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pAcceptIcon    ImageIcon for the accept button
-   * @param pDiscardIcon   ImageIcon for the discard button
-   * @param pLineNumbersColorModels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane, 1 to the right
-   * @param pOrientation   String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
+   * @param pModel                  DiffPanelModel with the Observable list of fileChangeChunks
+   * @param pAcceptIcon             ImageIcon for the accept button
+   * @param pDiscardIcon            ImageIcon for the discard button
+   * @param pLineNumbersColorModels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane,
+   *                                1 to the right
+   * @param pOrientation            String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    */
   public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
                                    LineNumbersColorModel[] pLineNumbersColorModels, @NotNull String pOrientation)
