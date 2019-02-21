@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 
-import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.util.List;
 
 /**
@@ -15,13 +15,13 @@ public interface IDiffPaneUtil
   /**
    * moves the caret to the position of the next changed chunk, as seen from the current position of the caret
    *
-   * @param pEditorPane JEditorPane that is currently focused and whose content the IFileChangeChunks of the pModel describe
-   * @param pModel      DiffPanelModel that contains the list of IFileChangeChunks describing the contents of pEditorPane and methods to get the
-   *                    end/start lines of a specific chunk
+   * @param pTextComponent JTextComponent that is currently focused and whose content the IFileChangeChunks of the pModel describe
+   * @param pModel         DiffPanelModel that contains the list of IFileChangeChunks describing the contents of pEditorPane and methods to get the
+   *                       end/start lines of a specific chunk
    */
-  static void moveCaretToNextChunk(JEditorPane pEditorPane, DiffPanelModel pModel)
+  static void moveCaretToNextChunk(JTextComponent pTextComponent, DiffPanelModel pModel)
   {
-    int caretLine = pEditorPane.getDocument().getDefaultRootElement().getElementIndex(pEditorPane.getCaret().getDot());
+    int caretLine = pTextComponent.getDocument().getDefaultRootElement().getElementIndex(pTextComponent.getCaret().getDot());
     int moveToElementStartLine = 0;
     List<IFileChangeChunk> changeChunks = pModel.getFileChangesObservable().blockingFirst().getNewValue();
     for (IFileChangeChunk changeChunk : changeChunks)
@@ -32,20 +32,20 @@ public interface IDiffPaneUtil
         break;
       }
     }
-    pEditorPane.getCaret().setDot(pEditorPane.getDocument().getDefaultRootElement().getElement(moveToElementStartLine).getStartOffset());
-    pEditorPane.requestFocus();
+    pTextComponent.getCaret().setDot(pTextComponent.getDocument().getDefaultRootElement().getElement(moveToElementStartLine).getStartOffset());
+    pTextComponent.requestFocus();
   }
 
   /**
    * moves the caret to the position of the previous changed chunk, as seen from the current position of the caret
    *
-   * @param pEditorPane JEditorPane that is currently focused and whose content the IFileChangeChunks of the pModel describe
-   * @param pModel      DiffPanelModel that contains the list of IFileChangeChunks describing the contents of pEditorPane and methods to get the
-   *                    end/start lines of a specific chunk
+   * @param pTextComponent JTextComponent that is currently focused and whose content the IFileChangeChunks of the pModel describe
+   * @param pModel         DiffPanelModel that contains the list of IFileChangeChunks describing the contents of pEditorPane and methods to get the
+   *                       end/start lines of a specific chunk
    */
-  static void moveCaretToPreviousChunk(JEditorPane pEditorPane, DiffPanelModel pModel)
+  static void moveCaretToPreviousChunk(JTextComponent pTextComponent, DiffPanelModel pModel)
   {
-    int caretLine = pEditorPane.getDocument().getDefaultRootElement().getElementIndex(pEditorPane.getCaret().getDot());
+    int caretLine = pTextComponent.getDocument().getDefaultRootElement().getElementIndex(pTextComponent.getCaret().getDot());
     int moveToElementStartLine = 0;
     List<IFileChangeChunk> changeChunks = pModel.getFileChangesObservable().blockingFirst().getNewValue();
     for (int index = changeChunks.size() - 1; index >= 0; index--)
@@ -56,8 +56,8 @@ public interface IDiffPaneUtil
         break;
       }
     }
-    pEditorPane.getCaret().setDot(pEditorPane.getDocument().getDefaultRootElement().getElement(moveToElementStartLine).getStartOffset());
-    pEditorPane.requestFocus();
+    pTextComponent.getCaret().setDot(pTextComponent.getDocument().getDefaultRootElement().getElement(moveToElementStartLine).getStartOffset());
+    pTextComponent.requestFocus();
   }
 
 }
