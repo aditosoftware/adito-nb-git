@@ -108,7 +108,10 @@ class ChunkPopupWindow extends JWindow
     {
       editorPane.setEditorKit(((JEditorPane) pTextComponent).getEditorKit());
     }
-    editorPane.setText(pRollbackInformation.getReplacement());
+    if (pRollbackInformation.getReplacement().endsWith("\n"))
+      editorPane.setText(pRollbackInformation.getReplacement().substring(0, pRollbackInformation.getReplacement().length() - 1));
+    else
+      editorPane.setText(pRollbackInformation.getReplacement());
     editorPane.setEnabled(false);
     scrollPane = new JScrollPane(editorPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     add(scrollPane, BorderLayout.CENTER);
@@ -286,6 +289,10 @@ class ChunkPopupWindow extends JWindow
         {
           disposeWindow();
         }
+      }
+      else if (pEvent instanceof KeyEvent && ((KeyEvent) pEvent).getKeyCode() == KeyEvent.VK_ESCAPE)
+      {
+        disposeWindow();
       }
     }
 
