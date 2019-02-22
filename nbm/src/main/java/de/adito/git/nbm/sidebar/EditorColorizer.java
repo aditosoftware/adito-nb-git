@@ -10,6 +10,7 @@ import de.adito.git.nbm.util.DocumentObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.openide.loaders.DataObject;
 import org.openide.windows.WindowManager;
@@ -91,11 +92,13 @@ class EditorColorizer extends JPanel implements IDiscardable
             EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
             // No changes if added or new, because the file can not be diffed -> not in index
             if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
-              return List.of();
+              return new ArrayList<IFileChangeChunk>();
             return repo.diff(pText, file);
           }
-          return List.of();
-        });
+          return new ArrayList<IFileChangeChunk>();
+        })
+        .share()
+        .subscribeWith(BehaviorSubject.create());
 
     disposable = Observable.combineLatest(chunkObservable, scrollObservable, (pChunks, pScroll) -> pChunks)
         .subscribe(chunkList -> {
