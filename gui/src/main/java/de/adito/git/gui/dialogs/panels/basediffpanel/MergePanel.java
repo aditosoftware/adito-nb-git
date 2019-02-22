@@ -8,6 +8,7 @@ import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -34,7 +35,7 @@ public class MergePanel extends JPanel implements IDiscardable
   private LineNumbersColorModel leftForkPointLineNumColorModel;
   private LineNumbersColorModel rightForkPointLineNumColorModel;
 
-  public MergePanel(IMergeDiff pMergeDiff, ImageIcon pAcceptYoursIcon, ImageIcon pAcceptTheirsIcon, ImageIcon pDiscardIcon,
+  public MergePanel(IIconLoader pIconLoader, IMergeDiff pMergeDiff, ImageIcon pAcceptYoursIcon, ImageIcon pAcceptTheirsIcon, ImageIcon pDiscardIcon,
                     IEditorKitProvider pEditorKitProvider)
   {
     mergeDiff = pMergeDiff;
@@ -45,10 +46,10 @@ public class MergePanel extends JPanel implements IDiscardable
     _initForkPointPanel();
     _initYoursPanel();
     _initTheirsPanel();
-    _initGui();
+    _initGui(pIconLoader);
   }
 
-  private void _initGui()
+  private void _initGui(IIconLoader pIconLoader)
   {
     setLayout(new BorderLayout());
     JSplitPane forkMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, forkPointPaneWrapper.getPane(), theirsPaneWrapper.getPane());
@@ -57,7 +58,8 @@ public class MergePanel extends JPanel implements IDiscardable
     forkMergeSplit.setResizeWeight(0.5);
     // 0.33 because the right side contains two sub-windows, the left only one
     threeWayPane.setResizeWeight(0.33);
-    add(threeWayPane);
+    add(threeWayPane, BorderLayout.CENTER);
+    add(_initToolBar(pIconLoader), BorderLayout.NORTH);
   }
 
   private void _initYoursPanel()
@@ -113,6 +115,31 @@ public class MergePanel extends JPanel implements IDiscardable
                                                              IFileChangeChunk::getAEnd);
     leftForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointYoursModel, BorderLayout.WEST, 1);
     rightForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, BorderLayout.EAST, 0);
+  }
+
+  private JToolBar _initToolBar(IIconLoader pIconLoader)
+  {
+    JButton nextButton = new JButton(pIconLoader.getIcon(Constants.NEXT_OCCURRENCE));
+    nextButton.setFocusable(false);
+    nextButton.addActionListener(e -> {
+      if (yoursPaneWrapper.isEditorFocusOwner())
+        yoursPaneWrapper.moveCaretToNextChunk();
+      else
+        theirsPaneWrapper.moveCaretToNextChunk();
+    });
+    JButton previousButton = new JButton(pIconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE));
+    previousButton.setFocusable(false);
+    previousButton.addActionListener(e -> {
+      if (yoursPaneWrapper.isEditorFocusOwner())
+        yoursPaneWrapper.moveCaretToPreviousChunk();
+      else
+        theirsPaneWrapper.moveCaretToPreviousChunk();
+    });
+    JToolBar toolBar = new JToolBar();
+    toolBar.setFloatable(false);
+    toolBar.add(nextButton);
+    toolBar.add(previousButton);
+    return toolBar;
   }
 
   @Override

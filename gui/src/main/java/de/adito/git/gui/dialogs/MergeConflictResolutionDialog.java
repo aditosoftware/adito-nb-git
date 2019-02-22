@@ -37,7 +37,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
     ImageIcon acceptYoursIcon = pIconLoader.getIcon(ACCEPT_CHANGE_YOURS_ICON);
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
     ImageIcon discardIcon = pIconLoader.getIcon(DISCARD_CHANGE_ICON);
-    mergePanel = new MergePanel(mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
+    mergePanel = new MergePanel(pIconLoader, mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui();
   }
 
