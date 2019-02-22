@@ -1,13 +1,13 @@
 package de.adito.git.nbm;
 
 import de.adito.git.gui.IEditorKitProvider;
-import io.reactivex.annotations.NonNull;
 import org.apache.tika.Tika;
 import org.jetbrains.annotations.NotNull;
 import org.openide.text.CloneableEditorSupport;
 
 import javax.swing.text.EditorKit;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 
 /**
@@ -15,7 +15,7 @@ import java.nio.file.Files;
  */
 public class EditorKitProviderImpl implements IEditorKitProvider
 {
-  @NonNull
+  @NotNull
   @Override
   public EditorKit getEditorKit(@NotNull String pFileDirectory)
   {
@@ -37,6 +37,7 @@ public class EditorKitProviderImpl implements IEditorKitProvider
     return getEditorKitForContentType(mimeType);
   }
 
+  @NotNull
   @Override
   public EditorKit getEditorKitForContentType(@NotNull String pContentType)
   {
