@@ -2,6 +2,7 @@ package de.adito.git.api;
 
 import de.adito.git.api.exception.AditoGitException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Image;
 import java.io.File;
@@ -36,10 +37,10 @@ public interface IFileSystemUtil
    *
    * @param pFile     File to find an icon for
    * @param pIsOpened whether the icon should represent an opened or closed state of the file, for example for a node in a tree
-   * @return Image depicting the folder/file type
-   * @throws AditoGitException if the data object for the file cannot be found
+   * @return Image depicting the folder/file type or null if no icon could be found or an error occurred
    */
-  Image getIcon(File pFile, boolean pIsOpened) throws AditoGitException;
+  @Nullable
+  Image getIcon(@NotNull File pFile, boolean pIsOpened);
 
 
   /**

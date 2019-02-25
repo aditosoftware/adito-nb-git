@@ -3,6 +3,7 @@ package de.adito.git.nbm;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.exception.AditoGitException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.actions.Openable;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.cookies.OpenCookie;
@@ -49,18 +50,22 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     }
   }
 
-  public Image getIcon(File pFile, boolean pIsOpened) throws AditoGitException
+  @Nullable
+  @Override
+  public Image getIcon(File pFile, boolean pIsOpened)
   {
     try
     {
       FileObject fileObject = FileUtil.toFileObject(pFile);
+      if (fileObject == null)
+        return null;
       DataObject dataObject = DataObject.find(fileObject);
       return pIsOpened ? dataObject.getNodeDelegate().getOpenedIcon(BeanInfo.ICON_COLOR_16x16)
           : dataObject.getNodeDelegate().getIcon(BeanInfo.ICON_COLOR_16x16);
     }
-    catch (DataObjectNotFoundException pE)
+    catch (Exception pE)
     {
-      throw new AditoGitException(pE);
+      return null;
     }
   }
 
