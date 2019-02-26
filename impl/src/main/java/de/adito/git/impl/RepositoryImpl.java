@@ -694,7 +694,7 @@ public class RepositoryImpl implements IRepository
         if (newFiles.stream().noneMatch(pFilePath -> pFilePath.equals(relativePath)))
           filesToCheckout.add(relativePath);
         else
-          Files.delete(file.toPath());
+          Files.deleteIfExists(file.toPath());
       }
       if (!filesToCheckout.isEmpty())
       {
