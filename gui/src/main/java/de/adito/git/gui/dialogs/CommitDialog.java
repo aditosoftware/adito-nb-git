@@ -59,7 +59,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   {
     isValidDescriptor = pIsValidDescriptor;
     repository = pRepository;
-    messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
     // disable OK button at the start since the commit message is empty then
     isValidDescriptor.setValid(pMessageTemplate != null && !pMessageTemplate.isEmpty());
     Observable<Optional<IFileStatus>> statusObservable = pRepository
@@ -81,7 +80,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileStatusTable, searchableColumns));
     JScrollPane scroller = new JScrollPane(fileStatusTable);
     tableSearchView.add(scroller, BorderLayout.CENTER);
-    messagePane.setText(pMessageTemplate);
+    SwingUtilities.invokeLater(() -> {
+      messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
+      messagePane.setText(pMessageTemplate);
+    });
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
