@@ -35,11 +35,11 @@ public class FileChangesImpl implements IFileChanges
     if (!pEditList.isEmpty())
     {
       // from beginning of the file to the first chunk
-      if ((pEditList.get(0).getEndB() != 0 || pEditList.get(0).getEndA() != 0))
+      if ((pEditList.get(0).getBeginA() != 0 || pEditList.get(0).getBeginB() != 0))
       {
         changeChunks.add(_getUnchangedChunk(null, pEditList.get(0)));
       }
-      // first chunk extra, since the index in the for loop starts at 0
+      // first chunk extra, so that the index for the first unchanged chunk in the loop can start at 0
       changeChunks.add(_getChangedChunk(pEditList.get(0)));
       for (int index = 1; index < pEditList.size(); index++)
       {

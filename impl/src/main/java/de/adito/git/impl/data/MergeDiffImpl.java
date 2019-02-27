@@ -99,7 +99,7 @@ public class MergeDiffImpl implements IMergeDiff
    */
   private void _insertText(String pText, int pOffset, CONFLICT_SIDE pConflictSide)
   {
-    List<Pair<Integer, Integer>> affectedIndices = _getChunksForOffset(pOffset, pText.length(), pConflictSide);
+    List<Pair<Integer, Integer>> affectedIndices = _getChunksForOffset(pOffset, 0, pConflictSide);
     assert affectedIndices.size() == 1;
     IFileChangeChunk affectedChunk = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst()
         .getNewValue().get(affectedIndices.get(0).getKey());
@@ -162,13 +162,16 @@ public class MergeDiffImpl implements IMergeDiff
       propagateAdditionalLines(getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue(),
                                pAffectedChunkIndex + 1, additionalLines);
     }
+    // if the user deleted text and all the lines of the chunk were deleted, the chunk is irrecoverable and should be
+    // disregarded hence forth -> EChangeType.SAME
+    EChangeType changeType = !pInsert && pNewALines.length() == 0 ? EChangeType.SAME : pAffectedChunk.getChangeType();
     getDiff(pConflictSide).getFileChanges().replace(pAffectedChunk, new FileChangeChunkImpl(
         new Edit(pAffectedChunk.getAStart(),
                  pAffectedChunk.getAEnd() + additionalLines,
                  pAffectedChunk.getBStart(),
                  pAffectedChunk.getBEnd()),
         pNewALines, pAffectedChunk.getBLines(),
-        pAffectedChunk.getChangeType()), updateUI);
+        changeType), updateUI);
   }
 
   /**
@@ -195,9 +198,16 @@ public class MergeDiffImpl implements IMergeDiff
             add line if
                 a) offset is bigger than lower bound and smaller than upper bound (change is contained in this chunk)
                 b) lower bound is bigger than offset but smaller than offset + lenString (change starts in chunk before and continues in this one)
+                c) offset is equal to both current and nextOffset, i.e. the chunk has 0 length and sits on the offset. Since there can be several such
+                    chunks when only one of them matters and taking several leads to issues when inserting, take only one
           */
-        if ((pOffset >= currentOffset && pOffset < nextOffset) || (pOffset + pLenString >= currentOffset && pOffset < currentOffset))
+        if ((pOffset >= currentOffset && pOffset < nextOffset) || (pOffset + pLenString >= currentOffset && pOffset < currentOffset)
+            || (pOffset == currentOffset && currentOffset == nextOffset && affectedIndices.isEmpty()))
         {
+          if (!affectedIndices.isEmpty() && affectedIndices.get(0).getValue() == currentOffset)
+          {
+            affectedIndices.remove(0);
+          }
           affectedIndices.add(Pair.of(index, currentOffset));
         }
         // the upper end of this IFileChangeChunk is the lower end of the next
