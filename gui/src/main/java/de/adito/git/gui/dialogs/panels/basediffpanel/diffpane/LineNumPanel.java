@@ -106,13 +106,13 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
         int numberedLineCounter = 1;
         for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
         {
-          int numLines = model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange);
+          int numLines = fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide());
           for (int index = 0; index < numLines; index++)
           {
             lineNums.add(_calculateLineNumberPosition(pEditorPane, numberedLineCounter, lineCounter, index, view));
           }
           numberedLineCounter += numLines;
-          lineCounter += numLines + model.getGetParityLines().apply(fileChange).length();
+          lineCounter += numLines + fileChange.getParityLines(model.getChangeSide()).length();
         }
         lineNumbers = lineNums;
       }
@@ -197,8 +197,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   private int _getLastLineNumber(DiffPanelModel pModel)
   {
     List<IFileChangeChunk> changeChunks = pModel.getFileChangesObservable().blockingFirst().getNewValue();
-    if (changeChunks.size() == 0)
+    if (changeChunks.isEmpty())
       return 0;
-    return pModel.getGetEndLine().apply(changeChunks.get(changeChunks.size() - 1));
+    return changeChunks.get(changeChunks.size() - 1).getEnd(pModel.getChangeSide());
   }
 }

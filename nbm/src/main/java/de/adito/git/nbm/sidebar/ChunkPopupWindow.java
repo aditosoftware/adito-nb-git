@@ -1,9 +1,7 @@
 package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChanges;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
@@ -129,7 +127,7 @@ class ChunkPopupWindow extends JWindow
     if (nextChunk != null)
     {
       nextChangeButton.addActionListener(e -> {
-        IDiffPaneUtil.moveCaretToChunk(pTextComponent, nextChunk, IFileChangeChunk::getBStart);
+        IDiffPaneUtil.moveCaretToChunk(pTextComponent, nextChunk, EChangeSide.NEW);
         try
         {
           editorColorizer.showPopupForChunk(nextChunk);
@@ -149,7 +147,7 @@ class ChunkPopupWindow extends JWindow
     if (previousChunk != null)
     {
       previousChangeButton.addActionListener(e -> {
-        IDiffPaneUtil.moveCaretToChunk(pTextComponent, previousChunk, IFileChangeChunk::getBStart);
+        IDiffPaneUtil.moveCaretToChunk(pTextComponent, previousChunk, EChangeSide.NEW);
         try
         {
           editorColorizer.showPopupForChunk(previousChunk);
@@ -201,8 +199,8 @@ class ChunkPopupWindow extends JWindow
     String contents;
     try
     {
-      startOffset = pTextComponent.getDocument().getDefaultRootElement().getElement(pChangeChunk.getBStart()).getStartOffset();
-      int endOffset = pTextComponent.getDocument().getDefaultRootElement().getElement(pChangeChunk.getBEnd() - 1).getEndOffset();
+      startOffset = pTextComponent.getDocument().getDefaultRootElement().getElement(pChangeChunk.getStart(EChangeSide.NEW)).getStartOffset();
+      int endOffset = pTextComponent.getDocument().getDefaultRootElement().getElement(pChangeChunk.getEnd(EChangeSide.NEW) - 1).getEndOffset();
       if (endOffset <= startOffset)
         length = 0;
       else
@@ -215,7 +213,7 @@ class ChunkPopupWindow extends JWindow
       throw new RuntimeException(pE);
     }
     // If it is an insert, remove the newline at the end as well (because else the newline is still an insertion)
-    if (pChangeChunk.getAEnd() == pChangeChunk.getAStart())
+    if (pChangeChunk.getEnd(EChangeSide.OLD) == pChangeChunk.getStart(EChangeSide.OLD))
       length += 1;
     return new _RollbackInformation(startOffset, length, _getAffectedContents(contents, pChangeChunk));
   }
@@ -237,7 +235,7 @@ class ChunkPopupWindow extends JWindow
     }
     String[] lines = pContents.replace("\r", "").split("\n");
     StringBuilder builder = new StringBuilder();
-    for (int index = pChangeChunk.getAStart(); index < pChangeChunk.getAEnd(); index++)
+    for (int index = pChangeChunk.getStart(EChangeSide.OLD); index < pChangeChunk.getEnd(EChangeSide.OLD); index++)
     {
       builder.append(lines[index]).append("\n");
     }

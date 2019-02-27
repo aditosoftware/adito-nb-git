@@ -3,17 +3,22 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -73,7 +78,7 @@ class DiffToHeadAction extends AbstractTableAction
     {
       StringBuilder fileDiffContents = new StringBuilder();
       pFileDiff.getFileChanges().getChangeChunks().blockingFirst()
-          .getNewValue().forEach(pChangeChunk -> fileDiffContents.append(pChangeChunk.getBLines()));
+          .getNewValue().forEach(pChangeChunk -> fileDiffContents.append(pChangeChunk.getLines(EChangeSide.NEW)));
       // -1 on the substring because there is one newLine too many
       writer.write(fileDiffContents.substring(0, fileDiffContents.length() - 1));
     }

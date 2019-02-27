@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.gui.Constants;
@@ -44,18 +44,14 @@ public class DiffPanel extends JPanel implements IDiscardable
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
         .orElse(Observable.just(new FileChangesEventImpl(true, Collections.emptyList()))));
     LineNumbersColorModel[] lineNumbersColorModels = new LineNumbersColorModel[2];
-    DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable,
-                                                              IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines,
-                                                              IFileChangeChunk::getBStart, IFileChangeChunk::getBEnd);
+    DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.NEW);
     currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);
     // current panel is to the right, so index 1
     LineNumbersColorModel rightLineColorModel = currentVersionDiffPane.getPane().addLineNumPanel(currentDiffPanelModel, BorderLayout.WEST, 1);
     lineNumbersColorModels[1] = rightLineColorModel;
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
-    DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable,
-                                                          IFileChangeChunk::getALines, IFileChangeChunk::getAParityLines,
-                                                          IFileChangeChunk::getAStart, IFileChangeChunk::getAEnd)
+    DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
         .setDoOnAccept(pChangeChunk -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.getFileChanges().resetChanges(pChangeChunk)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
     // old version is to the left, so index 0

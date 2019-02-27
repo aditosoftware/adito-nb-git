@@ -1,5 +1,6 @@
 package de.adito.git.gui;
 
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 
@@ -8,7 +9,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -28,15 +28,11 @@ public class TextHighlightUtil
   /**
    * @param pEditorPane       JEditorPane that should be filled with text and colored
    * @param pFileChangeChunks IFileChangeChunks determining the text and highlighting
-   * @param pGetLines         Function that retrieves the fitting String from the IFileChangeChunk (A or B side)
-   * @param pGetParityLines   Function that retrieves the fitting parity lines from the IFileChangeChunk.
-   *                          Return "" in the function if parity lines should be ignored
+   * @param pChangeSide       which side of a IFileChangeChunk should be taken
    */
-  public static void insertColoredText(JEditorPane pEditorPane, List<IFileChangeChunk> pFileChangeChunks,
-                                       Function<IFileChangeChunk, String> pGetLines, Function<IFileChangeChunk, String> pGetParityLines,
-                                       Function<IFileChangeChunk, Integer> pGetStartLine, Function<IFileChangeChunk, Integer> pGetEndLine)
+  public static void insertColoredText(JEditorPane pEditorPane, List<IFileChangeChunk> pFileChangeChunks, EChangeSide pChangeSide)
   {
-    _insertColoredText(pEditorPane, pFileChangeChunks, pGetLines, pGetParityLines, pGetStartLine, pGetEndLine, ArrayList::new);
+    _insertColoredText(pEditorPane, pFileChangeChunks, pChangeSide, ArrayList::new);
   }
 
   /**
@@ -45,30 +41,23 @@ public class TextHighlightUtil
    * @param pEditorPane            JEditorPane that should be filled with text and colored
    * @param pYourFileChangeChunks  IFileChangeChunks determining the text and highlighting
    * @param pTheirFileChangeChunks IFileChangeChunks determining the text and highlighting
-   * @param pGetLines              Function that retrieves the fitting String from the IFileChangeChunk (A or B side)
-   * @param pGetParityLines        Function that retrieves the fitting parity lines from the IFileChangeChunk.
-   *                               Return "" in the function if parity lines should be ignored
+   * @param pChangeSide            which side of a IFileChangeChunk should be taken
    */
   public static void insertColoredText(JEditorPane pEditorPane, List<IFileChangeChunk> pYourFileChangeChunks,
-                                       List<IFileChangeChunk> pTheirFileChangeChunks, Function<IFileChangeChunk, String> pGetLines,
-                                       Function<IFileChangeChunk, String> pGetParityLines, Function<IFileChangeChunk, Integer> pGetStartLine,
-                                       Function<IFileChangeChunk, Integer> pGetEndLine)
+                                       List<IFileChangeChunk> pTheirFileChangeChunks, EChangeSide pChangeSide)
   {
-    _insertColoredText(pEditorPane, pYourFileChangeChunks, pGetLines, pGetParityLines, pGetStartLine, pGetEndLine,
-                       () -> _getHighlightSpots(pEditorPane, pTheirFileChangeChunks, pGetStartLine, pGetEndLine));
+    _insertColoredText(pEditorPane, pYourFileChangeChunks, pChangeSide,
+                       () -> _getHighlightSpots(pEditorPane, pTheirFileChangeChunks, pChangeSide));
   }
 
   /**
    * @param pEditorPane       JEditorPane that should be filled with text and colored
    * @param pFileChangeChunks List of IFileChangeChunks for which the highlighted areas should be determined
-   * @param pGetStartLine     Function that return the starting line of one side (defined in the function) of the given IFileChangeChunk
-   * @param pGetEndLine       Function that return the end line of one side (defined in the function) of the given IFileChangeChunk
+   * @param pChangeSide       which side of a IFileChangeChunk should be taken
    * @return List of _Highlight
    */
   private static List<_Highlight> _getHighlightSpots(JEditorPane pEditorPane,
-                                                     List<IFileChangeChunk> pFileChangeChunks,
-                                                     Function<IFileChangeChunk, Integer> pGetStartLine,
-                                                     Function<IFileChangeChunk, Integer> pGetEndLine)
+                                                     List<IFileChangeChunk> pFileChangeChunks, EChangeSide pChangeSide)
   {
     List<_Highlight> highlightSpots = new ArrayList<>();
     for (IFileChangeChunk changeChunk : pFileChangeChunks)
@@ -78,12 +67,12 @@ public class TextHighlightUtil
         // use maxEditorLineIndex to min(maxEditorLineIndex, x) to make sure no oOBException occurs, better to have a wrong result before update
         int maxEditorLineIndex = pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1;
         int startOffset = pEditorPane.getDocument().getDefaultRootElement()
-            .getElement(Math.min(maxEditorLineIndex, pGetStartLine.apply(changeChunk)))
+            .getElement(Math.min(maxEditorLineIndex, changeChunk.getStart(pChangeSide)))
             .getStartOffset();
         // -1 because the end line is considered exclusive (also if endLine == startLine the offsets are the same this way).
         // Edge case here: empty file -> endLine - 1 would result in -1, so need to use Math.max(0, endLine - 1)
         int endOffset = pEditorPane.getDocument().getDefaultRootElement()
-            .getElement(Math.min(maxEditorLineIndex, Math.max(0, pGetEndLine.apply(changeChunk) - 1)))
+            .getElement(Math.min(maxEditorLineIndex, Math.max(0, changeChunk.getEnd(pChangeSide) - 1)))
             .getEndOffset();
         // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
         if (startOffset < endOffset)
@@ -100,20 +89,17 @@ public class TextHighlightUtil
   /**
    * @param pJEditorPane                  JEditorPane that should be filled with text and colored
    * @param pFileChangeChunks             List of IFileChangeChunks providing the text and the information about which areas to highlight
-   * @param pGetLines                     Function that retrieves the normal lines for an IFileChangeChunk
-   * @param pGetParityLines               Function that retrieves the parity lines for an IFileChangeChunk
+   * @param pChangeSide                   which side of a IFileChangeChunk should be taken
    * @param pAdditionalHighlightsSupplier Supplier of list of _Highlight determining which additional areas get colored and the color of the areas
    */
   private static void _insertColoredText(JEditorPane pJEditorPane, List<IFileChangeChunk> pFileChangeChunks,
-                                         Function<IFileChangeChunk, String> pGetLines, Function<IFileChangeChunk, String> pGetParityLines,
-                                         Function<IFileChangeChunk, Integer> pGetStartLine, Function<IFileChangeChunk, Integer> pGetEndLIne,
-                                         Supplier<List<_Highlight>> pAdditionalHighlightsSupplier)
+                                         EChangeSide pChangeSide, Supplier<List<_Highlight>> pAdditionalHighlightsSupplier)
   {
     StringBuilder paneContentBuilder = new StringBuilder();
     for (IFileChangeChunk changeChunk : pFileChangeChunks)
     {
-      paneContentBuilder.append(pGetLines.apply(changeChunk));
-      paneContentBuilder.append(pGetParityLines.apply(changeChunk));
+      paneContentBuilder.append(changeChunk.getLines(pChangeSide));
+      paneContentBuilder.append(changeChunk.getParityLines(pChangeSide));
     }
     pJEditorPane.setText(paneContentBuilder.toString());
     int numParityLines = 0;
@@ -125,13 +111,13 @@ public class TextHighlightUtil
         // use maxEditorLineIndex to min(maxEditorLineIndex, x) to make sure no oOBException occurs, better to have a wrong result before update
         int maxEditorLineIndex = pJEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1;
         int startOffset = pJEditorPane.getDocument().getDefaultRootElement()
-            .getElement(Math.min(maxEditorLineIndex, pGetStartLine.apply(changeChunk) + numParityLines)).getStartOffset();
-        numParityLines += pGetParityLines.apply(changeChunk).length();
+            .getElement(Math.min(maxEditorLineIndex, changeChunk.getStart(pChangeSide) + numParityLines)).getStartOffset();
+        numParityLines += changeChunk.getParityLines(pChangeSide).length();
         // Minus one in the getElement() because the last line is not included. In an empty file this would be -1, so use Math.max(0, x)
         int endOffset = pJEditorPane.getDocument().getDefaultRootElement()
             .getElement(
                 Math.min(maxEditorLineIndex,
-                         Math.max(0, pGetEndLIne.apply(changeChunk) + numParityLines - 1)))
+                         Math.max(0, changeChunk.getEnd(pChangeSide) + numParityLines - 1)))
             .getEndOffset();
         // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
         if (startOffset < endOffset)

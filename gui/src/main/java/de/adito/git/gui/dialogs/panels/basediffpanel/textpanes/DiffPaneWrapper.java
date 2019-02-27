@@ -107,7 +107,7 @@ public class DiffPaneWrapper implements IDiscardable
    */
   public void moveCaretToNextChunk()
   {
-    IDiffPaneUtil.moveCaretToNextChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getGetStartLine());
+    IDiffPaneUtil.moveCaretToNextChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
   }
 
   /**
@@ -115,9 +115,7 @@ public class DiffPaneWrapper implements IDiscardable
    */
   public void moveCaretToPreviousChunk()
   {
-    IDiffPaneUtil.moveCaretToPreviousChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getGetStartLine(),
-                                           model.getGetEndLine()
-    );
+    IDiffPaneUtil.moveCaretToPreviousChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
   }
 
   @Override
@@ -199,10 +197,7 @@ public class DiffPaneWrapper implements IDiscardable
     // insert the text from the IFileDiffs
     TextHighlightUtil.insertColoredText(editorPane,
                                         pChangeChunkList,
-                                        model.getGetLines(),
-                                        model.getGetParityLines(),
-                                        model.getGetStartLine(),
-                                        model.getGetEndLine());
+                                        model.getChangeSide());
     editorPane.revalidate();
     SwingUtilities.invokeLater(() -> {
       // For whatever reason the EditorCaret thinks it's a good idea to jump to the caret position on text change in a disabled EditorPane,

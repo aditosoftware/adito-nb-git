@@ -1,5 +1,6 @@
 package de.adito.git.impl.data;
 
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import org.eclipse.jgit.diff.Edit;
@@ -32,8 +33,9 @@ public class FileChangeChunkImpl implements IFileChangeChunk
 
   public FileChangeChunkImpl(IFileChangeChunk pChangeChunk, EChangeType pChangeType)
   {
-    this(new Edit(pChangeChunk.getAStart(), pChangeChunk.getAEnd(), pChangeChunk.getBStart(), pChangeChunk.getBEnd()),
-         pChangeChunk.getALines(), pChangeChunk.getBLines(), pChangeChunk.getAParityLines(), pChangeChunk.getBParityLines(), pChangeType);
+    this(new Edit(pChangeChunk.getStart(EChangeSide.OLD), pChangeChunk.getEnd(EChangeSide.OLD), pChangeChunk.getStart(EChangeSide.NEW),
+                  pChangeChunk.getEnd(EChangeSide.NEW)), pChangeChunk.getLines(EChangeSide.OLD), pChangeChunk.getLines(EChangeSide.NEW),
+         pChangeChunk.getParityLines(EChangeSide.OLD), pChangeChunk.getParityLines(EChangeSide.NEW), pChangeType);
   }
 
   FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, String pOldParityLines, String pNewParityLines)
@@ -53,37 +55,16 @@ public class FileChangeChunkImpl implements IFileChangeChunk
     newParityLines = pNewParityLines;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public int getAStart()
+  public int getStart(EChangeSide pChangeSide)
   {
-    return edit.getBeginA();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getAEnd()
-  {
-    return edit.getEndA();
+    return pChangeSide == EChangeSide.OLD ? edit.getBeginA() : edit.getBeginB();
   }
 
   @Override
-  public int getBStart()
+  public int getEnd(EChangeSide pChangeSide)
   {
-    return edit.getBeginB();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getBEnd()
-  {
-    return edit.getEndB();
+    return pChangeSide == EChangeSide.OLD ? edit.getEndA() : edit.getEndB();
   }
 
   /**
@@ -114,40 +95,16 @@ public class FileChangeChunkImpl implements IFileChangeChunk
     return returnValue;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public String getALines()
+  public String getLines(EChangeSide pChangeSide)
   {
-    return oldString;
+    return pChangeSide == EChangeSide.OLD ? oldString : newString;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public String getBLines()
+  public String getParityLines(EChangeSide pChangeSide)
   {
-    return newString;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getAParityLines()
-  {
-    return oldParityLines;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getBParityLines()
-  {
-    return newParityLines;
+    return pChangeSide == EChangeSide.OLD ? oldParityLines : newParityLines;
   }
 
   @Override

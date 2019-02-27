@@ -1,5 +1,6 @@
 package de.adito.git.impl.data;
 
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeChunk;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.NotNull;
@@ -124,8 +125,8 @@ class MergeDiffImplTest
     MergeDiffImpl.propagateAdditionalLines(changeChunks, indexFrom, numAddedLines);
     for (int index = indexFrom; index < changeChunks.size(); index++)
     {
-      Assertions.assertEquals(aStarts[index] + numAddedLines, changeChunks.get(index).getAStart());
-      Assertions.assertEquals(aEnds[index] + numAddedLines, changeChunks.get(index).getAEnd());
+      Assertions.assertEquals(aStarts[index] + numAddedLines, changeChunks.get(index).getStart(EChangeSide.OLD));
+      Assertions.assertEquals(aEnds[index] + numAddedLines, changeChunks.get(index).getEnd(EChangeSide.OLD));
     }
   }
 
@@ -141,8 +142,8 @@ class MergeDiffImplTest
     MergeDiffImpl.propagateAdditionalLines(changeChunks, indexFrom, numAddedLines);
     for (int index = indexFrom; index < changeChunks.size(); index++)
     {
-      Assertions.assertEquals(aStarts[index] + numAddedLines, changeChunks.get(index).getAStart());
-      Assertions.assertEquals(aEnds[index] + numAddedLines, changeChunks.get(index).getAEnd());
+      Assertions.assertEquals(aStarts[index] + numAddedLines, changeChunks.get(index).getStart(EChangeSide.OLD));
+      Assertions.assertEquals(aEnds[index] + numAddedLines, changeChunks.get(index).getEnd(EChangeSide.OLD));
     }
   }
 
@@ -159,8 +160,8 @@ class MergeDiffImplTest
     MergeDiffImpl.propagateAdditionalLines(changeChunks, indexFrom, numAddedLines);
     for (int index = indexFrom; index < changeChunks.size(); index++)
     {
-      Assertions.assertEquals(aStarts[index] + numAddedLines, changeChunks.get(index).getAStart());
-      Assertions.assertEquals(aEnds[index] + numAddedLines, changeChunks.get(index).getAEnd());
+      Assertions.assertEquals(aStarts[index] + numAddedLines, changeChunks.get(index).getStart(EChangeSide.OLD));
+      Assertions.assertEquals(aEnds[index] + numAddedLines, changeChunks.get(index).getEnd(EChangeSide.OLD));
     }
   }
 
@@ -187,7 +188,7 @@ class MergeDiffImplTest
     }
     for (IFileChangeChunk chunk : changeChunks)
     {
-      changedLines.append(chunk.getALines());
+      changedLines.append(chunk.getLines(EChangeSide.OLD));
     }
     Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
     Assertions.assertFalse(changedLines.toString().contains(linesBeforeChange));
@@ -219,7 +220,7 @@ class MergeDiffImplTest
     }
     for (IFileChangeChunk chunk : changeChunks)
     {
-      changedLines.append(chunk.getALines());
+      changedLines.append(chunk.getLines(EChangeSide.OLD));
     }
     Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
     Assertions.assertFalse(Arrays.stream(linesBeforeChange.split("\n")).anyMatch(partFromBefore -> changedLines.toString().contains(partFromBefore)));
@@ -252,7 +253,7 @@ class MergeDiffImplTest
     }
     for (IFileChangeChunk chunk : changeChunks)
     {
-      changedLines.append(chunk.getALines());
+      changedLines.append(chunk.getLines(EChangeSide.OLD));
     }
     Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
     Assertions.assertFalse(Arrays.stream(linesBeforeChange.split("\n")).anyMatch(partFromBefore -> changedLines.toString().contains(partFromBefore)));
@@ -284,7 +285,7 @@ class MergeDiffImplTest
     }
     for (IFileChangeChunk chunk : changeChunks)
     {
-      changedLines.append(chunk.getALines());
+      changedLines.append(chunk.getLines(EChangeSide.OLD));
     }
     Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
     Assertions.assertFalse(changedLines.toString().contains(linesBeforeChange));
@@ -316,7 +317,7 @@ class MergeDiffImplTest
     }
     for (IFileChangeChunk chunk : changeChunks)
     {
-      changedLines.append(chunk.getALines());
+      changedLines.append(chunk.getLines(EChangeSide.OLD));
     }
     Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
     Assertions.assertEquals(originalLines.toString().split("\n").length + linesAfterChange.split("\n").length,
@@ -346,7 +347,7 @@ class MergeDiffImplTest
     }
     for (IFileChangeChunk chunk : changeChunks)
     {
-      changedLines.append(chunk.getALines());
+      changedLines.append(chunk.getLines(EChangeSide.OLD));
     }
     Assertions.assertTrue(changedLines.toString().contains(linesAfterChange));
     Assertions.assertFalse(changedLines.toString().contains(linesBeforeChange));

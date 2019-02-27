@@ -70,7 +70,7 @@ public class LineNumbersColorModel implements IDiscardable
       int lineCounter = 0;
       for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
       {
-        int numLines = model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange);
+        int numLines = fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide());
         if (fileChange.getChangeType() != EChangeType.SAME)
         {
           if (lineCounter <= pEditorPane.getDocument().getDefaultRootElement().getElementCount())
@@ -84,7 +84,7 @@ public class LineNumbersColorModel implements IDiscardable
             return;
           }
         }
-        lineCounter += numLines + model.getGetParityLines().apply(fileChange).length();
+        lineCounter += numLines + fileChange.getParityLines(model.getChangeSide()).length();
       }
     }
     catch (BadLocationException pE)
@@ -111,7 +111,7 @@ public class LineNumbersColorModel implements IDiscardable
     Element endingLineElement = pEditorPane.getDocument().getDefaultRootElement()
         .getElement(
             Math.min(pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1,
-                     Math.max(0, pLineCounter + pNumLines + model.getGetParityLines().apply(pFileChange).length() - 1)));
+                     Math.max(0, pLineCounter + pNumLines + pFileChange.getParityLines(model.getChangeSide()).length() - 1)));
     Rectangle bounds;
     if (startingLineElement != null && endingLineElement != null)
     {
@@ -134,7 +134,7 @@ public class LineNumbersColorModel implements IDiscardable
       return new LineNumberColor(pFileChange.getChangeType().getDiffColor(), bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
-        pLineCounter + pNumLines + model.getGetParityLines().apply(pFileChange).length() - 1);
+        pLineCounter + pNumLines + pFileChange.getParityLines(model.getChangeSide()).length() - 1);
   }
 
   private void _notifyListeners(List<LineNumberColor> pNewValue)

@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IDiscardable;
@@ -66,8 +66,7 @@ public class MergePanel extends JPanel implements IDiscardable
   {
     LineNumbersColorModel[] lineNumColorModels = new LineNumbersColorModel[2];
     DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
-                                                   IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines,
-                                                   IFileChangeChunk::getBStart, IFileChangeChunk::getBEnd)
+                                                   EChangeSide.NEW)
         .setDoOnAccept(pChangeChunk -> mergeDiff.acceptChunk(pChangeChunk, IMergeDiff.CONFLICT_SIDE.YOURS))
         .setDoOnDiscard(pChangeChunk -> mergeDiff.discardChange(pChangeChunk, IMergeDiff.CONFLICT_SIDE.YOURS));
     yoursPaneWrapper = new DiffPaneWrapper(yoursModel, editorKitObservable);
@@ -85,8 +84,7 @@ public class MergePanel extends JPanel implements IDiscardable
   {
     LineNumbersColorModel[] lineNumPanels = new LineNumbersColorModel[2];
     DiffPanelModel theirsModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(),
-                                                    IFileChangeChunk::getBLines, IFileChangeChunk::getBParityLines,
-                                                    IFileChangeChunk::getBStart, IFileChangeChunk::getBEnd)
+                                                    EChangeSide.NEW)
         .setDoOnAccept(pChangeChunk -> mergeDiff.acceptChunk(pChangeChunk, IMergeDiff.CONFLICT_SIDE.THEIRS))
         .setDoOnDiscard(pChangeChunk -> mergeDiff.discardChange(pChangeChunk, IMergeDiff.CONFLICT_SIDE.THEIRS));
     theirsPaneWrapper = new DiffPaneWrapper(theirsModel, editorKitObservable);
@@ -104,15 +102,9 @@ public class MergePanel extends JPanel implements IDiscardable
     forkPointPaneWrapper = new ForkPointPaneWrapper(mergeDiff, editorKitObservable);
     forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     DiffPanelModel forkPointYoursModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
-                                                            IFileChangeChunk::getALines,
-                                                            pFileChangeChunk -> "",
-                                                            IFileChangeChunk::getAStart,
-                                                            IFileChangeChunk::getAEnd);
+                                                            EChangeSide.OLD);
     DiffPanelModel forkPointTheirsModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(),
-                                                             IFileChangeChunk::getALines,
-                                                             pFileChangeChunk -> "",
-                                                             IFileChangeChunk::getAStart,
-                                                             IFileChangeChunk::getAEnd);
+                                                             EChangeSide.OLD);
     leftForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointYoursModel, BorderLayout.WEST, 1);
     rightForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, BorderLayout.EAST, 0);
   }

@@ -1,9 +1,7 @@
 package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IBlame;
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.util.DocumentObservable;
@@ -282,9 +280,9 @@ public class Annotator extends JPanel implements IDiscardable
    */
   private void _addLines(IFileChangeChunk pChunk, List<String> pStringList)
   {
-    int linesToAdd = pChunk.getBEnd() - pChunk.getBStart();
+    int linesToAdd = pChunk.getEnd(EChangeSide.NEW) - pChunk.getStart(EChangeSide.NEW);
     for (int i = 0; i < linesToAdd; i++)
-      pStringList.add(pChunk.getBStart(), "");
+      pStringList.add(pChunk.getStart(EChangeSide.NEW), "");
   }
 
   /**
@@ -295,9 +293,9 @@ public class Annotator extends JPanel implements IDiscardable
    */
   private void _deleteLines(IFileChangeChunk pChunk, List<String> pStringList)
   {
-    int linesToDelete = pChunk.getAEnd() - pChunk.getAStart();
+    int linesToDelete = pChunk.getEnd(EChangeSide.OLD) - pChunk.getStart(EChangeSide.OLD);
     for (int i = 0; i < linesToDelete; i++)
-      pStringList.remove(pChunk.getBStart());
+      pStringList.remove(pChunk.getStart(EChangeSide.NEW));
   }
 
   /**

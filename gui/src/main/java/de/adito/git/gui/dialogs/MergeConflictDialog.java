@@ -3,9 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
@@ -132,7 +130,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
         {
           // BLines is always the "new" version of the file, in comparison to the fork point
-          fileContents.append(changeChunk.getBLines());
+          fileContents.append(changeChunk.getLines(EChangeSide.NEW));
         }
         _writeToFile(fileContents.toString(), selectedMergeDiff, selectedFile);
       }
@@ -150,7 +148,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         .getChangeChunks().blockingFirst().getNewValue())
     {
       // BLines is always the "new" version of the file, in comparison to the fork point
-      fileContents.append(changeChunk.getALines());
+      fileContents.append(changeChunk.getLines(EChangeSide.OLD));
     }
     _writeToFile(fileContents.toString(), pIMergeDiff, selectedFile);
   }

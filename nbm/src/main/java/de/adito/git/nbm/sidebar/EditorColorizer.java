@@ -1,6 +1,7 @@
 package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.IDiscardable;
@@ -128,7 +129,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   {
     if (pChangeChunk != null)
     {
-      int offset = targetEditor.getDocument().getDefaultRootElement().getElement(pChangeChunk.getBStart()).getStartOffset();
+      int offset = targetEditor.getDocument().getDefaultRootElement().getElement(pChangeChunk.getStart(EChangeSide.NEW)).getStartOffset();
       MouseEvent mouseEvent = new MouseEvent(this, 0, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, 0,
                                              targetEditor.getUI().getRootView(targetEditor)
                                                  .modelToView(offset, new Rectangle(), Position.Bias.Forward)
@@ -155,12 +156,12 @@ class EditorColorizer extends JPanel implements IDiscardable
     {
       case MODIFY:
       case ADD:
-        startLine = pChange.getBStart();
-        endLine = pChange.getBEnd() - 1;
+        startLine = pChange.getStart(EChangeSide.NEW);
+        endLine = pChange.getEnd(EChangeSide.NEW) - 1;
         break;
       case DELETE:
-        startLine = pChange.getBEnd();
-        endLine = pChange.getBEnd();
+        startLine = pChange.getEnd(EChangeSide.NEW);
+        endLine = pChange.getEnd(EChangeSide.NEW);
         break;
       default:
         break;

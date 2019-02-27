@@ -50,8 +50,8 @@ public class ScrollbarMarkingsModel implements IDiscardable
     int startLine = 0;
     for (IFileChangeChunk changeChunk : pFileChangesEvent.getNewValue())
     {
-      int numLines = (pModel.getGetEndLine()
-          .apply(changeChunk) - pModel.getGetStartLine().apply(changeChunk)) + pModel.getGetParityLines().apply(changeChunk).length();
+      int numLines = (changeChunk.getEnd(pModel.getChangeSide()) - changeChunk.getStart(pModel.getChangeSide()))
+          + changeChunk.getParityLines(pModel.getChangeSide()).length();
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {
         int startOffset = rootElement.getElement(startLine).getStartOffset();

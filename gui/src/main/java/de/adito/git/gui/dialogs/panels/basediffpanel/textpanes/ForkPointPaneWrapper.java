@@ -1,8 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPane;
@@ -78,10 +76,7 @@ public class ForkPointPaneWrapper implements IDiscardable
       TextHighlightUtil.insertColoredText(editorPane,
                                           pChangeChunkLists.yourVersion,
                                           pChangeChunkLists.theirVersion,
-                                          IFileChangeChunk::getALines,
-                                          pFileChangeChunk -> "",
-                                          IFileChangeChunk::getAStart,
-                                          IFileChangeChunk::getAEnd);
+                                          EChangeSide.OLD);
       editorPane.revalidate();
       SwingUtilities.invokeLater(() -> getScrollPane().getVerticalScrollBar().setValue(scrollBarPos));
       paneDocumentListener.enable();

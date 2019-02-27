@@ -127,8 +127,8 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
               iconInfos.add(new IconInfo(discardIcon, yViewCoordinate, discardChangeIconXVal, fileChange));
             }
           }
-          lineNumber += (model.getGetEndLine().apply(fileChange) - model.getGetStartLine().apply(fileChange))
-              + model.getGetParityLines().apply(fileChange).length();
+          lineNumber += (fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide()))
+              + fileChange.getParityLines(model.getChangeSide()).length();
         }
         iconInfoList = iconInfos;
       }

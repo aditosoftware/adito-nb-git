@@ -16,24 +16,20 @@ public interface IFileChangeChunk
 {
 
   /**
-   * @return line that the change on side A starts
+   * get the number of the first line that is affected by this change
+   *
+   * @param pChangeSide which side of the change should be taken
+   * @return line that the change on the chosen side starts
    */
-  int getAStart();
+  int getStart(EChangeSide pChangeSide);
 
   /**
-   * @return line that the change on side A ends
+   * get the number of the last line that is affected by this change
+   *
+   * @param pChangeSide which side of the change should be taken
+   * @return line that the change on the chosen side ends
    */
-  int getAEnd();
-
-  /**
-   * @return line that the change on side B starts
-   */
-  int getBStart();
-
-  /**
-   * @return line that the change on side B ends
-   */
-  int getBEnd();
+  int getEnd(EChangeSide pChangeSide);
 
   /**
    * @return the type of change that occurred
@@ -41,16 +37,19 @@ public interface IFileChangeChunk
   EChangeType getChangeType();
 
   /**
-   * @return the contents of the line that were changed on A side (empty String for insert)
+   * get the lines in the scope of this chunk, either as they were or are after the change, depending on the passed EChangeSide
+   *
+   * @param pChangeSide which side of the change should be taken
+   * @return the contents of the line that were changed on the chosen side (empty String for insert)
    */
-  String getALines();
+  String getLines(EChangeSide pChangeSide);
 
   /**
-   * @return the contents of the line that were changed on B side (empty String for remove)
+   * get lines with only newlines that make the lines as they were the same length as the lines as they are now
+   *
+   * @param pChangeSide which side of the change should be taken
+   * @return lines with only newlines that make the number of the two sides equal
    */
-  String getBLines();
+  String getParityLines(EChangeSide pChangeSide);
 
-  String getAParityLines();
-
-  String getBParityLines();
 }
