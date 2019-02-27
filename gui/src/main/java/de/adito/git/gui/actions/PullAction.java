@@ -76,7 +76,7 @@ class PullAction extends AbstractAction
     {
       if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty() || !pStatus.getConflicting().isEmpty()).orElse(true))
       {
-        pProgressHandle.setDescription("Stashing Changes");
+        pProgressHandle.setDescription("Stashing existing changes");
         prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, false));
       }
       while (!doAbort)
@@ -105,7 +105,7 @@ class PullAction extends AbstractAction
       String stashedCommitId = prefStore.get(STASH_ID_KEY);
       if (stashedCommitId != null)
       {
-        pProgressHandle.setDescription("Unstashing Changes");
+        pProgressHandle.setDescription("Un-stashing changes");
         StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
         prefStore.put(STASH_ID_KEY, null);
       }

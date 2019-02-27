@@ -6,7 +6,9 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
@@ -23,6 +25,8 @@ public class CherryPickAction extends AbstractTableAction
 {
 
   private static final String ACTION_NAME = "Cherry Pick";
+  private static final String STASH_ID_KEY = "cherryPick::stashCommitId";
+  private final IPrefStore prefStore;
   private final INotifyUtil notifyUtil;
   private final IDialogProvider dialogProvider;
   private final IAsyncProgressFacade progressFacade;
@@ -31,10 +35,12 @@ public class CherryPickAction extends AbstractTableAction
   private final Observable<Optional<List<ICommit>>> selectedCommits;
 
   @Inject
-  CherryPickAction(INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, IActionProvider pActionProvider,
-                   @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommits)
+  CherryPickAction(IPrefStore pPrefStore, INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
+                   IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
+                   @Assisted Observable<Optional<List<ICommit>>> pSelectedCommits)
   {
     super(ACTION_NAME, _getIsEnabledObservable(pSelectedCommits));
+    prefStore = pPrefStore;
     notifyUtil = pNotifyUtil;
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
@@ -50,13 +56,37 @@ public class CherryPickAction extends AbstractTableAction
     List<ICommit> commitsToPick = selectedCommits.blockingFirst().orElse(Collections.emptyList());
     if (repo != null && !commitsToPick.isEmpty())
     {
-      if (repo.getStatus().blockingFirst().map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(true))
-      {
-        notifyUtil.notify(ACTION_NAME, "Aborting cherry pick, please make sure the working tree is clean before cherry picking", false);
-        return;
-      }
       progressFacade.executeInBackground("Cherry picking " + commitsToPick.size() + " commit(s)", pHandle -> {
-        _doCherryPick(repo, commitsToPick);
+        try
+        {
+          Optional<IFileStatus> status = repo.getStatus().blockingFirst();
+          if (status.map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(true))
+          {
+            notifyUtil.notify(ACTION_NAME, "Aborting cherry pick, please make sure the working tree is clean before cherry picking", false);
+            return;
+          }
+          if (status.map(pStatus -> !pStatus.getUncommitted().isEmpty()).orElse(false))
+          {
+            pHandle.setDescription("Stashing existing changes");
+            prefStore.put(STASH_ID_KEY, repo.stashChanges(null, false));
+          }
+          pHandle.setDescription("Cherry picking " + commitsToPick.size() + " commit(s)");
+          _doCherryPick(repo, commitsToPick);
+        }
+        catch (AditoGitException pE)
+        {
+          throw new RuntimeException(pE);
+        }
+        finally
+        {
+          String stashedCommitId = prefStore.get(STASH_ID_KEY);
+          if (stashedCommitId != null)
+          {
+            pHandle.setDescription("Un-stashing changes");
+            StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
+            prefStore.put(STASH_ID_KEY, null);
+          }
+        }
       });
     }
   }
