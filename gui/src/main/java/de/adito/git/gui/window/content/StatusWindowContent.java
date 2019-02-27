@@ -2,18 +2,20 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTable;
-import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tablemodels.StatusTableModel;
+import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTree;
+import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -21,9 +23,9 @@ import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * class to display the results of the status command to git (i.e. lists all changes made to the
@@ -38,13 +40,14 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private final IActionProvider actionProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
   private final JPanel tableViewPanel = new JPanel(new BorderLayout());
-  private final SearchableTable statusTable;
+  private final SearchableTree statusTree;
+  private final StatusTreeModel statusTreeModel;
   private final Action openFileAction;
   private Disposable disposable;
   private JPopupMenu popupMenu;
 
   @Inject
-  StatusWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
+  StatusWindowContent(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
                       @Assisted Observable<Optional<IRepository>> pRepository)
   {
     repository = pRepository;
@@ -53,22 +56,25 @@ class StatusWindowContent extends JPanel implements IDiscardable
         .switchMap(pRepo -> pRepo
             .map(IRepository::getStatus)
             .orElse(Observable.just(Optional.empty())));
-    StatusTableModel statusTableModel = new StatusTableModel(status);
-    statusTable = new SearchableTable(statusTableModel, tableViewPanel);
-    List<Integer> searchableColumns = new ArrayList<>();
-    searchableColumns.add(statusTableModel.findColumn(StatusTableModel.FILE_NAME_COLUMN_NAME));
-    searchableColumns.add(statusTableModel.findColumn(StatusTableModel.FILE_PATH_COLUMN_NAME));
-    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(statusTable, searchableColumns));
-    tableViewPanel.add(new JScrollPane(statusTable), BorderLayout.CENTER);
-    statusTable.addMouseListener(new _DoubleClickListener());
-    ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(statusTable.getSelectionModel());
-    statusTable.setSelectionModel(observableListSelectionModel);
-    selectionObservable = Observable.combineLatest(observableListSelectionModel.selectedRows(), status, (pSelected, pStatus) -> {
+    statusTree = new SearchableTree();
+    File projecDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
+        .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
+    statusTreeModel = new StatusTreeModel(status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of())),
+                                          projecDirectory);
+    statusTree.init(tableViewPanel, statusTreeModel);
+    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
+    statusTree.setRootVisible(false);
+    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
+    tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
+    statusTree.addMouseListener(new _DoubleClickListener());
+    ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
+    statusTree.setSelectionModel(observableTreeSelectionModel);
+    selectionObservable = Observable.combineLatest(observableTreeSelectionModel.getSelectedPaths(), status, (pSelected, pStatus) -> {
       if (pSelected == null)
         return Optional.of(Collections.emptyList());
-      List<IFileChangeType> uncommittedListCached = pStatus.map(IFileStatus::getUncommitted).orElse(Collections.emptyList());
-      return Optional.of(Stream.of(pSelected)
-                             .map(uncommittedListCached::get)
+      return Optional.of(Arrays.stream(pSelected)
+                             .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getMembers())
+                             .flatMap(Collection::stream)
                              .collect(Collectors.toList()));
     });
     openFileAction = actionProvider.getOpenFileAction(selectionObservable);
@@ -78,15 +84,6 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private void _initGui()
   {
     setLayout(new BorderLayout());
-    // Do not show the row with the EChangeTypes, they are represented by the color of the text of the files
-    statusTable.getColumnModel().removeColumn(statusTable.getColumn(StatusTableModel.columnNames[2]));
-    statusTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-    // CellRenderer so the files are colored according to their EChangeType
-    for (int index = 0; index < statusTable.getColumnModel().getColumnCount(); index++)
-    {
-      statusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
-    }
-
     disposable = repository.subscribe(pRepository -> {
       popupMenu = new JPopupMenu();
       popupMenu.add(actionProvider.getOpenFileAction(selectionObservable));
@@ -108,14 +105,14 @@ class StatusWindowContent extends JPanel implements IDiscardable
       popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
     });
 
-    statusTable.addMouseListener(new PopupMouseListener(popupMenu));
+    statusTree.addMouseListener(new PopupMouseListener(popupMenu));
     add(tableViewPanel, BorderLayout.CENTER);
   }
 
   @Override
   public void discard()
   {
-    ((StatusTableModel) statusTable.getModel()).discard();
+    statusTreeModel.discard();
     disposable.dispose();
   }
 
