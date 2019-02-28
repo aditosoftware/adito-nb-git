@@ -2,7 +2,7 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.ReplaySubject;
 import io.reactivex.subjects.Subject;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
@@ -22,7 +22,7 @@ public class FileChangesImpl implements IFileChanges
 {
 
   private final List<IFileChangeChunk> changeChunks;
-  private final Subject<IFileChangesEvent> changeEventObservable;
+  private final ReplaySubject<IFileChangesEvent> changeEventObservable;
   private final String[] originalLines;
   private final String[] newLines;
 
@@ -59,8 +59,9 @@ public class FileChangesImpl implements IFileChanges
     }
     EditorChangeImpl aSideEditorChange = new EditorChangeImpl(0, -1, pOriginalFileContents);
     EditorChangeImpl bSideEditorChange = new EditorChangeImpl(0, -1, pNewFileContents);
-    changeEventObservable = BehaviorSubject.createDefault(new FileChangesEventImpl(true, changeChunks,
-                                                                                   new EditorChangeEventImpl(aSideEditorChange, bSideEditorChange)));
+    changeEventObservable = ReplaySubject.create();
+    changeEventObservable.onNext(new FileChangesEventImpl(true, changeChunks,
+                                                          new EditorChangeEventImpl(aSideEditorChange, bSideEditorChange)));
   }
 
   Subject<IFileChangesEvent> getSubject()
@@ -299,7 +300,9 @@ public class FileChangesImpl implements IFileChanges
   @Override
   public void emptyUpdate()
   {
-    changeEventObservable.onNext(new FileChangesEventImpl(true, changeEventObservable.blockingFirst().getNewValue(), new EditorChangeEventImpl(new EditorChangeImpl(0, -1, null), new EditorChangeImpl(0, -1, null))));
+    changeEventObservable.onNext(new FileChangesEventImpl(true, changeEventObservable.blockingFirst().getNewValue(),
+                                                          new EditorChangeEventImpl(new EditorChangeImpl(0, -1, null),
+                                                                                    new EditorChangeImpl(0, -1, null))));
   }
 
   /**
