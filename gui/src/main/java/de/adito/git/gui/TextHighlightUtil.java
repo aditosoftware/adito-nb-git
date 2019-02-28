@@ -47,15 +47,17 @@ public class TextHighlightUtil
   public static void insertColoredText(JEditorPane pEditorPane, IFileChangesEvent pYourFileChangesEvent,
                                        IFileChangesEvent pTheirFileChangesEvent, EChangeSide pChangeSide)
   {
-    List<_Highlight> highlightSpots = _getHighlightSpots(pEditorPane, pTheirFileChangesEvent.getNewValue(), pChangeSide);
-    highlightSpots.addAll(_getHighlightSpots(pEditorPane, pYourFileChangesEvent.getNewValue(), pChangeSide));
     IFileChangesEvent passOnEvent = pYourFileChangesEvent;
     if (pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength() > 0
         && pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength()
         < pYourFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength())
       passOnEvent = pTheirFileChangesEvent;
     _insertColoredText(pEditorPane, passOnEvent, pChangeSide,
-                       () -> highlightSpots);
+                       () -> {
+                         List<_Highlight> highlightSpots = _getHighlightSpots(pEditorPane, pTheirFileChangesEvent.getNewValue(), pChangeSide);
+                         highlightSpots.addAll(_getHighlightSpots(pEditorPane, pYourFileChangesEvent.getNewValue(), pChangeSide));
+                         return highlightSpots;
+                       });
   }
 
   /**
