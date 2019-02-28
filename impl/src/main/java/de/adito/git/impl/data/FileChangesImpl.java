@@ -80,8 +80,6 @@ public class FileChangesImpl implements IFileChanges
   {
     StringBuilder oldString = new StringBuilder();
     StringBuilder newString = new StringBuilder();
-    StringBuilder oldParityString = new StringBuilder();
-    StringBuilder newParityString = new StringBuilder();
     for (int count = 0; count < pEdit.getEndA() - pEdit.getBeginA(); count++)
     {
       oldString.append(originalLines[pEdit.getBeginA() + count]).append("\n");
@@ -90,15 +88,7 @@ public class FileChangesImpl implements IFileChanges
     {
       newString.append(newLines[pEdit.getBeginB() + count]).append("\n");
     }
-    for (int count = (pEdit.getEndA() - pEdit.getBeginA()) - (pEdit.getEndB() - pEdit.getBeginB()); count < 0; count++)
-    {
-      oldParityString.append("\n");
-    }
-    for (int count = (pEdit.getEndB() - pEdit.getBeginB() - (pEdit.getEndA() - pEdit.getBeginA())); count < 0; count++)
-    {
-      newParityString.append("\n");
-    }
-    return new FileChangeChunkImpl(pEdit, oldString.toString(), newString.toString(), oldParityString.toString(), newParityString.toString());
+    return new FileChangeChunkImpl(pEdit, oldString.toString(), newString.toString());
   }
 
   /**
@@ -214,14 +204,14 @@ public class FileChangesImpl implements IFileChanges
         (pToChangeChunk.getEnd(EChangeSide.NEW) - pToChangeChunk.getStart(EChangeSide.NEW)), pToChangeChunk.getStart(EChangeSide.NEW),
                          pToChangeChunk.getEnd(EChangeSide.NEW));
     IFileChangeChunk changedChunk = new FileChangeChunkImpl(edit, pToChangeChunk.getLines(EChangeSide.NEW), pToChangeChunk.getLines(EChangeSide.NEW),
-                                                            "", "", EChangeType.SAME);
+                                                            EChangeType.SAME);
     // adjust line numbers in the following lines/changeChunks
     _propagateAdditionalLines(currentFileChangeChunks, indexInList + 1,
                               (pToChangeChunk.getEnd(EChangeSide.NEW) - pToChangeChunk.getStart(EChangeSide.NEW))
                                   - (pToChangeChunk.getEnd(EChangeSide.OLD) - pToChangeChunk.getStart(EChangeSide.OLD)), EChangeSide.OLD);
     // save the changes to the list and fire a change on the list
     currentFileChangeChunks.set(indexInList, changedChunk);
-    EditorChangeImpl aSideEditorChange = new EditorChangeImpl(_getOffsetForChunk(indexInList, currentFileChangeChunks, EChangeSide.OLD),
+    EditorChangeImpl aSideEditorChange = new EditorChangeImpl(getOffsetForChunk(indexInList, currentFileChangeChunks, EChangeSide.OLD),
                                                               pToChangeChunk.getLines(EChangeSide.OLD).length(),
                                                               pToChangeChunk.getLines(EChangeSide.NEW));
     EditorChangeImpl bSideEditorChange = new EditorChangeImpl(0, -1, null);
@@ -242,14 +232,14 @@ public class FileChangesImpl implements IFileChanges
     Edit edit = new Edit(pToChangeChunk.getStart(EChangeSide.OLD), pToChangeChunk.getEnd(EChangeSide.OLD), pToChangeChunk.getStart(EChangeSide.NEW),
                          pToChangeChunk.getStart(EChangeSide.NEW) + (pToChangeChunk.getEnd(EChangeSide.OLD)
                              - pToChangeChunk.getStart(EChangeSide.OLD)));
-    IFileChangeChunk changedChunk = new FileChangeChunkImpl(edit, pToChangeChunk.getLines(EChangeSide.OLD), pToChangeChunk.getLines(EChangeSide.OLD),
-                                                            "", "", EChangeType.SAME);
+    IFileChangeChunk changedChunk = new FileChangeChunkImpl(edit, pToChangeChunk.getLines(EChangeSide.OLD),
+                                                            pToChangeChunk.getLines(EChangeSide.OLD), EChangeType.SAME);
     _propagateAdditionalLines(currentFileChangeChunks, indexInList,
                               (pToChangeChunk.getEnd(EChangeSide.OLD) - pToChangeChunk.getStart(EChangeSide.OLD))
                                   - (pToChangeChunk.getEnd(EChangeSide.NEW) - pToChangeChunk.getStart(EChangeSide.NEW)), EChangeSide.NEW);
     currentFileChangeChunks.set(indexInList, changedChunk);
     EditorChangeImpl aSideEditorChange = new EditorChangeImpl(0, -1, null);
-    EditorChangeImpl bSideEditorChange = new EditorChangeImpl(_getOffsetForChunk(indexInList, currentFileChangeChunks, EChangeSide.NEW),
+    EditorChangeImpl bSideEditorChange = new EditorChangeImpl(getOffsetForChunk(indexInList, currentFileChangeChunks, EChangeSide.NEW),
                                                               pToChangeChunk.getLines(EChangeSide.NEW).length(),
                                                               pToChangeChunk.getLines(EChangeSide.OLD));
     changeEventObservable.onNext(new FileChangesEventImpl(true, currentFileChangeChunks,
@@ -284,8 +274,6 @@ public class FileChangesImpl implements IFileChanges
           edit,
           pFileChangeChunks.get(index).getLines(EChangeSide.OLD),
           pFileChangeChunks.get(index).getLines(EChangeSide.NEW),
-          pFileChangeChunks.get(index).getParityLines(EChangeSide.OLD),
-          pFileChangeChunks.get(index).getParityLines(EChangeSide.NEW),
           pFileChangeChunks.get(index).getChangeType());
       // replace the current FileChangeChunk with the updated one
       pFileChangeChunks.set(index, updated);
@@ -298,7 +286,7 @@ public class FileChangesImpl implements IFileChanges
    * @param pChangeSide       the lines of which die of the IFileChangeChunk to select
    * @return index of the first character of the wished chunk, as seen from the very start of the document
    */
-  static int _getOffsetForChunk(int pChunkIndex, List<IFileChangeChunk> pFileChangeChunks, EChangeSide pChangeSide)
+  static int getOffsetForChunk(int pChunkIndex, List<IFileChangeChunk> pFileChangeChunks, EChangeSide pChangeSide)
   {
     int offset = 0;
     for (int index = 0; index < pChunkIndex; index++)
@@ -325,9 +313,9 @@ public class FileChangesImpl implements IFileChanges
       return false;
     }
     tmpCopy.set(indexInList, pReplaceWith);
-    EditorChangeImpl aSideEditorChange = new EditorChangeImpl(_getOffsetForChunk(indexInList, tmpCopy, EChangeSide.OLD),
+    EditorChangeImpl aSideEditorChange = new EditorChangeImpl(getOffsetForChunk(indexInList, tmpCopy, EChangeSide.OLD),
                                                               pCurrent.getLines(EChangeSide.OLD).length(), pReplaceWith.getLines(EChangeSide.OLD));
-    EditorChangeImpl bSideEditorChange = new EditorChangeImpl(_getOffsetForChunk(indexInList, tmpCopy, EChangeSide.NEW),
+    EditorChangeImpl bSideEditorChange = new EditorChangeImpl(getOffsetForChunk(indexInList, tmpCopy, EChangeSide.NEW),
                                                               pCurrent.getLines(EChangeSide.NEW).length(), pReplaceWith.getLines(EChangeSide.NEW));
     changeEventObservable.onNext(new FileChangesEventImpl(pTriggerUpdate, tmpCopy, new EditorChangeEventImpl(aSideEditorChange, bSideEditorChange)));
     return true;

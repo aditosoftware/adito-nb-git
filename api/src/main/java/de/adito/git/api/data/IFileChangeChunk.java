@@ -44,12 +44,4 @@ public interface IFileChangeChunk
    */
   String getLines(EChangeSide pChangeSide);
 
-  /**
-   * get lines with only newlines that make the lines as they were the same length as the lines as they are now
-   *
-   * @param pChangeSide which side of the change should be taken
-   * @return lines with only newlines that make the number of the two sides equal
-   */
-  String getParityLines(EChangeSide pChangeSide);
-
 }

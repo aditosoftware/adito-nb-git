@@ -84,7 +84,7 @@ public class LineNumbersColorModel implements IDiscardable
             return;
           }
         }
-        lineCounter += numLines + fileChange.getParityLines(model.getChangeSide()).length();
+        lineCounter += numLines;
       }
     }
     catch (BadLocationException pE)
@@ -111,7 +111,7 @@ public class LineNumbersColorModel implements IDiscardable
     Element endingLineElement = pEditorPane.getDocument().getDefaultRootElement()
         .getElement(
             Math.min(pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1,
-                     Math.max(0, pLineCounter + pNumLines + pFileChange.getParityLines(model.getChangeSide()).length() - 1)));
+                     Math.max(0, pLineCounter + pNumLines - 1)));
     Rectangle bounds;
     if (startingLineElement != null && endingLineElement != null)
     {
@@ -134,7 +134,7 @@ public class LineNumbersColorModel implements IDiscardable
       return new LineNumberColor(pFileChange.getChangeType().getDiffColor(), bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
-        pLineCounter + pNumLines + pFileChange.getParityLines(model.getChangeSide()).length() - 1);
+        pLineCounter + pNumLines - 1);
   }
 
   private void _notifyListeners(List<LineNumberColor> pNewValue)

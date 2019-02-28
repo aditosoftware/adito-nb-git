@@ -228,7 +228,7 @@ public class MergeDiffImpl implements IMergeDiff
   private static IEditorChange _insertChangeChunk(@NotNull IFileChangeChunk pToInsert, @NotNull List<IFileChangeChunk> pFileChangeChunkList)
   {
     List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(pToInsert, pFileChangeChunkList);
-    int startOffset = FileChangesImpl._getOffsetForChunk(affectedIndizes.get(0), pFileChangeChunkList, EChangeSide.OLD);
+    int startOffset = FileChangesImpl.getOffsetForChunk(affectedIndizes.get(0), pFileChangeChunkList, EChangeSide.OLD);
     int numCharsToDelete = 0;
     for (Integer num : affectedIndizes)
     {
@@ -254,7 +254,7 @@ public class MergeDiffImpl implements IMergeDiff
     {
       List<IFileChangeChunk> changeChunkList = pFileChangeSupplier.get().getChangeChunks().blockingFirst().getNewValue();
       int indexInList = changeChunkList.indexOf(pToChangeChunk);
-      EditorChangeImpl editorChange = new EditorChangeImpl(FileChangesImpl._getOffsetForChunk(indexInList, changeChunkList, EChangeSide.OLD),
+      EditorChangeImpl editorChange = new EditorChangeImpl(FileChangesImpl.getOffsetForChunk(indexInList, changeChunkList, EChangeSide.OLD),
                                                            pToChangeChunk.getLines(EChangeSide.OLD).length(),
                                                            pToChangeChunk.getLines(EChangeSide.NEW));
       // create new IFileChangeChunks since IFileChangeChunks are effectively final

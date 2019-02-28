@@ -1,8 +1,6 @@
 package de.adito.git.gui;
 
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.*;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -27,27 +25,37 @@ public class TextHighlightUtil
 
   /**
    * @param pEditorPane       JEditorPane that should be filled with text and colored
-   * @param pFileChangeChunks IFileChangeChunks determining the text and highlighting
+   * @param pFileChangesEvent IFileChangesEvent that has the current list of IFileChangeChunks and the descriptions about the changes that have to
+   *                          happen to the contents of the editor to keep it in sync with the list of IFileChangeChunks, without throwing away the
+   *                          complete text
    * @param pChangeSide       which side of a IFileChangeChunk should be taken
    */
-  public static void insertColoredText(JEditorPane pEditorPane, List<IFileChangeChunk> pFileChangeChunks, EChangeSide pChangeSide)
+  public static void insertColoredText(JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, EChangeSide pChangeSide)
   {
-    _insertColoredText(pEditorPane, pFileChangeChunks, pChangeSide, ArrayList::new);
+    _insertColoredText(pEditorPane, pFileChangesEvent, pChangeSide, () -> _getHighlightSpots(pEditorPane, pFileChangesEvent.getNewValue(),
+                                                                                             pChangeSide));
   }
 
   /**
    * Combines the highlighting of two List of IFileChangeChunks, text is assumed to be identical
    *
    * @param pEditorPane            JEditorPane that should be filled with text and colored
-   * @param pYourFileChangeChunks  IFileChangeChunks determining the text and highlighting
-   * @param pTheirFileChangeChunks IFileChangeChunks determining the text and highlighting
+   * @param pYourFileChangesEvent  IFileChangeChunks determining the text and highlighting
+   * @param pTheirFileChangesEvent IFileChangeChunks determining the text and highlighting
    * @param pChangeSide            which side of a IFileChangeChunk should be taken
    */
-  public static void insertColoredText(JEditorPane pEditorPane, List<IFileChangeChunk> pYourFileChangeChunks,
-                                       List<IFileChangeChunk> pTheirFileChangeChunks, EChangeSide pChangeSide)
+  public static void insertColoredText(JEditorPane pEditorPane, IFileChangesEvent pYourFileChangesEvent,
+                                       IFileChangesEvent pTheirFileChangesEvent, EChangeSide pChangeSide)
   {
-    _insertColoredText(pEditorPane, pYourFileChangeChunks, pChangeSide,
-                       () -> _getHighlightSpots(pEditorPane, pTheirFileChangeChunks, pChangeSide));
+    List<_Highlight> highlightSpots = _getHighlightSpots(pEditorPane, pTheirFileChangesEvent.getNewValue(), pChangeSide);
+    highlightSpots.addAll(_getHighlightSpots(pEditorPane, pYourFileChangesEvent.getNewValue(), pChangeSide));
+    IFileChangesEvent passOnEvent = pYourFileChangesEvent;
+    if (pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength() > 0
+        && pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength()
+        < pYourFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength())
+      passOnEvent = pTheirFileChangesEvent;
+    _insertColoredText(pEditorPane, passOnEvent, pChangeSide,
+                       () -> highlightSpots);
   }
 
   /**
@@ -87,48 +95,42 @@ public class TextHighlightUtil
   }
 
   /**
-   * @param pJEditorPane                  JEditorPane that should be filled with text and colored
-   * @param pFileChangeChunks             List of IFileChangeChunks providing the text and the information about which areas to highlight
-   * @param pChangeSide                   which side of a IFileChangeChunk should be taken
-   * @param pAdditionalHighlightsSupplier Supplier of list of _Highlight determining which additional areas get colored and the color of the areas
+   * @param pJEditorPane        JEditorPane that should be filled with text and colored
+   * @param pFileChangesEvent   IFileChangesEvent that has the current list of IFileChangeChunks and the descriptions about the changes that have to
+   *                            happen to the contents of the editor to keep it in sync with the list of IFileChangeChunks, without throwing away the
+   *                            complete text
+   * @param pChangeSide         which side of a IFileChangeChunk should be taken
+   * @param pHighlightsSupplier Supplier of list of _Highlight determining which additional areas get colored and the color of the areas
+   *                            This is a supplier instead of a list because the text has to be inserted before the highlights are calculated
    */
-  private static void _insertColoredText(JEditorPane pJEditorPane, List<IFileChangeChunk> pFileChangeChunks,
-                                         EChangeSide pChangeSide, Supplier<List<_Highlight>> pAdditionalHighlightsSupplier)
+  private static void _insertColoredText(JEditorPane pJEditorPane, IFileChangesEvent pFileChangesEvent,
+                                         EChangeSide pChangeSide, Supplier<List<_Highlight>> pHighlightsSupplier)
   {
-    StringBuilder paneContentBuilder = new StringBuilder();
-    for (IFileChangeChunk changeChunk : pFileChangeChunks)
+    try
     {
-      paneContentBuilder.append(changeChunk.getLines(pChangeSide));
-      paneContentBuilder.append(changeChunk.getParityLines(pChangeSide));
-    }
-    pJEditorPane.setText(paneContentBuilder.toString());
-    int numParityLines = 0;
-    List<_Highlight> highlights = pAdditionalHighlightsSupplier.get();
-    for (IFileChangeChunk changeChunk : pFileChangeChunks)
-    {
-      if (changeChunk.getChangeType() != EChangeType.SAME)
+      IEditorChange editorChange = pFileChangesEvent.getEditorChange().getChange(pChangeSide);
+      if (editorChange.getType() == EChangeType.DELETE || editorChange.getType() == EChangeType.MODIFY)
       {
-        // use maxEditorLineIndex to min(maxEditorLineIndex, x) to make sure no oOBException occurs, better to have a wrong result before update
-        int maxEditorLineIndex = pJEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1;
-        int startOffset = pJEditorPane.getDocument().getDefaultRootElement()
-            .getElement(Math.min(maxEditorLineIndex, changeChunk.getStart(pChangeSide) + numParityLines)).getStartOffset();
-        numParityLines += changeChunk.getParityLines(pChangeSide).length();
-        // Minus one in the getElement() because the last line is not included. In an empty file this would be -1, so use Math.max(0, x)
-        int endOffset = pJEditorPane.getDocument().getDefaultRootElement()
-            .getElement(
-                Math.min(maxEditorLineIndex,
-                         Math.max(0, changeChunk.getEnd(pChangeSide) + numParityLines - 1)))
-            .getEndOffset();
-        // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
-        if (startOffset < endOffset)
-          endOffset -= 1;
-        highlights.add(new _Highlight(startOffset, endOffset,
-                                      new LineHighlightPainter(changeChunk.getChangeType().getDiffColor(),
-                                                               startOffset == endOffset ? LineHighlightPainter.Mode.THIN_LINE
-                                                                   : LineHighlightPainter.Mode.WHOLE_LINE)));
+        pJEditorPane.getDocument().remove(editorChange.getOffset(), editorChange.getLength());
+      }
+      if (editorChange.getType() == EChangeType.MODIFY || editorChange.getType() == EChangeType.ADD)
+      {
+        String cleanedInsertText = editorChange.getText();
+        if (cleanedInsertText != null)
+        {
+          if (cleanedInsertText.contains("\n"))
+            cleanedInsertText = cleanedInsertText.replace("\r", "");
+          else
+            cleanedInsertText = cleanedInsertText.replace("\r", "\n");
+        }
+        pJEditorPane.getDocument().insertString(editorChange.getOffset(), cleanedInsertText, null);
       }
     }
-    _colorHighlights(pJEditorPane, highlights);
+    catch (BadLocationException pE)
+    {
+      throw new RuntimeException(pE);
+    }
+    _colorHighlights(pJEditorPane, pHighlightsSupplier.get());
   }
 
   private static void _colorHighlights(JEditorPane pJEditorPane, List<_Highlight> pHighlightSpots)

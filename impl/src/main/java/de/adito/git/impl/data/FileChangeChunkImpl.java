@@ -17,42 +17,26 @@ public class FileChangeChunkImpl implements IFileChangeChunk
   private final Edit edit;
   private final String oldString;
   private final String newString;
-  private final String oldParityLines;
-  private final String newParityLines;
   private final EChangeType changeType;
-
-  FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString)
-  {
-    this(pEdit, pOldString, pNewString, "", "", null);
-  }
-
-  public FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, @Nullable EChangeType pChangeType)
-  {
-    this(pEdit, pOldString, pNewString, "", "", pChangeType);
-  }
 
   public FileChangeChunkImpl(IFileChangeChunk pChangeChunk, EChangeType pChangeType)
   {
     this(new Edit(pChangeChunk.getStart(EChangeSide.OLD), pChangeChunk.getEnd(EChangeSide.OLD), pChangeChunk.getStart(EChangeSide.NEW),
-                  pChangeChunk.getEnd(EChangeSide.NEW)), pChangeChunk.getLines(EChangeSide.OLD), pChangeChunk.getLines(EChangeSide.NEW),
-         pChangeChunk.getParityLines(EChangeSide.OLD), pChangeChunk.getParityLines(EChangeSide.NEW), pChangeType);
+                  pChangeChunk.getEnd(EChangeSide.NEW)), pChangeChunk.getLines(EChangeSide.OLD), pChangeChunk.getLines(EChangeSide.NEW), pChangeType);
   }
 
-  FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, String pOldParityLines, String pNewParityLines)
+  FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString)
   {
-    this(pEdit, pOldString, pNewString, pOldParityLines, pNewParityLines, null);
+    this(pEdit, pOldString, pNewString, null);
 
   }
 
-  FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, String pOldParityLines, String pNewParityLines,
-                      @Nullable EChangeType pChangeType)
+  public FileChangeChunkImpl(Edit pEdit, String pOldString, String pNewString, @Nullable EChangeType pChangeType)
   {
     edit = pEdit;
     oldString = pOldString;
     newString = pNewString;
     changeType = pChangeType;
-    oldParityLines = pOldParityLines;
-    newParityLines = pNewParityLines;
   }
 
   @Override
@@ -102,12 +86,6 @@ public class FileChangeChunkImpl implements IFileChangeChunk
   }
 
   @Override
-  public String getParityLines(EChangeSide pChangeSide)
-  {
-    return pChangeSide == EChangeSide.OLD ? oldParityLines : newParityLines;
-  }
-
-  @Override
   public boolean equals(Object pO)
   {
     if (this == pO) return true;
@@ -122,6 +100,6 @@ public class FileChangeChunkImpl implements IFileChangeChunk
   @Override
   public int hashCode()
   {
-    return Objects.hash(edit, oldString, newString, oldParityLines, newParityLines, changeType);
+    return Objects.hash(edit, oldString, newString, changeType);
   }
 }

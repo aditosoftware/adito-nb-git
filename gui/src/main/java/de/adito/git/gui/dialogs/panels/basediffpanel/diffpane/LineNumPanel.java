@@ -112,7 +112,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
             lineNums.add(_calculateLineNumberPosition(pEditorPane, numberedLineCounter, lineCounter, index, view));
           }
           numberedLineCounter += numLines;
-          lineCounter += numLines + fileChange.getParityLines(model.getChangeSide()).length();
+          lineCounter += numLines;
         }
         lineNumbers = lineNums;
       }
