@@ -48,6 +48,8 @@ public class MarkedScrollbar extends JScrollBar
   {
     markings = pMarkings;
     bufferedImage = _calculateImage(markings);
+    revalidate();
+    repaint();
   }
 
   @Override

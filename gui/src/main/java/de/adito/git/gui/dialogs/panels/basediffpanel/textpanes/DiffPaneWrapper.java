@@ -185,7 +185,6 @@ public class DiffPaneWrapper implements IDiscardable
     {
       throw new RuntimeException(e);
     }
-    SwingUtilities.invokeLater(() -> editorPane.setCaretPosition(0));
   }
 
   private void _textChanged(IFileChangesEvent pChangesEvent)
@@ -194,5 +193,9 @@ public class DiffPaneWrapper implements IDiscardable
     TextHighlightUtil.insertColoredText(editorPane,
                                         pChangesEvent,
                                         model.getChangeSide());
+    SwingUtilities.invokeLater(() -> {
+      editorPane.revalidate();
+      editorPane.repaint();
+    });
   }
 }

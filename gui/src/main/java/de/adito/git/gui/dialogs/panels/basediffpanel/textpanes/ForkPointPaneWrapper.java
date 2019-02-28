@@ -77,6 +77,8 @@ public class ForkPointPaneWrapper implements IDiscardable
                                           pChangeChunkLists.yourVersion,
                                           pChangeChunkLists.theirVersion,
                                           EChangeSide.OLD);
+      editorPane.revalidate();
+      editorPane.repaint();
       paneDocumentListener.enable();
     }
   }
