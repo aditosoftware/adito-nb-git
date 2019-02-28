@@ -75,6 +75,7 @@ public class MergeDiffImpl implements IMergeDiff
         pChangeChunk.getLines(EChangeSide.NEW),
         EChangeType.SAME);
     getDiff(pConflictSide).getFileChanges().replace(pChangeChunk, replaceWith, true);
+    getDiff(pConflictSide == CONFLICT_SIDE.YOURS ? CONFLICT_SIDE.THEIRS : CONFLICT_SIDE.YOURS).getFileChanges().emptyUpdate();
   }
 
   /**
@@ -158,7 +159,6 @@ public class MergeDiffImpl implements IMergeDiff
     // if newlines were added/removed, find out how many
     if (pText.contains("\n"))
     {
-      updateUI = true;
       additionalLines = (int) pText.chars().filter(chr -> chr == '\n').count();
       // if the newlines were deleted the number of newlines is negative
       if (!pInsert)

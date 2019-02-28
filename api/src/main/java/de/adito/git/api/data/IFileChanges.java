@@ -35,6 +35,11 @@ public interface IFileChanges
   void resetChanges(@NotNull IFileChangeChunk pToChangeChunk);
 
   /**
+   * sends out a new item in the observable, with the list of the last sent out item and an empty editEvent
+   */
+  void emptyUpdate();
+
+  /**
    * Replaces pCurrent in the list provided by getChangeChunks by pReplaceWith
    *
    * @param pCurrent       IFileChangeChunk to replace, should be part of the list in getChangeChunks()

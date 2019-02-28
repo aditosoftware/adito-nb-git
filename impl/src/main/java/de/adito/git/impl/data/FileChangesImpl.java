@@ -296,6 +296,12 @@ public class FileChangesImpl implements IFileChanges
     return offset;
   }
 
+  @Override
+  public void emptyUpdate()
+  {
+    changeEventObservable.onNext(new FileChangesEventImpl(true, changeEventObservable.blockingFirst().getNewValue(), new EditorChangeEventImpl(new EditorChangeImpl(0, -1, null), new EditorChangeImpl(0, -1, null))));
+  }
+
   /**
    * {@inheritDoc}
    */
