@@ -1,5 +1,6 @@
 package de.adito.git.impl.data;
 
+import de.adito.git.api.data.IEditorChangeEvent;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChangesEvent;
 
@@ -13,11 +14,13 @@ public class FileChangesEventImpl implements IFileChangesEvent
 
   private final boolean isUpdateUI;
   private final List<IFileChangeChunk> currentFileChangeChunks;
+  private final IEditorChangeEvent editorChange;
 
-  public FileChangesEventImpl(boolean pIsUpdateUI, List<IFileChangeChunk> pCurrentFileChangeChunks)
+  public FileChangesEventImpl(boolean pIsUpdateUI, List<IFileChangeChunk> pCurrentFileChangeChunks, IEditorChangeEvent pEditorChange)
   {
     isUpdateUI = pIsUpdateUI;
     currentFileChangeChunks = pCurrentFileChangeChunks;
+    editorChange = pEditorChange;
   }
 
   /**
@@ -36,5 +39,14 @@ public class FileChangesEventImpl implements IFileChangesEvent
   public List<IFileChangeChunk> getNewValue()
   {
     return currentFileChangeChunks;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public IEditorChangeEvent getEditorChange()
+  {
+    return editorChange;
   }
 }

@@ -26,4 +26,8 @@ public interface IFileChangesEvent
    */
   List<IFileChangeChunk> getNewValue();
 
+  /**
+   * @return IEditorChangeEvent describing the change that has to happen in the editor to reflect the current state of the IFileChangeChunks
+   */
+  IEditorChangeEvent getEditorChange();
 }

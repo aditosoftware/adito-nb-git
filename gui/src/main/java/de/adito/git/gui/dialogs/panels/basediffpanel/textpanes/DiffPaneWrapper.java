@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
@@ -15,11 +15,9 @@ import org.openide.modules.Modules;
 import javax.swing.*;
 import javax.swing.text.EditorKit;
 import javax.swing.text.SimpleAttributeSet;
-import java.awt.Rectangle;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.lang.reflect.Field;
-import java.util.List;
 
 /**
  * Wrapper around a DiffPane, similar to ForkPointPaneWrapper. Made so that both use a DiffPane for displaying the LineNumPanels/ChoiceButtonPanels
@@ -72,7 +70,7 @@ public class DiffPaneWrapper implements IDiscardable
     fileChangeDisposable = model.getFileChangesObservable()
         .subscribe(pFileChangesEvent -> {
           if (pFileChangesEvent.isUpdateUI())
-            _textChanged(pFileChangesEvent.getNewValue());
+            _textChanged(pFileChangesEvent);
         });
     editorKitDisposable = pEditorKitObservable.subscribe(pEditorKit -> SwingUtilities.invokeLater(() -> _setEditorKit(pEditorKit)));
     MarkedScrollbar markedScrollbar = new MarkedScrollbar();
@@ -190,20 +188,11 @@ public class DiffPaneWrapper implements IDiscardable
     SwingUtilities.invokeLater(() -> editorPane.setCaretPosition(0));
   }
 
-  private void _textChanged(List<IFileChangeChunk> pChangeChunkList)
+  private void _textChanged(IFileChangesEvent pChangesEvent)
   {
-    final int caretPosition = editorPane.getCaretPosition();
-    final Rectangle visibleRect = getScrollPane() != null ? getScrollPane().getVisibleRect() : new Rectangle();
-    // insert the text from the IFileDiffs
+    // insert the text from the event
     TextHighlightUtil.insertColoredText(editorPane,
-                                        pChangeChunkList,
+                                        pChangesEvent,
                                         model.getChangeSide());
-    editorPane.revalidate();
-    SwingUtilities.invokeLater(() -> {
-      // For whatever reason the EditorCaret thinks it's a good idea to jump to the caret position on text change in a disabled EditorPane,
-      // this at least doesn't jump the editor to the bottom of the editor each time and jumps back if the user remembers to set the caret
-      editorPane.setCaretPosition(Math.min(caretPosition, editorPane.getDocument().getLength()));
-      editorPane.scrollRectToVisible(visibleRect);
-    });
   }
 }

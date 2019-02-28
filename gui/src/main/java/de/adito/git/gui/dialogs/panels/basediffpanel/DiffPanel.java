@@ -42,7 +42,7 @@ public class DiffPanel extends JPanel implements IDiscardable
   {
     Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
-        .orElse(Observable.just(new FileChangesEventImpl(true, Collections.emptyList()))));
+        .orElse(Observable.just(new FileChangesEventImpl(true, Collections.emptyList(), null))));
     LineNumbersColorModel[] lineNumbersColorModels = new LineNumbersColorModel[2];
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.NEW);
     currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);

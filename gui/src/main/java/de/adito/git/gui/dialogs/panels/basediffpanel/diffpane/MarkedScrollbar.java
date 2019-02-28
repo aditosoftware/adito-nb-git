@@ -38,6 +38,7 @@ public class MarkedScrollbar extends JScrollBar
 
   public MarkedScrollbar()
   {
+    super();
   }
 
   /**
