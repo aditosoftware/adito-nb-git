@@ -1,12 +1,19 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.rxjava.ViewPortSizeObservable;
+import de.adito.git.gui.swing.EditorUtils;
+import de.adito.git.impl.util.BiNavigateAbleMap;
+import de.adito.git.impl.util.DifferentialScrollBarCoupling;
+import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.View;
+import java.awt.Dimension;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera, 21.02.2019
@@ -76,4 +83,39 @@ public interface IDiffPaneUtil
     pTextComponent.requestFocus();
   }
 
+  /**
+   * synchronize two scrollPanes via the two editorPanes and the lines of the fileDiffs
+   *
+   * @param pScrollPaneOld     first scrollPane that should be synchronized
+   * @param pScrollPaneCurrent second scrollPane that should be synchronized
+   * @param pEditorPaneOld     editorPane that is contained in the first scrollPane
+   * @param pEditorPaneCurrent editorPane that is contained in the second scrollPane
+   * @param pFileDiffObs       Observable that has the current FileDiff
+   */
+  static DifferentialScrollBarCoupling synchronize(JScrollPane pScrollPaneOld, JScrollPane pScrollPaneCurrent, JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent,
+                                                   Observable<Optional<IFileDiff>> pFileDiffObs)
+  {
+    Observable<Dimension> viewPort1SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneOld.getViewport()));
+    Observable<Dimension> viewPort2SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneCurrent.getViewport()));
+    Observable<Dimension> viewPortsObs = Observable.zip(viewPort1SizeObs, viewPort2SizeObs, (pSize1, pSize2) -> pSize1);
+    Observable<BiNavigateAbleMap<Integer, Integer>> mapObservable =
+        Observable.combineLatest(viewPortsObs, pFileDiffObs, (pViewportSize, pFileDiffsOpt) -> {
+          BiNavigateAbleMap<Integer, Integer> heightMap = new BiNavigateAbleMap<>();
+          if (pFileDiffsOpt.isPresent())
+          {
+            // default entry: start is equal
+            heightMap.put(0, 0);
+            View oldEditorPaneView = pEditorPaneOld.getUI().getRootView(pEditorPaneOld);
+            View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
+            for (IFileChangeChunk changeChunk : pFileDiffsOpt.get().getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+            {
+              heightMap.put(EditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
+                            EditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
+            }
+          }
+          return heightMap;
+        });
+    return DifferentialScrollBarCoupling.coupleScrollBars(pScrollPaneOld.getVerticalScrollBar(),
+                                                          pScrollPaneCurrent.getVerticalScrollBar(), mapObservable);
+  }
 }
