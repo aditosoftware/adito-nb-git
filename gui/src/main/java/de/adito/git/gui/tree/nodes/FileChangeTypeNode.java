@@ -28,6 +28,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
   /**
    * @return FileChangeTypeNodeInfo stored in the userObject
    */
+  @Nullable
   public FileChangeTypeNodeInfo getInfo()
   {
     return (FileChangeTypeNodeInfo) getUserObject();
@@ -51,50 +52,60 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
    */
   public void updateNode(List<IFileChangeType> pMembers, DefaultTreeModel pModel)
   {
-    getInfo().setMembers(pMembers);
-    File[] childFiles = getInfo().getNodeFile().listFiles();
-    List<File> existingChildFiles = new ArrayList<>();
-    children.forEach(pNode -> existingChildFiles.add(((FileChangeTypeNode) pNode).getInfo().getNodeFile()));
-    if (childFiles != null)
+    if (getInfo() != null)
     {
-      for (File childFile : childFiles)
+      getInfo().setMembers(pMembers);
+      File[] childFiles = getInfo().getNodeFile().listFiles();
+      List<File> existingChildFiles = new ArrayList<>();
+      if (children != null)
       {
-        List<IFileChangeType> childMembers = _getChildMembers(pMembers, childFile);
-        Optional<File> matchingFileOpt = existingChildFiles
-            .stream()
-            .filter(pExistingChildFile -> _isChildMember(pExistingChildFile, childFile)).findFirst();
-        FileChangeTypeNode childNode = _getChildNodeForFile(this, childFile);
-        if (childNode != null)
+        children.forEach(pNode -> {
+          FileChangeTypeNodeInfo info = ((FileChangeTypeNode) pNode).getInfo();
+          if (info != null)
+            existingChildFiles.add(info.getNodeFile());
+        });
+      }
+      if (childFiles != null)
+      {
+        for (File childFile : childFiles)
         {
-          if (matchingFileOpt.isPresent())
+          List<IFileChangeType> childMembers = _getChildMembers(pMembers, childFile);
+          Optional<File> matchingFileOpt = existingChildFiles
+              .stream()
+              .filter(pExistingChildFile -> _isChildMember(pExistingChildFile, childFile)).findFirst();
+          FileChangeTypeNode childNode = _getChildNodeForFile(this, childFile);
+          if (childNode != null)
           {
-            if (_getChildMembers(pMembers, matchingFileOpt.get()).equals(childMembers))
+            if (matchingFileOpt.isPresent())
             {
-              if (childMembers.isEmpty())
+              if (_getChildMembers(pMembers, matchingFileOpt.get()).equals(childMembers))
               {
+                if (childMembers.isEmpty())
+                {
+                  remove(childNode);
+                  pModel.reload(this);
+                }
+                else if (childFile.isDirectory())
+                  childNode.updateNode(childMembers, pModel);
+              }
+              else
+              {
+                int indexNow = getIndex(childNode);
                 remove(childNode);
+                FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
+                insert(treeNode, indexNow);
+                calculateChildren(treeNode, childMembers, childFile);
                 pModel.reload(this);
               }
-              else if (childFile.isDirectory())
-                childNode.updateNode(childMembers, pModel);
-            }
-            else
-            {
-              int indexNow = getIndex(childNode);
-              remove(childNode);
-              FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
-              insert(treeNode, indexNow);
-              calculateChildren(treeNode, childMembers, childFile);
-              pModel.reload(this);
             }
           }
-        }
-        else if (!childMembers.isEmpty())
-        {
-          FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
-          insert(treeNode, 0);
-          calculateChildren(treeNode, childMembers, childFile);
-          pModel.reload(this);
+          else if (!childMembers.isEmpty())
+          {
+            FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
+            insert(treeNode, 0);
+            calculateChildren(treeNode, childMembers, childFile);
+            pModel.reload(this);
+          }
         }
       }
     }
@@ -219,11 +230,14 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
   @Nullable
   private static FileChangeTypeNode _getChildNodeForFile(FileChangeTypeNode pNode, File pFile)
   {
-    for (TreeNode childNode : pNode.children)
+    if (pNode.children != null)
     {
-      if (_isChildMember(((FileChangeTypeNode) childNode).getInfo().getNodeFile(), pFile))
+      for (TreeNode childNode : pNode.children)
       {
-        return (FileChangeTypeNode) childNode;
+        if (_isChildMember(((FileChangeTypeNode) childNode).getInfo().getNodeFile(), pFile))
+        {
+          return (FileChangeTypeNode) childNode;
+        }
       }
     }
     return null;
