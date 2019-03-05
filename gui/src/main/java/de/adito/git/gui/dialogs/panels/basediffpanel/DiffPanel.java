@@ -6,15 +6,22 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.swing.EditorUtils;
 import de.adito.git.impl.data.FileChangesEventImpl;
+import de.adito.git.impl.util.BiNavigateAbleMap;
+import de.adito.git.impl.util.DifferentialScrollBarCoupling;
+import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.EditorKit;
+import javax.swing.text.View;
 import java.awt.BorderLayout;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -28,6 +35,7 @@ public class DiffPanel extends JPanel implements IDiscardable
 
   private final DiffPaneWrapper currentVersionDiffPane;
   private final DiffPaneWrapper oldVersionDiffPane;
+  private DifferentialScrollBarCoupling differentialScrollBarCoupling = null;
 
   /**
    * @param pIconLoader          IIconLoader for loading Icons
@@ -60,7 +68,8 @@ public class DiffPanel extends JPanel implements IDiscardable
     JScrollPane oldVersionScrollPane = oldVersionDiffPane.getScrollPane();
     oldVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     oldVersionScrollPane.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-    _bridge(oldVersionScrollPane.getVerticalScrollBar().getModel(), currentVersionScrollPane.getVerticalScrollBar().getModel());
+    _synchronize(oldVersionScrollPane, currentVersionScrollPane, oldVersionDiffPane.getEditorPane(), currentVersionDiffPane.getEditorPane(),
+                 pFileDiffObs);
     setLayout(new BorderLayout());
     JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, oldVersionDiffPane.getPane(), currentVersionDiffPane.getPane());
     mainSplitPane.setResizeWeight(0.5);
@@ -74,6 +83,7 @@ public class DiffPanel extends JPanel implements IDiscardable
   {
     currentVersionDiffPane.discard();
     oldVersionDiffPane.discard();
+    differentialScrollBarCoupling.discard();
   }
 
   private JToolBar _initToolBar(IIconLoader pIconLoader)
@@ -101,10 +111,75 @@ public class DiffPanel extends JPanel implements IDiscardable
     return toolBar;
   }
 
-  private static void _bridge(BoundedRangeModel pModel1, BoundedRangeModel pModel2)
+  /**
+   * synchronize two scrollPanes via the two editorPanes and the lines of the fileDiffs
+   *
+   * @param pScrollPaneOld     first scrollPane that should be synchronized
+   * @param pScrollPaneCurrent second scrollPane that should be synchronized
+   * @param pEditorPaneOld     editorPane that is contained in the first scrollPane
+   * @param pEditorPaneCurrent editorPane that is contained in the second scrollPane
+   * @param pFileDiffObs       Observable that has the current FileDiff
+   */
+  private void _synchronize(JScrollPane pScrollPaneOld, JScrollPane pScrollPaneCurrent, JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent,
+                            Observable<Optional<IFileDiff>> pFileDiffObs)
   {
-    pModel1.addChangeListener(pE -> pModel2.setValue(pModel1.getValue()));
-    pModel2.addChangeListener(pE -> pModel1.setValue(pModel2.getValue()));
+    Observable<Dimension> viewPort1SizeObs = Observable.create(new _ViewPortSizeObservable(pScrollPaneOld.getViewport()));
+    Observable<Dimension> viewPort2SizeObs = Observable.create(new _ViewPortSizeObservable(pScrollPaneCurrent.getViewport()));
+    Observable<Dimension> viewPortsObs = Observable.zip(viewPort1SizeObs, viewPort2SizeObs, (pSize1, pSize2) -> pSize1);
+    Observable<BiNavigateAbleMap<Integer, Integer>> mapObservable =
+        Observable.combineLatest(viewPortsObs, pFileDiffObs, (pViewportSize, pFileDiffsOpt) -> {
+          BiNavigateAbleMap<Integer, Integer> heightMap = new BiNavigateAbleMap<>();
+          if (pFileDiffsOpt.isPresent())
+          {
+            // default entry: start is equal
+            heightMap.put(0, 0);
+            View oldEditorPaneView = pEditorPaneOld.getUI().getRootView(pEditorPaneOld);
+            View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
+            for (IFileChangeChunk changeChunk : pFileDiffsOpt.get().getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+            {
+              heightMap.put(EditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
+                            EditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
+            }
+          }
+          return heightMap;
+        });
+    differentialScrollBarCoupling = DifferentialScrollBarCoupling.coupleScrollBars(pScrollPaneOld.getVerticalScrollBar(),
+                                                                                   pScrollPaneCurrent.getVerticalScrollBar(), mapObservable);
+  }
+
+  /**
+   * Observable that fires each time the size of the viewPort window changes
+   */
+  private static class _ViewPortSizeObservable extends AbstractListenerObservable<ChangeListener, JViewport, Dimension>
+  {
+
+    private Dimension cachedViewportSize = new Dimension(0, 0);
+
+    _ViewPortSizeObservable(@NotNull JViewport pListenableValue)
+    {
+      super(pListenableValue);
+    }
+
+    @NotNull
+    @Override
+    protected ChangeListener registerListener(@NotNull JViewport pJViewport, @NotNull IFireable<Dimension> pIFireable)
+    {
+      ChangeListener changeListener = e -> {
+        if (!pJViewport.getViewSize().equals(cachedViewportSize))
+        {
+          cachedViewportSize = pJViewport.getViewSize();
+          pIFireable.fireValueChanged(pJViewport.getViewSize());
+        }
+      };
+      pJViewport.addChangeListener(changeListener);
+      return changeListener;
+    }
+
+    @Override
+    protected void removeListener(@NotNull JViewport pJViewport, @NotNull ChangeListener pChangeListener)
+    {
+      pJViewport.removeChangeListener(pChangeListener);
+    }
   }
 
 }

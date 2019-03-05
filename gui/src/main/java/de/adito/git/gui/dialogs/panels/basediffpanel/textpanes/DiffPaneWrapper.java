@@ -95,6 +95,14 @@ public class DiffPaneWrapper implements IDiscardable
     return diffPane;
   }
 
+  /**
+   * @return the JEditorPane displaying the text for this DiffPaneWrapper
+   */
+  public JEditorPane getEditorPane()
+  {
+    return editorPane;
+  }
+
   public boolean isEditorFocusOwner()
   {
     return editorPane.isFocusOwner();
