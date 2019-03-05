@@ -1,9 +1,9 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChangesEvent;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;

@@ -1,14 +1,18 @@
 package de.adito.git.nbm.vcs;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.IDiscardable;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
-import org.netbeans.api.project.*;
-import org.netbeans.modules.versioning.spi.*;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
+import org.netbeans.modules.versioning.spi.VCSAnnotator;
+import org.netbeans.modules.versioning.spi.VersioningSystem;
 
 import java.io.File;
 import java.util.*;

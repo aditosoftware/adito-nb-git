@@ -1,9 +1,9 @@
 package de.adito.git.gui.tablemodels;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.IDiscardable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 

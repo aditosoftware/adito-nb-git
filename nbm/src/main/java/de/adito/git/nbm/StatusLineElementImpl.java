@@ -1,8 +1,8 @@
 package de.adito.git.nbm;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import de.adito.git.nbm.observables.ActivatedNodesObservable;
@@ -15,8 +15,10 @@ import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.WindowManager;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Optional;
 
 /**

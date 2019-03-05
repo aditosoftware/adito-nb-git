@@ -2,12 +2,9 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IFileSystemUtil;
-import de.adito.git.api.IQuickSearchProvider;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;

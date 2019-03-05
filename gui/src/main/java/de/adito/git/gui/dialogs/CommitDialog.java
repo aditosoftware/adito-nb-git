@@ -2,12 +2,12 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.FileStatusCellRenderer;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;

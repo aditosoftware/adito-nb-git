@@ -1,7 +1,7 @@
 package de.adito.git.gui.tree.models;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import io.reactivex.Observable;

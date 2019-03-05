@@ -1,6 +1,6 @@
 package de.adito.git.gui.actions;
 
-import de.adito.git.gui.IDiscardable;
+import de.adito.git.api.IDiscardable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 

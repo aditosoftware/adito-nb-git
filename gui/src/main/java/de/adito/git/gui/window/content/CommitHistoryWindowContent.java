@@ -4,22 +4,26 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.*;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
-import de.adito.git.gui.quicksearch.*;
+import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Class to display all commits

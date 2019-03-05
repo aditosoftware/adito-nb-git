@@ -1,9 +1,9 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;

@@ -1,10 +1,10 @@
 package de.adito.git.nbm.sidebar;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;

@@ -1,8 +1,8 @@
 package de.adito.git.nbm.sidebar;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
-import de.adito.git.gui.IDiscardable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.util.DocumentObservable;
 import de.adito.util.reactive.AbstractListenerObservable;

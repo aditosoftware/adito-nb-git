@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import de.adito.git.gui.IDiscardable;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.util.reactive.AbstractListenerObservable;

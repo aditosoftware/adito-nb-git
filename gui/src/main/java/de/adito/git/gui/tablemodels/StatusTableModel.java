@@ -1,7 +1,7 @@
 package de.adito.git.gui.tablemodels;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.IDiscardable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;

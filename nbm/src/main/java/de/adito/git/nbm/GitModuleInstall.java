@@ -1,6 +1,6 @@
 package de.adito.git.nbm;
 
-import de.adito.git.gui.IDiscardable;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.nbm.repo.RepositoryCache;
 import org.netbeans.modules.versioning.core.util.VCSSystemProvider;
 import org.openide.modules.ModuleInstall;
