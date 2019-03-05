@@ -49,8 +49,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final _SelectedCommitTableModel commitTableModel;
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
-  private IDialogDisplayer.IDescriptor isValidDescriptor;
   private final Observable<Optional<IRepository>> repository;
+  private final DocumentListener allowCommitListener = new _EmptyDocumentListener();
+  private IDialogDisplayer.IDescriptor isValidDescriptor;
 
   @Inject
   public CommitDialog(IQuickSearchProvider pQuickSearchProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
@@ -81,8 +82,12 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     JScrollPane scroller = new JScrollPane(fileStatusTable);
     tableSearchView.add(scroller, BorderLayout.CENTER);
     SwingUtilities.invokeLater(() -> {
+      // remove listener from current document, as the new editorKit is likely to change the document of the messagePane
+      messagePane.getDocument().removeDocumentListener(allowCommitListener);
       messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
       messagePane.setText(pMessageTemplate);
+      // (re-)register the listener for enabling/disabling the OK button
+      messagePane.getDocument().addDocumentListener(allowCommitListener);
     });
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
@@ -123,7 +128,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
-    messagePane.getDocument().addDocumentListener(new _EmptyDocumentListener()); // Listener for enabling/disabling the OK button
 
     JPanel messagePaneWithHeader = new JPanel(new BorderLayout());
     LinedDecorator cmDecorator = new LinedDecorator("Commit Message", 32);
