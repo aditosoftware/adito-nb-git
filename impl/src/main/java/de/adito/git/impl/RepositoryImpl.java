@@ -58,7 +58,7 @@ public class RepositoryImpl implements IRepository
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<Optional<IFileStatus>> status;
-  private final BehaviorSubject<Optional<IBranch>> currentBranchObservable;
+  private final Observable<Optional<IBranch>> currentBranchObservable;
   private final IFileSystemUtil fileSystemUtil;
   private final ColorRoulette colorRoulette;
 
@@ -81,7 +81,7 @@ public class RepositoryImpl implements IRepository
 
     // Current Branch
     Optional<IBranch> curBranch = RepositoryImplHelper.currentBranch(git, this::getBranch);
-    currentBranchObservable = BehaviorSubject.createDefault(curBranch);
+    currentBranchObservable = status.map(pStatus -> RepositoryImplHelper.currentBranch(git, this::getBranch)).startWith(curBranch).share();
   }
 
   /**
@@ -830,9 +830,7 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
-      Ref ref = git.checkout().setName(pId).call();
-      if (ref != null)
-        currentBranchObservable.onNext(Optional.of(new BranchImpl(ref)));
+      git.checkout().setName(pId).call();
     }
     catch (GitAPIException pE)
     {
@@ -848,9 +846,7 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
-      Ref ref = git.checkout().setStartPoint(pId).addPaths(pPaths).call();
-      if (ref != null)
-        currentBranchObservable.onNext(Optional.of(new BranchImpl(ref)));
+      git.checkout().setStartPoint(pId).addPaths(pPaths).call();
     }
     catch (GitAPIException pE)
     {
@@ -868,7 +864,6 @@ public class RepositoryImpl implements IRepository
     try
     {
       checkout.call();
-      currentBranchObservable.onNext(Optional.of(pBranch));
     }
     catch (GitAPIException e)
     {
