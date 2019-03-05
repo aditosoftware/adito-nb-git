@@ -190,7 +190,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     for (LineNumber lineNumber : pLineNumbers)
     {
       pGraphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate(),
-                           lineNumber.getYCoordinate() + pGraphics.getFontMetrics().getHeight());
+                           lineNumber.getYCoordinate() + pGraphics.getFontMetrics().getAscent());
     }
   }
 

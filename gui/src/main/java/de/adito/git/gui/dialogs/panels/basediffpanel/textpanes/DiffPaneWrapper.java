@@ -13,6 +13,7 @@ import io.reactivex.disposables.Disposable;
 import org.openide.modules.Modules;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
 import javax.swing.text.SimpleAttributeSet;
 import java.awt.event.FocusEvent;
@@ -50,6 +51,7 @@ public class DiffPaneWrapper implements IDiscardable
   {
     model = pModel;
     editorPane = new JEditorPane();
+    editorPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     editorPane.addFocusListener(new FocusListener()
     {
 

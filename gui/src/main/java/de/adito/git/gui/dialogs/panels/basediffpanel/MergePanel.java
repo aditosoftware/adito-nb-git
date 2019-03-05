@@ -10,6 +10,7 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -54,7 +55,9 @@ public class MergePanel extends JPanel implements IDiscardable
   {
     setLayout(new BorderLayout());
     JSplitPane forkMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, forkPointPaneWrapper.getPane(), theirsPaneWrapper.getPane());
+    forkMergeSplit.setBorder(new EmptyBorder(0, 0, 0, 0));
     JSplitPane threeWayPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, yoursPaneWrapper.getPane(), forkMergeSplit);
+    threeWayPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     // 0.5 so the initial split is equal. For perfect feel on resizing set to 1, this would make the right pane almost invisible at the start though
     forkMergeSplit.setResizeWeight(0.5);
     // 0.33 because the right side contains two sub-windows, the left only one

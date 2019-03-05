@@ -10,14 +10,15 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
 
 /**
- *  Wrapper around a DiffPane, similar to DiffPaneWrapper. Made so that both use a DiffPane for displaying the LineNumPanels/ChoiceButtonPanels
- *  while having different functionality in the central editorPane
+ * Wrapper around a DiffPane, similar to DiffPaneWrapper. Made so that both use a DiffPane for displaying the LineNumPanels/ChoiceButtonPanels
+ * while having different functionality in the central editorPane
  *
  * @author m.kaspera, 13.12.2018
  */
@@ -32,16 +33,16 @@ public class ForkPointPaneWrapper implements IDiscardable
   private final _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
 
   /**
-   * @param pMergeDiff MergeDiff that has all the information about the conflict that should be displayed/resolvable
+   * @param pMergeDiff           MergeDiff that has all the information about the conflict that should be displayed/resolvable
    * @param pEditorKitObservable Observable of the editorKit that should be used in the editorPane
    */
   public ForkPointPaneWrapper(IMergeDiff pMergeDiff, Observable<EditorKit> pEditorKitObservable)
   {
     mergeDiff = pMergeDiff;
     editorPane = new JEditorPane();
+    editorPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     editorKitDisposable = pEditorKitObservable.subscribe(this::_setEditorKit);
     diffPane = new DiffPane(editorPane);
-    editorPane.getDocument().addDocumentListener(paneDocumentListener);
     mergeDiffDisposable = Observable.zip(
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(), _ChangesEventPair::new)
@@ -58,12 +59,21 @@ public class ForkPointPaneWrapper implements IDiscardable
     return diffPane.getScrollPane();
   }
 
+  public JEditorPane getEditorPane()
+  {
+    return editorPane;
+  }
+
   private void _setEditorKit(EditorKit pEditorKit)
   {
+    // remove documentListener from the current document since the document could change with the new editorKit
+    editorPane.getDocument().removeDocumentListener(paneDocumentListener);
     String currentText = editorPane.getText();
     editorPane.setEditorKit(pEditorKit);
     editorPane.setText(currentText);
     editorPane.setCaretPosition(0);
+    // (re-) register documentListener
+    editorPane.getDocument().addDocumentListener(paneDocumentListener);
   }
 
   private void _refreshContent(_ChangesEventPair pChangeChunkLists)
