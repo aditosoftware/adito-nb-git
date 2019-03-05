@@ -2,20 +2,17 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 
-import static de.adito.git.gui.Constants.ACCEPT_CHANGE_THEIRS_ICON;
-import static de.adito.git.gui.Constants.ACCEPT_CHANGE_YOURS_ICON;
-import static de.adito.git.gui.Constants.DISCARD_CHANGE_ICON;
+import static de.adito.git.gui.Constants.*;
 
 /**
  * Dialog/Panel for displaying the merge-conflicts
@@ -48,62 +45,29 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
 
     JPanel diffPanel = new JPanel(new BorderLayout());
     diffPanel.add(mergePanel, BorderLayout.CENTER);
-    diffPanel.add(_initAcceptAllPanel(), BorderLayout.NORTH);
+    diffPanel.add(_initToolbar(), BorderLayout.NORTH);
     diffPanel.setPreferredSize(new Dimension(1600, 900));
     add(diffPanel, BorderLayout.CENTER);
   }
 
-  private JPanel _initAcceptAllPanel()
+  @NotNull
+  private JToolBar _initToolbar()
   {
-    JPanel topPanel = new JPanel(new BorderLayout());
-    topPanel.add(_initAcceptAllButtonPanel("accept remaining YOURS changes",
-                                           "discard all remaining YOURS changes",
-                                           IMergeDiff.CONFLICT_SIDE.YOURS), BorderLayout.WEST);
-    topPanel.add(_initAcceptAllButtonPanel("accept remaining THEIRS changes",
-                                           "discard all remaining THEIRS changes",
-                                           IMergeDiff.CONFLICT_SIDE.THEIRS), BorderLayout.EAST);
-    return topPanel;
-  }
+    JToolBar toolbar = new JToolBar();
+    toolbar.setFloatable(false);
 
-  private JPanel _initAcceptAllButtonPanel(String pAcceptButtonText, String pDiscardButtonText, IMergeDiff.CONFLICT_SIDE pConflictSide)
-  {
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
-    JButton acceptChangesButton = new JButton(pAcceptButtonText);
-    JButton discardChangesButton = new JButton(pDiscardButtonText);
-    acceptChangesButton.addActionListener(e -> _acceptAllChanges(pConflictSide));
-    discardChangesButton.addActionListener(e -> _discardAllChanges(pConflictSide));
-    buttonPanel.add(acceptChangesButton);
-    buttonPanel.add(discardChangesButton);
-    return buttonPanel;
-  }
+    // Merge-Panel-Actions (Next | Previous)
+    mergePanel.getActions().stream()
+        .map(JButton::new)
+        .forEach(toolbar::add);
 
-  /**
-   * @param pConflictSide CONFLICT_SIDE whose changes should be accepted
-   */
-  private void _acceptAllChanges(IMergeDiff.CONFLICT_SIDE pConflictSide)
-  {
-    for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
-    {
-      if (changeChunk.getChangeType() != EChangeType.SAME)
-      {
-        mergeDiff.acceptChunk(changeChunk, pConflictSide);
-      }
-    }
-  }
+    toolbar.addSeparator();
 
-  /**
-   * @param pConflictSide CONFLICT_SIDE whose changes should be discarded
-   */
-  private void _discardAllChanges(IMergeDiff.CONFLICT_SIDE pConflictSide)
-  {
-    for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
-    {
-      if (changeChunk.getChangeType() != EChangeType.SAME)
-      {
-        mergeDiff.discardChange(changeChunk, pConflictSide);
-      }
-    }
+    // Our Actions
+    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.YOURS)));
+    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.THEIRS)));
+
+    return toolbar;
   }
 
   @Override
@@ -116,5 +80,33 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
   public Object getInformation()
   {
     return null;
+  }
+
+  /**
+   * AcceptAll-ActionImpl
+   */
+  private class _AcceptAllActionImpl extends AbstractAction
+  {
+    private final IMergeDiff.CONFLICT_SIDE conflictSide;
+
+    public _AcceptAllActionImpl(@NotNull IMergeDiff.CONFLICT_SIDE pConflictSide)
+    {
+      super("", new ImageIcon(_AcceptAllActionImpl.class.getResource(pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ?
+                                                                         Constants.ACCEPT_ALL_LEFT : Constants.ACCEPT_ALL_RIGHT)));
+      putValue(SHORT_DESCRIPTION, "accept remaining " + pConflictSide.name() + " changes");
+      conflictSide = pConflictSide;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      for (IFileChangeChunk changeChunk : mergeDiff.getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+      {
+        if (changeChunk.getChangeType() != EChangeType.SAME)
+        {
+          mergeDiff.acceptChunk(changeChunk, conflictSide);
+        }
+      }
+    }
   }
 }

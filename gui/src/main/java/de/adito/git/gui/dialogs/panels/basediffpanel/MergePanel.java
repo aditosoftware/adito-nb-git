@@ -1,20 +1,19 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.*;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
-import java.awt.BorderLayout;
-import java.awt.ComponentOrientation;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.List;
 
 /**
  * Class that handles the layout of the merge dialog and creates the elements in that form the dialog
@@ -24,6 +23,7 @@ import java.awt.ComponentOrientation;
 public class MergePanel extends JPanel implements IDiscardable
 {
 
+  private final IIconLoader iconLoader;
   private final IMergeDiff mergeDiff;
   private final ImageIcon acceptYoursIcon;
   private final ImageIcon acceptTheirsIcon;
@@ -38,6 +38,7 @@ public class MergePanel extends JPanel implements IDiscardable
   public MergePanel(IIconLoader pIconLoader, IMergeDiff pMergeDiff, ImageIcon pAcceptYoursIcon, ImageIcon pAcceptTheirsIcon, ImageIcon pDiscardIcon,
                     IEditorKitProvider pEditorKitProvider)
   {
+    iconLoader = pIconLoader;
     mergeDiff = pMergeDiff;
     acceptYoursIcon = pAcceptYoursIcon;
     acceptTheirsIcon = pAcceptTheirsIcon;
@@ -46,10 +47,10 @@ public class MergePanel extends JPanel implements IDiscardable
     _initForkPointPanel();
     _initYoursPanel();
     _initTheirsPanel();
-    _initGui(pIconLoader);
+    _initGui();
   }
 
-  private void _initGui(IIconLoader pIconLoader)
+  private void _initGui()
   {
     setLayout(new BorderLayout());
     JSplitPane forkMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, forkPointPaneWrapper.getPane(), theirsPaneWrapper.getPane());
@@ -59,7 +60,6 @@ public class MergePanel extends JPanel implements IDiscardable
     // 0.33 because the right side contains two sub-windows, the left only one
     threeWayPane.setResizeWeight(0.33);
     add(threeWayPane, BorderLayout.CENTER);
-    add(_initToolBar(pIconLoader), BorderLayout.NORTH);
   }
 
   private void _initYoursPanel()
@@ -109,29 +109,41 @@ public class MergePanel extends JPanel implements IDiscardable
     rightForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, BorderLayout.EAST, 0);
   }
 
-  private JToolBar _initToolBar(IIconLoader pIconLoader)
+  @NotNull
+  public List<Action> getActions()
   {
-    JButton nextButton = new JButton(pIconLoader.getIcon(Constants.NEXT_OCCURRENCE));
-    nextButton.setFocusable(false);
-    nextButton.addActionListener(e -> {
-      if (yoursPaneWrapper.isEditorFocusOwner())
-        yoursPaneWrapper.moveCaretToNextChunk();
-      else
-        theirsPaneWrapper.moveCaretToNextChunk();
-    });
-    JButton previousButton = new JButton(pIconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE));
-    previousButton.setFocusable(false);
-    previousButton.addActionListener(e -> {
-      if (yoursPaneWrapper.isEditorFocusOwner())
-        yoursPaneWrapper.moveCaretToPreviousChunk();
-      else
-        theirsPaneWrapper.moveCaretToPreviousChunk();
-    });
-    JToolBar toolBar = new JToolBar();
-    toolBar.setFloatable(false);
-    toolBar.add(nextButton);
-    toolBar.add(previousButton);
-    return toolBar;
+    return List.of(
+        new AbstractAction("next", iconLoader.getIcon(Constants.NEXT_OCCURRENCE))
+        {
+          {
+            putValue(SHORT_DESCRIPTION, "next change");
+          }
+
+          @Override
+          public void actionPerformed(ActionEvent e)
+          {
+            if (yoursPaneWrapper.isEditorFocusOwner())
+              yoursPaneWrapper.moveCaretToNextChunk();
+            else
+              theirsPaneWrapper.moveCaretToNextChunk();
+          }
+        },
+        new AbstractAction("previous", iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE))
+        {
+          {
+            putValue(SHORT_DESCRIPTION, "previous change");
+          }
+
+          @Override
+          public void actionPerformed(ActionEvent e)
+          {
+            if (yoursPaneWrapper.isEditorFocusOwner())
+              yoursPaneWrapper.moveCaretToPreviousChunk();
+            else
+              theirsPaneWrapper.moveCaretToPreviousChunk();
+          }
+        }
+    );
   }
 
   @Override
