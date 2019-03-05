@@ -103,7 +103,8 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
   @Override
   public boolean isCollapseAble()
   {
-    return children != null
+    return parent != null
+        && children != null
         && children.size() == 1
         && getInfo().getNodeFile().isDirectory()
         && ((FileChangeTypeNode) children.get(0)).getInfo().getNodeFile().isDirectory();
