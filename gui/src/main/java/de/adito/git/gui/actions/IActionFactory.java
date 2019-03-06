@@ -69,6 +69,8 @@ interface IActionFactory
 
   OpenFileAction createOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
+  OpenFileStringAction createOpenFileStringAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pSelectedFile);
+
   RefreshContentAction createRefreshAction(Runnable pRefreshContentCallBack);
 
   FileHistoryAction createShowCommitsForFileAction(Observable<Optional<IRepository>> pRepository, Observable<List<File>> pFile);

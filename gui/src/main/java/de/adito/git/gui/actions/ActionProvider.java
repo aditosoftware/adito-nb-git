@@ -210,6 +210,12 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
+  public Action getOpenFileStringAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pSelectedFile)
+  {
+    return actionFactory.createOpenFileStringAction(pRepository, pSelectedFile);
+  }
+
+  @Override
   public Action getRefreshContentAction(Runnable pRefreshContentCallBack)
   {
     return actionFactory.createRefreshAction(pRefreshContentCallBack);

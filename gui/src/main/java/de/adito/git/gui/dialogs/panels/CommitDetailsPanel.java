@@ -85,6 +85,8 @@ public class CommitDetailsPanel implements IDiscardable
         return Optional.empty();
     });
     JPopupMenu popupMenu = new JPopupMenu();
+    popupMenu.add(actionProvider.getOpenFileStringAction(repository, selectedFile));
+    popupMenu.addSeparator();
     popupMenu.add(actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, selectedFile));
     popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
