@@ -25,9 +25,9 @@ public class ViewPortSizeObservable extends AbstractListenerObservable<ChangeLis
   protected ChangeListener registerListener(@NotNull JViewport pJViewport, @NotNull AbstractListenerObservable.IFireable<Dimension> pIFireable)
   {
     ChangeListener changeListener = e -> {
-      if (!pJViewport.getViewSize().equals(cachedViewportSize))
+      if (!pJViewport.getViewRect().getSize().equals(cachedViewportSize))
       {
-        cachedViewportSize = pJViewport.getViewSize();
+        cachedViewportSize = pJViewport.getViewRect().getSize();
         pIFireable.fireValueChanged(pJViewport.getViewSize());
       }
     };
