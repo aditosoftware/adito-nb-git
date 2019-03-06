@@ -2,17 +2,24 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
-import static de.adito.git.gui.Constants.*;
+import static de.adito.git.gui.Constants.ACCEPT_CHANGE_THEIRS_ICON;
+import static de.adito.git.gui.Constants.ACCEPT_CHANGE_YOURS_ICON;
+import static de.adito.git.gui.Constants.DISCARD_CHANGE_ICON;
 
 /**
  * Dialog/Panel for displaying the merge-conflicts
@@ -61,6 +68,11 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
         .map(JButton::new)
         .forEach(toolbar::add);
 
+    for (Component component : toolbar.getComponents())
+    {
+      component.setFocusable(false);
+    }
+
     toolbar.addSeparator();
 
     // Our Actions
@@ -98,7 +110,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    public void actionPerformed(ActionEvent pEvent)
     {
       for (IFileChangeChunk changeChunk : mergeDiff.getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
       {
