@@ -1,20 +1,27 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.*;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.impl.util.DifferentialScrollBarCoupling;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.ComponentOrientation;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Class that handles the layout of the merge dialog and creates the elements in that form the dialog
@@ -30,6 +37,8 @@ public class MergePanel extends JPanel implements IDiscardable
   private final ImageIcon acceptTheirsIcon;
   private final ImageIcon discardIcon;
   private final Observable<EditorKit> editorKitObservable;
+  private DifferentialScrollBarCoupling yoursCoupling;
+  private DifferentialScrollBarCoupling theirsCoupling;
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
@@ -49,6 +58,14 @@ public class MergePanel extends JPanel implements IDiscardable
     _initYoursPanel();
     _initTheirsPanel();
     _initGui();
+    SwingUtilities.invokeLater(() -> {
+      yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), yoursPaneWrapper.getScrollPane(),
+                                                forkPointPaneWrapper.getEditorPane(), yoursPaneWrapper.getEditorPane(),
+                                                Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS))));
+      theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), theirsPaneWrapper.getScrollPane(),
+                                                 forkPointPaneWrapper.getEditorPane(), theirsPaneWrapper.getEditorPane(),
+                                                 Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS))));
+    });
   }
 
   private void _initGui()
@@ -116,36 +133,18 @@ public class MergePanel extends JPanel implements IDiscardable
   public List<Action> getActions()
   {
     return List.of(
-        new AbstractAction("next", iconLoader.getIcon(Constants.NEXT_OCCURRENCE))
-        {
-          {
-            putValue(SHORT_DESCRIPTION, "next change");
-          }
-
-          @Override
-          public void actionPerformed(ActionEvent e)
-          {
-            if (yoursPaneWrapper.isEditorFocusOwner())
-              yoursPaneWrapper.moveCaretToNextChunk();
-            else
-              theirsPaneWrapper.moveCaretToNextChunk();
-          }
-        },
-        new AbstractAction("previous", iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE))
-        {
-          {
-            putValue(SHORT_DESCRIPTION, "previous change");
-          }
-
-          @Override
-          public void actionPerformed(ActionEvent e)
-          {
-            if (yoursPaneWrapper.isEditorFocusOwner())
-              yoursPaneWrapper.moveCaretToPreviousChunk();
-            else
-              theirsPaneWrapper.moveCaretToPreviousChunk();
-          }
-        }
+        new EnhancedAbstractAction("next", iconLoader.getIcon(Constants.NEXT_OCCURRENCE), "next change", e -> {
+          if (yoursPaneWrapper.isEditorFocusOwner())
+            yoursPaneWrapper.moveCaretToNextChunk();
+          else
+            theirsPaneWrapper.moveCaretToNextChunk();
+        }),
+        new EnhancedAbstractAction("previous", iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE), "previous change", e -> {
+          if (yoursPaneWrapper.isEditorFocusOwner())
+            yoursPaneWrapper.moveCaretToPreviousChunk();
+          else
+            theirsPaneWrapper.moveCaretToPreviousChunk();
+        })
     );
   }
 
@@ -155,5 +154,29 @@ public class MergePanel extends JPanel implements IDiscardable
     yoursPaneWrapper.discard();
     theirsPaneWrapper.discard();
     forkPointPaneWrapper.discard();
+    yoursCoupling.discard();
+    theirsCoupling.discard();
+  }
+
+  /**
+   * AbstractAction that also takes the short Description in the constructor
+   */
+  private static class EnhancedAbstractAction extends AbstractAction
+  {
+
+    private final Consumer<ActionEvent> doOnActionPerformed;
+
+    EnhancedAbstractAction(String pTitle, ImageIcon pIcon, String pShortDescription, Consumer<ActionEvent> pDoOnActionPerformed)
+    {
+      super(pTitle, pIcon);
+      doOnActionPerformed = pDoOnActionPerformed;
+      putValue(SHORT_DESCRIPTION, pShortDescription);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent pEvent)
+    {
+      doOnActionPerformed.accept(pEvent);
+    }
   }
 }
