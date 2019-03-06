@@ -133,13 +133,13 @@ public class MergePanel extends JPanel implements IDiscardable
   public List<Action> getActions()
   {
     return List.of(
-        new EnhancedAbstractAction("next", iconLoader.getIcon(Constants.NEXT_OCCURRENCE), "next change", e -> {
+        new EnhancedAbstractAction("", iconLoader.getIcon(Constants.NEXT_OCCURRENCE), "next change", e -> {
           if (yoursPaneWrapper.isEditorFocusOwner())
             yoursPaneWrapper.moveCaretToNextChunk();
           else
             theirsPaneWrapper.moveCaretToNextChunk();
         }),
-        new EnhancedAbstractAction("previous", iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE), "previous change", e -> {
+        new EnhancedAbstractAction("", iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE), "previous change", e -> {
           if (yoursPaneWrapper.isEditorFocusOwner())
             yoursPaneWrapper.moveCaretToPreviousChunk();
           else
