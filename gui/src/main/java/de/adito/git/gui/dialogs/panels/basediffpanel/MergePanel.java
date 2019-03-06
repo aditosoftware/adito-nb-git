@@ -58,14 +58,12 @@ public class MergePanel extends JPanel implements IDiscardable
     _initYoursPanel();
     _initTheirsPanel();
     _initGui();
-    SwingUtilities.invokeLater(() -> {
-      yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), yoursPaneWrapper.getScrollPane(),
-                                                forkPointPaneWrapper.getEditorPane(), yoursPaneWrapper.getEditorPane(),
-                                                Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS))));
-      theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), theirsPaneWrapper.getScrollPane(),
-                                                 forkPointPaneWrapper.getEditorPane(), theirsPaneWrapper.getEditorPane(),
-                                                 Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS))));
-    });
+    yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), yoursPaneWrapper.getScrollPane(),
+                                              forkPointPaneWrapper.getEditorPane(), yoursPaneWrapper.getEditorPane(),
+                                              Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS))));
+    theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), theirsPaneWrapper.getScrollPane(),
+                                               forkPointPaneWrapper.getEditorPane(), theirsPaneWrapper.getEditorPane(),
+                                               Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS))));
   }
 
   private void _initGui()

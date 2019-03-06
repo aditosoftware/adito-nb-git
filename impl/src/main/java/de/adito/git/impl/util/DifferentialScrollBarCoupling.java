@@ -1,6 +1,7 @@
 package de.adito.git.impl.util;
 
 import de.adito.git.api.IDiscardable;
+import de.adito.git.api.data.IFileDiff;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -8,6 +9,8 @@ import javax.swing.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Couples two scrollBars in such a way that the provided heightMappings are always fulfilled in the middle of the visible screen
@@ -19,7 +22,7 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
 
   // this is the height in where the changes should meet up, in parts of the visible window (0 means meet up at the very top, 1 at the very bottom)
   private static final double SYNCHRONIZE_ON_HEIGHT = 0.5;
-  private final BiNavigateAbleMap<Integer, Integer> map = new BiNavigateAbleMap<>();
+  private BiNavigateAbleMap<Integer, Integer> map = new BiNavigateAbleMap<>();
   private final Disposable disposable;
   private final JScrollBar scrollBar1;
   private final JScrollBar scrollBar2;
@@ -28,31 +31,29 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
   private boolean isEnabled = true;
 
   private DifferentialScrollBarCoupling(JScrollBar pScrollBar1, JScrollBar pScrollBar2,
-                                        Observable<BiNavigateAbleMap<Integer, Integer>> heightMappings)
+                                        Function<IFileDiff, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
+                                        Observable<Optional<IFileDiff>> pFileDiffChangeObs)
   {
     scrollBar1 = pScrollBar1;
     scrollBar2 = pScrollBar2;
-    disposable = heightMappings.subscribe(pMappings -> {
-      // Todo: proper synchronization here
-      isEnabled = false;
-      map.clear();
-      map.putAll(pMappings);
-      isEnabled = true;
-    });
+    disposable = pFileDiffChangeObs.subscribe(pFileDiffs -> pFileDiffs.ifPresent(
+        pIFileDiff -> SwingUtilities.invokeLater(() -> map = refreshMappings.apply(pFileDiffs.get()))));
     scrollBar1.addAdjustmentListener(this);
     scrollBar2.addAdjustmentListener(this);
   }
 
   /**
-   * @param pScrollBar1     the first scrollBar
-   * @param pScrollBar2     the second scrollBar
-   * @param pHeightMappings the different heights that should be equal in the middle fo the visible screen
+   * @param pScrollBar1        the first scrollBar
+   * @param pScrollBar2        the second scrollBar
+   * @param pRefreshMappings Function that maps
+   * @param pFileDiffChangeObs the different heights that should be equal in the middle fo the visible screen
    * @return an instance of this class to discard the Observable or remove the coupling
    */
   public static DifferentialScrollBarCoupling coupleScrollBars(JScrollBar pScrollBar1, JScrollBar pScrollBar2,
-                                                               Observable<BiNavigateAbleMap<Integer, Integer>> pHeightMappings)
+                                                               Function<IFileDiff, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
+                                                               Observable<Optional<IFileDiff>> pFileDiffChangeObs)
   {
-    return new DifferentialScrollBarCoupling(pScrollBar1, pScrollBar2, pHeightMappings);
+    return new DifferentialScrollBarCoupling(pScrollBar1, pScrollBar2, pRefreshMappings, pFileDiffChangeObs);
   }
 
   public void removeCoupling()
@@ -72,7 +73,7 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
   @Override
   public void adjustmentValueChanged(AdjustmentEvent pEvent)
   {
-    if (isEnabled)
+    if (isEnabled && map.size() > 1)
     {
       isEnabled = false;
       if (pEvent.getSource().equals(scrollBar1))

@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.data.*;
+import de.adito.git.gui.rxjava.EditorKitChangeObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.gui.swing.IEditorUtils;
 import de.adito.git.impl.util.BiNavigateAbleMap;
@@ -9,11 +10,13 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.View;
 import java.awt.Dimension;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @author m.kaspera, 21.02.2019
@@ -97,25 +100,43 @@ public interface IDiffPaneUtil
   {
     Observable<Dimension> viewPort1SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneOld.getViewport()));
     Observable<Dimension> viewPort2SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneCurrent.getViewport()));
-    Observable<Dimension> viewPortsObs = Observable.zip(viewPort1SizeObs, viewPort2SizeObs, (pSize1, pSize2) -> pSize1);
-    Observable<BiNavigateAbleMap<Integer, Integer>> mapObservable =
-        Observable.combineLatest(viewPortsObs, pFileDiffObs, (pViewportSize, pFileDiffsOpt) -> {
-          BiNavigateAbleMap<Integer, Integer> heightMap = new BiNavigateAbleMap<>();
-          if (pFileDiffsOpt.isPresent())
-          {
-            // default entry: start is equal
-            heightMap.put(0, 0);
-            View oldEditorPaneView = pEditorPaneOld.getUI().getRootView(pEditorPaneOld);
-            View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
-            for (IFileChangeChunk changeChunk : pFileDiffsOpt.get().getFileChanges().getChangeChunks().blockingFirst().getNewValue())
-            {
-              heightMap.put(IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
-                            IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
-            }
-          }
-          return heightMap;
-        });
-    return DifferentialScrollBarCoupling.coupleScrollBars(pScrollPaneOld.getVerticalScrollBar(),
-                                                          pScrollPaneCurrent.getVerticalScrollBar(), mapObservable);
+    Observable<Object> viewPortsObs = Observable.zip(viewPort1SizeObs, viewPort2SizeObs, (pSize1, pSize2) -> new Object());
+    Observable<Object> editorKitsObs = Observable.combineLatest(Observable.create(new EditorKitChangeObservable(pEditorPaneOld)),
+                                                                Observable.create(new EditorKitChangeObservable(pEditorPaneCurrent)), (o1, o2) -> o1);
+    Observable<Object> editorViewChangeObs = Observable.merge(viewPortsObs, editorKitsObs);
+    Observable<Optional<IFileDiff>> fileDiffChangeObs = Observable.combineLatest(editorViewChangeObs, pFileDiffObs,
+                                                                                 (pObj, pFileDiffs) -> pFileDiffs);
+    Function<IFileDiff, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff -> getHeightMappings(pEditorPaneOld, pEditorPaneCurrent,
+                                                                                                              pFileDiff);
+    return DifferentialScrollBarCoupling.coupleScrollBars(pScrollPaneOld.getVerticalScrollBar(), pScrollPaneCurrent.getVerticalScrollBar(),
+                                                          refreshFunction, fileDiffChangeObs);
+  }
+
+  /**
+   * @param pEditorPaneOld     pEditorPane that contains the text of the IFileDiff with side OLD
+   * @param pEditorPaneCurrent pEditorPane that contains the text of the IFileDiff with side NEW
+   * @param pFileDiff          IFileDiff with the information about the changes displayed in the editorPanes
+   * @return List of Mappings of the y values of the IFileChangeChunks in the IFileDiff
+   */
+  static BiNavigateAbleMap<Integer, Integer> getHeightMappings(JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent, IFileDiff pFileDiff)
+  {
+    BiNavigateAbleMap<Integer, Integer> heightMap = new BiNavigateAbleMap<>();
+    // default entry: start is equal
+    heightMap.put(0, 0);
+    View oldEditorPaneView = pEditorPaneOld.getUI().getRootView(pEditorPaneOld);
+    View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
+    for (IFileChangeChunk changeChunk : pFileDiff.getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+    {
+      try
+      {
+        heightMap.put(IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
+                      IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
+      }
+      catch (BadLocationException pE)
+      {
+        throw new RuntimeException(pE);
+      }
+    }
+    return heightMap;
   }
 }
