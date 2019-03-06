@@ -1,13 +1,18 @@
 package de.adito.git.gui.dialogs;
 
-import com.google.inject.*;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
-import de.adito.git.gui.dialogs.results.*;
+import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.dialogs.results.StashChangesResult;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -51,7 +56,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange, boolean pShowFileTable)
+  public DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange,
+                                     boolean pShowFileTable)
   {
     DialogResult<DiffDialog, ?> result = null;
     try
@@ -139,14 +145,22 @@ class DialogProviderImpl implements IDialogProvider
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createPasswordPromptDialog(), pMessage);
   }
 
+  @Override
   public DialogResult showUserPromptDialog(String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createUserPromptDialog(), pMessage);
   }
 
+  @Override
   public DialogResult showYesNoDialog(String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createYesNoDialog(pMessage), pMessage);
+  }
+
+  @Override
+  public DialogResult showFileSelectionDialog(String pMessage)
+  {
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createFileSelectionDialog(), pMessage);
   }
 
   @Override

@@ -4,9 +4,11 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -44,4 +46,6 @@ interface IDialogFactory
   GitConfigDialog createGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 
   StashChangesDialog createStashChangesDialog();
+
+  FileSelectionDialog createFileSelectionDialog();
 }

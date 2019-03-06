@@ -42,6 +42,14 @@ public interface IUserInputPrompt
   PromptResult promptYesNo(String pMessage);
 
   /**
+   * Prompts the user to select a file, information from pMessage should tell him which kind of file he should choose
+   *
+   * @param pMessage pMessage String to display to the user, informing him about what he should enter
+   * @return PromptResult with information about the location of the file that the user chose
+   */
+  PromptResult promptFile(String pMessage);
+
+  /**
    * Class for storing both the userInput from a prompt and if the user clicked the OK button
    */
   class PromptResult

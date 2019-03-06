@@ -2,7 +2,9 @@ package de.adito.git.impl.ssh;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.jcraft.jsch.*;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import de.adito.git.api.IUserInputPrompt;
 import de.adito.git.api.data.IConfig;
 import org.eclipse.jgit.api.TransportConfigCallback;
@@ -111,7 +113,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
       }
       if (defaultJSch.getIdentityRepository().getIdentities().isEmpty())
       {
-        IUserInputPrompt.PromptResult result = userInputPrompt.promptText("Please enter the path to your SSH key");
+        IUserInputPrompt.PromptResult result = userInputPrompt.promptFile("Please enter the path to your SSH key");
         if (result.isPressedOK())
         {
           config.setSshKeyLocation(result.getUserInput());

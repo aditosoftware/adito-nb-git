@@ -56,7 +56,16 @@ public class UserInputPromptImpl implements IUserInputPrompt
   public PromptResult promptYesNo(String pMessage)
   {
     DialogResult result = dialogProvider.showYesNoDialog(pMessage);
-    PromptResult promptResult = new PromptResult(result.isPressedOk(), result.getMessage());
-    return promptResult;
+    return new PromptResult(result.isPressedOk(), result.getMessage());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PromptResult promptFile(String pMessage)
+  {
+    DialogResult result = dialogProvider.showFileSelectionDialog(pMessage);
+    return new PromptResult(result.isPressedOk(), result.getMessage());
   }
 }

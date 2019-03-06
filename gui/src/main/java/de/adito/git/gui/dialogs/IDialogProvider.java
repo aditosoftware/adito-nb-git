@@ -2,11 +2,15 @@ package de.adito.git.gui.dialogs;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
-import de.adito.git.gui.dialogs.results.*;
+import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.dialogs.results.StashChangesResult;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -38,6 +42,8 @@ public interface IDialogProvider
   DialogResult showUserPromptDialog(String pMessage);
 
   DialogResult showYesNoDialog(String pMessage);
+
+  DialogResult showFileSelectionDialog(String pMessage);
 
   DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 
