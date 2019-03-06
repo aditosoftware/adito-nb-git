@@ -2,7 +2,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.data.*;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
-import de.adito.git.gui.swing.EditorUtils;
+import de.adito.git.gui.swing.IEditorUtils;
 import de.adito.git.impl.util.BiNavigateAbleMap;
 import de.adito.git.impl.util.DifferentialScrollBarCoupling;
 import io.reactivex.Observable;
@@ -92,8 +92,8 @@ public interface IDiffPaneUtil
    * @param pEditorPaneCurrent editorPane that is contained in the second scrollPane
    * @param pFileDiffObs       Observable that has the current FileDiff
    */
-  static DifferentialScrollBarCoupling synchronize(JScrollPane pScrollPaneOld, JScrollPane pScrollPaneCurrent, JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent,
-                                                   Observable<Optional<IFileDiff>> pFileDiffObs)
+  static DifferentialScrollBarCoupling synchronize(JScrollPane pScrollPaneOld, JScrollPane pScrollPaneCurrent, JEditorPane pEditorPaneOld,
+                                                   JEditorPane pEditorPaneCurrent, Observable<Optional<IFileDiff>> pFileDiffObs)
   {
     Observable<Dimension> viewPort1SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneOld.getViewport()));
     Observable<Dimension> viewPort2SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneCurrent.getViewport()));
@@ -109,8 +109,8 @@ public interface IDiffPaneUtil
             View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
             for (IFileChangeChunk changeChunk : pFileDiffsOpt.get().getFileChanges().getChangeChunks().blockingFirst().getNewValue())
             {
-              heightMap.put(EditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
-                            EditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
+              heightMap.put(IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
+                            IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
             }
           }
           return heightMap;

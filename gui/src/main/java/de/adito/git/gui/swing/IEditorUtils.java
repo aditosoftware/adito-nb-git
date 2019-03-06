@@ -12,12 +12,8 @@ import java.awt.Rectangle;
 /**
  * @author m.kaspera, 04.03.2019
  */
-public class EditorUtils
+public interface IEditorUtils
 {
-
-  private EditorUtils()
-  {
-  }
 
   /**
    * @param pChangeChunk the chunk for which to retrieve the height of the first line in the editor
@@ -27,12 +23,12 @@ public class EditorUtils
    * @return the y value of the first line of the changeChunk in the editor
    * @throws BadLocationException if the editor has less lines than the number of the fist line specified in the chunk
    */
-  public static int getBoundsForChunk(IFileChangeChunk pChangeChunk, EChangeSide pChangeSide, JEditorPane pEditorPane,
-                                      View pView) throws BadLocationException
+  static int getBoundsForChunk(IFileChangeChunk pChangeChunk, EChangeSide pChangeSide, JEditorPane pEditorPane,
+                               View pView) throws BadLocationException
   {
     int lineNumber = pChangeChunk.getStart(pChangeSide);
     int startOffset = pEditorPane.getDocument().getDefaultRootElement().getElement(
-        Math.min(lineNumber, pEditorPane.getDocument().getDefaultRootElement().getElementCount()))
+        Math.min(lineNumber, pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1))
         .getStartOffset();
     return (int) pView.modelToView(startOffset, new Rectangle(), Position.Bias.Forward).getBounds().getY();
   }
