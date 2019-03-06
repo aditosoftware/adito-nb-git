@@ -17,6 +17,8 @@ import java.util.Map;
 public class DifferentialScrollBarCoupling implements AdjustmentListener, IDiscardable
 {
 
+  // this is the height in where the changes should meet up, in parts of the visible window (0 means meet up at the very top, 1 at the very bottom)
+  private static final double SYNCHRONIZE_ON_HEIGHT = 0.5;
   private final BiNavigateAbleMap<Integer, Integer> map = new BiNavigateAbleMap<>();
   private final Disposable disposable;
   private final JScrollBar scrollBar1;
@@ -97,8 +99,8 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
   {
     if (pScrollAmount == 0)
       return;
-    double changedMidVisibleValue = pChanged.getValue() + pChanged.getVisibleAmount() / (double) 2;
-    double remainedMidVisibleValue = pRemained.getValue() + pRemained.getVisibleAmount() / (double) 2;
+    double changedMidVisibleValue = pChanged.getValue() + pChanged.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT;
+    double remainedMidVisibleValue = pRemained.getValue() + pRemained.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT;
     Map.Entry<Integer, Integer> closestEntry = pMap.floorEntry((int) changedMidVisibleValue);
     if (closestEntry != null)
     {
@@ -137,7 +139,7 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
       {
         // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
         // specifies the middle of the visible area
-        pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() / (double) 2));
+        pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
       }
     }
   }
@@ -167,7 +169,7 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
       {
         // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
         // specifies the middle of the visible area
-        pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() / (double) 2));
+        pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
       }
     }
   }
