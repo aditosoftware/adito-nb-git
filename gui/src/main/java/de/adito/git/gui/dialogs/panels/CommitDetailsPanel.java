@@ -3,12 +3,15 @@ package de.adito.git.gui.dialogs.panels;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
+import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.ChangedFilesTableModel;
 import de.adito.git.gui.tablemodels.StatusTableModel;
@@ -32,7 +35,8 @@ public class CommitDetailsPanel implements IDiscardable
   private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
   private static final String DETAILS_FORMAT_STRING = "%7.7s %s <%s> on %s";
   private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-  private final JTable changedFilesTable = new JTable();
+  private final JTable changedFilesTable;
+  private final JPanel tableViewPanel = new JPanel(new BorderLayout());
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
@@ -40,15 +44,17 @@ public class CommitDetailsPanel implements IDiscardable
   private final _SelectedCommitsPanel commits;
 
   @Inject
-  public CommitDetailsPanel(IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
+  public CommitDetailsPanel(IActionProvider pActionProvider, IQuickSearchProvider pQuickSearchProvider,
+                            @Assisted Observable<Optional<IRepository>> pRepository,
                             @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     actionProvider = pActionProvider;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
     changedFilesTableModel = new ChangedFilesTableModel(selectedCommitObservable, pRepository);
+    changedFilesTable = new SearchableTable(changedFilesTableModel, tableViewPanel);
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
-    _setUpChangedFilesTable();
+    _setUpChangedFilesTable(pQuickSearchProvider);
     _initDetailPanel();
   }
 
@@ -57,9 +63,11 @@ public class CommitDetailsPanel implements IDiscardable
     return detailPanelPane;
   }
 
-  private void _setUpChangedFilesTable()
+  private void _setUpChangedFilesTable(IQuickSearchProvider pQuickSearchProvider)
   {
-    changedFilesTable.setModel(changedFilesTableModel);
+    JScrollPane tableScrollpane = new JScrollPane(changedFilesTable);
+    tableViewPanel.add(tableScrollpane, BorderLayout.CENTER);
+    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(changedFilesTable, List.of(0)));
     changedFilesTable.getColumnModel().removeColumn(changedFilesTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
     changedFilesTable.getColumnModel()
         .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))
@@ -102,7 +110,7 @@ public class CommitDetailsPanel implements IDiscardable
    */
   private void _initDetailPanel()
   {
-    detailPanelPane.setLeftComponent(new JScrollPane(changedFilesTable));
+    detailPanelPane.setLeftComponent(tableViewPanel);
     detailPanelPane.setRightComponent(new JScrollPane(commits, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
     detailPanelPane.setResizeWeight(DETAIL_SPLIT_PANE_RATIO);
   }
@@ -166,13 +174,13 @@ public class CommitDetailsPanel implements IDiscardable
     }
 
     @Override
-    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
+    public int getScrollableUnitIncrement(Rectangle pVisibleRect, int pOrientation, int pDirection)
     {
       return 16;
     }
 
     @Override
-    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
+    public int getScrollableBlockIncrement(Rectangle pVisibleRect, int pOrientation, int pDirection)
     {
       return 16;
     }
