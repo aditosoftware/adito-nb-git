@@ -13,6 +13,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.loaders.DataObject;
 import org.openide.windows.WindowManager;
 
@@ -33,6 +34,8 @@ import static de.adito.git.gui.Constants.ARROW_RIGHT;
  */
 class EditorColorizer extends JPanel implements IDiscardable
 {
+  private static final int COLORIZER_WIDTH = 10;
+  private static final int THROTTLE_LATEST_TIMER = 500;
   private final JTextComponent targetEditor;
   private final Observable<List<IFileChangeChunk>> chunkObservable;
   private Disposable disposable;
@@ -49,8 +52,8 @@ class EditorColorizer extends JPanel implements IDiscardable
   EditorColorizer(Observable<Optional<IRepository>> pRepository, DataObject pDataObject, JTextComponent pTarget)
   {
     targetEditor = pTarget;
-    setMinimumSize(new Dimension(10, 0));
-    setPreferredSize(new Dimension(10, 0));
+    setMinimumSize(new Dimension(COLORIZER_WIDTH, 0));
+    setPreferredSize(new Dimension(COLORIZER_WIDTH, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
 
@@ -86,7 +89,7 @@ class EditorColorizer extends JPanel implements IDiscardable
 
 
     chunkObservable = Observable
-        .combineLatest(pRepository, actualText.debounce(0, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
+        .combineLatest(pRepository, actualText.throttleLatest(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
           if (pRepoOpt.isPresent())
           {
             IRepository repo = pRepoOpt.get();
@@ -103,19 +106,8 @@ class EditorColorizer extends JPanel implements IDiscardable
 
     disposable = Observable.combineLatest(chunkObservable, scrollObservable, (pChunks, pScroll) -> pChunks)
         .subscribe(chunkList -> {
-          changeList.clear();
           Rectangle scrollPaneRectangle = _getJScrollPane(targetEditor).getViewport().getViewRect();
-
-          try
-          {
-            for (IFileChangeChunk chunk : chunkList)
-              _calculateRec(targetEditor, chunk, scrollPaneRectangle);
-          }
-          catch (Throwable e) // Catch Throwables because of NetBeans Execution Exceptions, if this Method is called too often
-          {
-            // nothing
-          }
-
+          changeList = _calculateRectangles(targetEditor, chunkList, scrollPaneRectangle);
           repaint();
         });
   }
@@ -143,12 +135,33 @@ class EditorColorizer extends JPanel implements IDiscardable
   }
 
 
+  @NotNull
+  private List<_ChangeHolder> _calculateRectangles(JTextComponent pTarget, List<IFileChangeChunk> pChunkList, Rectangle pScrollPaneRectangle)
+  {
+    List<EditorColorizer._ChangeHolder> newChangeList = new ArrayList<>();
+    try
+    {
+      for (IFileChangeChunk chunk : pChunkList)
+      {
+        _ChangeHolder changeHolder = _calculateRec(pTarget, chunk, pScrollPaneRectangle);
+        if (changeHolder != null)
+          newChangeList.add(changeHolder);
+      }
+    }
+    catch (BadLocationException pE)
+    {
+      throw new RuntimeException(pE);
+    }
+    return newChangeList;
+  }
+
   /**
    * @param pTarget              The text component of the editor
    * @param pChange              A chunk of a file that was changed
    * @param pScrollPaneRectangle The rectangle of the viewport of the JScrollPane
    */
-  private void _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange, Rectangle pScrollPaneRectangle) throws BadLocationException
+  @Nullable
+  private _ChangeHolder _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange, Rectangle pScrollPaneRectangle) throws BadLocationException
   {
     int startLine = 0;
     int endLine = 0;
@@ -181,12 +194,14 @@ class EditorColorizer extends JPanel implements IDiscardable
     {
       Rectangle changeRectangle =
           view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Forward, new Rectangle()).getBounds();
-
+      if (changeRectangle.width == 0 && changeRectangle.height != 0)
+        changeRectangle.width = COLORIZER_WIDTH;
       if (pScrollPaneRectangle.intersects(changeRectangle))
       {
-        changeList.add(new _ChangeHolder(changeRectangle, pChange));
+        return new _ChangeHolder(changeRectangle, pChange);
       }
     }
+    return null;
   }
 
   /**
