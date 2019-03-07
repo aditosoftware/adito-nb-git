@@ -50,9 +50,11 @@ public class TextHighlightUtil
                                        IFileChangesEvent pTheirFileChangesEvent, EChangeSide pChangeSide)
   {
     IFileChangesEvent passOnEvent = pYourFileChangesEvent;
-    if (pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength() > 0
-        && pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength()
-        < pYourFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength())
+    if (pYourFileChangesEvent.getEditorChange() == null ||
+        (pTheirFileChangesEvent.getEditorChange() != null
+            && pTheirFileChangesEvent.getEditorChange().getChange(pChangeSide).getType() != EChangeType.SAME
+            && pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength()
+            < pYourFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength()))
       passOnEvent = pTheirFileChangesEvent;
     _insertColoredText(pEditorPane, passOnEvent, pChangeSide,
                        () -> {
