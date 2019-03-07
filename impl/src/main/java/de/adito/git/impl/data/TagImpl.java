@@ -41,6 +41,8 @@ public class TagImpl implements ITag
   @Override
   public String getId()
   {
-    return ObjectId.toString(tagRef.getPeeledObjectId());
+    if (tagRef.getPeeledObjectId() != null)
+      return ObjectId.toString(tagRef.getPeeledObjectId());
+    else return ObjectId.toString(tagRef.getObjectId());
   }
 }
