@@ -44,4 +44,13 @@ public interface IFileChangeChunk
    */
   String getLines(EChangeSide pChangeSide);
 
+  /**
+   * get the lines in the scope of this chunk, either as they were or after the change, depending on the passed EChangeSide
+   * returns the lines in standardised format with only \n as newline and not in the 1230194823962346 different other ways to represent newlines
+   *
+   * @param pChangeSide which side of the change should be taken
+   * @return the contents of the line that were changed on the chosen side (empty String for insert)
+   */
+  String getEditorLines(EChangeSide pChangeSide);
+
 }

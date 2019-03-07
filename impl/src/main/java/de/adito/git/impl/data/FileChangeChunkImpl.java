@@ -17,7 +17,10 @@ public class FileChangeChunkImpl implements IFileChangeChunk
   private final Edit edit;
   private final String oldString;
   private final String newString;
+  private final String standardisedOldString;
+  private final String standardisedNewString;
   private final EChangeType changeType;
+  private boolean isStandardNewlines = true;
 
   public FileChangeChunkImpl(IFileChangeChunk pChangeChunk, EChangeType pChangeType)
   {
@@ -37,6 +40,18 @@ public class FileChangeChunkImpl implements IFileChangeChunk
     oldString = pOldString;
     newString = pNewString;
     changeType = pChangeType;
+    if (oldString.contains("\r") || newString.contains("\r"))
+      isStandardNewlines = false;
+    if (!isStandardNewlines)
+    {
+      standardisedNewString = newString.replace("\n", "").replace("\r", "\n");
+      standardisedOldString = oldString.replace("\n", "").replace("\r", "\n");
+    }
+    else
+    {
+      standardisedNewString = null;
+      standardisedOldString = null;
+    }
   }
 
   @Override
@@ -83,6 +98,19 @@ public class FileChangeChunkImpl implements IFileChangeChunk
   public String getLines(EChangeSide pChangeSide)
   {
     return pChangeSide == EChangeSide.OLD ? oldString : newString;
+  }
+
+  @Override
+  public String getEditorLines(EChangeSide pChangeSide)
+  {
+    if (isStandardNewlines)
+      return getLines(pChangeSide);
+    else
+    {
+      if (pChangeSide == EChangeSide.OLD)
+        return standardisedOldString;
+      return standardisedNewString;
+    }
   }
 
   @Override
