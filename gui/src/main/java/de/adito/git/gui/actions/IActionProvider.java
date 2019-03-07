@@ -1,9 +1,7 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -145,6 +143,13 @@ public interface IActionProvider
    * @return Action whose actionPerformed method shows a dialog with which to enter the tag name in order to assign a tag to the selected commit
    */
   Action getAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+
+  /**
+   * @param pRepository Observable with the current Repository
+   * @param pTag        tag that should be deleted
+   * @return Action whose actionPreformed method tries to delete the passed tag
+   */
+  Action getDeleteTagAction(Observable<Optional<IRepository>> pRepository, ITag pTag);
 
   /**
    * @param pRepository               Observable with the current Repository

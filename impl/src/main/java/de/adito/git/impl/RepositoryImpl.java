@@ -1225,6 +1225,25 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @NotNull
+  @Override
+  public List<String> deleteTag(ITag pTag)
+  {
+    List<String> deletedTags;
+    try
+    {
+      deletedTags = git.tagDelete().setTags(pTag.getName()).call();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new RuntimeException(pE);
+    }
+    return deletedTags;
+  }
+
   @NotNull
   @Override
   public List<ITag> getTags()

@@ -1,19 +1,26 @@
 package de.adito.git.gui.guice;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.assistedinject.*;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.assistedinject.FactoryProvider;
 import de.adito.git.api.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.*;
+import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.gui.UserPreferencesImpl;
 import de.adito.git.gui.actions.ActionModule;
-import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.DialogModule;
+import de.adito.git.gui.dialogs.UserInputPromptImpl;
 import de.adito.git.gui.guice.dummies.*;
-import de.adito.git.gui.icon.*;
+import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.icon.SwingIconLoaderImpl;
+import de.adito.git.gui.menu.MenuModule;
 import de.adito.git.gui.prefs.DummyPrefStore;
 import de.adito.git.gui.progress.SimpleAsyncProgressFacade;
 import de.adito.git.gui.window.WindowModule;
-import de.adito.git.impl.*;
+import de.adito.git.impl.CloneRepoImpl;
+import de.adito.git.impl.IFileSystemObserverProvider;
+import de.adito.git.impl.RepositoryImpl;
 import de.adito.git.impl.data.DataModule;
 import de.adito.git.impl.ssh.AditoSshModule;
 
@@ -35,6 +42,7 @@ public class AditoGitModule extends AbstractModule
     install(new WindowModule());
     install(new AditoSshModule());
     install(new DataModule());
+    install(new MenuModule());
 
     // bind IRepository to RepositoryImpl and construct the necessary factory
     install(new FactoryModuleBuilder().build(IRepositoryFactory.class));

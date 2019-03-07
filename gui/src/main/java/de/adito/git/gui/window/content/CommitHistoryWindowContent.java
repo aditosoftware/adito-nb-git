@@ -7,6 +7,7 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
+import de.adito.git.gui.menu.IMenuProvider;
 import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
@@ -24,6 +25,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Class to display all commits
@@ -44,7 +46,9 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final CommitHistoryTreeListTableModel commitTableModel;
   private final JToolBar toolBar = new JToolBar();
   private final IActionProvider actionProvider;
+  private final IMenuProvider menuProvider;
   private final Observable<Optional<IRepository>> repository;
+  private final Observable<Optional<List<CommitHistoryTreeListItem>>> selectedCommitHistoryItems;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final Disposable disposable;
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
@@ -57,13 +61,14 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
    * @param pRefreshContentCallBack Runnable that resets the current entries in the tableModel and fills them with the latest values
    */
   @Inject
-  CommitHistoryWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
+  CommitHistoryWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, IMenuProvider pMenuProvider,
                              CommitDetailsPanel.IPanelFactory pPanelFactory,
                              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted TableModel pTableModel,
                              @Assisted("loadMore") Runnable pLoadMoreCallback,
                              @Assisted("refreshContent") Runnable pRefreshContentCallBack)
   {
     actionProvider = pActionProvider;
+    menuProvider = pMenuProvider;
     repository = pRepository;
     commitTableModel = (CommitHistoryTreeListTableModel) pTableModel;
     commitTable = new _SearchableCommitTable(commitTableModel, commitTableView);
@@ -74,14 +79,19 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(commitTable, searchAbleColumns));
     ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
     commitTable.setSelectionModel(observableCommitListSelectionModel);
-    selectedCommitObservable = observableCommitListSelectionModel.selectedRows().map(selectedRows -> {
-      List<ICommit> selectedCommits = new ArrayList<>();
+    selectedCommitHistoryItems = observableCommitListSelectionModel.selectedRows().map(selectedRows -> {
+      List<CommitHistoryTreeListItem> selectedCommits = new ArrayList<>();
       for (int selectedRow : selectedRows)
       {
-        selectedCommits.add(((CommitHistoryTreeListItem) commitTable.getValueAt(selectedRow, 0)).getCommit());
+        selectedCommits.add(((CommitHistoryTreeListItem) commitTable.getValueAt(selectedRow, 0)));
       }
       return Optional.of(selectedCommits);
     });
+    selectedCommitObservable = selectedCommitHistoryItems.map(pOptSelectedItems ->
+                                                                  pOptSelectedItems
+                                                                      .map(pSelectedItems -> pSelectedItems
+                                                                          .stream()
+                                                                          .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList())));
     disposable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
         .subscribe(pStatus -> pRefreshContentCallBack.run());
     commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable);
@@ -141,6 +151,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitListPopupMenu.add(actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, Observable.just(Optional.empty())));
     commitListPopupMenu.add(actionProvider.getResetAction(repository, selectedCommitObservable));
     commitListPopupMenu.add(actionProvider.getAddTagAction(repository, selectedCommitObservable));
+    commitListPopupMenu.add(menuProvider.getDeleteTagsMenu("Delete Tag", repository, selectedCommitHistoryItems));
     commitListPopupMenu.add(actionProvider.getCherryPickAction(repository, selectedCommitObservable));
     commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
 

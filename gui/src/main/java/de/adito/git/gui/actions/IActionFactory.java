@@ -1,9 +1,7 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
 import java.io.File;
@@ -58,6 +56,8 @@ interface IActionFactory
   GitConfigAction createGitConfigAction(Observable<Optional<IRepository>> pRepository);
 
   AddTagAction createAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
+
+  DeleteTagAction createDeleteTagAction(Observable<Optional<IRepository>> pRepository, ITag pTag);
 
   DiffCommitsAction createDiffCommitsAction(Observable<Optional<IRepository>> pRepository,
                                             Observable<Optional<List<ICommit>>> pSelectedCommitsObservable,

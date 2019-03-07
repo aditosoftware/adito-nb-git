@@ -384,6 +384,15 @@ public interface IRepository
   void createTag(String pName, String pCommitId);
 
   /**
+   * Delete the tag with the passed name
+   *
+   * @param pTag tag to be deleted
+   * @return List of successfully deleted tags
+   */
+  @NotNull
+  List<String> deleteTag(ITag pTag);
+
+  /**
    * fetch a list of all tags of this repository
    *
    * @return List containing all the tags in this repository

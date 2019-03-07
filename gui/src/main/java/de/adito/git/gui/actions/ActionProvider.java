@@ -3,9 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -186,6 +184,12 @@ class ActionProvider implements IActionProvider
   public Action getAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     return actionFactory.createAddTagAction(pRepository, pSelectedCommitObservable);
+  }
+
+  @Override
+  public Action getDeleteTagAction(Observable<Optional<IRepository>> pRepository, ITag pTag)
+  {
+    return actionFactory.createDeleteTagAction(pRepository, pTag);
   }
 
   @Override
