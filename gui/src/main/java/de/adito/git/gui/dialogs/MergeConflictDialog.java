@@ -2,22 +2,18 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
+import io.reactivex.subjects.*;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.awt.*;
+import java.io.*;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,8 +31,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final Subject<List<IMergeDiff>> mergeConflictDiffs;
   private final JTable mergeConflictTable = new JTable();
   private final JButton manualMergeButton = new JButton("Manual Merge");
-  private final JButton acceptYoursButton = new JButton("Accept YOURS");
-  private final JButton acceptTheirsButton = new JButton("Accept THEIRS");
+  private final JButton acceptYoursButton = new JButton("Accept Yours");
+  private final JButton acceptTheirsButton = new JButton("Accept Theirs");
   private final Observable<Optional<List<IMergeDiff>>> selectedMergeDiffObservable;
   private final MergeDiffStatusModel mergeDiffStatusModel;
   private final Disposable disposable;
@@ -86,20 +82,25 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   private void _initGui()
   {
-    setLayout(new BorderLayout());
+    setLayout(new BorderLayout(5, 0));
     setMinimumSize(new Dimension(1200, 1));
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
     manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable));
     acceptYoursButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, IMergeDiff.CONFLICT_SIDE.YOURS));
     acceptTheirsButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, IMergeDiff.CONFLICT_SIDE.THEIRS));
+    manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
+    acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
+    acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
     buttonPanel.add(manualMergeButton);
+    buttonPanel.add(Box.createVerticalStrut(10));
     buttonPanel.add(acceptYoursButton);
+    buttonPanel.add(Box.createVerticalStrut(5));
     buttonPanel.add(acceptTheirsButton);
     add(buttonPanel, BorderLayout.EAST);
     mergeConflictTable.setModel(mergeDiffStatusModel);
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
-    add(mergeConflictTableScrollPane, BorderLayout.WEST);
+    add(mergeConflictTableScrollPane, BorderLayout.CENTER);
   }
 
   /**
