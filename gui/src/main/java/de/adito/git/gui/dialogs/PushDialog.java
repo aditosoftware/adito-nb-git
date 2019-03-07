@@ -17,13 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-class PushDialog extends AditoBaseDialog<Object> implements IDiscardable
+class PushDialog extends AditoBaseDialog<Boolean> implements IDiscardable
 {
 
   private final JTable commitListTable = new JTable();
   private final JScrollPane commitListTableScrollP = new JScrollPane(commitListTable);
   private final CommitDetailsPanel commitDetailsPanel;
   private final JLabel headerLabel = new JLabel("Commits to be pushed:");
+  private final JCheckBox isPushTags = new JCheckBox("Push tags");
 
   @Inject
   public PushDialog(CommitDetailsPanel.IPanelFactory pPanelFactory, @Assisted Observable<Optional<IRepository>> pRepository,
@@ -52,6 +53,7 @@ class PushDialog extends AditoBaseDialog<Object> implements IDiscardable
     setLayout(new BorderLayout());
     add(headerLabel, BorderLayout.NORTH);
     add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, commitListTableScrollP, commitDetailsPanel.getPanel()), BorderLayout.CENTER);
+    add(isPushTags, BorderLayout.SOUTH);
   }
 
   @Override
@@ -61,9 +63,9 @@ class PushDialog extends AditoBaseDialog<Object> implements IDiscardable
   }
 
   @Override
-  public Object getInformation()
+  public Boolean getInformation()
   {
-    return null;
+    return isPushTags.isSelected();
   }
 
   @Override

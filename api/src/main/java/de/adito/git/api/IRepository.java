@@ -3,10 +3,14 @@ package de.adito.git.api;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera 20.09.2018
@@ -39,10 +43,11 @@ public interface IRepository
   /**
    * Pushes the changes made to HEAD onto the selected branch/remote
    *
+   * @param pIsPushTags true if you want to push tags, false otherwise. Use false as default value
    * @return {@code true} if the operation was successful, {@code false} otherwise
    * @throws AditoGitException if an error occurs
    */
-  Map<String, EPushResult> push() throws AditoGitException;
+  Map<String, EPushResult> push(boolean pIsPushTags) throws AditoGitException;
 
   /**
    * Pulls the current contents of the tracked remote branch of the currently selected local branch

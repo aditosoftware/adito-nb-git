@@ -32,7 +32,7 @@ public interface IDialogProvider
 
   DialogResult<ResetDialog, EResetType> showResetDialog();
 
-  DialogResult<PushDialog, Object> showPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList);
+  DialogResult<PushDialog, Boolean> showPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList);
 
   DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(Observable<Optional<IRepository>> pRepository,
                                                                                       List<ICommit> pStashedCommits);

@@ -171,14 +171,15 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public Map<String, EPushResult> push()
+  public Map<String, EPushResult> push(boolean pIsPushTags)
   {
     Map<String, EPushResult> resultMap = new HashMap<>();
     try
     {
       TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(getConfig());
-      PushCommand push = git.push()
-          .setTransportConfigCallback(transportConfigCallback);
+      PushCommand push = git.push().setTransportConfigCallback(transportConfigCallback);
+      if (pIsPushTags)
+        push.setPushTags();
       Iterable<PushResult> pushResults = push.call();
       for (PushResult pushResult : pushResults)
       {

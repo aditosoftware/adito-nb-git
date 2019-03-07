@@ -8,6 +8,7 @@ import de.adito.git.api.data.EPushResult;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
@@ -50,7 +51,7 @@ class PushAction extends AbstractAction
   public void actionPerformed(ActionEvent pEvent)
   {
     progressFacade.executeInBackground("Pushing Commits", pHandle -> {
-      pHandle.setDescription("Collecting Informations");
+      pHandle.setDescription("Collecting Information");
       Optional<List<ICommit>> commitList = repository.blockingFirst().map(pRepo -> {
         try
         {
@@ -61,23 +62,24 @@ class PushAction extends AbstractAction
           throw new RuntimeException("Error while finding un-pushed commits", pE);
         }
       });
-      boolean doCommit = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()), commitList.orElse(Collections.emptyList()))
-          .isPressedOk();
+      DialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
+                                                                            commitList.orElse(Collections.emptyList()));
+      boolean doCommit = dialogResult.isPressedOk();
       if (doCommit)
       {
         pHandle.setDescription("Pushing");
-        _doPush();
+        _doPush(dialogResult.getInformation());
         notifyUtil.notify("Push", "Push was successful", true);
       }
     });
   }
 
-  private void _doPush() throws AditoGitException
+  private void _doPush(Boolean pIsPushTags) throws AditoGitException
   {
     Map<String, EPushResult> failedPushResults = repository
         .blockingFirst()
         .orElseThrow(() -> new RuntimeException("no valid repository found"))
-        .push();
+        .push(pIsPushTags);
     if (!failedPushResults.isEmpty())
     {
       StringBuilder infoText = new StringBuilder();

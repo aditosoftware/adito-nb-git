@@ -106,9 +106,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult<PushDialog, Object> showPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList)
+  public DialogResult<PushDialog, Boolean> showPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList)
   {
-    DialogResult<PushDialog, Object> result = null;
+    DialogResult<PushDialog, Boolean> result = null;
     try
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createPushDialog(pRepository, pCommitList), "List of commits to be pushed");
