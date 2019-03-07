@@ -1,6 +1,8 @@
 package de.adito.git.gui;
 
 import de.adito.git.api.data.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -110,22 +112,17 @@ public class TextHighlightUtil
   {
     try
     {
-      IEditorChange editorChange = pFileChangesEvent.getEditorChange().getChange(pChangeSide);
-      if (editorChange.getType() == EChangeType.DELETE || editorChange.getType() == EChangeType.MODIFY)
+      if (pFileChangesEvent.getEditorChange() != null)
       {
-        pJEditorPane.getDocument().remove(editorChange.getOffset(), editorChange.getLength());
-      }
-      if (editorChange.getType() == EChangeType.MODIFY || editorChange.getType() == EChangeType.ADD)
-      {
-        String cleanedInsertText = editorChange.getText();
-        if (cleanedInsertText != null)
+        IEditorChange editorChange = pFileChangesEvent.getEditorChange().getChange(pChangeSide);
+        if (editorChange.getType() == EChangeType.DELETE || editorChange.getType() == EChangeType.MODIFY)
         {
-          if (cleanedInsertText.contains("\n"))
-            cleanedInsertText = cleanedInsertText.replace("\r", "");
-          else
-            cleanedInsertText = cleanedInsertText.replace("\r", "\n");
+          pJEditorPane.getDocument().remove(editorChange.getOffset(), editorChange.getLength());
         }
-        pJEditorPane.getDocument().insertString(editorChange.getOffset(), cleanedInsertText, null);
+        if (editorChange.getType() == EChangeType.MODIFY || editorChange.getType() == EChangeType.ADD)
+        {
+          pJEditorPane.getDocument().insertString(editorChange.getOffset(), _cleanString(editorChange.getText()), null);
+        }
       }
     }
     catch (BadLocationException pE)
@@ -150,6 +147,26 @@ public class TextHighlightUtil
     {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Make the newlines in the string uniform \n
+   *
+   * @param pUnCleanString String that should be cleaned such that the newlines are always only \n
+   * @return String with only \n as newlines
+   */
+  @NotNull
+  private static String _cleanString(@Nullable String pUnCleanString)
+  {
+    if (pUnCleanString != null)
+    {
+      if (pUnCleanString.contains("\n"))
+        pUnCleanString = pUnCleanString.replace("\r", "");
+      else
+        pUnCleanString = pUnCleanString.replace("\r", "\n");
+      return pUnCleanString;
+    }
+    return "";
   }
 
   /**

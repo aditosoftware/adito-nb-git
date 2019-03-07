@@ -1,5 +1,8 @@
 package de.adito.git.api.data;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -24,10 +27,12 @@ public interface IFileChangesEvent
    *
    * @return List with the updated IFileChangeChunks
    */
+  @NotNull
   List<IFileChangeChunk> getNewValue();
 
   /**
    * @return IEditorChangeEvent describing the change that has to happen in the editor to reflect the current state of the IFileChangeChunks
    */
+  @Nullable
   IEditorChangeEvent getEditorChange();
 }
