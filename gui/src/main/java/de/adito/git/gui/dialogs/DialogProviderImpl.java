@@ -63,7 +63,7 @@ class DialogProviderImpl implements IDialogProvider
     try
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs, pSelectedFile, pAcceptChange, pShowFileTable),
-                                          "DiffDialog"); //todo
+                                          "Diff for file " + pSelectedFile);
       return result;
     }
     finally
