@@ -1417,8 +1417,7 @@ public class RepositoryImpl implements IRepository
     protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver,
                                                          @NotNull IFireable<Optional<IFileStatus>> pIFireable)
     {
-      // todo better threadhandling
-      Executor service = new ThreadPoolExecutor(1, 1, 5, TimeUnit.SECONDS, new VoidingPseudoBlockingArrayQueue<>(5));
+      Executor service = new ThreadPoolExecutor(1, 1, 5, TimeUnit.SECONDS, new VoidingPseudoBlockingArrayQueue<>(1));
       IFileSystemChangeListener listener = () -> service.execute(() -> pIFireable.fireValueChanged(Optional.of(RepositoryImplHelper.status(git))));
       pIFileSystemObserver.addListener(listener);
       return listener;
