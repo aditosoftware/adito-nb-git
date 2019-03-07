@@ -53,7 +53,7 @@ public class EditorChangeImpl implements IEditorChange
       return EChangeType.DELETE;
     if (length == -1)
       return EChangeType.ADD;
-    if (length > 0)
+    if (length >= 0)
       return EChangeType.MODIFY;
     return EChangeType.SAME;
   }
