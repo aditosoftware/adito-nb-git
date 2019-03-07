@@ -232,7 +232,7 @@ public class MergeDiffImpl implements IMergeDiff
     int numCharsToDelete = 0;
     for (Integer num : affectedIndizes)
     {
-      numCharsToDelete += pFileChangeChunkList.get(num).getLines(EChangeSide.OLD).length();
+      numCharsToDelete += pFileChangeChunkList.get(num).getEditorLines(EChangeSide.OLD).length();
       pFileChangeChunkList.set(num, MergeDiffImpl.applyChange(pToInsert, pFileChangeChunkList.get(num)));
     }
     MergeDiffImpl.propagateAdditionalLines(pFileChangeChunkList, affectedIndizes.get(affectedIndizes.size() - 1) + 1,
@@ -255,7 +255,7 @@ public class MergeDiffImpl implements IMergeDiff
       List<IFileChangeChunk> changeChunkList = pFileChangeSupplier.get().getChangeChunks().blockingFirst().getNewValue();
       int indexInList = changeChunkList.indexOf(pToChangeChunk);
       EditorChangeImpl editorChange = new EditorChangeImpl(FileChangesImpl.getOffsetForChunk(indexInList, changeChunkList, EChangeSide.OLD),
-                                                           pToChangeChunk.getLines(EChangeSide.OLD).length(),
+                                                           pToChangeChunk.getEditorLines(EChangeSide.OLD).length(),
                                                            pToChangeChunk.getLines(EChangeSide.NEW));
       // create new IFileChangeChunks since IFileChangeChunks are effectively final
       Edit edit = new Edit(pToChangeChunk.getStart(EChangeSide.OLD), pToChangeChunk.getStart(EChangeSide.OLD)
