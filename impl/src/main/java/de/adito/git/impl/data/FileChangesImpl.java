@@ -29,9 +29,13 @@ public class FileChangesImpl implements IFileChanges
   FileChangesImpl(EditList pEditList, String pOriginalFileContents, String pNewFileContents)
   {
     changeChunks = new ArrayList<>();
+    if (pOriginalFileContents.endsWith("\n"))
+      pOriginalFileContents = pOriginalFileContents.substring(0, pOriginalFileContents.length() - 2);
+    if (pNewFileContents.endsWith("\n"))
+      pNewFileContents = pNewFileContents.substring(0, pNewFileContents.length() - 2);
     // combine the lineChanges with the information from editList and build chunks
-    originalLines = pOriginalFileContents.split("\n", -1);
-    newLines = pNewFileContents.split("\n", -1);
+    originalLines = pOriginalFileContents.isEmpty() ? new String[0] : pOriginalFileContents.split("\n", -1);
+    newLines = pNewFileContents.isEmpty() ? new String[0] : pNewFileContents.split("\n", -1);
     if (!pEditList.isEmpty())
     {
       // from beginning of the file to the first chunk
