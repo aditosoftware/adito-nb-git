@@ -3,11 +3,13 @@ package de.adito.git.nbm;
 import de.adito.git.gui.IEditorKitProvider;
 import org.apache.tika.Tika;
 import org.jetbrains.annotations.NotNull;
+import org.openide.filesystems.*;
+import org.openide.loaders.DataObject;
 import org.openide.text.CloneableEditorSupport;
 
 import javax.swing.text.EditorKit;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 
 /**
@@ -15,10 +17,50 @@ import java.nio.file.Files;
  */
 public class EditorKitProviderImpl implements IEditorKitProvider
 {
+  private static final Method createEditorKit_METHOD;
+
+  static
+  {
+    try
+    {
+      createEditorKit_METHOD = CloneableEditorSupport.class.getDeclaredMethod("createEditorKit");
+      createEditorKit_METHOD.setAccessible(true);
+    }
+    catch (NoSuchMethodException e)
+    {
+      // Nope, nothing to do here ... something is broken
+      throw new RuntimeException(e);
+    }
+  }
+
   @NotNull
   @Override
   public EditorKit getEditorKit(@NotNull String pFileDirectory)
   {
+    try
+    {
+      File file = new File(pFileDirectory).toPath().toAbsolutePath().toFile();
+      FileObject fileObject = FileUtil.toFileObject(file);
+      if (fileObject != null)
+      {
+        DataObject dataObject = DataObject.find(fileObject);
+        if (dataObject != null)
+        {
+          CloneableEditorSupport ces = dataObject.getLookup().lookup(CloneableEditorSupport.class);
+          if (ces != null)
+          {
+            EditorKit kit = (EditorKit) createEditorKit_METHOD.invoke(ces);
+            if (kit != null)
+              return kit;
+          }
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      // Nothing, just try another way
+    }
+
     String mimeType = null;
 
     try
@@ -41,9 +83,6 @@ public class EditorKitProviderImpl implements IEditorKitProvider
   @Override
   public EditorKit getEditorKitForContentType(@NotNull String pContentType)
   {
-    if ("application/javascript".equals(pContentType))
-      pContentType = "text/javascript";
-
     return CloneableEditorSupport.getEditorKit(pContentType);
   }
 }

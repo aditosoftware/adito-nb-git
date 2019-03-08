@@ -49,9 +49,11 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
     mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
     Observable<Optional<IFileStatus>> obs = repository.getStatus();
-    Observable<List<IMergeDiff>> mergeDiffListObservable = Observable.combineLatest(obs,
-                                                                                    mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
-            .filter(pMergeDiff -> pStatus.map(IFileStatus::getConflicting).orElse(Collections.emptySet())
+    Observable<List<IMergeDiff>> mergeDiffListObservable = Observable
+        .combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
+            .filter(pMergeDiff -> pStatus
+                .map(IFileStatus::getConflicting)
+                .orElse(Collections.emptySet())
                 .contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath()))
             .collect(Collectors.toList()));
     selectedMergeDiffObservable = Observable
@@ -126,39 +128,46 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     {
       for (IMergeDiff selectedMergeDiff : mergeDiffOptional.get())
       {
-        File selectedFile = new File(repository.getTopLevelDirectory(), selectedMergeDiff.getDiff(pConflictSide).getFilePath());
-        StringBuilder fileContents = new StringBuilder();
-        for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+        String path = selectedMergeDiff.getDiff(pConflictSide).getAbsoluteFilePath();
+        if (path != null)
         {
-          // BLines is always the "new" version of the file, in comparison to the fork point
-          fileContents.append(changeChunk.getLines(EChangeSide.NEW));
+          File selectedFile = new File(path);
+          StringBuilder fileContents = new StringBuilder();
+          for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+          {
+            // BLines is always the "new" version of the file, in comparison to the fork point
+            fileContents.append(changeChunk.getLines(EChangeSide.NEW));
+          }
+          _writeToFile(fileContents.toString(), selectedMergeDiff, selectedFile);
         }
-        _writeToFile(fileContents.toString(), selectedMergeDiff, selectedFile);
       }
     }
   }
 
   /**
-   * @param pIMergeDiff IMergeDiff whose conflicts were resolved
+   * @param pMergeDiff IMergeDiff whose conflicts were resolved
    */
-  private void _acceptManualVersion(IMergeDiff pIMergeDiff)
+  private void _acceptManualVersion(IMergeDiff pMergeDiff)
   {
-    File selectedFile = new File(repository.getTopLevelDirectory(), pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
-    StringBuilder fileContents = new StringBuilder();
-    for (IFileChangeChunk changeChunk : pIMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges()
-        .getChangeChunks().blockingFirst().getNewValue())
+    String path = pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getAbsoluteFilePath();
+    if (path != null)
     {
-      // BLines is always the "new" version of the file, in comparison to the fork point
-      fileContents.append(changeChunk.getLines(EChangeSide.OLD));
+      File selectedFile = new File(repository.getTopLevelDirectory(), pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
+      StringBuilder fileContents = new StringBuilder();
+      for (IFileChangeChunk changeChunk : pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges()
+          .getChangeChunks().blockingFirst().getNewValue())
+      {
+        // BLines is always the "new" version of the file, in comparison to the fork point
+        fileContents.append(changeChunk.getLines(EChangeSide.OLD));
+      }
+      _writeToFile(fileContents.toString(), pMergeDiff, selectedFile);
     }
-    _writeToFile(fileContents.toString(), pIMergeDiff, selectedFile);
   }
 
   /**
-   *
-   * @param pFileContents Contents that should be written to the file
+   * @param pFileContents      Contents that should be written to the file
    * @param pSelectedMergeDiff IMergeDiff that will get resolved by writing the contents to the file
-   * @param pSelectedFile file which should be overridden with pFileContents
+   * @param pSelectedFile      file which should be overridden with pFileContents
    */
   private void _writeToFile(String pFileContents, IMergeDiff pSelectedMergeDiff, File pSelectedFile)
   {

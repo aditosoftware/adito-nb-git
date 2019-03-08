@@ -1,13 +1,10 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.*;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.util.DifferentialScrollBarCoupling;
 import io.reactivex.Observable;
@@ -16,11 +13,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
-import java.awt.BorderLayout;
-import java.awt.ComponentOrientation;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -53,7 +49,10 @@ public class MergePanel extends JPanel implements IDiscardable
     acceptYoursIcon = pAcceptYoursIcon;
     acceptTheirsIcon = pAcceptTheirsIcon;
     discardIcon = pDiscardIcon;
-    editorKitObservable = Observable.just(pEditorKitProvider.getEditorKit(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath()));
+    editorKitObservable = Observable.just(Optional.ofNullable(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getAbsoluteFilePath()))
+        .map(pPath -> pPath
+            .map(pEditorKitProvider::getEditorKit)
+            .orElseGet(() -> pEditorKitProvider.getEditorKitForContentType("text/plain")));
     _initForkPointPanel();
     _initYoursPanel();
     _initTheirsPanel();

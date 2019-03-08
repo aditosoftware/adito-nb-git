@@ -4,6 +4,9 @@ import de.adito.git.api.data.*;
 import de.adito.git.impl.EnumMappings;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.patch.FileHeader;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 /**
  * Represents information about the uncovered changes by the diff command
@@ -16,13 +19,16 @@ public class FileDiffImpl implements IFileDiff
   private DiffEntry diffEntry;
   private FileHeader fileHeader;
   private FileChangesImpl fileChanges;
+  private File topLevelDirectory;
   private String originalFileContents;
   private String newFileContents;
 
-  public FileDiffImpl(DiffEntry pDiffEntry, FileHeader pFileHeader, String pOriginalFileContents, String pNewFileContents)
+  public FileDiffImpl(DiffEntry pDiffEntry, FileHeader pFileHeader, @Nullable File pTopLevelDirectory,
+                      String pOriginalFileContents, String pNewFileContents)
   {
     diffEntry = pDiffEntry;
     fileHeader = pFileHeader;
+    topLevelDirectory = pTopLevelDirectory;
     originalFileContents = pOriginalFileContents;
     newFileContents = pNewFileContents;
   }
@@ -69,6 +75,19 @@ public class FileDiffImpl implements IFileDiff
     if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE)
       return getFilePath(EChangeSide.OLD);
     return getFilePath(EChangeSide.NEW);
+  }
+
+  @Override
+  public String getAbsoluteFilePath()
+  {
+    if (topLevelDirectory == null)
+      return null;
+
+    String path = getFilePath();
+    if (path == null)
+      return null;
+
+    return new File(topLevelDirectory, path).toPath().toAbsolutePath().toString();
   }
 
   /**

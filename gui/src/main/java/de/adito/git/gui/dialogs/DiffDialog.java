@@ -2,30 +2,23 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.ColorPicker;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileDiff;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.FileStatusCellRenderer;
-import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tablemodels.DiffTableModel;
-import de.adito.git.gui.tablemodels.StatusTableModel;
+import de.adito.git.gui.tablemodels.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Window that displays the list of changes found during a diff
@@ -93,7 +86,10 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       else return Optional.empty();
     });
     Observable<EditorKit> editorKitObservable = fileDiffObservable
-        .map(pFileDiff -> editorKitProvider.getEditorKit(pFileDiff.map(IFileDiff::getFilePath).orElse("text/plain")));
+        .map(pFileDiff -> pFileDiff
+            .map(IFileDiff::getAbsoluteFilePath)
+            .map(editorKitProvider::getEditorKit)
+            .orElseGet(() -> editorKitProvider.getEditorKitForContentType("text/plain")));
 
     diffPanel = new DiffPanel(pIconLoader, fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
 

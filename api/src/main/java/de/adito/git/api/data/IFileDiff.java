@@ -1,5 +1,7 @@
 package de.adito.git.api.data;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Interface for the data object containing the information about the changes to a file
  *
@@ -44,6 +46,15 @@ public interface IFileDiff
    * @return path from the root to the file
    */
   String getFilePath();
+
+  /**
+   * returns the absolute path of getFilePath(EChangeSide.NEW) if file is not deleted,
+   * otherwise the absolute path of getFilePath(EChangeSide.OLD) is returned
+   *
+   * @return absolute path of the file, or <tt>null</tt> if it can't be determined
+   */
+  @Nullable
+  String getAbsoluteFilePath();
 
   /**
    * @return {@link IFileChanges} that contains a list detailing the changes in each changed line
