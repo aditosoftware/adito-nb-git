@@ -33,7 +33,8 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   private final String orientation;
   private final int acceptChangeIconXVal;
   private final int discardChangeIconXVal;
-  private final Disposable disposable;
+  private final Disposable areaDisposable;
+  private final Disposable sizeDisposable;
   private final Insets panelInsets = new Insets(1, 0, 1, 0);
   private Rectangle cachedViewRectangle = new Rectangle();
   private List<IconInfo> iconInfoList = new ArrayList<>();
@@ -43,17 +44,18 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   private List<ChangedChunkConnection> changedChunkConnectionsToDraw = new ArrayList<>();
 
   /**
-   * @param pModel              DiffPanelModel that contains functions that retrieve information, such as start/end line, of an IFileChangeChunk
+   * @param pModel              DiffPanelModel containing information about which parts of the FileChangeChunk should be utilized
    * @param pEditorPane         EditorPane that contains the text for which the buttons should be drawn
-   * @param pDisplayedArea      Observable with the Rectangle that defines the viewPort on the EditorPane
+   * @param pDisplayedArea      Observable with the Rectangle that defines the viewPort on the EditorPane, changes each time the viewPort is moved
+   * @param pViewPortSizeObs    Observable that changes each time the size of the viewPort changes, and only then
    * @param pAcceptIcon         icon used for the accept action
    * @param pDiscardIcon        icon used for the discard option. Null if the panel should allow the accept action only
    * @param pLineNumColorModels Array of size 2 with LineNumbersColorModel, index 0 is the to the left of this ChoiceButtonPane, 1 to the right
    * @param pOrientation        String with the orientation (as BorderLayout.EAST/WEST) of this panel, determines the order of accept/discardButtons
    */
   ChoiceButtonPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, Observable<Rectangle> pDisplayedArea,
-                    @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon, LineNumbersColorModel[] pLineNumColorModels,
-                    String pOrientation)
+                    Observable<Dimension> pViewPortSizeObs, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
+                    LineNumbersColorModel[] pLineNumColorModels, String pOrientation)
   {
     model = pModel;
     discardIcon = pDiscardIcon;
@@ -69,12 +71,20 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
                                                BorderLayout.WEST.equals(pOrientation)));
     pLineNumColorModels[0].addListener(this);
     pLineNumColorModels[1].addListener(this);
-    disposable = Observable.combineLatest(
+    sizeDisposable = Observable.combineLatest(
+        pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
+        .subscribe(
+            pFileChangeEvent -> SwingUtilities.invokeLater(() -> {
+              _calculateButtonViewCoordinates(pEditorPane, pFileChangeEvent);
+              repaint();
+            }));
+    areaDisposable = Observable.combineLatest(
         pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new)
         .subscribe(
             pPair -> SwingUtilities.invokeLater(() -> {
-              _calculateButtonViewCoordinates(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle());
+              iconInfosToDraw = _calculateIconsToDraw(pEditorPane, pPair.getRectangle(), iconInfoList);
               changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(pPair.getRectangle(), leftLineNumberColors, rightLineNumberColors);
+              cachedViewRectangle = pPair.getRectangle();
               repaint();
             }));
   }
@@ -84,7 +94,8 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   {
     lineNumbersColorModels[0].discard();
     lineNumbersColorModels[1].discard();
-    disposable.dispose();
+    areaDisposable.dispose();
+    sizeDisposable.dispose();
   }
 
   @Override
@@ -95,52 +106,49 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   }
 
   /**
+   * calculates the positions of all Buttons
+   *
    * @param pEditorPane       JEditorPane that contains the text of the IFileChangeChunks
    * @param pFileChangesEvent most recent IFileChangesEvent
-   * @param pDisplayedArea    Coordinates of the viewPort window, in view coordinates
    */
-  private void _calculateButtonViewCoordinates(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pDisplayedArea)
+  private void _calculateButtonViewCoordinates(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent)
   {
-    if ((cachedViewRectangle.height == 0 || cachedViewRectangle.width != pDisplayedArea.width || pDisplayedArea.equals(cachedViewRectangle))
-        && acceptIcon != null)
+    List<IconInfo> iconInfos = new ArrayList<>();
+    try
     {
-      List<IconInfo> iconInfos = new ArrayList<>();
-      try
+      View view = pEditorPane.getUI().getRootView(pEditorPane);
+      int lineNumber = 0;
+      for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
       {
-        View view = pEditorPane.getUI().getRootView(pEditorPane);
-        int lineNumber = 0;
-        for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
+        // Chunks with type SAME have no buttons since contents are equal
+        if (fileChange.getChangeType() != EChangeType.SAME)
         {
-          // Chunks with type SAME have no buttons since contents are equal
-          if (fileChange.getChangeType() != EChangeType.SAME)
+          Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(lineNumber);
+          if (lineElement == null)
+            throw new BadLocationException("lineElement for line was null", lineNumber);
+          int characterStartOffset = lineElement.getStartOffset();
+          int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
+                                                 Position.Bias.Forward, new Rectangle()).getBounds().y;
+          iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate, acceptChangeIconXVal, fileChange));
+          // discardIcon == null -> only accept button should be used (case DiffPanel)
+          if (discardIcon != null)
           {
-            Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(lineNumber);
-            if (lineElement == null)
-              throw new BadLocationException("lineElement for line was null", lineNumber);
-            int characterStartOffset = lineElement.getStartOffset();
-            int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
-                                                   Position.Bias.Forward, new Rectangle()).getBounds().y;
-            iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate, acceptChangeIconXVal, fileChange));
-            // discardIcon == null -> only accept button should be used (case DiffPanel)
-            if (discardIcon != null)
-            {
-              iconInfos.add(new IconInfo(discardIcon, yViewCoordinate, discardChangeIconXVal, fileChange));
-            }
+            iconInfos.add(new IconInfo(discardIcon, yViewCoordinate, discardChangeIconXVal, fileChange));
           }
-          lineNumber += (fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide()));
         }
-        iconInfoList = iconInfos;
+        lineNumber += (fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide()));
       }
-      catch (BadLocationException pE)
-      {
-        throw new RuntimeException(pE);
-      }
+      iconInfoList = iconInfos;
     }
-    iconInfosToDraw = _calculateIconsToDraw(pEditorPane, pDisplayedArea, iconInfoList);
-    cachedViewRectangle = pDisplayedArea;
+    catch (BadLocationException pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
   /**
+   * calculates the icons/buttons that have to be drawn because they are in the view. Based on the current list of all buttons
+   *
    * @param pEditorPane    JEditorPane that contains the text of the IFileChangeChunks
    * @param pDisplayedArea Coordinates of the viewPort window, in view coordinates
    * @param pIconInfos     List of all IconInfos of this Panel
@@ -162,6 +170,10 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   }
 
   /**
+   * calculates the connections that have to be drawn between the associated chunks of two panes
+   * Has to calculate all the connections first since each time one of the scrollPanes moves, the areas of the connections changes, the areas are
+   * seldom static. Filters the areas on if they  have parts visible and only returns those that do
+   *
    * @param pDisplayArea Coordinates of the viewPort window, in view coordinates
    * @return List of ChangeChunkConnections that have to be drawn
    */
@@ -230,8 +242,8 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
       rightLineNumberColors = pNewValue;
       if (!BorderLayout.WEST.equals(orientation))
       {
-        repaint();
         changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(cachedViewRectangle, leftLineNumberColors, rightLineNumberColors);
+        repaint();
       }
     }
   }

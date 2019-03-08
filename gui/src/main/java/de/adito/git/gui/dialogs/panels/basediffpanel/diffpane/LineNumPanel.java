@@ -26,7 +26,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
 {
 
   private final DiffPanelModel model;
-  private final Disposable disposable;
+  private final Disposable areaDisposable;
+  private final Disposable sizeDisposable;
   private final Insets panelInsets = new Insets(0, 5, 0, 5);
   private final Insets editorInsets;
   private Rectangle cachedViewRectangle = new Rectangle();
@@ -39,12 +40,13 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
 
 
   /**
-   * @param pModel         DiffPanelModel that contains some of the Functions that retrieve information, such as start/end line, of an FileChangeChunk
-   * @param pEditorPane    JEditorPane that displays the text from the IFileChangeChunks in the pModel
-   * @param pDisplayedArea Observable of the Rectangle of the viewPort
+   * @param pModel           DiffPanelModel containing information about which parts of the FileChangeChunk should be utilized
+   * @param pEditorPane      JEditorPane that displays the text from the IFileChangeChunks in the pModel
+   * @param pDisplayedArea   Observable of the Rectangle of the viewPort. Changes each time the viewPort is moved or resized
+   * @param pViewPortSizeObs Observable of the Dimension of the viewPort. Changes each time the viewPort has its size changed, and only then
    */
   LineNumPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, @NotNull Observable<Rectangle> pDisplayedArea,
-               @NotNull LineNumbersColorModel pLineNumbersColorModel)
+               Observable<Dimension> pViewPortSizeObs, @NotNull LineNumbersColorModel pLineNumbersColorModel)
   {
     lineNumbersColorModel = pLineNumbersColorModel;
     editorInsets = pEditorPane.getInsets();
@@ -54,13 +56,25 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     setBackground(ColorPicker.DIFF_BACKGROUND);
     model = pModel;
     pLineNumbersColorModel.addListener(this);
-    disposable = Observable.combineLatest(
+    sizeDisposable = Observable.combineLatest(
+        pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
+        .subscribe(
+            pFileChangeEvent -> SwingUtilities.invokeLater(() -> {
+              lineNumFacadeWidth = getFontMetrics(getFont()).stringWidth(String.valueOf(_getLastLineNumber(pModel)));
+              setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
+              _calculateLineNumbers(pEditorPane, pFileChangeEvent);
+              repaint();
+            }));
+    areaDisposable = Observable.combineLatest(
         pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new)
         .subscribe(
             pPair -> SwingUtilities.invokeLater(() -> {
-              lineNumFacadeWidth = getFontMetrics(getFont()).stringWidth(String.valueOf(_getLastLineNumber(pModel)));
-              setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
-              _calculateLineNumbers(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle());
+              if (lineNumbers.isEmpty())
+              {
+                _calculateLineNumbers(pEditorPane, pPair.getFileChangesEvent());
+              }
+              drawnLineNumbers = _calculateDrawnLineNumbers(lineNumbers, pPair.getRectangle());
+              cachedViewRectangle = pPair.getRectangle();
               repaint();
             }));
   }
@@ -77,7 +91,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   @Override
   public void discard()
   {
-    disposable.dispose();
+    areaDisposable.dispose();
+    sizeDisposable.dispose();
     lineNumbersColorModel.removeListener(this);
     lineNumbersColorModel.discard();
   }
@@ -90,42 +105,40 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
 
 
   /**
+   * calculates the position of all lineNumbers
+   *
    * @param pEditorPane       JEditorPane that contains the text for which the line numbers should be drawn
    * @param pFileChangesEvent most recent IFileChangesEvent
-   * @param pViewWindow       Coordinates of the viewPort window, in view coordinates
    */
-  private void _calculateLineNumbers(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pViewWindow)
+  private void _calculateLineNumbers(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent)
   {
-    if (pViewWindow.width != cachedViewRectangle.width || lineNumbers.isEmpty() || pViewWindow.equals(cachedViewRectangle))
+    try
     {
-      try
+      List<LineNumber> lineNums = new ArrayList<>();
+      View view = pEditorPane.getUI().getRootView(pEditorPane);
+      int lineCounter = 0;
+      int numberedLineCounter = 1;
+      for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
       {
-        List<LineNumber> lineNums = new ArrayList<>();
-        View view = pEditorPane.getUI().getRootView(pEditorPane);
-        int lineCounter = 0;
-        int numberedLineCounter = 1;
-        for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
+        int numLines = fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide());
+        for (int index = 0; index < numLines; index++)
         {
-          int numLines = fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide());
-          for (int index = 0; index < numLines; index++)
-          {
-            lineNums.add(_calculateLineNumberPosition(pEditorPane, numberedLineCounter, lineCounter, index, view));
-          }
-          numberedLineCounter += numLines;
-          lineCounter += numLines;
+          lineNums.add(_calculateLineNumberPosition(pEditorPane, numberedLineCounter, lineCounter, index, view));
         }
-        lineNumbers = lineNums;
+        numberedLineCounter += numLines;
+        lineCounter += numLines;
       }
-      catch (BadLocationException pE)
-      {
-        throw new RuntimeException(pE);
-      }
+      lineNumbers = lineNums;
     }
-    drawnLineNumbers = _calculateDrawnLineNumbers(lineNumbers, pViewWindow);
-    cachedViewRectangle = pViewWindow;
+    catch (BadLocationException pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
   /**
+   * calculates the lineNumbers that have to be drawn, based on all lineNumbers. Basically a filter function
+   *
    * @param pLineNumbers list of all LineNumbers to be filtered
    * @param pViewWindow  Rectangle with the coordinates of the viewPort
    * @return list of LineNumbers of the the incoming list that are in the viewPort area
@@ -146,6 +159,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   }
 
   /**
+   * calculates the position of a single lineNumber
+   *
    * @param pEditorPane          JEditorPane containing the text for which theses lines are
    * @param pNumberedLineCounter number of actual lines before this changeChunk
    * @param pLineCounter         number of total lines (including parity lines) before this changeChunk
