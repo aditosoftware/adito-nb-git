@@ -1,15 +1,14 @@
 package de.adito.git.gui.tree.nodes;
 
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.impl.util.Util;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Represents a directory with the information which of the changed files are parts of the directory being in the FileChangeTypeNodeInfo, which is
@@ -40,6 +39,27 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
   public void setInfo(FileChangeTypeNodeInfo pUserObject)
   {
     setUserObject(pUserObject);
+  }
+
+  /**
+   * sorts the children of the node by the ordering imposed by the comparator, the calls the sort function of the children
+   *
+   * @param pComparator Comparator deciding the order in which the children are arranged
+   */
+  public void sort(Comparator<TreeNode> pComparator, DefaultTreeModel pModel)
+  {
+    if (children != null)
+    {
+      if (!Util.isSorted(children, pComparator))
+      {
+        children.sort(pComparator);
+        pModel.reload(this);
+      }
+      for (TreeNode node : children)
+      {
+        ((FileChangeTypeNode) node).sort(pComparator, pModel);
+      }
+    }
   }
 
   /**
@@ -117,6 +137,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
     return parent != null
         && children != null
         && children.size() == 1
+        && getInfo() != null
         && getInfo().getNodeFile().isDirectory()
         && ((FileChangeTypeNode) children.get(0)).getInfo().getNodeFile().isDirectory();
   }
@@ -172,9 +193,12 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
    */
   private static void _doCollapse(FileChangeTypeNode pNode)
   {
-    pNode.getInfo().collapse(((FileChangeTypeNode) pNode.getChildAt(0)).getInfo());
-    pNode.removeAllChildren();
-    calculateChildren(pNode, pNode.getInfo().getMembers(), pNode.getInfo().getNodeFile());
+    if (pNode.getInfo() != null)
+    {
+      pNode.getInfo().collapse(((FileChangeTypeNode) pNode.getChildAt(0)).getInfo());
+      pNode.removeAllChildren();
+      calculateChildren(pNode, pNode.getInfo().getMembers(), pNode.getInfo().getNodeFile());
+    }
   }
 
   /**
@@ -234,7 +258,8 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
     {
       for (TreeNode childNode : pNode.children)
       {
-        if (_isChildMember(((FileChangeTypeNode) childNode).getInfo().getNodeFile(), pFile))
+        FileChangeTypeNodeInfo childNodeInfo = ((FileChangeTypeNode) childNode).getInfo();
+        if (childNodeInfo != null && _isChildMember(childNodeInfo.getNodeFile(), pFile))
         {
           return (FileChangeTypeNode) childNode;
         }

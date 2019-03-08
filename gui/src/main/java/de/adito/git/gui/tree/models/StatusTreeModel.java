@@ -8,7 +8,9 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -21,6 +23,7 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
 
   private final File projectDirectory;
   private final Disposable disposable;
+  private Comparator<TreeNode> comparator = _getDefaultComparator();
 
   public StatusTreeModel(Observable<List<IFileChangeType>> pChangeList, File pProjectDirectory)
   {
@@ -47,6 +50,17 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
       FileChangeTypeNode root = (FileChangeTypeNode) getRoot();
       root.updateNode(pList, this);
       root.tryCollapse(this);
+      root.sort(comparator, this);
     }
+  }
+
+  private Comparator<TreeNode> _getDefaultComparator()
+  {
+    return Comparator.comparing(pO -> {
+      FileChangeTypeNodeInfo nodeInfo = ((FileChangeTypeNode) pO).getInfo();
+      if (nodeInfo != null)
+        return nodeInfo.getNodeDescription();
+      return "";
+    });
   }
 }
