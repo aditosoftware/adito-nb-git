@@ -165,6 +165,7 @@ public class RepositoryImplHelper
    * @param pConflictingFile one of the Files with a conflict that were modified by git/JGit
    * @return id of the branch that gets merged ("THEIRS" for merges)
    */
+  @Nullable
   static String getConflictingBranch(File pConflictingFile) throws IOException
   {
     try (Stream<String> lines = Files.lines(pConflictingFile.toPath()))
@@ -206,6 +207,7 @@ public class RepositoryImplHelper
                                                   new CommitImpl(mergeBase), pConflicts, pDiffFn);
   }
 
+  @NotNull
   static List<ICommit> getStashedCommits(Git pGit) throws AditoGitException
   {
     List<ICommit> stashedCommits = new ArrayList<>();
@@ -288,6 +290,7 @@ public class RepositoryImplHelper
    * @return List<IMergeDiff> describing the changes from the fork commit to each branch
    * @throws AditoGitException if JGit encountered an error condition
    */
+  @NotNull
   static List<IMergeDiff> getMergeConflicts(@NotNull Git pGit, String pCurrentBranch, String pBranchToMerge,
                                             ICommit pForkCommit, Set<String> pConflicts,
                                             BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFunction) throws AditoGitException
@@ -367,6 +370,7 @@ public class RepositoryImplHelper
    * @return List of ICommits matching the provided criteria
    * @throws AditoGitException if JGit throws an exception/returns null
    */
+  @NotNull
   static List<ICommit> getCommits(@NotNull Git pGit, @Nullable IBranch pSourceBranch, @Nullable File pFile,
                                   int pIndexFrom, int pNumCommits) throws AditoGitException
   {

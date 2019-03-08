@@ -4,30 +4,44 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
-import de.adito.git.api.exception.*;
+import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.exception.AmbiguousStashCommitsException;
+import de.adito.git.api.exception.TargetBranchNotFoundException;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
-import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.StashApplyFailureException;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
-import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.treewalk.*;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.*;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.nio.charset.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -862,6 +876,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   public List<IMergeDiff> getConflicts() throws AditoGitException
   {
     try
@@ -872,6 +887,15 @@ public class RepositoryImpl implements IRepository
         File aConflictingFile = new File(git.getRepository().getDirectory().getParent(), conflictingFiles.iterator().next());
         String currentBranchId = git.getRepository().getBranch();
         String conflictingBranchId = RepositoryImplHelper.getConflictingBranch(aConflictingFile);
+        if (conflictingBranchId == null)
+        {
+          if (git.getRepository().readCherryPickHead() == null)
+          {
+            throw new TargetBranchNotFoundException("Cannot determine target branch of conflict",
+                                                    getCommit(ObjectId.toString(git.getRepository().readOrigHead())));
+          }
+          conflictingBranchId = ObjectId.toString(git.getRepository().readCherryPickHead());
+        }
         if (conflictingBranchId.contains("Stashed changes"))
         {
           List<ICommit> stashedCommits = RepositoryImplHelper.getStashedCommits(git);
@@ -880,6 +904,12 @@ public class RepositoryImpl implements IRepository
           else if (!stashedCommits.isEmpty())
             return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, stashedCommits.get(0).getId(), this::diff);
           else throw new AditoGitException("Conflict from failed un-stashing, but no more stashed commits exist");
+        }
+        if (git.getRepository().getRepositoryState() == RepositoryState.CHERRY_PICKING)
+        {
+          return RepositoryImplHelper.getMergeConflicts(git, currentBranchId, conflictingBranchId,
+                                                        getCommit(conflictingBranchId).getParents().get(0),
+                                                        conflictingFiles, this::diff);
         }
         return RepositoryImplHelper.getMergeConflicts(git, currentBranchId, conflictingBranchId,
                                                       new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentBranchId, conflictingBranchId)),
@@ -893,6 +923,7 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  @NotNull
   public List<IMergeDiff> getStashConflicts(String pStashedCommitId) throws AditoGitException
   {
     Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
@@ -909,6 +940,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<IMergeDiff> merge(@NotNull IBranch pParentBranch, @NotNull IBranch pBranchToMerge) throws AditoGitException
   {
@@ -970,6 +1002,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<IFileChangeType> getCommittedFiles(String pCommitId) throws AditoGitException
   {
@@ -1003,6 +1036,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public ICommit getCommit(@Nullable String pIdentifier) throws AditoGitException
   {
@@ -1024,6 +1058,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<ICommit> getCommits(@Nullable IBranch pSourceBranch) throws AditoGitException
   {
@@ -1033,6 +1068,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<ICommit> getCommits(@Nullable IBranch pSourceBranch, int pNumCommits) throws AditoGitException
   {
@@ -1042,6 +1078,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<ICommit> getCommits(@Nullable IBranch pSourceBranch, int pIndexFrom, int pNumCommits) throws AditoGitException
   {
@@ -1051,6 +1088,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<ICommit> getCommits(@Nullable File pForFile) throws AditoGitException
   {
@@ -1060,6 +1098,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<ICommit> getCommits(@Nullable File pFile, int pNumCommits) throws AditoGitException
   {
@@ -1069,13 +1108,14 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<ICommit> getCommits(@Nullable File pFile, int pIndexFrom, int pNumCommits) throws AditoGitException
   {
     return RepositoryImplHelper.getCommits(git, null, pFile, pIndexFrom, pNumCommits);
   }
 
-
+  @NotNull
   @Override
   public List<ICommit> getUnPushedCommits() throws AditoGitException
   {
@@ -1248,6 +1288,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<ICommit> getStashedCommits() throws AditoGitException
   {
@@ -1320,6 +1361,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException
   {

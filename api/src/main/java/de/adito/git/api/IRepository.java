@@ -267,6 +267,7 @@ public interface IRepository
    * @throws AditoGitException if JGit encountered an error condition
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<IFileChangeType> getCommittedFiles(String pCommitId) throws AditoGitException;
 
   /**
@@ -281,6 +282,7 @@ public interface IRepository
    * @return List with all ICommits in the sourceBranch
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<ICommit> getCommits(IBranch pSourceBranch) throws AditoGitException;
 
   /**
@@ -289,6 +291,7 @@ public interface IRepository
    * @return List with all ICommits in the sourceBranch
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<ICommit> getCommits(IBranch pSourceBranch, int pNumCommits) throws AditoGitException;
 
   /**
@@ -298,6 +301,7 @@ public interface IRepository
    * @return List with all ICommits in the sourceBranch
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<ICommit> getCommits(IBranch pSourceBranch, int pIndexFrom, int pNumCommits) throws AditoGitException;
 
   /**
@@ -305,6 +309,7 @@ public interface IRepository
    * @return List with ICommits that contains all commits that affected the file
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<ICommit> getCommits(File pForFile) throws AditoGitException;
 
   /**
@@ -313,6 +318,7 @@ public interface IRepository
    * @return List with ICommits that contains all commits that affected the file
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<ICommit> getCommits(File pForFile, int pNumCommits) throws AditoGitException;
 
   /**
@@ -322,6 +328,7 @@ public interface IRepository
    * @return List with ICommits that contains all commits that affected the file
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<ICommit> getCommits(File pForFile, int pIndexFrom, int pNumCommits) throws AditoGitException;
 
   /**
@@ -330,6 +337,7 @@ public interface IRepository
    * @return list of all commits that are not yet pushed to the remote-tracking branch
    * @throws AditoGitException if JGit encounters an error
    */
+  @NotNull
   List<ICommit> getUnPushedCommits() throws AditoGitException;
 
   /**
@@ -337,6 +345,7 @@ public interface IRepository
    * @param pStartCHTLI If the List of commits is an extension of a list, pass the last CommitHistoryTreeListItem of that list here
    * @return List of CommitHistoryTreeListItems
    */
+  @NotNull
   List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> pCommits, @Nullable CommitHistoryTreeListItem pStartCHTLI);
 
   /**
@@ -397,6 +406,7 @@ public interface IRepository
    *
    * @return List containing all the tags in this repository
    */
+  @NotNull
   List<ITag> getTags();
 
   /**
@@ -405,6 +415,7 @@ public interface IRepository
    * @return List of stashed commits
    * @throws AditoGitException if JGit encounters any errors
    */
+  @NotNull
   List<ICommit> getStashedCommits() throws AditoGitException;
 
   /**
@@ -433,6 +444,7 @@ public interface IRepository
    * @return list with IMergeDiffs if a conflict occurs during un-stashing, empty list if successful
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<IMergeDiff> unStashIfAvailable() throws AditoGitException;
 
   /**
@@ -443,6 +455,7 @@ public interface IRepository
    * @return list with IMergeDiffs if a conflict occurs during un-stashing, empty list if successful
    * @throws AditoGitException if an error occurs
    */
+  @NotNull
   List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException;
 
   /**
