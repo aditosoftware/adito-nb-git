@@ -4,9 +4,7 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.impl.util.Util;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
+import javax.swing.tree.*;
 import java.io.File;
 import java.util.*;
 
@@ -102,8 +100,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
               {
                 if (childMembers.isEmpty())
                 {
-                  remove(childNode);
-                  pModel.reload(this);
+                  pModel.removeNodeFromParent(childNode);
                 }
                 else if (childFile.isDirectory())
                   childNode.updateNode(childMembers, pModel);
@@ -113,18 +110,16 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
                 int indexNow = getIndex(childNode);
                 remove(childNode);
                 FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
-                insert(treeNode, indexNow);
-                calculateChildren(treeNode, childMembers, childFile);
-                pModel.reload(this);
+                pModel.insertNodeInto(treeNode, this, indexNow);
+                calculateChildren(treeNode, pModel, childMembers, childFile);
               }
             }
           }
           else if (!childMembers.isEmpty())
           {
             FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
-            insert(treeNode, 0);
-            calculateChildren(treeNode, childMembers, childFile);
-            pModel.reload(this);
+            pModel.insertNodeInto(treeNode, this, 0);
+            calculateChildren(treeNode, pModel, childMembers, childFile);
           }
         }
       }
@@ -147,8 +142,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
   {
     if (isCollapseAble())
     {
-      _doCollapse(this);
-      pModel.reload(this);
+      _doCollapse(this, pModel);
     }
     if (!isLeaf())
     {
@@ -166,7 +160,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
    * @param pMembers  IFileChangeTypes whose files are children of the parent of pThis
    * @param pNodeFile File that pThis represents
    */
-  public static void calculateChildren(FileChangeTypeNode pThis, List<IFileChangeType> pMembers, File pNodeFile)
+  public static void calculateChildren(FileChangeTypeNode pThis, DefaultTreeModel pModel, List<IFileChangeType> pMembers, File pNodeFile)
   {
     File[] subDirs = pNodeFile.listFiles();
     if (subDirs != null)
@@ -177,13 +171,13 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
         if (!childMembers.isEmpty())
         {
           FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
-          pThis.insert(treeNode, pThis.getChildCount());
-          calculateChildren(treeNode, childMembers, childFile);
+          pModel.insertNodeInto(treeNode, pThis, pThis.getChildCount());
+          calculateChildren(treeNode, pModel, childMembers, childFile);
         }
       }
       if (pThis.isCollapseAble())
       {
-        _doCollapse(pThis);
+        _doCollapse(pThis, pModel);
       }
     }
   }
@@ -191,13 +185,15 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
   /**
    * @param pNode FileChangeTypeNode that should be collapsed. This will remove all children of pNode and re-calculate them
    */
-  private static void _doCollapse(FileChangeTypeNode pNode)
+  private static void _doCollapse(FileChangeTypeNode pNode, DefaultTreeModel pModel)
   {
     if (pNode.getInfo() != null)
     {
       pNode.getInfo().collapse(((FileChangeTypeNode) pNode.getChildAt(0)).getInfo());
-      pNode.removeAllChildren();
-      calculateChildren(pNode, pNode.getInfo().getMembers(), pNode.getInfo().getNodeFile());
+      for (int i = 0; i < pNode.getChildCount(); i++)
+        pModel.removeNodeFromParent((MutableTreeNode) pNode.getChildAt(i));
+      pModel.nodeChanged(pNode);
+      calculateChildren(pNode, pModel, pNode.getInfo().getMembers(), pNode.getInfo().getNodeFile());
     }
   }
 
