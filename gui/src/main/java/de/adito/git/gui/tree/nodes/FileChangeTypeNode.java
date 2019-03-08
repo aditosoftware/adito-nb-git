@@ -50,8 +50,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
     {
       if (!Util.isSorted(children, pComparator))
       {
-        children.sort(pComparator);
-        pModel.reload(this);
+        _sort(pComparator, pModel);
       }
       for (TreeNode node : children)
       {
@@ -262,5 +261,23 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
       }
     }
     return null;
+  }
+
+  /**
+   * sort the children of this node only
+   *
+   * @param pComparator Comparator that determines the order of the children
+   * @param pModel      TreeModel of the tree this node belongs to, to remove and insert the childNodes so that the specific events are triggered and
+   *                    the ui is updated
+   */
+  private void _sort(Comparator<TreeNode> pComparator, DefaultTreeModel pModel)
+  {
+    List<TreeNode> childrenCopy = new ArrayList<>(children);
+    childrenCopy.sort(pComparator);
+    for (int index = 0; index < childrenCopy.size(); index++)
+    {
+      pModel.removeNodeFromParent((FileChangeTypeNode) childrenCopy.get(index));
+      pModel.insertNodeInto((FileChangeTypeNode) childrenCopy.get(index), this, index);
+    }
   }
 }

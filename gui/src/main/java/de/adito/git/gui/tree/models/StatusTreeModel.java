@@ -2,13 +2,17 @@ package de.adito.git.gui.tree.models;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import java.io.File;
-import java.util.*;
+import java.text.Collator;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Model for the Tree that displays the changed files
@@ -58,6 +62,6 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
       if (nodeInfo != null)
         return nodeInfo.getNodeDescription();
       return "";
-    });
+    }, Collator.getInstance());
   }
 }
