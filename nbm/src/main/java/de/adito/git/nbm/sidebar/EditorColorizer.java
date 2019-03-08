@@ -92,12 +92,20 @@ class EditorColorizer extends JPanel implements IDiscardable
         .combineLatest(pRepository, actualText.throttleLatest(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
           if (pRepoOpt.isPresent())
           {
-            IRepository repo = pRepoOpt.get();
-            EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
-            // No changes if added or new, because the file can not be diffed -> not in index
-            if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
+            try
+            {
+              IRepository repo = pRepoOpt.get();
+              EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
+              // No changes if added or new, because the file can not be diffed -> not in index
+              if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
+                return new ArrayList<IFileChangeChunk>();
+              return repo.diff(pText, file);
+              // do nothing on error, the EditorColorizer should just show nothing in that case
+            }
+            catch (Exception pE)
+            {
               return new ArrayList<IFileChangeChunk>();
-            return repo.diff(pText, file);
+            }
           }
           return new ArrayList<IFileChangeChunk>();
         })
