@@ -27,7 +27,7 @@ public class Util
   {
     for (int index = 0; index < pList.size() - 1; index++)
     {
-      if (pComparator.compare(pList.get(index), pList.get(index + 1)) <= 0)
+      if (pComparator.compare(pList.get(index), pList.get(index + 1)) >= 0)
       {
         return false;
       }
@@ -47,7 +47,7 @@ public class Util
   {
     for (int index = 0; index < pList.size() - 1; index++)
     {
-      if (pComparator.compare(pList.get(index), pList.get(index + 1)) >= 0)
+      if (pComparator.compare(pList.get(index), pList.get(index + 1)) <= 0)
       {
         return false;
       }
