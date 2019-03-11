@@ -6,6 +6,8 @@ import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.impl.IFileSystemObserverProvider;
 import de.adito.git.nbm.guice.IFileSystemObserverImplFactory;
 
+import java.util.WeakHashMap;
+
 /**
  * @author m.kaspera 15.10.2018
  */
@@ -13,7 +15,7 @@ public class FileSystemObserverProviderImpl implements IFileSystemObserverProvid
 {
 
   private IFileSystemObserverImplFactory pFactory;
-  private IFileSystemObserver fileSystemObserver;
+  private WeakHashMap<IRepositoryDescription, IFileSystemObserver> cache = new WeakHashMap<>();
 
   @Inject
   FileSystemObserverProviderImpl(IFileSystemObserverImplFactory pFactory)
@@ -24,10 +26,6 @@ public class FileSystemObserverProviderImpl implements IFileSystemObserverProvid
   @Override
   public IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription)
   {
-    if (fileSystemObserver == null)
-    {
-      fileSystemObserver = pFactory.create(pRepositoryDescription);
-    }
-    return fileSystemObserver;
+    return cache.computeIfAbsent(pRepositoryDescription, pDescription -> pFactory.create(pDescription));
   }
 }
