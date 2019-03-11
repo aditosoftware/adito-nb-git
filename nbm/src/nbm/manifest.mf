@@ -4,5 +4,5 @@ OpenIDE-Module-Install: de/adito/git/nbm/GitModuleInstall.class
 OpenIDE-Module-Layer: de/adito/git/nbm/layer.xml
 OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
-OpenIDE-Module-Long-Description: Git Support for NetBeans IDE. \nComplete rewrite of the old NB-Git-Plugin developed by ADITO
+OpenIDE-Module-Long-Description: Git Support for NetBeans IDE. <br>Complete rewrite of the old NB-Git-Plugin developed by ADITO
 OpenIDE-Module-Short-Description: Git Support for NetBeans IDE
