@@ -62,6 +62,7 @@ public class RepositoryImpl implements IRepository
   private final Observable<Optional<IBranch>> currentBranchObservable;
   private final IFileSystemUtil fileSystemUtil;
   private final ColorRoulette colorRoulette;
+  private final IFileSystemObserver fileSystemObserver;
 
   @Inject
   public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette,
@@ -75,8 +76,9 @@ public class RepositoryImpl implements IRepository
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
     branchList = BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList(git)));
 
+    fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
     // listen for changes in the fileSystem for the status command
-    status = Observable.create(new _FileSystemChangeObservable(pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription)))
+    status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
         .throttleLatest(500, TimeUnit.MILLISECONDS)
         .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))));
 
@@ -1204,6 +1206,12 @@ public class RepositoryImpl implements IRepository
     return git.getRepository().getDirectory().getParent() != null ? new File(git.getRepository().getDirectory().getParent()) : null;
   }
 
+  @Override
+  public void refreshStatus()
+  {
+    fileSystemObserver.fireChange();
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -1347,6 +1355,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public List<IMergeDiff> unStashIfAvailable() throws AditoGitException
   {

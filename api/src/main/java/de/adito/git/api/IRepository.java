@@ -365,6 +365,11 @@ public interface IRepository
   File getTopLevelDirectory();
 
   /**
+   * triggers a manual update of the status
+   */
+  void refreshStatus();
+
+  /**
    * @param pBranchString String with the string of the targeted branch
    * @return the IBranch for the given identifier
    * @throws AditoGitException if an error occurs

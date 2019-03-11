@@ -81,29 +81,45 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private void _initGui()
   {
     setLayout(new BorderLayout());
-    disposable = repository.subscribe(pRepository -> {
-      popupMenu = new JPopupMenu();
-      popupMenu.add(actionProvider.getOpenFileAction(selectionObservable));
-      popupMenu.addSeparator();
-      popupMenu.add(actionProvider.getCommitAction(repository, selectionObservable, ""));
-      popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
-      popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
-      popupMenu.addSeparator();
-      popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable));
-      popupMenu.add(actionProvider.getShowCommitsForFileAction(repository, selectionObservable
-          .map(pFileChangeTypes -> pFileChangeTypes
-              .map(pChangeTypes -> pChangeTypes.stream()
-                  .map(IFileChangeType::getFile)
-                  .collect(Collectors.toList()))
-              .orElse(Collections.emptyList()))));
-      popupMenu.addSeparator();
-      popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
-      popupMenu.addSeparator();
-      popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
-    });
-
-    statusTree.addMouseListener(new PopupMouseListener(popupMenu));
+    _initActions();
     add(tableViewPanel, BorderLayout.CENTER);
+  }
+
+  private void _initActions()
+  {
+    Action commitAction = actionProvider.getCommitAction(repository, selectionObservable, "");
+    Action diffToHeadAction = actionProvider.getDiffToHeadAction(repository, selectionObservable);
+    Action showCommitsForFileAction = actionProvider.getShowCommitsForFileAction(repository, selectionObservable
+        .map(pFileChangeTypes -> pFileChangeTypes
+            .map(pChangeTypes -> pChangeTypes.stream()
+                .map(IFileChangeType::getFile)
+                .collect(Collectors.toList()))
+            .orElse(Collections.emptyList())));
+    Action revertWorkDirAction = actionProvider.getRevertWorkDirAction(repository, selectionObservable);
+    JToolBar toolBar = new JToolBar(SwingConstants.VERTICAL);
+    toolBar.setFloatable(false);
+    toolBar.add(actionProvider.getRefreshStatusAction(repository));
+    toolBar.addSeparator();
+    toolBar.add(commitAction);
+    toolBar.add(revertWorkDirAction);
+    toolBar.addSeparator();
+    toolBar.add(diffToHeadAction);
+    toolBar.add(showCommitsForFileAction);
+    tableViewPanel.add(toolBar, BorderLayout.WEST);
+
+    popupMenu = new JPopupMenu();
+    popupMenu.add(actionProvider.getOpenFileAction(selectionObservable));
+    popupMenu.addSeparator();
+    popupMenu.add(commitAction);
+    popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
+    popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
+    popupMenu.add(revertWorkDirAction);
+    popupMenu.addSeparator();
+    popupMenu.add(diffToHeadAction);
+    popupMenu.add(showCommitsForFileAction);
+    popupMenu.addSeparator();
+    popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
+    statusTree.addMouseListener(new PopupMouseListener(popupMenu));
   }
 
   @Override
