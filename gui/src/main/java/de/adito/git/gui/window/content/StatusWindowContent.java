@@ -17,6 +17,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -134,9 +135,12 @@ class StatusWindowContent extends JPanel implements IDiscardable
     @Override
     public void mousePressed(MouseEvent pEvent)
     {
-      if (pEvent.getClickCount() == 2)
+      if (pEvent.getClickCount() == 2 && pEvent.getSource() instanceof JTree)
       {
-        openFileAction.actionPerformed(null);
+        JTree source = (JTree) pEvent.getSource();
+        TreePath sourcePath = source.getClosestPathForLocation(pEvent.getX(), pEvent.getY());
+        if (source.isPathSelected(sourcePath) && statusTree.getModel().isLeaf(sourcePath.getLastPathComponent()))
+          openFileAction.actionPerformed(null);
       }
     }
   }
