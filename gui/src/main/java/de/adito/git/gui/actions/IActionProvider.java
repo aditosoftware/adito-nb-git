@@ -191,6 +191,14 @@ public interface IActionProvider
   Action getRefreshContentAction(Runnable pRefreshContentCallBack);
 
   /**
+   * returns an action that manually refreshes the status of the current repository
+   *
+   * @param pRepository Observable with the current Repository
+   * @return Action whose actionPerformed method calls a method that manually refreshes the status of the current repository
+   */
+  Action getRefreshStatusAction(Observable<Optional<IRepository>> pRepository);
+
+  /**
    * @param pRepository               Observable with the current Repository
    * @param pSelectedCommitObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
    * @return Action whose actionPerformed method cherry picks the selected commits on top of the current HEAD

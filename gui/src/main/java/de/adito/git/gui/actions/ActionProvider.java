@@ -222,7 +222,13 @@ class ActionProvider implements IActionProvider
   @Override
   public Action getRefreshContentAction(Runnable pRefreshContentCallBack)
   {
-    return actionFactory.createRefreshAction(pRefreshContentCallBack);
+    return actionFactory.createRefreshContentAction(pRefreshContentCallBack);
+  }
+
+  @Override
+  public Action getRefreshStatusAction(Observable<Optional<IRepository>> pRepository)
+  {
+    return actionFactory.createRefreshStatusAction(pRepository);
   }
 
   @Override
