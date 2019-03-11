@@ -8,13 +8,10 @@ import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
-import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
@@ -31,13 +28,12 @@ class ResolveConflictsAction extends AbstractTableAction
   private final INotifyUtil notifyUtil;
 
   @Inject
-  public ResolveConflictsAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil,
+  public ResolveConflictsAction(IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil,
                                 IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                                 @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Resolve Conflicts", _getIsEnabledObservable(pSelectedFilesObservable));
     notifyUtil = pNotifyUtil;
-    putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.RESOLVE_CONFLICTS_ACTION_ICON));
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
     repository = pRepository;

@@ -22,10 +22,7 @@ public class Constants
 
   // Action Icons
   public static final String COMMIT_ACTION_ICON = "/de/adito/git/nbm/actions/commit.png";
-  public static final String RESOLVE_CONFLICTS_ACTION_ICON = "/de/adito/git/nbm/actions/fix_conflicts_dark.png";
   public static final String REVERT_ACTION_ICON = "/de/adito/git/nbm/actions/revert_dark.png";
-  public static final String IGNORE_ACTION_ICON = "/de/adito/git/nbm/actions/ignore_dark.png";
-  public static final String EXCLUDE_ACTION_ICON = "/de/adito/git/nbm/actions/exclude_dark.png";
   public static final String DIFF_ACTION_ICON = "/de/adito/git/nbm/actions/diff_dark.png";
   public static final String FILE_HISTORY_ACTION_ICON = "/de/adito/git/gui/icons/file_history_dark.png";
   public static final String GIT_CONFIG_ICON = "/de/adito/git/gui/icons/settings_dark.png";

@@ -6,11 +6,8 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Collections;
@@ -29,11 +26,10 @@ class ExcludeAction extends AbstractTableAction
   private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
-  ExcludeAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
+  ExcludeAction(IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
                 @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Exclude", _getIsEnabledObservable(pSelectedFilesObservable));
-    putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.EXCLUDE_ACTION_ICON));
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedFilesObservable = pSelectedFilesObservable;
