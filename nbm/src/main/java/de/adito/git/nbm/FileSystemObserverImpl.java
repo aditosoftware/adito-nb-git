@@ -2,7 +2,8 @@ package de.adito.git.nbm;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
+import de.adito.git.api.IFileSystemChangeListener;
+import de.adito.git.api.IFileSystemObserver;
 import de.adito.git.api.data.IRepositoryDescription;
 import org.openide.filesystems.*;
 import org.openide.util.NbBundle;
@@ -50,6 +51,12 @@ public class FileSystemObserverImpl implements IFileSystemObserver
     {
       fileSystemChangeListeners.remove(pToRemove);
     }
+  }
+
+  @Override
+  public void fireChange()
+  {
+    _notifyListeners();
   }
 
   private void _notifyListeners()

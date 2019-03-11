@@ -1,12 +1,30 @@
 package de.adito.git.api;
 
 /**
+ * Interface around an Observer of the file system
+ *
  * @author m.kaspera 15.10.2018
  */
-public interface IFileSystemObserver {
+public interface IFileSystemObserver
+{
 
-    void addListener(IFileSystemChangeListener changeListener);
+  /**
+   * registers the passed listener
+   *
+   * @param pChangeListener the IFileSystemChangeListener that should be registered and get notifications in the future
+   */
+  void addListener(IFileSystemChangeListener pChangeListener);
 
-    void removeListener(IFileSystemChangeListener toRemove);
+  /**
+   * removes one of the listeners
+   *
+   * @param pToRemove the IFileSystemChangeListener to remove
+   */
+  void removeListener(IFileSystemChangeListener pToRemove);
+
+  /**
+   * triggers an update in all listeners
+   */
+  void fireChange();
 
 }
