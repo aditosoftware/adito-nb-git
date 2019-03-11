@@ -53,8 +53,8 @@ public class ScrollbarMarkingsModel implements IDiscardable
       int numLines = (changeChunk.getEnd(pModel.getChangeSide()) - changeChunk.getStart(pModel.getChangeSide()));
       if (changeChunk.getChangeType() != EChangeType.SAME)
       {
-        int startOffset = rootElement.getElement(startLine).getStartOffset();
-        int endOffset = rootElement.getElement(startLine + numLines).getEndOffset();
+        int startOffset = rootElement.getElement(Math.min(rootElement.getElementCount() - 1, startLine)).getStartOffset();
+        int endOffset = rootElement.getElement(Math.min(rootElement.getElementCount() - 1, startLine + numLines)).getEndOffset();
         try
         {
           Rectangle bounds = view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
