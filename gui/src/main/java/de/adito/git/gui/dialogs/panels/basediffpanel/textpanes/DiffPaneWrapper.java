@@ -141,6 +141,7 @@ public class DiffPaneWrapper implements IDiscardable
     editorPane.setEditorKit(pEditorKit);
     editorPane.setText(currentText);
     editorPane.setCaretPosition(0);
+    getScrollPane().getVerticalScrollBar().setValue(0);
 
     _setNoCaretLineHighlights();
   }
