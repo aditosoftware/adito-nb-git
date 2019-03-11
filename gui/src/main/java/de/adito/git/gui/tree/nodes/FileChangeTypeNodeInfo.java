@@ -56,7 +56,7 @@ public class FileChangeTypeNodeInfo
    */
   void collapse(@NotNull FileChangeTypeNodeInfo pOtherNodeInfo)
   {
-    nodeDescription = nodeDescription + "/" + pOtherNodeInfo.getNodeDescription();
+    nodeDescription = nodeDescription + " / " + pOtherNodeInfo.getNodeDescription();
     nodeFile = pOtherNodeInfo.getNodeFile();
   }
 
