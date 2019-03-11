@@ -72,10 +72,14 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
     pLineNumColorModels[0].addListener(this);
     pLineNumColorModels[1].addListener(this);
     sizeDisposable = Observable.combineLatest(
-        pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
+        pModel.getFileChangesObservable(), pViewPortSizeObs, pDisplayedArea, ((pFileChangesEvent, pDimension, pArea) ->
+            new FileChangesRectanglePair(pFileChangesEvent, pArea)))
         .subscribe(
-            pFileChangeEvent -> SwingUtilities.invokeLater(() -> {
-              _calculateButtonViewCoordinates(pEditorPane, pFileChangeEvent);
+            pPair -> SwingUtilities.invokeLater(() -> {
+              _calculateButtonViewCoordinates(pEditorPane, pPair.getFileChangesEvent());
+              iconInfosToDraw = _calculateIconsToDraw(pEditorPane, pPair.getRectangle(), iconInfoList);
+              changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(pPair.getRectangle(), leftLineNumberColors, rightLineNumberColors);
+              cachedViewRectangle = pPair.getRectangle();
               repaint();
             }));
     areaDisposable = Observable.combineLatest(

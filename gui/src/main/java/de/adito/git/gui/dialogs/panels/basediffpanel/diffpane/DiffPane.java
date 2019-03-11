@@ -38,7 +38,7 @@ public class DiffPane extends JPanel implements IDiscardable
   {
     editorPane = pEditorPane;
     viewPortPositionObservable = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport())).distinctUntilChanged();
-    viewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport())).debounce(250, TimeUnit.MILLISECONDS);
+    viewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport())).throttleLatest(250, TimeUnit.MILLISECONDS);
     setLayout(new OnionColumnLayout());
     scrollPane.setViewportView(editorPane);
     scrollPane.setBorder(null);
