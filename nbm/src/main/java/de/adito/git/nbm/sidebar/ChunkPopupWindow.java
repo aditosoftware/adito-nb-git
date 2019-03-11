@@ -31,7 +31,6 @@ class ChunkPopupWindow extends JWindow
   private static final int DEFAULT_MIN_WIDTH = 50;
   private static final int INSET_RIGHT = 25;
   private static final int MIN_HEIGHT = 16;
-  private static final Dimension MAX_SIZE = new Dimension(400, 500);
   private final IIconLoader iconLoader = IGitConstants.INJECTOR.getInstance(IIconLoader.class);
   private final IFileChangeChunk changeChunk;
   private final Observable<List<IFileChangeChunk>> changeChunkList;
@@ -64,16 +63,21 @@ class ChunkPopupWindow extends JWindow
     rollbackInformation = pRepository.blockingFirst()
         .map(pRepo -> _calculateRollbackInfo(pRepo, pChangeChunk, pTextComponent, pFile)).orElse(new _RollbackInformation(0, 0, ""));
     setLayout(new BorderLayout());
+    Dimension viewPortSize = pTextComponent.getParent().getSize();
     _initGui(rollbackInformation, pTextComponent);
     // calculated size of the pane
     Dimension paneSize = _calculateSize(rollbackInformation, pTextComponent.getFontMetrics(pTextComponent.getFont()));
     // size of the pane + toolbar
-    Dimension neededSize = new Dimension(paneSize.width + toolBar.getPreferredSize().width, paneSize.height + toolBar.getPreferredSize().height);
+    Dimension neededSize = new Dimension(Math.max(paneSize.width, toolBar.getPreferredSize().width),
+                                         paneSize.height + toolBar.getPreferredSize().height);
     // minimum of the needed size of the window or the size of the toolbar + pane. Any excess size is covered by the scrollPane
-    Dimension actualSize = new Dimension(Math.min(neededSize.width, MAX_SIZE.width), Math.min(neededSize.height, MAX_SIZE.height));
+    Dimension actualSize = new Dimension(Math.min(neededSize.width, viewPortSize.width), Math.min(neededSize.height, viewPortSize.height));
+    if (neededSize.width > actualSize.width)
+    {
+      // three times the fontHeight to make sure that at least the first line can be clearly seen, even if the horizontal scrollBar is added
+      setMinimumSize(new Dimension(1, pTextComponent.getFontMetrics(pTextComponent.getFont()).getHeight() * 3 + toolBar.getPreferredSize().height));
+    }
     setPreferredSize(actualSize);
-    setMinimumSize(actualSize);
-    setMaximumSize(actualSize);
     try
     {
       setAlwaysOnTop(true);
