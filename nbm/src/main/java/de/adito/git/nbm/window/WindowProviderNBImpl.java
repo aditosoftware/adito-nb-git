@@ -55,10 +55,13 @@ class WindowProviderNBImpl implements IWindowProvider
       Runnable loadMoreCallBack = () -> {
         try
         {
-          tableModel.addData(
-              repo.getCommitHistoryTreeList(
-                  repo.getCommits(pBranch, tableModel.getRowCount(), userPreferences.getNumLoadAdditionalCHEntries()),
-                  (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+          if (tableModel.getRowCount() > 0)
+          {
+            tableModel.addData(
+                repo.getCommitHistoryTreeList(
+                    repo.getCommits(pBranch, tableModel.getRowCount(), userPreferences.getNumLoadAdditionalCHEntries()),
+                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+          }
         }
         catch (Exception e)
         {
@@ -99,10 +102,13 @@ class WindowProviderNBImpl implements IWindowProvider
       Runnable loadMoreCallBack = () -> {
         try
         {
-          tableModel.addData(
-              repo.getCommitHistoryTreeList(
-                  repo.getCommits(pFile, tableModel.getRowCount(), userPreferences.getNumLoadAdditionalCHEntries()),
-                  (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+          if (tableModel.getRowCount() > 0)
+          {
+            tableModel.addData(
+                repo.getCommitHistoryTreeList(
+                    repo.getCommits(pFile, tableModel.getRowCount(), userPreferences.getNumLoadAdditionalCHEntries()),
+                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
+          }
         }
         catch (Exception e)
         {
