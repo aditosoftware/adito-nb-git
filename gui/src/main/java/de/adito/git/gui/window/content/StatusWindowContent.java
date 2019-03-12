@@ -14,7 +14,6 @@ import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -41,7 +40,6 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private final SearchableTree statusTree;
   private final StatusTreeModel statusTreeModel;
   private final Action openFileAction;
-  private Disposable disposable;
   private JPopupMenu popupMenu;
 
   @Inject
@@ -61,7 +59,6 @@ class StatusWindowContent extends JPanel implements IDiscardable
                                           projecDirectory);
     statusTree.init(tableViewPanel, statusTreeModel);
     statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
-    statusTree.setRootVisible(false);
     pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
     tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
     statusTree.addMouseListener(new _DoubleClickListener());
@@ -127,7 +124,6 @@ class StatusWindowContent extends JPanel implements IDiscardable
   public void discard()
   {
     statusTreeModel.discard();
-    disposable.dispose();
   }
 
   private class _DoubleClickListener extends MouseAdapter
