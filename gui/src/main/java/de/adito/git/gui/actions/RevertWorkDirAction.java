@@ -54,10 +54,15 @@ class RevertWorkDirAction extends AbstractTableAction
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
-    return pSelectedFilesObservable.map(selectedFiles -> Optional.of(selectedFiles
-                                                                         .orElse(Collections.emptyList())
-                                                                         .stream()
-                                                                         .noneMatch(fileChangeType -> fileChangeType.getChangeType()
-                                                                             .equals(EChangeType.SAME))));
+    return pSelectedFilesObservable.map(selectedFiles -> {
+      List<IFileChangeType> changeTypes = selectedFiles.orElse(Collections.emptyList());
+      if (changeTypes.isEmpty())
+        return Optional.of(false);
+      return Optional.of(selectedFiles
+                             .orElse(Collections.emptyList())
+                             .stream()
+                             .noneMatch(fileChangeType -> fileChangeType.getChangeType()
+                                 .equals(EChangeType.SAME)));
+    });
   }
 }
