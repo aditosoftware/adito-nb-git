@@ -1125,11 +1125,18 @@ public class RepositoryImpl implements IRepository
     List<ICommit> unPushedCommits = new ArrayList<>();
     try
     {
-      Iterable<RevCommit> unPushedCommitsIter = git.log()
-          .add(git.getRepository().resolve(git.getRepository().getBranch()))
-          .not(git.getRepository().resolve(new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch())
-                                               .getRemoteTrackingBranch()))
-          .call();
+      LogCommand logCommand = git.log()
+          .add(git.getRepository().resolve(git.getRepository().getBranch()));
+      String remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
+      if (remoteTrackingBranch != null)
+        logCommand.not(git.getRepository().resolve(remoteTrackingBranch));
+      else
+      {
+        remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), "master").getRemoteTrackingBranch();
+        if (remoteTrackingBranch != null)
+          logCommand.not(git.getRepository().resolve(remoteTrackingBranch));
+      }
+      Iterable<RevCommit> unPushedCommitsIter = logCommand.call();
       unPushedCommitsIter.forEach(pUnPushedCommit -> unPushedCommits.add(new CommitImpl(pUnPushedCommit)));
     }
     catch (GitAPIException | IOException pE)
