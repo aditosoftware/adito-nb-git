@@ -1,10 +1,13 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.*;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.util.DifferentialScrollBarCoupling;
 import io.reactivex.Observable;
@@ -13,10 +16,11 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.ComponentOrientation;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -77,6 +81,11 @@ public class MergePanel extends JPanel implements IDiscardable
     // 0.33 because the right side contains two sub-windows, the left only one
     threeWayPane.setResizeWeight(0.33);
     add(threeWayPane, BorderLayout.CENTER);
+    JPanel yoursTheirsPanel = new JPanel(new BorderLayout());
+    yoursTheirsPanel.setBorder(new EmptyBorder(3, 16, 3, 16));
+    yoursTheirsPanel.add(new JLabel("Your changes"), BorderLayout.WEST);
+    yoursTheirsPanel.add(new JLabel("Their changes"), BorderLayout.EAST);
+    add(yoursTheirsPanel, BorderLayout.NORTH);
   }
 
   private void _initYoursPanel()
