@@ -6,6 +6,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortPositionObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,8 +38,13 @@ public class DiffPane extends JPanel implements IDiscardable
   public DiffPane(JEditorPane pEditorPane)
   {
     editorPane = pEditorPane;
-    viewPortPositionObservable = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport())).distinctUntilChanged();
-    viewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport())).throttleLatest(250, TimeUnit.MILLISECONDS);
+    viewPortPositionObservable = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport()))
+        .share()
+        .subscribeWith(BehaviorSubject.create())
+        .distinctUntilChanged();
+    viewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport()))
+        .share()
+        .subscribeWith(BehaviorSubject.create()).throttleLatest(250, TimeUnit.MILLISECONDS);
     setLayout(new OnionColumnLayout());
     scrollPane.setViewportView(editorPane);
     scrollPane.setBorder(null);
