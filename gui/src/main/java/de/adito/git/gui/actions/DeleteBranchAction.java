@@ -41,7 +41,7 @@ public class DeleteBranchAction extends AbstractAction
   }
 
   @Override
-  public void actionPerformed(ActionEvent e)
+  public void actionPerformed(ActionEvent pEvent)
   {
     String branchName = branch.blockingFirst().map(IBranch::getSimpleName).orElse(null);
     if (branchName != null)
@@ -55,7 +55,10 @@ public class DeleteBranchAction extends AbstractAction
         });
         notifyUtil.notify("Deleting branch", "Deleting branch was successful", true);
       }
-      notifyUtil.notify("Deleting branch", "Delete was aborted", true);
+      else
+      {
+        notifyUtil.notify("Deleting branch", "Delete was aborted", true);
+      }
     }
   }
 }
