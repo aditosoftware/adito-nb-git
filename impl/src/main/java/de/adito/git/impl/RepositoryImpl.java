@@ -83,8 +83,9 @@ public class RepositoryImpl implements IRepository
         .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))));
 
     // Current Branch
-    Optional<IBranch> curBranch = RepositoryImplHelper.currentBranch(git, this::getBranch);
-    currentBranchObservable = status.map(pStatus -> RepositoryImplHelper.currentBranch(git, this::getBranch)).startWith(curBranch).share();
+    currentBranchObservable = status.map(pStatus -> RepositoryImplHelper.currentBranch(git, this::getBranch))
+        .share()
+        .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.currentBranch(git, this::getBranch)));
   }
 
   /**
