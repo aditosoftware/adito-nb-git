@@ -74,13 +74,16 @@ public class RepositoryImpl implements IRepository
     sshProvider = pSshProvider;
     dataFactory = pDataFactory;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
-    branchList = BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList(git)));
 
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
         .throttleLatest(500, TimeUnit.MILLISECONDS)
         .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))));
+
+    branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git)))
+        .share()
+        .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList((git)))));
 
     // Current Branch
     currentBranchObservable = status.map(pStatus -> RepositoryImplHelper.currentBranch(git, this::getBranch))

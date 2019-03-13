@@ -201,7 +201,7 @@ public interface IRepository
   void createBranch(@NotNull String pBranchName, boolean pCheckout) throws AditoGitException;
 
   /**
-   * @param pBranchName the name of the branch to delete
+   * @param pBranchName the simple name of the branch to delete
    * @throws AditoGitException if an error occurs
    */
   void deleteBranch(@NotNull String pBranchName) throws AditoGitException;
