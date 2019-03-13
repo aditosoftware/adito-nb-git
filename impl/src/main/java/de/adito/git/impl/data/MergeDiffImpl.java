@@ -374,7 +374,7 @@ public class MergeDiffImpl implements IMergeDiff
     List<Integer> affectedChunks = new ArrayList<>();
     int intersectionIndex = 0;
     // Side A ist assumed to be the text from the fork-point
-    while (intersectionIndex < pFileChangeChunkList.size()
+    while (intersectionIndex < pFileChangeChunkList.size() - 1
         && pFileChangeChunkList.get(intersectionIndex).getEnd(EChangeSide.OLD) <= pToInsert.getStart(EChangeSide.OLD))
     {
       intersectionIndex++;
