@@ -806,7 +806,7 @@ public class RepositoryImpl implements IRepository
     }
     catch (GitAPIException e)
     {
-      throw new AditoGitException("Unable to delete the branch: " + pBranchName, e);
+      throw new AditoGitException("Unable to delete the branch: " + pBranchName + ", reason: " + e.getMessage(), e);
     }
     if (pDeleteRemoteBranch)
     {
