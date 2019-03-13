@@ -13,9 +13,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.api.errors.StashApplyFailureException;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
@@ -271,6 +269,11 @@ public class RepositoryImpl implements IRepository
                                               : new CommitImpl(rebaseResult.getCurrentCommit().getParent(0)));
       }
       return iRebaseResult;
+    }
+    catch (RefNotAdvertisedException pException)
+    {
+      throw new AditoGitException("The current Branch does not have a corresponding remote branch, " +
+                                      "please to switch to a branch that also exists in the remote repository", pException);
     }
     catch (IOException | GitAPIException pE)
     {
