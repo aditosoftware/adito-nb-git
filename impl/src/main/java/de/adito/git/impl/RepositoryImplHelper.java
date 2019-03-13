@@ -50,12 +50,14 @@ public class RepositoryImplHelper
 
   /**
    * @param pGit Git object to call for retrieving commits/objects/info about the repository status
+   * @param pBranch String with the name of the branch for which the remote tracking branch should be fetched, pass null for the current branch
    * @return String with the name of the remote branch that the current branch is tracking
    * @throws IOException if an exception occurs while JGit is reading the git config file
    */
-  public static String getRemoteTrackingBranch(@NotNull Git pGit) throws IOException
+  @Nullable
+  public static String getRemoteTrackingBranch(@NotNull Git pGit, @Nullable String pBranch) throws IOException
   {
-    return new BranchConfig(pGit.getRepository().getConfig(), pGit.getRepository().getBranch()).getRemoteTrackingBranch();
+    return new BranchConfig(pGit.getRepository().getConfig(), pBranch == null ? pGit.getRepository().getBranch() : pBranch).getRemoteTrackingBranch();
   }
 
   /**

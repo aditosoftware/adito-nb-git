@@ -227,7 +227,7 @@ public class RepositoryImpl implements IRepository
       if (!git.getRepository().getRepositoryState().isRebasing())
       {
         String currentHeadName = git.getRepository().getFullBranch();
-        String targetName = RepositoryImplHelper.getRemoteTrackingBranch(git);
+        String targetName = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
         PullCommand pullCommand = git.pull();
         pullCommand.setRebase(true);
         pullCommand.setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig()));

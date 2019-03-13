@@ -52,8 +52,14 @@ public class ConfigImpl implements IConfig
   {
     try
     {
-      return git.getRepository().getConfig().getString(SSH_SECTION_KEY, git.getRepository()
-          .getRemoteName(RepositoryImplHelper.getRemoteTrackingBranch(git)), SSH_KEY_KEY);
+      String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
+      // Fallback: get remoteBranch of master and resolve remoteName with that branch
+      if (remoteTrackingBranch == null)
+        remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, "master");
+      if (remoteTrackingBranch == null)
+        return null;
+      String remoteName = git.getRepository().getRemoteName(remoteTrackingBranch);
+      return git.getRepository().getConfig().getString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY);
     }
     catch (IOException pE)
     {
@@ -109,9 +115,16 @@ public class ConfigImpl implements IConfig
   {
     try
     {
-      git.getRepository().getConfig().setString(SSH_SECTION_KEY, git.getRepository()
-          .getRemoteName(RepositoryImplHelper.getRemoteTrackingBranch(git)), SSH_KEY_KEY, pSshKeyLocation);
-      git.getRepository().getConfig().save();
+      String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
+      // Fallback: get remoteBranch of master and resolve remoteName with that branch
+      if (remoteTrackingBranch == null)
+        remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, "master");
+      if (remoteTrackingBranch != null)
+      {
+        String remoteName = git.getRepository().getRemoteName(remoteTrackingBranch);
+        git.getRepository().getConfig().setString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY, pSshKeyLocation);
+        git.getRepository().getConfig().save();
+      }
     }
     catch (IOException pE)
     {
