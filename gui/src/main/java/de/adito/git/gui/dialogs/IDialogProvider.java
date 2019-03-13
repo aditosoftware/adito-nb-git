@@ -43,6 +43,8 @@ public interface IDialogProvider
 
   DialogResult showYesNoDialog(String pMessage);
 
+  DialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(String pBranchName);
+
   DialogResult showFileSelectionDialog(String pMessage);
 
   DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository);

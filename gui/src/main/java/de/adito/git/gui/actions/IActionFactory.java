@@ -32,6 +32,8 @@ interface IActionFactory
 
   NewBranchAction createNewBranchAction(Observable<Optional<IRepository>> pRepository);
 
+  DeleteBranchAction createDeleteBranchAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pSelectedBranch);
+
   PullAction createPullAction(Observable<Optional<IRepository>> pRepository);
 
   PushAction createPushAction(Observable<Optional<IRepository>> pRepository);

@@ -66,6 +66,13 @@ public interface IActionProvider
   Action getNewBranchAction(Observable<Optional<IRepository>> pRepository);
 
   /**
+   * @param pRepository     Observable with the current Repository
+   * @param pSelectedBranch Observable determining the currently selected branch (and thus the one to be deleted)
+   * @return Action whose actionPerformed method deletes the currently selected branch
+   */
+  Action getDeleteBranchAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pSelectedBranch);
+
+  /**
    * @param pRepository Observable with the current Repository
    * @return Action whose actionPerformed method pulls all changes from origin/a remote to the HEAD and the working directory
    */

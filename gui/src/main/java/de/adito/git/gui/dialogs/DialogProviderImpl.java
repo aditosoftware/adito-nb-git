@@ -163,6 +163,12 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
+  public DialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(String pBranchName)
+  {
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDeleteBranchDialog(), "Delete Branch");
+  }
+
+  @Override
   public DialogResult showFileSelectionDialog(String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createFileSelectionDialog(), pMessage);

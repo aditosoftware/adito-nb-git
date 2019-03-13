@@ -792,7 +792,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void deleteBranch(@NotNull String pBranchName) throws AditoGitException
+  public void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch) throws AditoGitException
   {
     String destination = "refs/heads/" + pBranchName;
     try
@@ -805,14 +805,18 @@ public class RepositoryImpl implements IRepository
     {
       throw new AditoGitException("Unable to delete the branch: " + pBranchName, e);
     }
-    RefSpec refSpec = new RefSpec().setSource(null).setDestination(destination);
-    try
+    if (pDeleteRemoteBranch)
     {
-      git.push().setRefSpecs(refSpec).setRemote("origin").call();
-    }
-    catch (GitAPIException e)
-    {
-      throw new AditoGitException("Unable to push the delete branch comment @ " + pBranchName, e);
+      RefSpec refSpec = new RefSpec().setSource(null).setDestination(destination);
+      try
+      {
+        TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(getConfig());
+        git.push().setTransportConfigCallback(transportConfigCallback).setRefSpecs(refSpec).setRemote("origin").call();
+      }
+      catch (GitAPIException e)
+      {
+        throw new AditoGitException("Unable to push the delete branch comment @ " + pBranchName, e);
+      }
     }
   }
 

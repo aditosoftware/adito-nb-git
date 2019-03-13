@@ -93,6 +93,12 @@ class ActionProvider implements IActionProvider
     return actionFactory.createNewBranchAction(pRepository);
   }
 
+  @Override
+  public Action getDeleteBranchAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pSelectedBranch)
+  {
+    return actionFactory.createDeleteBranchAction(pRepository, pSelectedBranch);
+  }
+
   /**
    * {@inheritDoc}
    */

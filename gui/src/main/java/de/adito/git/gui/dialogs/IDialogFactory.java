@@ -43,6 +43,8 @@ interface IDialogFactory
 
   YesNoDialog createYesNoDialog(String pMessage);
 
+  DeleteBranchDialog createDeleteBranchDialog();
+
   GitConfigDialog createGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 
   StashChangesDialog createStashChangesDialog();

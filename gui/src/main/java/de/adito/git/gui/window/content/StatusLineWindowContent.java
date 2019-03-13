@@ -2,9 +2,12 @@ package de.adito.git.gui.window.content;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.ColorPicker;
+import de.adito.git.api.IDiscardable;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EBranchType;
+import de.adito.git.api.data.IBranch;
+import de.adito.git.gui.TableLayoutUtil;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import info.clearthought.layout.TableLayout;
@@ -12,9 +15,12 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.List;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 
 /**
@@ -172,11 +178,14 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
       Action checkoutAction = actionProvider.getCheckoutAction(observableOptRepo, selectedBranch);
       Action showAllCommitsAction = actionProvider.getShowAllCommitsForBranchAction(observableOptRepo, selectedBranches);
       Action mergeAction = actionProvider.getMergeAction(observableOptRepo, selectedBranch);
+      Action deleteBranchAction = actionProvider.getDeleteBranchAction(observableOptRepo, selectedBranch);
 
       JPopupMenu innerPopup = new JPopupMenu();
       innerPopup.add(new _DisposeAction(checkoutAction));
       innerPopup.add(new _DisposeAction(showAllCommitsAction));
       innerPopup.add(new _DisposeAction(mergeAction));
+      innerPopup.addSeparator();
+      innerPopup.add(new _DisposeAction(deleteBranchAction));
 
       Point location = _calculateInnerPopupPosition(selectedBranchList);
       innerPopup.show(selectedBranchList, location.x - innerPopup.getPreferredSize().width, location.y);
