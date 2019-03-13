@@ -179,6 +179,6 @@ class DialogProviderImpl implements IDialogProvider
   @Override
   public DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog()
   {
-    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashChangesDialog(), "Reset");
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashChangesDialog(), "Stash Changes - stash message");
   }
 }
