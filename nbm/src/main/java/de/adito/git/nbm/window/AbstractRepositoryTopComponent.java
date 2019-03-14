@@ -1,6 +1,6 @@
 package de.adito.git.nbm.window;
 
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
@@ -8,7 +8,7 @@ import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 
 import javax.swing.*;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * An abstract class to show the topComponents in NetBeans
@@ -43,5 +43,20 @@ abstract class AbstractRepositoryTopComponent extends TopComponent
   {
     if (!displayNameDisposable.isDisposed())
       displayNameDisposable.dispose();
+
+    // Discard all discardable components
+    Arrays.stream(getComponents())
+        .filter(IDiscardable.class::isInstance)
+        .map(IDiscardable.class::cast)
+        .forEach(pDiscardable -> {
+          try
+          {
+            pDiscardable.discard();
+          }
+          catch (Exception ignored)
+          {
+            // ignored
+          }
+        });
   }
 }
