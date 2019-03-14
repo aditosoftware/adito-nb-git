@@ -18,12 +18,14 @@ public class RefreshStatusAction extends AbstractAction
 {
 
   private final Observable<Optional<IRepository>> repository;
+  private final Runnable refreshTree;
 
   @Inject
-  public RefreshStatusAction(IIconLoader pIconLoader, @Assisted Observable<Optional<IRepository>> pRepository)
+  public RefreshStatusAction(IIconLoader pIconLoader, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Runnable pRefreshTree)
   {
     super("refresh");
     repository = pRepository;
+    refreshTree = pRefreshTree;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.REFRESH_CONTENT_ICON));
   }
 
@@ -31,5 +33,6 @@ public class RefreshStatusAction extends AbstractAction
   public void actionPerformed(ActionEvent pEvent)
   {
     repository.blockingFirst().ifPresent(IRepository::refreshStatus);
+    refreshTree.run();
   }
 }

@@ -232,9 +232,9 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
-  public Action getRefreshStatusAction(Observable<Optional<IRepository>> pRepository)
+  public Action getRefreshStatusAction(Observable<Optional<IRepository>> pRepository, Runnable pRefreshTree)
   {
-    return actionFactory.createRefreshStatusAction(pRepository);
+    return actionFactory.createRefreshStatusAction(pRepository, pRefreshTree);
   }
 
   @Override

@@ -75,7 +75,7 @@ interface IActionFactory
 
   RefreshContentAction createRefreshContentAction(Runnable pRefreshContentCallBack);
 
-  RefreshStatusAction createRefreshStatusAction(Observable<Optional<IRepository>> pRepository);
+  RefreshStatusAction createRefreshStatusAction(Observable<Optional<IRepository>> pRepository, Runnable pRefreshTree);
 
   FileHistoryAction createShowCommitsForFileAction(Observable<Optional<IRepository>> pRepository, Observable<List<File>> pFile);
 

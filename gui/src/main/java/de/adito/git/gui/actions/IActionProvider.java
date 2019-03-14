@@ -200,10 +200,11 @@ public interface IActionProvider
   /**
    * returns an action that manually refreshes the status of the current repository
    *
-   * @param pRepository Observable with the current Repository
+   * @param pRepository  Observable with the current Repository
+   * @param pRefreshTree Runnable that triggers a refresh of the treeModel
    * @return Action whose actionPerformed method calls a method that manually refreshes the status of the current repository
    */
-  Action getRefreshStatusAction(Observable<Optional<IRepository>> pRepository);
+  Action getRefreshStatusAction(Observable<Optional<IRepository>> pRepository, Runnable pRefreshTree);
 
   /**
    * @param pRepository               Observable with the current Repository
