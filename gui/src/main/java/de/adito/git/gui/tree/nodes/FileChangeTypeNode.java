@@ -82,7 +82,14 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
         children.forEach(pNode -> {
           FileChangeTypeNodeInfo info = ((FileChangeTypeNode) pNode).getInfo();
           if (info != null)
-            existingChildFiles.add(info.getNodeFile());
+          {
+            if (info.getNodeFile().exists())
+              existingChildFiles.add(info.getNodeFile());
+            else
+            {
+              pModel.removeNodeFromParent((FileChangeTypeNode) pNode);
+            }
+          }
         });
       }
       if (childFiles != null)
