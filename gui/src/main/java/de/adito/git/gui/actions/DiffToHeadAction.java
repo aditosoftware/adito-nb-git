@@ -81,8 +81,7 @@ class DiffToHeadAction extends AbstractTableAction
       StringBuilder fileDiffContents = new StringBuilder();
       pFileDiff.getFileChanges().getChangeChunks().blockingFirst()
           .getNewValue().forEach(pChangeChunk -> fileDiffContents.append(pChangeChunk.getLines(EChangeSide.NEW)));
-      // -1 on the substring because there is one newLine too many
-      writer.write(fileDiffContents.substring(0, fileDiffContents.length() - 1));
+      writer.write(fileDiffContents.toString());
     }
     catch (IOException pE)
     {

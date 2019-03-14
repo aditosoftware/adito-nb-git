@@ -29,13 +29,9 @@ public class FileChangesImpl implements IFileChanges
   FileChangesImpl(EditList pEditList, String pOriginalFileContents, String pNewFileContents)
   {
     changeChunks = new ArrayList<>();
-    if (pOriginalFileContents.endsWith("\n"))
-      pOriginalFileContents = pOriginalFileContents.substring(0, pOriginalFileContents.length() - 2);
-    if (pNewFileContents.endsWith("\n"))
-      pNewFileContents = pNewFileContents.substring(0, pNewFileContents.length() - 2);
+    originalLines = _getLines(pOriginalFileContents);
+    newLines = _getLines(pNewFileContents);
     // combine the lineChanges with the information from editList and build chunks
-    originalLines = pOriginalFileContents.isEmpty() ? new String[0] : pOriginalFileContents.split("\n", -1);
-    newLines = pNewFileContents.isEmpty() ? new String[0] : pNewFileContents.split("\n", -1);
     if (!pEditList.isEmpty())
     {
       // from beginning of the file to the first chunk
@@ -74,6 +70,27 @@ public class FileChangesImpl implements IFileChanges
   }
 
   /**
+   * Splits up the given String into an array of lines, where each line keeps its \n.
+   * If the last line did not have a \n, neither does the String in the last field
+   *
+   * @param pFileContents the String that should be split up into lines
+   * @return String array with each field representing one line
+   */
+  private String[] _getLines(String pFileContents)
+  {
+    String pPreppedFileContents = pFileContents.endsWith("\n") ? pFileContents.substring(0, pFileContents.length() - 1) : pFileContents;
+    String[] lines = pPreppedFileContents.isEmpty() ? new String[0] : pPreppedFileContents.split("\n", -1);
+    // leave out the last line, it gets its seperate treatment
+    for (int index = 0; index < lines.length - 1; index++)
+    {
+      lines[index] = lines[index] + "\n";
+    }
+    if (pFileContents.endsWith("\n"))
+      lines[lines.length - 1] = lines[lines.length - 1] + "\n";
+    return lines;
+  }
+
+  /**
    * Creates an IFileChangeChunk for the Edit, if one of the sides has more
    * lines than the other, newlines are added to the shorter side so that
    * the sides match up in number of lines
@@ -87,11 +104,11 @@ public class FileChangesImpl implements IFileChanges
     StringBuilder newString = new StringBuilder();
     for (int count = 0; count < pEdit.getEndA() - pEdit.getBeginA(); count++)
     {
-      oldString.append(originalLines[pEdit.getBeginA() + count]).append("\n");
+      oldString.append(originalLines[pEdit.getBeginA() + count]);
     }
     for (int count = 0; count < pEdit.getEndB() - pEdit.getBeginB(); count++)
     {
-      newString.append(newLines[pEdit.getBeginB() + count]).append("\n");
+      newString.append(newLines[pEdit.getBeginB() + count]);
     }
     return new FileChangeChunkImpl(pEdit, oldString.toString(), newString.toString());
   }
@@ -119,11 +136,11 @@ public class FileChangesImpl implements IFileChanges
       int bEnd = pNextEdit.getBeginB();
       for (int index = pPreviousEdit.getEndA(); index < pNextEdit.getBeginA(); index++)
       {
-        oldString.append(originalLines[index]).append("\n");
+        oldString.append(originalLines[index]);
       }
       for (int index = pPreviousEdit.getEndB(); index < pNextEdit.getBeginB(); index++)
       {
-        newString.append(newLines[index]).append("\n");
+        newString.append(newLines[index]);
       }
       Edit currentEdit = new Edit(aStart, aEnd, bStart, bEnd);
       unchangedChunk = new FileChangeChunkImpl(currentEdit, oldString.toString(), newString.toString(), EChangeType.SAME);
@@ -148,11 +165,11 @@ public class FileChangesImpl implements IFileChanges
     int bEnd = pNextEdit.getBeginB();
     for (int index = 0; index < pNextEdit.getBeginA(); index++)
     {
-      oldString.append(originalLines[index]).append("\n");
+      oldString.append(originalLines[index]);
     }
     for (int index = 0; index < pNextEdit.getBeginB(); index++)
     {
-      newString.append(newLines[index]).append("\n");
+      newString.append(newLines[index]);
     }
     // aStart and bStart set to 0 because we're at the very start of the file
     Edit currentEdit = new Edit(0, aEnd, 0, bEnd);
@@ -177,11 +194,11 @@ public class FileChangesImpl implements IFileChanges
     int bEnd = newLines.length;
     for (int index = pPreviousEdit.getEndA(); index < aEnd; index++)
     {
-      oldString.append(originalLines[index]).append("\n");
+      oldString.append(originalLines[index]);
     }
     for (int index = pPreviousEdit.getEndB(); index < bEnd; index++)
     {
-      newString.append(newLines[index]).append("\n");
+      newString.append(newLines[index]);
     }
     Edit currentEdit = new Edit(aStart, aEnd, bStart, bEnd);
     return new FileChangeChunkImpl(currentEdit, oldString.toString(), newString.toString(), EChangeType.SAME);
