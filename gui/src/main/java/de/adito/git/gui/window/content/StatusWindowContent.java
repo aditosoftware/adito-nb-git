@@ -53,10 +53,10 @@ class StatusWindowContent extends JPanel implements IDiscardable
             .map(IRepository::getStatus)
             .orElse(Observable.just(Optional.empty())));
     statusTree = new SearchableTree();
-    File projecDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
+    File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
     statusTreeModel = new StatusTreeModel(status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of())),
-                                          projecDirectory);
+                                          projectDirectory);
     statusTree.init(tableViewPanel, statusTreeModel);
     statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
     pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
