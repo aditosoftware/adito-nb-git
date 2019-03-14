@@ -107,7 +107,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
               else
               {
                 int indexNow = getIndex(childNode);
-                remove(childNode);
+                pModel.removeNodeFromParent(childNode);
                 FileChangeTypeNode treeNode = new FileChangeTypeNode(new FileChangeTypeNodeInfo(childFile.getName(), childFile, childMembers));
                 pModel.insertNodeInto(treeNode, this, indexNow);
                 calculateChildren(treeNode, pModel, childMembers, childFile);

@@ -96,7 +96,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
     Action revertWorkDirAction = actionProvider.getRevertWorkDirAction(repository, selectionObservable);
     JToolBar toolBar = new JToolBar(SwingConstants.VERTICAL);
     toolBar.setFloatable(false);
-    toolBar.add(actionProvider.getRefreshStatusAction(repository, () -> statusTreeModel.reload()));
+    toolBar.add(actionProvider.getRefreshStatusAction(repository, statusTreeModel::reload));
     toolBar.addSeparator();
     toolBar.add(commitAction);
     toolBar.add(revertWorkDirAction);
