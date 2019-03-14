@@ -1,6 +1,7 @@
 package de.adito.git.gui.tree.nodes;
 
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.exception.InterruptedRuntimeException;
 import de.adito.git.impl.util.Util;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +70,8 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
    */
   public void updateNode(List<IFileChangeType> pMembers, DefaultTreeModel pModel)
   {
+    if (Thread.interrupted())
+      throw new InterruptedRuntimeException();
     if (getInfo() != null)
     {
       getInfo().setMembers(pMembers);
@@ -203,6 +206,8 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode implements IColla
    */
   private static List<IFileChangeType> _getChildMembers(List<IFileChangeType> pMembers, File pChildFolder)
   {
+    if (Thread.interrupted())
+      throw new InterruptedRuntimeException();
     List<IFileChangeType> childMembers = new ArrayList<>();
     for (IFileChangeType member : pMembers)
     {
