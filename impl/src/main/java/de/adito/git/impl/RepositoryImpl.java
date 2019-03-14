@@ -4,13 +4,12 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.exception.AmbiguousStashCommitsException;
-import de.adito.git.api.exception.TargetBranchNotFoundException;
+import de.adito.git.api.exception.*;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
@@ -18,28 +17,18 @@ import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.FileTreeIterator;
-import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.*;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -77,7 +66,8 @@ public class RepositoryImpl implements IRepository
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
         .throttleLatest(500, TimeUnit.MILLISECONDS)
-        .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))));
+        .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))))
+        .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())));
 
     branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git)))
         .share()
