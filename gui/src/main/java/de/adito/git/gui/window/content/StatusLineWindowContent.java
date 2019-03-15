@@ -78,9 +78,9 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
     setLayout(new TableLayout(cols, rows));
     TableLayoutUtil tlu = new TableLayoutUtil(this);
     tlu.add(0, 0, _createNewBranch());
-    tlu.add(0, 2, _createLabel("Local Branch"));
+    tlu.add(0, 2, _createLabel("Local Branches"));
     tlu.add(0, 3, _createListBranches(EBranchType.LOCAL));
-    tlu.add(0, 5, _createLabel("Remote Branch"));
+    tlu.add(0, 5, _createLabel("Remote Branches"));
     tlu.add(0, 6, _createListBranches(EBranchType.REMOTE));
   }
 
@@ -181,11 +181,11 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
       Action deleteBranchAction = actionProvider.getDeleteBranchAction(observableOptRepo, selectedBranch);
 
       JPopupMenu innerPopup = new JPopupMenu();
-      innerPopup.add(new _DisposeAction(checkoutAction));
-      innerPopup.add(new _DisposeAction(showAllCommitsAction));
-      innerPopup.add(new _DisposeAction(mergeAction));
+      innerPopup.add(checkoutAction);
+      innerPopup.add(showAllCommitsAction);
+      innerPopup.add(mergeAction);
       innerPopup.addSeparator();
-      innerPopup.add(new _DisposeAction(deleteBranchAction));
+      innerPopup.add(deleteBranchAction);
 
       Point location = _calculateInnerPopupPosition(selectedBranchList);
       innerPopup.show(selectedBranchList, location.x - innerPopup.getPreferredSize().width, location.y);
@@ -253,26 +253,6 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
         label.setBackground(hoverColor);
         label.repaint();
       }
-    }
-  }
-
-  private class _DisposeAction extends AbstractAction
-  {
-    private final Action outerAction;
-
-    _DisposeAction(Action pOuterAction)
-    {
-      super(pOuterAction.getValue(Action.NAME).toString());
-      outerAction = pOuterAction;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent pE)
-    {
-      JWindow parent = (JWindow) getClientProperty("parent");
-      if (parent != null)
-        parent.dispose();
-      outerAction.actionPerformed(pE);
     }
   }
 }
