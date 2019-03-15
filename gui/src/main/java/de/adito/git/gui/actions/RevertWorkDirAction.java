@@ -33,6 +33,7 @@ class RevertWorkDirAction extends AbstractTableAction
   {
     super("Revert", _getIsEnabledObservable(pSelectedFilesObservable));
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.REVERT_ACTION_ICON));
+    putValue(Action.SHORT_DESCRIPTION, "Revert changes");
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedFilesObservable = pSelectedFilesObservable;

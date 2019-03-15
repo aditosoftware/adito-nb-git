@@ -21,8 +21,9 @@ class RefreshContentAction extends AbstractAction
   @Inject
   RefreshContentAction(IIconLoader pIconLoader, @Assisted Runnable pRefreshCallBack)
   {
-    super("refresh");
+    super("Refresh");
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.REFRESH_CONTENT_ICON));
+    putValue(Action.SHORT_DESCRIPTION, "Refresh");
     refreshCallBack = pRefreshCallBack;
   }
 

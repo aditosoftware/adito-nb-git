@@ -39,6 +39,7 @@ class DiffToHeadAction extends AbstractTableAction
   {
     super("Compare with local", _getIsEnabledObservable(pSelectedFilesObservable));
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.DIFF_ACTION_ICON));
+    putValue(Action.SHORT_DESCRIPTION, "Diff to HEAD");
     progressFacade = pProgressFacade;
     repository = pRepository;
     dialogProvider = pDialogProvider;

@@ -30,6 +30,7 @@ public class FileHistoryAction extends AbstractTableAction
   {
     super("show file history", _getIsEnabledObservable(pFile));
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.FILE_HISTORY_ACTION_ICON));
+    putValue(Action.SHORT_DESCRIPTION, "Show git file history");
     windowProvider = pWindowProvider;
     repository = pRepository;
     filesObservable = pFile;

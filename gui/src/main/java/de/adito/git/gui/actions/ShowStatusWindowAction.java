@@ -27,7 +27,7 @@ class ShowStatusWindowAction extends AbstractAction
   {
     progressFacade = pProgressFacade;
     putValue(Action.NAME, "Show Status Window");
-    putValue(Action.SHORT_DESCRIPTION, "Shows all changed files of the working copy with the type of change");
+    putValue(Action.SHORT_DESCRIPTION, "Show all local changes");
     windowProvider = pWindowProvider;
     repository = pRepository;
   }

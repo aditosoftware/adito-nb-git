@@ -2,19 +2,23 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
+import de.adito.git.api.INotifyUtil;
+import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera, 11.02.2019
@@ -39,6 +43,7 @@ public class CherryPickAction extends AbstractTableAction
   {
     super(ACTION_NAME, _getIsEnabledObservable(pSelectedCommits));
     putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(Constants.CHERRY_PICK)));
+    putValue(Action.SHORT_DESCRIPTION, "Cherry pick");
     prefStore = pPrefStore;
     notifyUtil = pNotifyUtil;
     dialogProvider = pDialogProvider;

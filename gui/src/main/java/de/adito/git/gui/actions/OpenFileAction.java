@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IFileSystemUtil;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
@@ -17,13 +18,15 @@ import java.util.Optional;
 class OpenFileAction extends AbstractTableAction
 {
 
+  private final INotifyUtil notifyUtil;
   private final IFileSystemUtil fileOpener;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
-  OpenFileAction(IFileSystemUtil pFileOpener, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  OpenFileAction(INotifyUtil pNotifyUtil, IFileSystemUtil pFileOpener, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Open", Observable.just(Optional.of(true)));
+    notifyUtil = pNotifyUtil;
     fileOpener = pFileOpener;
     selectedFilesObservable = pSelectedFilesObservable;
   }
@@ -36,7 +39,10 @@ class OpenFileAction extends AbstractTableAction
       {
         try
         {
-          fileOpener.openFile(fileChangeType.getFile());
+          if (fileChangeType.getFile().exists())
+            fileOpener.openFile(fileChangeType.getFile());
+          else
+            notifyUtil.notify("Open File", "Cannot open a deleted file", true);
         }
         catch (AditoGitException pE)
         {

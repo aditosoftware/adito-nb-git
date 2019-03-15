@@ -41,6 +41,7 @@ class CommitAction extends AbstractTableAction
     super("Commit");
     messageTemplate = pMessageTemplate;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.COMMIT_ACTION_ICON));
+    putValue(Action.SHORT_DESCRIPTION, "Commit selected changed files");
     progressFacade = pProgressFacade;
     repository = pRepository;
     dialogProvider = pDialogProvider;

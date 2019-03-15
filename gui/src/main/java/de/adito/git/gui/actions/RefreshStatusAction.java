@@ -27,6 +27,7 @@ public class RefreshStatusAction extends AbstractAction
     repository = pRepository;
     refreshTree = pRefreshTree;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.REFRESH_CONTENT_ICON));
+    putValue(Action.SHORT_DESCRIPTION, "Refresh status tree");
   }
 
   @Override
