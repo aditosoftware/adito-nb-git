@@ -8,7 +8,6 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.table.AbstractTableModel;
-import java.io.File;
 import java.util.*;
 
 /**
@@ -23,8 +22,7 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
   public static final String FILE_NAME_COLUMN_NAME = StatusTableModel.FILE_NAME_COLUMN_NAME;
   @SuppressWarnings("WeakerAccess")
   public static final String CHANGE_TYPE_COLUMN_NAME = StatusTableModel.CHANGE_TYPE_COLUMN_NAME;
-  private static final String[] columnNames = {FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
-  private File repositoryFolder;
+  private static final String[] columnNames = {FILE_PATH_COLUMN_NAME, FILE_NAME_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
   private Disposable disposable;
   private List<IFileChangeType> changedFiles = new ArrayList<>();
 
@@ -35,7 +33,6 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
       Set<IFileChangeType> changedFilesSet = new HashSet<>();
       if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
       {
-        repositoryFolder = currentRepo.get().getTopLevelDirectory();
         for (ICommit selectedCommit : pSelectedCommitsOpt.get())
         {
           changedFilesSet.addAll(currentRepo.get().getCommittedFiles(selectedCommit.getId()));
@@ -44,7 +41,6 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
       }
       else
       {
-        repositoryFolder = null;
         changedFiles = Collections.emptyList();
       }
       fireTableDataChanged();
@@ -94,11 +90,21 @@ public class ChangedFilesTableModel extends AbstractTableModel implements IDisca
   {
     Object returnValue;
     if (pColumnIndex == findColumn(FILE_NAME_COLUMN_NAME))
+    {
       returnValue = changedFiles.get(pRowIndex).getFile().getName();
+    }
     else if (pColumnIndex == findColumn(FILE_PATH_COLUMN_NAME))
-      returnValue = changedFiles.get(pRowIndex).getFile().getPath();
+    {
+      // return Value for the path has the fileName excluded, because there is another column stating the name already
+      returnValue = changedFiles.get(pRowIndex).getFile().getPath()
+          .substring(0,
+                     changedFiles.get(pRowIndex).getFile().getPath().length() - changedFiles.get(pRowIndex).getFile().getName().length() - 1)
+          .replace("/", " / ").replace("\\", " \\ ");
+    }
     else if (pColumnIndex == findColumn(CHANGE_TYPE_COLUMN_NAME))
+    {
       returnValue = changedFiles.get(pRowIndex).getChangeType();
+    }
     else returnValue = changedFiles.get(pRowIndex);
     return returnValue;
   }
