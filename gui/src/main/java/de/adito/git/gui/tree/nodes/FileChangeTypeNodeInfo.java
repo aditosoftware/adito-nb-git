@@ -54,13 +54,13 @@ public class FileChangeTypeNodeInfo
    * @param pOtherNodeInfo FileChangeTypeNodeInfo of the node that should be merged with the current one, called from the node with the parent file
    *                       on the node that contains the child
    */
-  void collapse(@NotNull FileChangeTypeNodeInfo pOtherNodeInfo)
+  public void collapse(@NotNull FileChangeTypeNodeInfo pOtherNodeInfo)
   {
     nodeDescription = nodeDescription + " / " + pOtherNodeInfo.getNodeDescription();
     nodeFile = pOtherNodeInfo.getNodeFile();
   }
 
-  void setMembers(@NotNull List<IFileChangeType> pMembers)
+  public void setMembers(@NotNull List<IFileChangeType> pMembers)
   {
     members = pMembers;
   }
