@@ -4,13 +4,13 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.Optional;
 
@@ -19,7 +19,7 @@ import java.util.Optional;
  *
  * @author m.kaspera, 13.03.2019
  */
-public class DeleteBranchAction extends AbstractAction
+public class DeleteBranchAction extends AbstractTableAction
 {
 
   private final INotifyUtil notifyUtil;
@@ -32,7 +32,7 @@ public class DeleteBranchAction extends AbstractAction
   public DeleteBranchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
                             @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
   {
-    super("Delete Branch");
+    super("Delete Branch", _getIsEnabledObservable(pBranch));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
@@ -60,5 +60,15 @@ public class DeleteBranchAction extends AbstractAction
         notifyUtil.notify("Deleting branch", "Delete was aborted", true);
       }
     }
+  }
+
+  /**
+   * check the selection of columns in branch list
+   *
+   * @return return true if the selected list has one element, else false
+   */
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IBranch>> pBranch)
+  {
+    return pBranch.map(pBranchOpt -> pBranchOpt.map(branch -> branch.getType() == EBranchType.LOCAL));
   }
 }
