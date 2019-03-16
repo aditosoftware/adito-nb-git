@@ -132,6 +132,10 @@ public interface IDiffPaneUtil
         heightMap.put(IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
                       IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
       }
+      catch (IllegalArgumentException iAE)
+      {
+        // do nothing, key
+      }
       catch (BadLocationException pE)
       {
         throw new RuntimeException(pE);
