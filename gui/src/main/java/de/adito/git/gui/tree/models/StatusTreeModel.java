@@ -183,9 +183,11 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
     if (!fileHashMap.isEmpty())
     {
       fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
-      if (getRoot() == null)
+      if (rootNode == null)
       {
         setRoot(new FileChangeTypeNode(fileHashMap.get(projectDirectory.getParentFile()).get(projectDirectory)));
+        rootNode = (FileChangeTypeNode) getRoot();
+        reload();
       }
       FileChangeTypeNodeInfo rootInfo = rootNode.getInfo();
       if (rootInfo != null)
