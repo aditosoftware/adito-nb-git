@@ -36,7 +36,7 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
   {
     super(null);
     projectDirectory = pProjectDirectory;
-    disposable = pChangeList.subscribe(this::_calculateTree);
+    disposable = pChangeList.subscribe(this::_treeChanged);
   }
 
   @Override
@@ -178,7 +178,35 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
 
   private void _calculateTree(List<IFileChangeType> pList)
   {
+    FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();
+    HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(pList);
+    if (!fileHashMap.isEmpty())
+    {
+      fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
+      if (getRoot() == null)
+      {
+        setRoot(new FileChangeTypeNode(fileHashMap.get(projectDirectory.getParentFile()).get(projectDirectory)));
+      }
+      FileChangeTypeNodeInfo rootInfo = rootNode.getInfo();
+      if (rootInfo != null)
+        rootInfo.setMembers(pList);
+      _updateTree(fileHashMap, rootNode);
+      rootNode.sort(comparator, this);
+    }
+    else
+    {
+      FileChangeTypeNodeInfo rootInfo = rootNode.getInfo();
+      if (rootInfo != null)
+        rootInfo.setMembers(new ArrayList<>());
+      for (TreeNode treeNode : Collections.list(rootNode.children()))
+      {
+        removeNodeFromParent((FileChangeTypeNode) treeNode);
+      }
+    }
+  }
 
+  private void _treeChanged(List<IFileChangeType> pList)
+  {
     if (updateFuture != null && !updateFuture.isDone())
     {
       updateFuture.cancel(true);
@@ -186,18 +214,7 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
     updateFuture = service.submit(() -> {
       try
       {
-        HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMapHashMap = _calculateMap(pList);
-        HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> reducedMap = _reduce(fileHashMapHashMap, projectDirectory.getParentFile());
-        if (getRoot() == null)
-        {
-          setRoot(new FileChangeTypeNode(reducedMap.get(projectDirectory.getParentFile()).get(projectDirectory)));
-        }
-        FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();
-        FileChangeTypeNodeInfo rootInfo = rootNode.getInfo();
-        if (rootInfo != null)
-          rootInfo.setMembers(pList);
-        _updateTree(reducedMap, rootNode);
-        rootNode.sort(comparator, this);
+        _calculateTree(pList);
       }
       catch (InterruptedRuntimeException pE)
       {
