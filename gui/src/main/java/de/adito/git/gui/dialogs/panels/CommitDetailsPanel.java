@@ -53,7 +53,7 @@ public class CommitDetailsPanel implements IDiscardable
     selectedCommitObservable = pSelectedCommitObservable;
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
     statusTree = new SearchableTree();
-    _setUpChangedFilesTree(pQuickSearchProvider, pFileSystemUtil);
+    _setUpChangedFilesTreePanel(pQuickSearchProvider, pFileSystemUtil);
     _initDetailPanel();
   }
 
@@ -62,7 +62,7 @@ public class CommitDetailsPanel implements IDiscardable
     return detailPanelPane;
   }
 
-  private void _setUpChangedFilesTree(IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil)
+  private void _setUpChangedFilesTreePanel(IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil)
   {
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
@@ -91,6 +91,7 @@ public class CommitDetailsPanel implements IDiscardable
     statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
     pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
     tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
+    tableViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
     ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
     statusTree.setSelectionModel(observableTreeSelectionModel);
     Observable<Optional<String>> selectedFile = Observable
@@ -111,6 +112,15 @@ public class CommitDetailsPanel implements IDiscardable
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
     popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
     statusTree.addMouseListener(popupMouseListener);
+  }
+
+  private JToolBar _getTreeToolbar()
+  {
+    JToolBar toolBar = new JToolBar();
+    toolBar.setFloatable(false);
+    toolBar.add(actionProvider.getExpandTreeAction(statusTree));
+    toolBar.add(actionProvider.getCollapseTreeAction(statusTree));
+    return toolBar;
   }
 
   /**
