@@ -3,7 +3,8 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -11,7 +12,9 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Action that shows the differences between the selected commit (the list in the observable should contain only one commit for the action to be
@@ -20,7 +23,7 @@ import java.util.*;
  *
  * @author m.kaspera, 13.02.2019
  */
-public class DiffCommitToHeadAction extends AbstractTableAction
+class DiffCommitToHeadAction extends AbstractTableAction
 {
 
   private final IDialogProvider dialogProvider;

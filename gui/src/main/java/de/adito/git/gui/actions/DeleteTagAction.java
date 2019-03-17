@@ -12,14 +12,14 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 07.03.2019
  */
-public class DeleteTagAction extends AbstractTableAction
+class DeleteTagAction extends AbstractTableAction
 {
 
   private final ITag tag;
   private final Observable<Optional<IRepository>> repository;
 
   @Inject
-  public DeleteTagAction(@Assisted ITag pTag, @Assisted Observable<Optional<IRepository>> pRepository)
+  DeleteTagAction(@Assisted ITag pTag, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     super(pTag.getName(), Observable.just(Optional.of(true)));
     tag = pTag;

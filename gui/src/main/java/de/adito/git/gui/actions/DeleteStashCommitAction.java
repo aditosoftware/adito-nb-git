@@ -13,7 +13,7 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 12.02.2019
  */
-public class DeleteStashCommitAction extends AbstractAction
+class DeleteStashCommitAction extends AbstractAction
 {
 
   private final IAsyncProgressFacade progressFacade;
@@ -21,8 +21,8 @@ public class DeleteStashCommitAction extends AbstractAction
   private final Observable<Optional<String>> commitId;
 
   @Inject
-  public DeleteStashCommitAction(IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
-                                 @Assisted Observable<Optional<String>> pCommitId)
+  DeleteStashCommitAction(IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
+                          @Assisted Observable<Optional<String>> pCommitId)
   {
     progressFacade = pProgressFacade;
     repository = pRepository;

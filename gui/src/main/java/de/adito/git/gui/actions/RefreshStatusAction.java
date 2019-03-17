@@ -14,14 +14,14 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 11.03.2019
  */
-public class RefreshStatusAction extends AbstractAction
+class RefreshStatusAction extends AbstractAction
 {
 
   private final Observable<Optional<IRepository>> repository;
   private final Runnable refreshTree;
 
   @Inject
-  public RefreshStatusAction(IIconLoader pIconLoader, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Runnable pRefreshTree)
+  RefreshStatusAction(IIconLoader pIconLoader, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Runnable pRefreshTree)
   {
     super("refresh");
     repository = pRepository;

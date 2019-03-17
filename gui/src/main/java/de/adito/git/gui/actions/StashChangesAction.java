@@ -18,7 +18,7 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 12.02.2019
  */
-public class StashChangesAction extends AbstractAction
+class StashChangesAction extends AbstractAction
 {
 
   private final IAsyncProgressFacade progressFacade;
@@ -26,8 +26,8 @@ public class StashChangesAction extends AbstractAction
   private final Observable<Optional<IRepository>> repository;
 
   @Inject
-  public StashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
-                            @Assisted Observable<Optional<IRepository>> pRepository)
+  StashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+                     @Assisted Observable<Optional<IRepository>> pRepository)
   {
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;

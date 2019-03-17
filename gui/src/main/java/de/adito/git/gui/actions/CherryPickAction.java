@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 11.02.2019
  */
-public class CherryPickAction extends AbstractTableAction
+class CherryPickAction extends AbstractTableAction
 {
 
   private static final String ACTION_NAME = "Cherry Pick";

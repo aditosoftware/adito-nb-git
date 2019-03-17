@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 24.12.2018
  */
-public class GitConfigAction extends AbstractTableAction
+class GitConfigAction extends AbstractTableAction
 {
 
   private final IDialogProvider dialogProvider;

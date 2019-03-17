@@ -17,7 +17,7 @@ import java.util.Optional;
 /**
  * @author m.kaspera, 06.02.2019
  */
-public class FileHistoryAction extends AbstractTableAction
+class FileHistoryAction extends AbstractTableAction
 {
 
   private final IWindowProvider windowProvider;
