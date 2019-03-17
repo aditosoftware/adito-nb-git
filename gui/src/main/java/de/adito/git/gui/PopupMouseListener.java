@@ -35,7 +35,17 @@ public class PopupMouseListener extends MouseAdapter
   {
     if (pEvent.getClickCount() == 2 && doubleClickAction != null)
     {
-      doubleClickAction.actionPerformed(null);
+      if (pEvent.getSource() instanceof JTree)
+      {
+        JTree source = (JTree) pEvent.getSource();
+        TreePath sourcePath = source.getClosestPathForLocation(pEvent.getX(), pEvent.getY());
+        if (source.isPathSelected(sourcePath) && source.getModel().isLeaf(sourcePath.getLastPathComponent()))
+          doubleClickAction.actionPerformed(null);
+      }
+      else
+      {
+        doubleClickAction.actionPerformed(null);
+      }
     }
   }
 

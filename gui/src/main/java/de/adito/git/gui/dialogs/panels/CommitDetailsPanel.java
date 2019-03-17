@@ -2,28 +2,28 @@ package de.adito.git.gui.dialogs.panels;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IQuickSearchProvider;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.DateTimeRenderer;
-import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTable;
-import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tablemodels.ChangedFilesTableModel;
-import de.adito.git.gui.tablemodels.StatusTableModel;
+import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTree;
+import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
+import de.adito.git.impl.data.FileChangeTypeImpl;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -35,26 +35,25 @@ public class CommitDetailsPanel implements IDiscardable
   private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
   private static final String DETAILS_FORMAT_STRING = "%7.7s %s <%s> on %s";
   private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-  private final JTable changedFilesTable;
   private final JPanel tableViewPanel = new JPanel(new BorderLayout());
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
-  private final ChangedFilesTableModel changedFilesTableModel;
   private final _SelectedCommitsPanel commits;
+  private final SearchableTree statusTree;
 
   @Inject
   public CommitDetailsPanel(IActionProvider pActionProvider, IQuickSearchProvider pQuickSearchProvider,
+                            IFileSystemUtil pFileSystemUtil,
                             @Assisted Observable<Optional<IRepository>> pRepository,
                             @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     actionProvider = pActionProvider;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
-    changedFilesTableModel = new ChangedFilesTableModel(selectedCommitObservable, pRepository);
-    changedFilesTable = new SearchableTable(changedFilesTableModel, tableViewPanel);
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
-    _setUpChangedFilesTable(pQuickSearchProvider);
+    statusTree = new SearchableTree();
+    _setUpChangedFilesTree(pQuickSearchProvider, pFileSystemUtil);
     _initDetailPanel();
   }
 
@@ -63,35 +62,55 @@ public class CommitDetailsPanel implements IDiscardable
     return detailPanelPane;
   }
 
-  private void _setUpChangedFilesTable(IQuickSearchProvider pQuickSearchProvider)
+  private void _setUpChangedFilesTree(IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil)
   {
-    JScrollPane tableScrollpane = new JScrollPane(changedFilesTable);
-    tableViewPanel.add(tableScrollpane, BorderLayout.CENTER);
-    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(changedFilesTable, List.of(0)));
-    changedFilesTable.getColumnModel().removeColumn(changedFilesTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
-    changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_NAME_COLUMN_NAME))
-        .setCellRenderer(new FileStatusCellRenderer());
-    changedFilesTable.getColumnModel()
-        .getColumn(changedFilesTableModel.findColumn(ChangedFilesTableModel.FILE_PATH_COLUMN_NAME))
-        .setCellRenderer(new FileStatusCellRenderer());
-    ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(changedFilesTable.getSelectionModel());
-    changedFilesTable.setSelectionModel(observableListSelectionModel);
-    Observable<Optional<String>> selectedFile = observableListSelectionModel.selectedRows().map(pSelectedRows -> {
-      if (pSelectedRows.length > 0)
-        return Optional.of((String) changedFilesTableModel.getValueAt(pSelectedRows[0],
-                                                                      changedFilesTableModel.findColumn(StatusTableModel.FILE_PATH_COLUMN_NAME)));
-      else
-        return Optional.empty();
-    });
+    File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
+        .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
+    Observable<List<IFileChangeType>> changedFilesObs = Observable
+        .combineLatest(selectedCommitObservable, repository, (pSelectedCommitsOpt, currentRepo) -> {
+          Set<IFileChangeType> changedFilesSet = new HashSet<>();
+          if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
+          {
+            for (ICommit selectedCommit : pSelectedCommitsOpt.get())
+            {
+              changedFilesSet.addAll(currentRepo.get().getCommittedFiles(selectedCommit.getId())
+                                         .stream()
+                                         .map(pChangeType -> new FileChangeTypeImpl(
+                                             new File(projectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType()))
+                                         .collect(Collectors.toList()));
+            }
+            return new ArrayList<>(changedFilesSet);
+          }
+          else
+          {
+            return Collections.emptyList();
+          }
+        });
+    StatusTreeModel statusTreeModel = new StatusTreeModel(changedFilesObs, projectDirectory);
+    statusTree.init(tableViewPanel, statusTreeModel);
+    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
+    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
+    tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
+    ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
+    statusTree.setSelectionModel(observableTreeSelectionModel);
+    Observable<Optional<String>> selectedFile = Observable
+        .combineLatest(observableTreeSelectionModel.getSelectedPaths(), changedFilesObs, (pSelected, pStatus) -> {
+          if (pSelected == null)
+            return Optional.empty();
+          return Arrays.stream(pSelected)
+              .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getMembers())
+              .flatMap(Collection::stream)
+              .map(pChangeType -> pChangeType.getFile().getAbsolutePath())
+              .findFirst();
+        });
     JPopupMenu popupMenu = new JPopupMenu();
-    popupMenu.add(actionProvider.getOpenFileStringAction(repository, selectedFile));
+    popupMenu.add(actionProvider.getOpenFileStringAction(selectedFile));
     popupMenu.addSeparator();
     popupMenu.add(actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, selectedFile));
     popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
     popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
-    changedFilesTable.addMouseListener(popupMouseListener);
+    statusTree.addMouseListener(popupMouseListener);
   }
 
   /**

@@ -3,7 +3,6 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IFileSystemUtil;
-import de.adito.git.api.IRepository;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
 
@@ -22,18 +21,17 @@ class OpenFileStringAction extends AbstractTableAction
 
   private final IFileSystemUtil fileOpener;
   private final Observable<Optional<String>> selectedFileObservable;
-  private File projectFolderPath = null;
 
+  /**
+   * @param pFileOpener             IFileSystemUtil used to open files in the Netbeans editor
+   * @param pSelectedFileObservable Observable Optional of the absolute path of the file to be opened
+   */
   @Inject
-  OpenFileStringAction(IFileSystemUtil pFileOpener, @Assisted Observable<Optional<IRepository>> pRepository,
-                       @Assisted Observable<Optional<String>> pSelectedFileObservable)
+  OpenFileStringAction(IFileSystemUtil pFileOpener, @Assisted Observable<Optional<String>> pSelectedFileObservable)
   {
-    super("Open", Observable.just(Optional.of(true)));
+    super("Open", _getIsEnabledObservable(pSelectedFileObservable));
     fileOpener = pFileOpener;
     selectedFileObservable = pSelectedFileObservable;
-    pRepository.blockingFirst().ifPresent(pRepo -> projectFolderPath = pRepo.getTopLevelDirectory());
-    if (projectFolderPath == null)
-      setEnabled(false);
   }
 
   @Override
@@ -42,12 +40,17 @@ class OpenFileStringAction extends AbstractTableAction
     selectedFileObservable.blockingFirst().ifPresent(pFilePath -> {
       try
       {
-        fileOpener.openFile(new File(projectFolderPath, pFilePath));
+        fileOpener.openFile(new File(pFilePath));
       }
       catch (AditoGitException pE)
       {
         throw new RuntimeException(pE);
       }
     });
+  }
+
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<String>> pSelectedFileObservable)
+  {
+    return pSelectedFileObservable.map(pSelectedFileOpt -> pSelectedFileOpt.map(pFileString -> new File(pFileString).exists()));
   }
 }

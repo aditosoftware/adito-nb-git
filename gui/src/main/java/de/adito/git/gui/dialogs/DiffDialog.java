@@ -2,23 +2,30 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
-import de.adito.git.gui.*;
+import de.adito.git.api.ColorPicker;
+import de.adito.git.api.IDiscardable;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IFileDiff;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.FileStatusCellRenderer;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tablemodels.*;
+import de.adito.git.gui.tablemodels.DiffTableModel;
+import de.adito.git.gui.tablemodels.StatusTableModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Window that displays the list of changes found during a diff
@@ -127,7 +134,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     {
       for (int index = 0; index < diffs.size(); index++)
       {
-        if (new File(diffs.get(index).getFilePath()).equals(new File(pSelectedFile)))
+        if ((diffs.get(index).getAbsoluteFilePath() != null && new File(diffs.get(index).getAbsoluteFilePath()).equals(new File(pSelectedFile)))
+            || new File(diffs.get(index).getFilePath()).equals(new File(pSelectedFile)))
           fileListTable.getSelectionModel().setSelectionInterval(index, index);
       }
     }

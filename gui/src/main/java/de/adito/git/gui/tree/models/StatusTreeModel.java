@@ -197,12 +197,15 @@ public class StatusTreeModel extends DefaultTreeModel implements IDiscardable
     }
     else
     {
-      FileChangeTypeNodeInfo rootInfo = rootNode.getInfo();
-      if (rootInfo != null)
-        rootInfo.setMembers(new ArrayList<>());
-      for (TreeNode treeNode : Collections.list(rootNode.children()))
+      if (rootNode != null)
       {
-        removeNodeFromParent((FileChangeTypeNode) treeNode);
+        FileChangeTypeNodeInfo rootInfo = rootNode.getInfo();
+        if (rootInfo != null)
+          rootInfo.setMembers(new ArrayList<>());
+        for (TreeNode treeNode : Collections.list(rootNode.children()))
+        {
+          removeNodeFromParent((FileChangeTypeNode) treeNode);
+        }
       }
     }
   }

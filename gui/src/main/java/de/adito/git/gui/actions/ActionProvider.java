@@ -220,9 +220,9 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
-  public Action getOpenFileStringAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pSelectedFile)
+  public Action getOpenFileStringAction(Observable<Optional<String>> pSelectedFile)
   {
-    return actionFactory.createOpenFileStringAction(pRepository, pSelectedFile);
+    return actionFactory.createOpenFileStringAction(pSelectedFile);
   }
 
   @Override

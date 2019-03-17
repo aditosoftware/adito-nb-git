@@ -71,7 +71,7 @@ interface IActionFactory
 
   OpenFileAction createOpenFileAction(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-  OpenFileStringAction createOpenFileStringAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pSelectedFile);
+  OpenFileStringAction createOpenFileStringAction(Observable<Optional<String>> pSelectedFile);
 
   RefreshContentAction createRefreshContentAction(Runnable pRefreshContentCallBack);
 
