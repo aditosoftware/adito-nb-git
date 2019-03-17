@@ -261,4 +261,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createDeleteStashedCommitAction(pRepository, pCommitId);
   }
 
+  @Override
+  public Action getFetchAction(Observable<Optional<IRepository>> pRepository)
+  {
+    return actionFactory.createFetchAction(pRepository);
+  }
+
 }

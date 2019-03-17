@@ -352,7 +352,7 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
-      git.fetch().setRemoveDeletedRefs(pPrune).call();
+      git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
     }
     catch (GitAPIException pE)
     {

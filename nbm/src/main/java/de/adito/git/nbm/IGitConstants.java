@@ -18,6 +18,8 @@ public interface IGitConstants
   String MENU_ACTION_PATH = "Menu/Git";
   //Projects
   String RIGHTCLICK_ACTION_PATH = "Actions/Git";
+  // SubMenu of RightClick action
+  String RIGHTCLICK_SUBMENU_ACTION_PATH = "Actions/Git/Other";
 
   // Annotator flag
   String ANNOTATOR_ACTIVF_FLAG = "adito-git-annotator-active";

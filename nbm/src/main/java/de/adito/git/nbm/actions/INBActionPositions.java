@@ -25,6 +25,9 @@ interface INBActionPositions
   int RESOLVE_CONFLICTS_ACTION_RIGHT_CLICK = 800;
   int GIT_CONFIG_ACTION_RIGHT_CLICK = 900;
 
+  // ----------------------  other right click positions -------------------------
+  int FETCH_ACTION_RIGHT_CLICK = 210;
+
   // --------------------------  toolbar positions -------------------------------
   int PULL_ACTION_TOOLBAR = 100;
   int COMMIT_ACTION_TOOLBAR = 200;

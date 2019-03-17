@@ -233,4 +233,12 @@ public interface IActionProvider
    * @return Action whose actionPerformed method deletes the stashed commit specified in pCommitId
    */
   Action getDeleteStashedCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pCommitId);
+
+  /**
+   * Action that performs a fetch operation
+   *
+   * @param pRepository Observable with the current Repository
+   * @return Action whose actionPerformed method performs a fetch on the remote repository
+   */
+  Action getFetchAction(Observable<Optional<IRepository>> pRepository);
 }

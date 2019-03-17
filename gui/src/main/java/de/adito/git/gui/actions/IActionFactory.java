@@ -87,4 +87,6 @@ interface IActionFactory
   UnStashChangesAction createUnStashChangesAction(Observable<Optional<IRepository>> pRepository);
 
   DeleteStashCommitAction createDeleteStashedCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pCommitId);
+
+  FetchAction createFetchAction(Observable<Optional<IRepository>> pRepository);
 }
