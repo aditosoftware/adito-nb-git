@@ -241,4 +241,20 @@ public interface IActionProvider
    * @return Action whose actionPerformed method performs a fetch on the remote repository
    */
   Action getFetchAction(Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * collapses the tree
+   *
+   * @param pTree JTree whose nodes should be collapsed
+   * @return Action whose actionPerformed method collapses all nodes in the tree
+   */
+  Action getCollapseTreeAction(JTree pTree);
+
+  /**
+   * expands the tree
+   *
+   * @param pTree JTree whose nodes should be expanded
+   * @return Action whose actionPerformed method expands all nodes in the tree
+   */
+  Action getExpandTreeAction(JTree pTree);
 }

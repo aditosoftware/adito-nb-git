@@ -267,4 +267,16 @@ class ActionProvider implements IActionProvider
     return actionFactory.createFetchAction(pRepository);
   }
 
+  @Override
+  public Action getCollapseTreeAction(JTree pTree)
+  {
+    return actionFactory.createCollapseTreeAction(pTree);
+  }
+
+  @Override
+  public Action getExpandTreeAction(JTree pTree)
+  {
+    return actionFactory.createExpandTreeAction(pTree);
+  }
+
 }

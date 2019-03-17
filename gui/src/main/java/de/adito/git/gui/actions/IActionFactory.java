@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
@@ -89,4 +90,8 @@ interface IActionFactory
   DeleteStashCommitAction createDeleteStashedCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<String>> pCommitId);
 
   FetchAction createFetchAction(Observable<Optional<IRepository>> pRepository);
+
+  CollapseTreeAction createCollapseTreeAction(JTree pTree);
+
+  ExpandTreeAction createExpandTreeAction(JTree pTree);
 }

@@ -29,6 +29,8 @@ public class Constants
   public static final String REFRESH_CONTENT_ICON = "/de/adito/git/gui/icons/refresh_dark.png";
   public static final String DELETE_ICON = "/de/adito/git/gui/icons/delete_dark.png";
   public static final String ADD_TAG_ACTION_ICON = "/de/adito/git/gui/icons/tag_icon_dark.png";
+  public static final String EXPAND_TREE_ACTION_ICON = "/de/adito/git/gui/icons/expand_dark.png";
+  public static final String COLLAPSE_TREE_ACTION_ICON = "/de/adito/git/gui/icons/compress_dark.png";
   public static final String CHERRY_PICK = "/de/adito/git/gui/icons/cherrypick_dark.png";
   public static final String ACCEPT_ALL_LEFT = "/de/adito/git/gui/icons/acceptLeft_dark.png";
   public static final String ACCEPT_ALL_RIGHT = "/de/adito/git/gui/icons/acceptRight_dark.png";

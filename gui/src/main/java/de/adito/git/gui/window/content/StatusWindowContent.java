@@ -103,6 +103,9 @@ class StatusWindowContent extends JPanel implements IDiscardable
     toolBar.addSeparator();
     toolBar.add(diffToHeadAction);
     toolBar.add(showCommitsForFileAction);
+    toolBar.addSeparator();
+    toolBar.add(actionProvider.getExpandTreeAction(statusTree));
+    toolBar.add(actionProvider.getCollapseTreeAction(statusTree));
     tableViewPanel.add(toolBar, BorderLayout.WEST);
 
     popupMenu = new JPopupMenu();
