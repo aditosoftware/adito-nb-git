@@ -891,6 +891,27 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @Override
+  public void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException
+  {
+    CheckoutCommand checkoutCommand = git.checkout().
+        setCreateBranch(true).
+        setName(pLocalName).
+        setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+        setStartPoint(pBranch.getName());
+    try
+    {
+      checkoutCommand.call();
+    }
+    catch (GitAPIException e)
+    {
+      throw new AditoGitException("Unable to checkout remote Branch " + pBranch.getName(), e);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @NotNull
   public List<IMergeDiff> getConflicts() throws AditoGitException
   {

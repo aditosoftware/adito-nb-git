@@ -3,11 +3,13 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.actions.commands.StashCommand;
+import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
@@ -63,7 +65,16 @@ class CheckoutAction extends AbstractTableAction
             pProgress.setDescription("Stashing uncommitted local changes");
             prefStore.put(STASH_ID_KEY, repository.stashChanges(null, false));
           }
-          repository.checkout(branch);
+          if (branch.getType() == EBranchType.REMOTE)
+          {
+            DialogResult dialogResult = dialogProvider.showUserPromptDialog("Choose a name for the local branch");
+            String branchName = dialogResult.getMessage();
+            repository.checkoutRemote(branch, branchName);
+          }
+          else
+          {
+            repository.checkout(branch);
+          }
         }
         finally
         {

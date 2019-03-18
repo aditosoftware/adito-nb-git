@@ -243,6 +243,12 @@ public interface IRepository
   void checkout(@NotNull IBranch pBranch) throws AditoGitException;
 
   /**
+   * @param pBranch    remote Branch to checkout
+   * @param pLocalName how the local branch that tracks the remote branch should be named
+   */
+  void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException;
+
+  /**
    * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
    * or if the branch to be merged cannot be read from the conflicting files
    * @throws AditoGitException if an error occurs or if the conflict was caused by a stashed commit, but several commits are stashed
