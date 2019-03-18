@@ -1,7 +1,7 @@
 package de.adito.git.impl.util;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.IFileChangesEvent;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -31,13 +30,12 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
   private boolean isEnabled = true;
 
   private DifferentialScrollBarCoupling(JScrollBar pScrollBar1, JScrollBar pScrollBar2,
-                                        Function<IFileDiff, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
-                                        Observable<Optional<IFileDiff>> pFileDiffChangeObs)
+                                        Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
+                                        Observable<IFileChangesEvent> pIFileChangesEventObs)
   {
     scrollBar1 = pScrollBar1;
     scrollBar2 = pScrollBar2;
-    disposable = pFileDiffChangeObs.subscribe(pFileDiffs -> pFileDiffs.ifPresent(
-        pIFileDiff -> SwingUtilities.invokeLater(() -> map = refreshMappings.apply(pFileDiffs.get()))));
+    disposable = pIFileChangesEventObs.subscribe(pChangesEvent -> SwingUtilities.invokeLater(() -> map = refreshMappings.apply(pChangesEvent)));
     scrollBar1.addAdjustmentListener(this);
     scrollBar2.addAdjustmentListener(this);
   }
@@ -46,14 +44,14 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
    * @param pScrollBar1        the first scrollBar
    * @param pScrollBar2        the second scrollBar
    * @param pRefreshMappings Function that maps
-   * @param pFileDiffChangeObs the different heights that should be equal in the middle fo the visible screen
+   * @param pIFileChangesEventObs Observable that has the up-to-date version of the List of IFileChangeChunks
    * @return an instance of this class to discard the Observable or remove the coupling
    */
   public static DifferentialScrollBarCoupling coupleScrollBars(JScrollBar pScrollBar1, JScrollBar pScrollBar2,
-                                                               Function<IFileDiff, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
-                                                               Observable<Optional<IFileDiff>> pFileDiffChangeObs)
+                                                               Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
+                                                               Observable<IFileChangesEvent> pIFileChangesEventObs)
   {
-    return new DifferentialScrollBarCoupling(pScrollBar1, pScrollBar2, pRefreshMappings, pFileDiffChangeObs);
+    return new DifferentialScrollBarCoupling(pScrollBar1, pScrollBar2, pRefreshMappings, pIFileChangesEventObs);
   }
 
   public void removeCoupling()

@@ -104,28 +104,31 @@ public interface IDiffPaneUtil
     Observable<Object> editorKitsObs = Observable.combineLatest(Observable.create(new EditorKitChangeObservable(pEditorPaneOld)),
                                                                 Observable.create(new EditorKitChangeObservable(pEditorPaneCurrent)), (o1, o2) -> o1);
     Observable<Object> editorViewChangeObs = Observable.merge(viewPortsObs, editorKitsObs);
-    Observable<Optional<IFileDiff>> fileDiffChangeObs = Observable.combineLatest(editorViewChangeObs, pFileDiffObs,
-                                                                                 (pObj, pFileDiffs) -> pFileDiffs);
-    Function<IFileDiff, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff -> getHeightMappings(pEditorPaneOld, pEditorPaneCurrent,
-                                                                                                              pFileDiff);
+    Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiffOpt -> pFileDiffOpt.map(pFDiff -> pFDiff.getFileChanges()
+        .getChangeChunks()).orElseThrow());
+    Observable<IFileChangesEvent> changeEventObs = Observable.combineLatest(editorViewChangeObs, changesEventObservable,
+                                                                            (pObj, pChangeEvent) -> pChangeEvent);
+    Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
+        getHeightMappings(pEditorPaneOld, pEditorPaneCurrent, pFileDiff);
     return DifferentialScrollBarCoupling.coupleScrollBars(pScrollPaneOld.getVerticalScrollBar(), pScrollPaneCurrent.getVerticalScrollBar(),
-                                                          refreshFunction, fileDiffChangeObs);
+                                                          refreshFunction, changeEventObs);
   }
 
   /**
    * @param pEditorPaneOld     pEditorPane that contains the text of the IFileDiff with side OLD
    * @param pEditorPaneCurrent pEditorPane that contains the text of the IFileDiff with side NEW
-   * @param pFileDiff          IFileDiff with the information about the changes displayed in the editorPanes
+   * @param pChangesEvent      IFileDiff with the information about the changes displayed in the editorPanes
    * @return List of Mappings of the y values of the IFileChangeChunks in the IFileDiff
    */
-  static BiNavigateAbleMap<Integer, Integer> getHeightMappings(JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent, IFileDiff pFileDiff)
+  static BiNavigateAbleMap<Integer, Integer> getHeightMappings(JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent,
+                                                               IFileChangesEvent pChangesEvent)
   {
     BiNavigateAbleMap<Integer, Integer> heightMap = new BiNavigateAbleMap<>();
     // default entry: start is equal
     heightMap.put(0, 0);
     View oldEditorPaneView = pEditorPaneOld.getUI().getRootView(pEditorPaneOld);
     View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
-    for (IFileChangeChunk changeChunk : pFileDiff.getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+    for (IFileChangeChunk changeChunk : pChangesEvent.getNewValue())
     {
       try
       {
