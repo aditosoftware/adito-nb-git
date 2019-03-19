@@ -313,7 +313,7 @@ public class FileChangesImpl implements IFileChanges
     int offset = 0;
     for (int index = 0; index < pChunkIndex; index++)
     {
-      offset += pFileChangeChunks.get(index).getLines(pChangeSide).length();
+      offset += pFileChangeChunks.get(index).getEditorLines(pChangeSide).length();
     }
     return offset;
   }
