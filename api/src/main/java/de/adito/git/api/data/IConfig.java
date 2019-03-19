@@ -12,6 +12,16 @@ public interface IConfig
 {
 
   /**
+   * Represents the three different autoCRLF setting available in git
+   */
+  enum AUTO_CRLF
+  {
+    TRUE,
+    FALSE,
+    INPUT
+  }
+
+  /**
    * returns the username set for this repository/current remote, or the username stored in the global git settings if no
    * username is set for this specific repository/current remote
    *
@@ -52,6 +62,13 @@ public interface IConfig
   @Nullable char[] getPassword();
 
   /**
+   * checks the autocrlf setting of the repository/global config
+   *
+   * @return the autoCRLF setting
+   */
+  AUTO_CRLF getAutoCRLF();
+
+  /**
    * @param pUserName new name for the user
    */
   void setUserName(@NotNull String pUserName);
@@ -75,5 +92,6 @@ public interface IConfig
    * @param pPassword new password for the user, null means no password is required
    */
   void setPassword(@Nullable char[] pPassword);
+
 
 }

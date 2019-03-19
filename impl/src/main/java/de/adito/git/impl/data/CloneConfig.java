@@ -1,7 +1,8 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.IConfig;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author a.arnold, 14.01.2019
@@ -41,6 +42,12 @@ public class CloneConfig implements IConfig
   public char[] getPassword()
   {
     return new char[0];
+  }
+
+  @Override
+  public AUTO_CRLF getAutoCRLF()
+  {
+    return null;
   }
 
   @Override

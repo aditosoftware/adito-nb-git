@@ -25,6 +25,8 @@ public class ConfigImpl implements IConfig
   private static final String USER_EMAIL_KEY = "email";
   private static final String SSH_SECTION_KEY = "remote";
   private static final String SSH_KEY_KEY = "puttykeyfile";
+  private static final String AUTO_CRLF_SECTION_KEY = "core";
+  private static final String AUTO_CRLF_KEY = "autocrlf";
   private final IKeyStore keyStore;
   private final Git git;
 
@@ -80,6 +82,17 @@ public class ConfigImpl implements IConfig
   public char[] getPassword()
   {
     throw new UnsupportedOperationException("not implemented yet");
+  }
+
+  @Override
+  public AUTO_CRLF getAutoCRLF()
+  {
+    String autoCRLFSetting = git.getRepository().getConfig().getString(AUTO_CRLF_SECTION_KEY, null, AUTO_CRLF_KEY);
+    if ("true".equals(autoCRLFSetting))
+      return AUTO_CRLF.TRUE;
+    else if ("false".equals(autoCRLFSetting))
+      return AUTO_CRLF.FALSE;
+    else return AUTO_CRLF.INPUT;
   }
 
   @Override
