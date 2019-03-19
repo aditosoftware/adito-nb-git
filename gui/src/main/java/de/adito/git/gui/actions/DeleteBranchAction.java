@@ -6,6 +6,7 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -22,6 +23,7 @@ import java.util.Optional;
 class DeleteBranchAction extends AbstractTableAction
 {
 
+  private static final String PROGRESS_MESSAGE_STRING = "Deleting branch ";
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
@@ -49,17 +51,53 @@ class DeleteBranchAction extends AbstractTableAction
       DialogResult<?, Boolean> result = dialogProvider.showDeleteBranchDialog(branchName);
       if (result.isPressedOk())
       {
-        progressFacade.executeInBackground("Deleting branch " + branchName, pHandle -> {
+        progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + branchName, pHandle -> {
           IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
-          repo.deleteBranch(branchName, result.getInformation());
+          _deleteBranch(branchName, result.getInformation(), repo);
         });
-        notifyUtil.notify("Deleting branch", "Deleting branch was successful", true);
       }
       else
       {
-        notifyUtil.notify("Deleting branch", "Delete was aborted", true);
+        notifyUtil.notify(PROGRESS_MESSAGE_STRING, "Delete was aborted", true);
       }
     }
+  }
+
+  /**
+   * @param pBranchName           Name of the branch to be deleted
+   * @param pIsDeleteRemoteBranch whether or not to delete the remote-tracked branch as well (if it exists)
+   * @param pRepo                 Repository on which to call the delete branch method
+   * @throws AditoGitException if an error occurs during the force-delete of the branch
+   */
+  private void _deleteBranch(String pBranchName, Boolean pIsDeleteRemoteBranch, IRepository pRepo) throws AditoGitException
+  {
+    try
+    {
+      pRepo.deleteBranch(pBranchName, pIsDeleteRemoteBranch, false);
+    }
+    catch (AditoGitException pE)
+    {
+      if (pE.getMessage().contains("Branch was not deleted as it has not been merged yet; use the force option to delete it anyway"))
+      {
+        DialogResult dialogResult = dialogProvider.showYesNoDialog("Branch contains unmerged changes, do you want to force delete it? " +
+                                                                       "(WARNING: all changes on that branch are lost)");
+        if (dialogResult.isPressedOk())
+        {
+          pRepo.deleteBranch(pBranchName, pIsDeleteRemoteBranch, true);
+        }
+        else
+        {
+          notifyUtil.notify(PROGRESS_MESSAGE_STRING, "Delete was aborted", true);
+          // return here so the message in the last line of this method is not printed (would have to have that last message twice otherwise)
+          return;
+        }
+      }
+      else
+      {
+        throw new RuntimeException(pE);
+      }
+    }
+    notifyUtil.notify(PROGRESS_MESSAGE_STRING, "Deleting branch was successful", true);
   }
 
   /**

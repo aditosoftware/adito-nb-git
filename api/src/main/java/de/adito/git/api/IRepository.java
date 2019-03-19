@@ -205,9 +205,10 @@ public interface IRepository
    *
    * @param pBranchName         the simple name of the branch to delete
    * @param pDeleteRemoteBranch if the remote-tracking branch should also be deleted
+   * @param pIsForceDelete      if the deletion of the branch should be forced
    * @throws AditoGitException if an error occurs
    */
-  void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch) throws AditoGitException;
+  void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException;
 
 
   /**

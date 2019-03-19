@@ -797,12 +797,13 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch) throws AditoGitException
+  public void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException
   {
     String destination = "refs/heads/" + pBranchName;
     try
     {
       git.branchDelete()
+          .setForce(pIsForceDelete)
           .setBranchNames(destination)
           .call();
     }
