@@ -4,16 +4,22 @@ import de.adito.git.nbm.prefs.NBPrefStore;
 import de.adito.git.nbm.sidebar.DocumentUpdateChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.openide.WizardDescriptor;
-import org.openide.filesystems.*;
-import org.openide.util.*;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.ChangeSupport;
+import org.openide.util.HelpCtx;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
 import javax.swing.filechooser.FileSystemView;
-import java.awt.*;
-import java.io.*;
+import java.awt.Component;
+import java.io.File;
+import java.io.IOException;
+import java.util.regex.Pattern;
 
-import static de.adito.git.nbm.IGitConstants.*;
+import static de.adito.git.nbm.IGitConstants.GIT_PROJECT_LOCATION;
+import static de.adito.git.nbm.IGitConstants.GIT_SSH_KEY;
 
 /**
  * @author a.arnold, 08.01.2019
@@ -135,6 +141,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
     boolean valid = _isNotEmpty();
     _checkValidPath(_getProjectPath());
     _checkValidFileName(_getProjectName());
+    _checkValidSSHRepository(_getRepositoryPath());
     return valid && (wizard == null || wizard.getProperty(WizardDescriptor.PROP_ERROR_MESSAGE) == null);
   }
 
@@ -174,6 +181,19 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
         return selectedFile.getAbsolutePath();
     }
     return pReturnText;
+  }
+
+  /**
+   * checks whether or not the url for the repository may be a valid ssh url
+   *
+   * @param pSSHUrl url input for the repository
+   */
+  private void _checkValidSSHRepository(@NotNull String pSSHUrl)
+  {
+    if (!pSSHUrl.isEmpty() && !Pattern.matches("(?!https?)(\\w+://)?[\\w.]*@[\\w.]*:[\\w/]*[.]git", pSSHUrl))
+    {
+      wizard.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, AditoRepositoryCloneWizard.getMessage(this, "Invalid.SSHUrl", pSSHUrl));
+    }
   }
 
   /**
