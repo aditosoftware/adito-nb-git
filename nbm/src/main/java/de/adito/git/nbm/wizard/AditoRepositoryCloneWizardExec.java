@@ -24,13 +24,26 @@ class AditoRepositoryCloneWizardExec
   {
     final ICloneRepo cloneRepo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
     pHandle.start();
-    cloneRepo.cloneProject(AsyncProgressFacadeImpl.wrapNBHandle(pHandle), pLocalPath, pProjectName, pRepoPath, pSshPath, pSshKey, pBranch);
-    pHandle.finish();
+    try
+    {
+      cloneRepo.cloneProject(AsyncProgressFacadeImpl.wrapNBHandle(pHandle), pLocalPath, pProjectName, pRepoPath,
+                             pBranch != null ? pBranch.getName() : null, null, pSshPath, pSshKey);
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException("Failed to clone repository", e);
+    }
+    finally
+    {
+      pHandle.finish();
+    }
+
     //delete the ssh key
     for (int i = 0; i < pSshKey.length; i++)
     {
       pSshKey[i] = 0;
     }
+
     return FileUtil.toFileObject(new File(pLocalPath, pProjectName));
   }
 

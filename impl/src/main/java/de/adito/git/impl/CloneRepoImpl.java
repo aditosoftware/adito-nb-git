@@ -9,7 +9,7 @@ import de.adito.git.impl.ssh.ISshProvider;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.*;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 
 import java.io.File;
 import java.util.*;
@@ -57,27 +57,25 @@ public class CloneRepoImpl implements ICloneRepo
   }
 
   @Override
-  public void cloneProject(@NotNull IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
-                           @NotNull String pURL, String pSshPath, char[] pSshKey, IBranch pBranch)
+  public void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
+                           @NotNull String pURL, @Nullable String pBranchName, @Nullable String pRemote,
+                           String pSshPath, char[] pSshKey) throws GitAPIException
   {
     CloneCommand cloneCommand = Git.cloneRepository()
-        .setProgressMonitor(new _ProgressMonitor(pProgressHandle))
         .setURI(pURL)
         .setTransportConfigCallback(_getTransportConfigCallBack(pSshPath, pSshKey))
         .setDirectory(new File(pLocalPath, pProjectName));
 
-    if (pBranch != null)
+    if (pProgressHandle != null)
+      cloneCommand = cloneCommand.setProgressMonitor(new _ProgressMonitor(pProgressHandle));
+    if (pRemote != null)
+      cloneCommand = cloneCommand.setRemote(pRemote);
+
+    if (pBranchName != null)
     {
-      cloneCommand.setBranch(pBranch.getName());
+      cloneCommand.setBranch(pBranchName);
     }
-    try
-    {
-      cloneCommand.call();
-    }
-    catch (GitAPIException pE)
-    {
-      throw new RuntimeException("Can't clone repository. ", pE);
-    }
+    cloneCommand.call();
   }
 
   private TransportConfigCallback _getTransportConfigCallBack(String pSshKeyLocation, char[] pSshKey)

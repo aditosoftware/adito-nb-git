@@ -2,7 +2,8 @@ package de.adito.git.api;
 
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.progress.IProgressHandle;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.jetbrains.annotations.*;
 
 import java.util.List;
 
@@ -31,11 +32,12 @@ public interface ICloneRepo
    * @param pProgressHandle The handler for the progress
    * @param pLocalPath      The local path to clone
    * @param pURL            The URL to clone
+   * @param pBranchName     The branch to checkout
    * @param pSshPath        The path of the private SSH file (optional)
    * @param pSshKey         The SSH key (optional)
-   * @param pBranch         The branch to checkout
    * @param pProjectName    the project name
    */
-  void cloneProject(@NotNull IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
-                    @NotNull String pURL, String pSshPath, char[] pSshKey, IBranch pBranch);
+  void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
+                    @NotNull String pURL, @Nullable String pBranchName, @Nullable String pRemote,
+                    String pSshPath, char[] pSshKey) throws GitAPIException;
 }
