@@ -92,7 +92,14 @@ class PullAction extends AbstractAction
         {
           pProgressHandle.setDescription("Resolving Conflicts");
           // if the pull should be aborted, _handleConflictDialog returns true
-          doAbort = _handleConflictDialog(Observable.just(repository.blockingFirst()), rebaseResult.getMergeConflicts());
+          doAbort = _handleConflictDialog(pRepo, rebaseResult.getMergeConflicts());
+        }
+        if (rebaseResult.getResultType() == null)
+        {
+          notifyUtil.notify("Unclear rebase state, aborting rebase", "The current rebase state is neither a conflict nor success, aborting rebase",
+                            true);
+          _abortRebase(pRepo);
+          doAbort = true;
         }
       }
     }
@@ -119,20 +126,31 @@ class PullAction extends AbstractAction
    * @return true if the user pressed cancel and the pull should be aborted, false otherwise
    * @throws AditoGitException if an error occurred during the pull
    */
-  private boolean _handleConflictDialog(Observable<Optional<IRepository>> pRepo, List<IMergeDiff> pMergeConflicts) throws AditoGitException
+  private boolean _handleConflictDialog(IRepository pRepo, List<IMergeDiff> pMergeConflicts) throws AditoGitException
   {
-    DialogResult dialogResult = dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts);
+    DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts);
     if (!dialogResult.isPressedOk())
     {
-      // user pressed cancel -> abort
-      IRebaseResult abortedRebaseResult =
-          pRepo.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG)).pull(true);
-      if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
-        throw new RuntimeException("The abort of the rebase failed with state: " + abortedRebaseResult.getResultType());
-      // abort was successful -> notify user
-      notifyUtil.notify("Aborted rebase", "Rebase abort was successful, all local content restored to state before rebase", true);
+      _abortRebase(pRepo);
       return true;
     }
     return false;
+  }
+
+  /**
+   * aborts the rebase
+   *
+   * @param pRepo Repository to call the aborted rebase on
+   * @throws AditoGitException if an error occurs during the abort
+   */
+  private void _abortRebase(IRepository pRepo) throws AditoGitException
+  {
+    // user pressed cancel -> abort
+    IRebaseResult abortedRebaseResult =
+        pRepo.pull(true);
+    if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
+      throw new RuntimeException("The abort of the rebase failed with state: " + abortedRebaseResult.getResultType());
+    // abort was successful -> notify user
+    notifyUtil.notify("Aborted rebase", "Rebase abort was successful, all local content restored to state before rebase", true);
   }
 }
