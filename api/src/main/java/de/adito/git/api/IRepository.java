@@ -19,6 +19,76 @@ public interface IRepository
 {
 
   /**
+   * Maps all the different status that an repository can have
+   */
+  enum State
+  {
+    /**
+     * an unfinished apply took place, skip or abort to resume normal work
+     */
+    APPLY,
+    /**
+     * bare repository, no work can take place
+     */
+    BARE,
+    /**
+     * bisecting state, normal work may continue but is discouraged
+     */
+    BISECTING,
+    /**
+     * normal repository state, all work can be done
+     */
+    SAFE,
+    /**
+     * merging took place and there are still conflicts to resolve
+     */
+    MERGING,
+    /**
+     * merging took place, conflicts are resolved but merge is not wrapped up yet
+     */
+    MERGING_RESOLVED,
+    /**
+     * cherry picking is taking place and there are still conflicts to resolve
+     */
+    CHERRY_PICKING,
+    /**
+     * cherry picking is taking place, all conflicts resolved but not wrapped up yet
+     */
+    CHERRY_PICKING_RESOLVED,
+    /**
+     * state of an unfinished rebase, resolve/skip/abort to continue normal work
+     */
+    REBASING,
+    /**
+     * unfinished rebase with merge
+     */
+    REBASING_MERGE,
+    /**
+     * interactive rebase is taking place
+     */
+    REBASING_INTERACTIVE,
+    /**
+     * unfinished rebase
+     */
+    REBASING_REBASING,
+    /**
+     * unfinished revert
+     */
+    REVERTING,
+    /**
+     * revert where all conflicts were resolved
+     */
+    REVERTING_RESOLVED
+  }
+
+  /**
+   * retrieves the current state of the repository
+   *
+   * @return Enum of the State
+   */
+  Observable<Optional<IRepositoryState>> getRepositoryState();
+
+  /**
    * @param pAddList List of files to add to staging
    * @throws AditoGitException if an error occurs
    */
@@ -384,13 +454,7 @@ public interface IRepository
    * @return the IBranch for the given identifier
    * @throws AditoGitException if an error occurs
    */
-  Optional<IBranch> getBranch(String pBranchString) throws AditoGitException;
-
-  /**
-   * @return the current branch
-   * @throws AditoGitException if an error occurs
-   */
-  Observable<Optional<IBranch>> getCurrentBranch() throws AditoGitException;
+  IBranch getBranch(String pBranchString) throws AditoGitException;
 
   /**
    * @return List of all IBranches in the repository

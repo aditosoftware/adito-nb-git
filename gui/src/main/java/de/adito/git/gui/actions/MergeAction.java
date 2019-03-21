@@ -66,19 +66,21 @@ class MergeAction extends AbstractTableAction
         prefStore.put(STASH_ID_KEY, repository.stashChanges(null, false));
       }
       pProgressHandle.setDescription("Merging branches");
-      List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getCurrentBranch().blockingFirst().orElseThrow(), pSelectedBranch);
+      List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch(),
+                                                             pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
         DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs);
         if (dialogResult.isPressedOk())
         {
           repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
-                                + repository.getCurrentBranch().blockingFirst().map(IBranch::getSimpleName).orElse("current Branch"));
+                                + repository.getRepositoryState().blockingFirst().map(pState -> pState.getCurrentBranch().getSimpleName())
+              .orElse("current Branch"));
         }
         else
         {
           pProgressHandle.setDescription("Aborting merge");
-          repository.reset(repository.getCurrentBranch().blockingFirst().orElseThrow().getId(), EResetType.HARD);
+          repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
         }
       }
     }

@@ -116,7 +116,7 @@ public class RepositoryImplHelper
     return new FileStatusImpl(currentStatus, pGit.getRepository().getDirectory());
   }
 
-  static Optional<IBranch> currentBranch(@NotNull Git pGit, Function<String, Optional<IBranch>> pGetBranchFunction)
+  static Optional<IRepositoryState> currentState(@NotNull Git pGit, Function<String, IBranch> pGetBranchFunction)
   {
     try
     {
@@ -125,10 +125,11 @@ public class RepositoryImplHelper
         return Optional.empty();
       if (pGit.getRepository().getRefDatabase().getRef(branch) == null)
       {
-        return Optional.of(new BranchImpl(pGit.getRepository().resolve(branch)));
+        return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch)),
+                                                   EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState())));
       }
-      return Optional.ofNullable(pGetBranchFunction.apply(branch))
-          .orElseThrow(() -> new AditoGitException("Unable to find branch for name " + branch));
+      return Optional.of(new RepositoryStateImpl(pGetBranchFunction.apply(branch),
+                                                 EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState())));
     }
     catch (Exception e)
     {

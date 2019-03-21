@@ -56,7 +56,7 @@ public class RepositoryImpl implements IRepository
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<Optional<IFileStatus>> status;
-  private final Observable<Optional<IBranch>> currentBranchObservable;
+  private final Observable<Optional<IRepositoryState>> currentStateObservable;
   private final IFileSystemUtil fileSystemUtil;
   private final ColorRoulette colorRoulette;
   private final IFileSystemObserver fileSystemObserver;
@@ -82,11 +82,15 @@ public class RepositoryImpl implements IRepository
     branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git)))
         .share()
         .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList((git)))));
-
-    // Current Branch
-    currentBranchObservable = status.map(pStatus -> RepositoryImplHelper.currentBranch(git, this::getBranch))
+    currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch))
         .share()
-        .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.currentBranch(git, this::getBranch)));
+        .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.currentState(git, this::getBranch)));
+  }
+
+  @Override
+  public Observable<Optional<IRepositoryState>> getRepositoryState()
+  {
+    return currentStateObservable;
   }
 
   /**
@@ -784,7 +788,7 @@ public class RepositoryImpl implements IRepository
       // the next line of code is for an automatically push after creating a branch
       if (pCheckout)
       {
-        checkout(getBranch(pBranchName).orElseThrow());
+        checkout(getBranch(pBranchName));
       }
     }
     catch (GitAPIException e)
@@ -1258,25 +1262,16 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public Optional<IBranch> getBranch(@NotNull String pBranchString)
+  public IBranch getBranch(@NotNull String pBranchString)
   {
     try
     {
-      return Optional.of(new BranchImpl(git.getRepository().getRefDatabase().getRef(pBranchString)));
+      return new BranchImpl(git.getRepository().getRefDatabase().getRef(pBranchString));
     }
     catch (IOException pE)
     {
       throw new RuntimeException(pE);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Observable<Optional<IBranch>> getCurrentBranch()
-  {
-    return currentBranchObservable;
   }
 
   /**

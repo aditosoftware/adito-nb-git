@@ -2,7 +2,7 @@ package de.adito.git.nbm;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import de.adito.git.nbm.observables.ActivatedNodesObservable;
@@ -56,8 +56,10 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
   {
     //noinspection StatusLineElement only exists once
     disposable = _observeRepository()
-        .switchMap(pRepo -> pRepo.isPresent() ? pRepo.get().getCurrentBranch() : Observable.just(Optional.<IBranch>empty()))
-        .subscribe(pBranch -> label.setText(pBranch.map(IBranch::getSimpleName).orElse("<no branch>")));
+        .switchMap(pRepo -> pRepo.isPresent() ? pRepo.get().getRepositoryState() : Observable.just(Optional.<IRepositoryState>empty()))
+        .subscribe(pRepoState -> label.setText(pRepoState.map(pState -> pState.getCurrentBranch().getSimpleName()
+            + (pState.getState() != IRepository.State.SAFE ? " | " + pState.getState() : ""))
+                                                   .orElse("<no branch>")));
   }
 
   private Observable<Optional<IRepository>> _observeRepository()
