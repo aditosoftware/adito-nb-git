@@ -1,8 +1,13 @@
 package de.adito.git.impl;
 
-import de.adito.git.api.data.*;
-import org.eclipse.jgit.diff.*;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.EFileType;
+import de.adito.git.api.data.EPushResult;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.lib.FileMode;
+import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.jetbrains.annotations.NotNull;
 
@@ -186,6 +191,63 @@ public class EnumMappings
       default:
         return null;
     }
+  }
+
+  /**
+   * maps from the JGit State to our State
+   *
+   * @param pRepositoryState JGit repositoryState to map to our State object
+   * @return State object
+   */
+  public static IRepository.State mapRepositoryState(RepositoryState pRepositoryState)
+  {
+    IRepository.State returnValue = null;
+    switch (pRepositoryState)
+    {
+      case CHERRY_PICKING:
+        returnValue = IRepository.State.CHERRY_PICKING;
+        break;
+      case CHERRY_PICKING_RESOLVED:
+        returnValue = IRepository.State.CHERRY_PICKING_RESOLVED;
+        break;
+      case APPLY:
+        returnValue = IRepository.State.APPLY;
+        break;
+      case BARE:
+        returnValue = IRepository.State.BARE;
+        break;
+      case BISECTING:
+        returnValue = IRepository.State.BISECTING;
+        break;
+      case MERGING:
+        returnValue = IRepository.State.MERGING;
+        break;
+      case MERGING_RESOLVED:
+        returnValue = IRepository.State.MERGING_RESOLVED;
+        break;
+      case REBASING_MERGE:
+        returnValue = IRepository.State.REBASING_MERGE;
+        break;
+      case REBASING:
+        returnValue = IRepository.State.REBASING;
+        break;
+      case REBASING_INTERACTIVE:
+        returnValue = IRepository.State.REBASING_INTERACTIVE;
+        break;
+      case REBASING_REBASING:
+        returnValue = IRepository.State.REBASING_REBASING;
+        break;
+      case REVERTING:
+        returnValue = IRepository.State.REVERTING;
+        break;
+      case REVERTING_RESOLVED:
+        returnValue = IRepository.State.REVERTING_RESOLVED;
+        break;
+      case SAFE:
+        returnValue = IRepository.State.SAFE;
+        break;
+    }
+    return returnValue;
   }
 
 }
