@@ -190,7 +190,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
    */
   private void _checkValidSSHRepository(@NotNull String pSSHUrl)
   {
-    if (!pSSHUrl.isEmpty() && !Pattern.matches("(?!https?)(\\w+://)?[\\w.]*@[\\w.]*:[\\w/]*[.]git", pSSHUrl))
+    if (!pSSHUrl.isEmpty() && !Pattern.matches("(?!https?)(\\w+://)?.*@.*:.*[.]git", pSSHUrl))
     {
       wizard.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, AditoRepositoryCloneWizard.getMessage(this, "Invalid.SSHUrl", pSSHUrl));
     }
