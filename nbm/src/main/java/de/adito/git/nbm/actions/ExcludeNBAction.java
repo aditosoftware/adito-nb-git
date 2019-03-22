@@ -22,7 +22,8 @@ import java.util.Optional;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.ExcludeAction")
 @ActionRegistration(displayName = "LBL_ExcludeAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.EXCLUDE_ACTION_RIGHT_CLICK)
+@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.EXCLUDE_ACTION_RIGHT_CLICK,
+    separatorAfter = INBActionPositions.EXCLUDE_ACTION_RIGHT_CLICK + 1)
 public class ExcludeNBAction extends IgnoreNBAction
 {
 

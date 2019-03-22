@@ -19,7 +19,8 @@ import java.util.Optional;
 @ActionRegistration(displayName = "LBL_UnStashChangesNBAction_Name")
 @ActionReferences({
     //Reference for the menu
-    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.UN_STASH_CHANGES_ACTION_RIGHT_CLICK)
+    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.UN_STASH_CHANGES_ACTION_RIGHT_CLICK,
+        separatorAfter = INBActionPositions.UN_STASH_CHANGES_ACTION_RIGHT_CLICK + 1)
 })
 public class UnStashChangesNBAction extends NBAction
 {

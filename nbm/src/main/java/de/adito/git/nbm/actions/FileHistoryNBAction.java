@@ -20,7 +20,8 @@ import java.util.Optional;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.FileHistoryNBAction")
 @ActionRegistration(displayName = "LBL_FileHistoryNBAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.SHOW_FILE_HISTORY_ACTION_RIGHT_CLICK)
+@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.SHOW_FILE_HISTORY_ACTION_RIGHT_CLICK,
+    separatorAfter = INBActionPositions.SHOW_FILE_HISTORY_ACTION_RIGHT_CLICK + 1)
 public class FileHistoryNBAction extends NBAction
 {
 

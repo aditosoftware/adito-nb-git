@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.ResolveConflictsNBAction")
 @ActionRegistration(displayName = "LBL_ShowAllBranchesNBAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.RESOLVE_CONFLICTS_ACTION_RIGHT_CLICK)
+@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.RESOLVE_CONFLICTS_ACTION_RIGHT_CLICK,
+    separatorAfter = INBActionPositions.RESOLVE_CONFLICTS_ACTION_RIGHT_CLICK + 1)
 public class ResolveConflictsNBAction extends NBAction
 {
   @Override
