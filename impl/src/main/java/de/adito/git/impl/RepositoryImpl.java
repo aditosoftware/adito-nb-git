@@ -1436,14 +1436,6 @@ public class RepositoryImpl implements IRepository
     {
       throw new AditoGitException(pE);
     }
-    try
-    {
-      git.stashDrop().setStashRef(stashIndexForId).call();
-    }
-    catch (GitAPIException pE)
-    {
-      throw new AditoGitException("Could not drop commit with id " + pStashCommitId + " after un-stashing it", pE);
-    }
     return Collections.emptyList();
   }
 
