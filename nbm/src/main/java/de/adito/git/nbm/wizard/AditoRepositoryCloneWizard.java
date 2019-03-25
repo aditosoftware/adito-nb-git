@@ -6,12 +6,16 @@ import de.adito.git.api.data.IBranch;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
-import org.openide.util.*;
+import org.openide.util.ImageUtilities;
+import org.openide.util.NbBundle;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.util.*;
+import java.awt.Component;
+import java.awt.Image;
+import java.util.Collections;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * @author a.arnold, 07.01.2019
@@ -142,7 +146,7 @@ public class AditoRepositoryCloneWizard implements WizardDescriptor.ProgressInst
   public void nextPanel()
   {
     if (!hasNext())
-      throw new NoSuchElementException();
+      throw new NoSuchElementException("Index: " + index + ", num panels: " + _getPanels().length);
     index++;
   }
 
@@ -150,7 +154,7 @@ public class AditoRepositoryCloneWizard implements WizardDescriptor.ProgressInst
   public void previousPanel()
   {
     if (!hasPrevious())
-      throw new NoSuchElementException();
+      throw new NoSuchElementException("Index: " + index + ", num panels: " + _getPanels().length);
     index--;
   }
 

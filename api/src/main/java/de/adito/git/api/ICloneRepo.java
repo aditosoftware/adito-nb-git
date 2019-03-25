@@ -1,9 +1,10 @@
 package de.adito.git.api;
 
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -22,9 +23,10 @@ public interface ICloneRepo
    * @param pSshPath The path of the SSH file (optional)
    * @param pSshKey  The SSH key (optional)
    * @return Returns a list of IBranches of the repository
+   * @throws AditoGitException if any exceptions from JGit occur during branch retrieval (such as wrong password or invalid ssh key)
    */
   @NotNull
-  List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, String pSshPath, char[] pSshKey);
+  List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, String pSshPath, char[] pSshKey) throws AditoGitException;
 
   /**
    * Clone the repository from a URL to the local path
@@ -33,11 +35,13 @@ public interface ICloneRepo
    * @param pLocalPath      The local path to clone
    * @param pURL            The URL to clone
    * @param pBranchName     The branch to checkout
+   * @param pRemote         Name of the remote repository
    * @param pSshPath        The path of the private SSH file (optional)
    * @param pSshKey         The SSH key (optional)
    * @param pProjectName    the project name
+   * @throws AditoGitException if any error occurs during the clone
    */
   void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
                     @NotNull String pURL, @Nullable String pBranchName, @Nullable String pRemote,
-                    String pSshPath, char[] pSshKey) throws GitAPIException;
+                    String pSshPath, char[] pSshKey) throws AditoGitException;
 }

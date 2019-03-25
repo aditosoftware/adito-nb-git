@@ -2,12 +2,14 @@ package de.adito.git.nbm.wizard;
 
 import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.nbm.IGitConstants;
 import org.openide.WizardDescriptor;
-import org.openide.util.*;
+import org.openide.util.ChangeSupport;
+import org.openide.util.HelpCtx;
 
 import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.Component;
 import java.util.List;
 
 /**
@@ -110,10 +112,17 @@ public class CloneWizardPanel2 implements WizardDescriptor.Panel<WizardDescripto
     String repositoryUrl = (String) wizard.getProperty(AditoRepositoryCloneWizard.W_REPOSITORY_PATH);
     if (repositoryUrl != null)
     {
-      List<IBranch> branchesFromRemoteRepo = cloneRepo.getBranchesFromRemoteRepo(repositoryUrl, sshKeyLocation, sshKey);
-      IBranch[] branchArray = branchesFromRemoteRepo
-          .stream()
-          .toArray(IBranch[]::new);
+      List<IBranch> branchesFromRemoteRepo;
+      try
+      {
+        branchesFromRemoteRepo = cloneRepo.getBranchesFromRemoteRepo(repositoryUrl, sshKeyLocation, sshKey);
+      }
+      catch (AditoGitException pE)
+      {
+        wizard.doPreviousClick();
+        throw new RuntimeException(pE);
+      }
+      IBranch[] branchArray = branchesFromRemoteRepo.toArray(new IBranch[0]);
       wizard.putProperty(AditoRepositoryCloneWizard.W_BRANCH_LIST, branchArray);
     }
     //if the repositoryUrl is null we cant check the repo

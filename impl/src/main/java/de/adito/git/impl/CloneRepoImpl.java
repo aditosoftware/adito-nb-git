@@ -3,16 +3,23 @@ package de.adito.git.impl;
 import com.google.inject.Inject;
 import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
-import de.adito.git.impl.data.*;
+import de.adito.git.impl.data.BranchImpl;
+import de.adito.git.impl.data.CloneConfig;
 import de.adito.git.impl.ssh.ISshProvider;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.*;
-import org.jetbrains.annotations.*;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * a Class for the clone wizard. There is a checkout option inside the wizard.
@@ -35,7 +42,7 @@ public class CloneRepoImpl implements ICloneRepo
    * {@inheritDoc}
    */
   @NotNull
-  public List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, String pSshPath, char[] pSshKey)
+  public List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, String pSshPath, char[] pSshKey) throws AditoGitException
   {
     Collection<Ref> refs;
     LsRemoteCommand lsRemoteCommand = Git.lsRemoteRepository()
@@ -47,9 +54,13 @@ public class CloneRepoImpl implements ICloneRepo
     {
       refs = lsRemoteCommand.call();
     }
+    catch (TransportException pAuthEx)
+    {
+      throw new AditoGitException("Authentication failed, most likely wrong password or invalid ssh key", pAuthEx);
+    }
     catch (GitAPIException pE)
     {
-      throw new RuntimeException("can't get branches from Remote Repository");
+      throw new AditoGitException("Can't get branches from Remote Repository", pE);
     }
     List<IBranch> branchesList = new ArrayList<>();
     refs.forEach(branch -> branchesList.add(new BranchImpl(branch)));
@@ -59,7 +70,7 @@ public class CloneRepoImpl implements ICloneRepo
   @Override
   public void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
                            @NotNull String pURL, @Nullable String pBranchName, @Nullable String pRemote,
-                           String pSshPath, char[] pSshKey) throws GitAPIException
+                           String pSshPath, char[] pSshKey) throws AditoGitException
   {
     CloneCommand cloneCommand = Git.cloneRepository()
         .setURI(pURL)
@@ -75,7 +86,14 @@ public class CloneRepoImpl implements ICloneRepo
     {
       cloneCommand.setBranch(pBranchName);
     }
-    cloneCommand.call();
+    try
+    {
+      cloneCommand.call();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException("Failed to clone project", pE);
+    }
   }
 
   private TransportConfigCallback _getTransportConfigCallBack(String pSshKeyLocation, char[] pSshKey)
