@@ -41,9 +41,9 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
   }
 
   /**
-   * @param pScrollBar1        the first scrollBar
-   * @param pScrollBar2        the second scrollBar
-   * @param pRefreshMappings Function that maps
+   * @param pScrollBar1           the first scrollBar
+   * @param pScrollBar2           the second scrollBar
+   * @param pRefreshMappings      Function that maps
    * @param pIFileChangesEventObs Observable that has the up-to-date version of the List of IFileChangeChunks
    * @return an instance of this class to discard the Observable or remove the coupling
    */
@@ -127,18 +127,25 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
     // do nothing if pRemained is scrolled all the way up to the top
     if (pRemained.getValue() != 0)
     {
-      // case pRemained has to catch up, so scroll pRemained up and set pChanged back to the original position
-      if (pRemainedMidVisibleValue - pDesiredValue > pRemained.getUnitIncrement())
+      if (Math.abs(pScrollAmount) > pChanged.getUnitIncrement())
       {
-        pRemained.setValue(pRemained.getValue() + pScrollAmount);
-        pChanged.setValue(pChanged.getValue() - pScrollAmount);
-      }
-      // case pRemained is within a margin of error to pChanged, set pRemained to the desired value
-      else if (pRemainedMidVisibleValue - pDesiredValue >= -pRemained.getUnitIncrement())
-      {
-        // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
-        // specifies the middle of the visible area
         pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+      }
+      else
+      {
+        // case pRemained has to catch up, so scroll pRemained up and set pChanged back to the original position
+        if (pRemainedMidVisibleValue - pDesiredValue > pRemained.getUnitIncrement())
+        {
+          pRemained.setValue(pRemained.getValue() + pScrollAmount);
+          pChanged.setValue(pChanged.getValue() - pScrollAmount);
+        }
+        // case pRemained is within a margin of error to pChanged, set pRemained to the desired value
+        else if (pRemainedMidVisibleValue - pDesiredValue >= -pRemained.getUnitIncrement())
+        {
+          // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
+          // specifies the middle of the visible area
+          pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+        }
       }
     }
   }
@@ -157,18 +164,25 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
     // do nothing if pRemained is already scrolled down to the very bottom
     if (pRemained.getValue() + pRemained.getVisibleAmount() != pRemained.getMaximum())
     {
-      // case pRemained has to catch up, so scroll pRemained down and set pChanged back to the original position
-      if (pRemainedMidVisibleValue - pDesiredValue < -pRemained.getUnitIncrement())
+      if (Math.abs(pScrollAmount) > pChanged.getUnitIncrement())
       {
-        pRemained.setValue(pRemained.getValue() + pScrollAmount);
-        pChanged.setValue(pChanged.getValue() - pScrollAmount);
-      }
-      // case pRemained is within a margin of error to pChanged, set pRemained to the desired value
-      else if (pRemainedMidVisibleValue - pDesiredValue <= pRemained.getUnitIncrement())
-      {
-        // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
-        // specifies the middle of the visible area
         pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+      }
+      else
+      {
+        // case pRemained has to catch up, so scroll pRemained down and set pChanged back to the original position
+        if (pRemainedMidVisibleValue - pDesiredValue < -pRemained.getUnitIncrement())
+        {
+          pRemained.setValue(pRemained.getValue() + pScrollAmount);
+          pChanged.setValue(pChanged.getValue() - pScrollAmount);
+        }
+        // case pRemained is within a margin of error to pChanged, set pRemained to the desired value
+        else if (pRemainedMidVisibleValue - pDesiredValue <= pRemained.getUnitIncrement())
+        {
+          // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
+          // specifies the middle of the visible area
+          pRemained.setValue((int) (pDesiredValue - pRemained.getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+        }
       }
     }
   }
