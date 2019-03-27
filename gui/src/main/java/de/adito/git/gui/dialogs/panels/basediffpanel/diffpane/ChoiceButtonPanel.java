@@ -69,17 +69,13 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
     discardChangeIconXVal = BorderLayout.WEST.equals(pOrientation) ? acceptIconWidth : 0;
     addMouseListener(new IconPressMouseAdapter(acceptIconWidth, pModel.getDoOnAccept(), pModel.getDoOnDiscard(), () -> iconInfosToDraw,
                                                BorderLayout.WEST.equals(pOrientation)));
-    pLineNumColorModels[0].addListener(this);
-    pLineNumColorModels[1].addListener(this);
+    pLineNumColorModels[0].addEagerListener(this);
+    pLineNumColorModels[1].addEagerListener(this);
     sizeDisposable = Observable.combineLatest(
-        pModel.getFileChangesObservable(), pViewPortSizeObs, pDisplayedArea, ((pFileChangesEvent, pDimension, pArea) ->
-            new FileChangesRectanglePair(pFileChangesEvent, pArea)))
+        pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
         .subscribe(
-            pPair -> SwingUtilities.invokeLater(() -> {
-              _calculateButtonViewCoordinates(pEditorPane, pPair.getFileChangesEvent());
-              iconInfosToDraw = _calculateIconsToDraw(pEditorPane, pPair.getRectangle(), iconInfoList);
-              changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(pPair.getRectangle(), leftLineNumberColors, rightLineNumberColors);
-              cachedViewRectangle = pPair.getRectangle();
+            pChangeEvent -> SwingUtilities.invokeLater(() -> {
+              _calculateButtonViewCoordinates(pEditorPane, pChangeEvent);
               repaint();
             }));
     areaDisposable = Observable.combineLatest(

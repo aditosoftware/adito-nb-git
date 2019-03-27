@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.*;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,42 +27,92 @@ public class LineNumbersColorModel implements IDiscardable
   private final DiffPanelModel model;
   private final int modelNumber;
   private final Disposable disposable;
-  private final List<ILineNumberColorsListener> listeners = new ArrayList<>();
+  private final Disposable areaDisposable;
+  private final List<ILineNumberColorsListener> eagerListeners = new ArrayList<>();
+  private final List<ILineNumberColorsListener> lazyListeners = new ArrayList<>();
+  private List<LineNumberColor> viewCoordinatesColors = new ArrayList<>();
 
   LineNumbersColorModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull Observable<Rectangle> pViewPortObs,
-                        int pModelNumber)
+                        @NotNull Observable<Dimension> pViewAreaObs, int pModelNumber)
   {
 
     model = pModel;
     modelNumber = pModelNumber;
-    Observable<FileChangesRectanglePair> pairObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewPortObs,
-                                                                                   FileChangesRectanglePair::new);
-    disposable = pairObservable.subscribe((pPair -> _calculateLineNumColors(pEditorPane, pPair.getFileChangesEvent(), pPair.getRectangle())));
+    Observable<Rectangle> viewPortObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewPortObs,
+                                                                        (pChangesEvent, pViewPort) -> pViewPort);
+    Observable<IFileChangesEvent> eventObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewAreaObs,
+                                                                             (pChangesEvent, pArea) -> pChangesEvent);
+    areaDisposable = eventObservable.subscribe(pEvent -> _calculateLineNumColors(pEditorPane, pEvent));
+    disposable = viewPortObservable.subscribe(this::_calculateRelativeLineNumberColors);
   }
 
   @Override
   public void discard()
   {
     disposable.dispose();
-    listeners.clear();
-  }
-
-  void addListener(ILineNumberColorsListener pListener)
-  {
-    listeners.add(pListener);
-  }
-
-  void removeListener(ILineNumberColorsListener pListener)
-  {
-    listeners.remove(pListener);
+    areaDisposable.dispose();
+    eagerListeners.clear();
+    lazyListeners.clear();
   }
 
   /**
+   * Eager listeners are notified each time the viewPort moves, and the list they get is in viewPortCoordinates
+   *
+   * @param pListener Listener that wants to be notified
+   */
+  void addEagerListener(ILineNumberColorsListener pListener)
+  {
+    eagerListeners.add(pListener);
+  }
+
+  /**
+   * Lazy Listeners are only notified when the area of the viewPort changes, and the list they get is in viewCoordinates
+   *
+   * @param pListener Listener that wants to be notified
+   */
+  void addLazyListener(ILineNumberColorsListener pListener)
+  {
+    lazyListeners.add(pListener);
+  }
+
+  /**
+   * removes the listener from both listeners lists (eager and lazy). Also call this if the listener is only registered in one of the lists
+   *
+   * @param pListener Listener that wants to stop getting notifications
+   */
+  void removeListener(ILineNumberColorsListener pListener)
+  {
+    eagerListeners.remove(pListener);
+    lazyListeners.remove(pListener);
+  }
+
+  /**
+   * calculates the ViewPortCoordinates of the lineNumberColors for the eager listeners
+   *
+   * @param pViewPortRect Rectangle describing the current position of the viewPort
+   */
+  private void _calculateRelativeLineNumberColors(Rectangle pViewPortRect)
+  {
+    // store a reference to the list so that if the list of this object is exchanged (because of some change) we can continue iterating over the
+    // "copy". This only works because the viewCoordinatesColors list is never changed, only re-assigned (which is why we need the pointer here)
+    List<LineNumberColor> lineNumList = viewCoordinatesColors;
+    List<LineNumberColor> viewPortCordList = new ArrayList<>();
+    for (LineNumberColor lineNumberColor : lineNumList)
+    {
+      Rectangle coloredArea = new Rectangle(lineNumberColor.getColoredArea().x, lineNumberColor.getColoredArea().y - pViewPortRect.y,
+                                            lineNumberColor.getColoredArea().width, lineNumberColor.getColoredArea().height);
+      viewPortCordList.add(new LineNumberColor(lineNumberColor.getColor(), coloredArea));
+    }
+    _notifyEagerListeners(viewPortCordList);
+  }
+
+  /**
+   * Calculates the view coordinates of the lineNumberColors and notifies lazy listeners of the new list
+   *
    * @param pEditorPane       JEditorPane with the text from the IFileChangesEvent. It's UI defines the y values for the LineNumColors
    * @param pFileChangesEvent currentIFileChangesEvent
-   * @param pViewRectangle    Rectangle with coordinates of the current viewPort
    */
-  private void _calculateLineNumColors(JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, Rectangle pViewRectangle)
+  private void _calculateLineNumColors(JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent)
   {
     List<LineNumberColor> lineNumberColors = new ArrayList<>();
     try
@@ -75,12 +126,12 @@ public class LineNumbersColorModel implements IDiscardable
         {
           if (lineCounter <= pEditorPane.getDocument().getDefaultRootElement().getElementCount())
           {
-            LineNumberColor lineNumberColor = _viewCoordinatesLineNumberColor(pEditorPane, lineCounter, numLines, fileChange, view, pViewRectangle);
+            LineNumberColor lineNumberColor = _viewCoordinatesLineNumberColor(pEditorPane, lineCounter, numLines, fileChange, view);
             lineNumberColors.add(lineNumberColor);
           }
           else
           {
-            SwingUtilities.invokeLater(() -> _calculateLineNumColors(pEditorPane, pFileChangesEvent, pViewRectangle));
+            SwingUtilities.invokeLater(() -> _calculateLineNumColors(pEditorPane, pFileChangesEvent));
             return;
           }
         }
@@ -91,21 +142,21 @@ public class LineNumbersColorModel implements IDiscardable
     {
       throw new RuntimeException(pE);
     }
-    _notifyListeners(lineNumberColors);
+    viewCoordinatesColors = lineNumberColors;
+    _notifyLazyListeners(lineNumberColors);
   }
 
   /**
-   * @param pEditorPane    EditorPane that contains the text of the IFileChangeChunks in pFileChangesEvent
-   * @param pLineCounter   actual number of the line, this is due to added parityLines
-   * @param pNumLines      number of lines that this LineNumColor should encompass
-   * @param pFileChange    IFileChangeChunk that is the reason for this LineNumColor
-   * @param pView          rootView of the UI of the EditorPane, to determine the location of lines in view coordinates
-   * @param pViewRectangle Rectangle with coordinates of the current viewPort
-   * @return LineNumberColor with the gathered information about where and what color the LineNumberColor should be drawn, viewPortCoordinates
+   * @param pEditorPane  EditorPane that contains the text of the IFileChangeChunks in pFileChangesEvent
+   * @param pLineCounter actual number of the line, this is due to added parityLines
+   * @param pNumLines    number of lines that this LineNumColor should encompass
+   * @param pFileChange  IFileChangeChunk that is the reason for this LineNumColor
+   * @param pView        rootView of the UI of the EditorPane, to determine the location of lines in view coordinates
+   * @return LineNumberColor with the gathered information about where and what color the LineNumberColor should be drawn, view coordinates
    * @throws BadLocationException i.e. if the line is out of bounds
    */
   private LineNumberColor _viewCoordinatesLineNumberColor(JEditorPane pEditorPane, int pLineCounter, int pNumLines, IFileChangeChunk pFileChange,
-                                                          View pView, Rectangle pViewRectangle) throws BadLocationException
+                                                          View pView) throws BadLocationException
   {
     Element startingLineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineCounter);
     Element endingLineElement = pEditorPane.getDocument().getDefaultRootElement()
@@ -130,14 +181,23 @@ public class LineNumbersColorModel implements IDiscardable
                                    endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle()).getBounds();
       }
       // adjust coordinates from view to viewPort coordinates
-      bounds.y = bounds.y - pViewRectangle.y;
       return new LineNumberColor(pFileChange.getChangeType().getDiffColor(), bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
         pLineCounter + pNumLines - 1);
   }
 
-  private void _notifyListeners(List<LineNumberColor> pNewValue)
+  private void _notifyEagerListeners(List<LineNumberColor> pNewValue)
+  {
+    _notifyListeners(pNewValue, eagerListeners);
+  }
+
+  private void _notifyLazyListeners(List<LineNumberColor> pNewValue)
+  {
+    _notifyListeners(pNewValue, lazyListeners);
+  }
+
+  private void _notifyListeners(List<LineNumberColor> pNewValue, List<ILineNumberColorsListener> listeners)
   {
     for (ILineNumberColorsListener listener : listeners)
     {

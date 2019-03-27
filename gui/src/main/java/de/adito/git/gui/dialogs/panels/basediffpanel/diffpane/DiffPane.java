@@ -65,7 +65,8 @@ public class DiffPane extends JPanel implements IDiscardable
    */
   public LineNumbersColorModel addLineNumPanel(DiffPanelModel pModel, String pLineOrientation, int pModelNumber)
   {
-    LineNumbersColorModel lineNumbersColorModel = new LineNumbersColorModel(pModel, editorPane, viewPortPositionObservable, pModelNumber);
+    LineNumbersColorModel lineNumbersColorModel = new LineNumbersColorModel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable,
+                                                                            pModelNumber);
     LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable, lineNumbersColorModel);
     discardables.add(lineNumPanel);
     add(lineNumPanel, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
