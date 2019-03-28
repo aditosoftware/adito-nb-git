@@ -10,6 +10,8 @@ import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.io.File;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,7 +39,9 @@ public class FileHistoryNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
-    return getAllFilesOfNodes(pActivatedNodes).size() == 1;
+    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    List<File> filesOfNodes = getAllFilesOfNodes(pActivatedNodes);
+    return filesOfNodes.size() == 1 && repository.blockingFirst().map(pRepo -> !pRepo.getTopLevelDirectory().equals(filesOfNodes.get(0))).orElse(false);
   }
 
   @Override
