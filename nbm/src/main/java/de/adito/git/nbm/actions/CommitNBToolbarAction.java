@@ -49,25 +49,6 @@ public class CommitNBToolbarAction extends CommitNBAction
     actionProvider.getCommitAction(repository, listNodes, "").actionPerformed(null);
   }
 
-  /**
-   * @param pActivatedNodes the activated nodes in NetBeans
-   * @return return true if the nodes have one repository and there are files which are not committed.
-   */
-  @Override
-  protected boolean enable(Node[] pActivatedNodes)
-  {
-    if (pActivatedNodes != null)
-    {
-      Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
-      return repository.blockingFirst()
-          .map(pRepo -> !pRepo.getStatus().blockingFirst()
-              .map(pStatus -> pStatus.getUncommitted().isEmpty())
-              .orElse(true))
-          .orElse(false);
-    }
-    return false;
-  }
-
   @Override
   public String getName()
   {

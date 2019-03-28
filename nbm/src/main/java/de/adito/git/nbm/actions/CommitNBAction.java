@@ -13,7 +13,6 @@ import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,7 +69,11 @@ public class CommitNBAction extends NBAction
     if (pActivatedNodes != null)
     {
       Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
-      return !getUncommittedFilesOfNodes(pActivatedNodes, repository).orElse(Collections.emptyList()).isEmpty();
+      return repository.blockingFirst()
+          .map(pRepo -> !pRepo.getStatus().blockingFirst()
+              .map(pStatus -> pStatus.getUncommitted().isEmpty())
+              .orElse(true))
+          .orElse(false);
     }
     return false;
   }
