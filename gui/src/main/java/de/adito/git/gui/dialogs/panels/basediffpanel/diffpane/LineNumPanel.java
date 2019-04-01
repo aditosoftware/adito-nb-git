@@ -162,9 +162,9 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     LineNumber endNumber = _calculateLineNumberPos(pEditorPane, pView, pEndIndex);
     if (endNumber.getYCoordinate() - startNumber.getYCoordinate() == (pEndIndex - pStartIndex) * pLineHeight || pStartIndex == pEndIndex)
     {
-      for (int index = 0; index < pEndIndex - pStartIndex; index++)
+      for (int index = 0; index <= pEndIndex - pStartIndex; index++)
       {
-        lineNumbers.add(new LineNumber(pStartIndex + index, startNumber.getYCoordinate() + index * pLineHeight, startNumber.getXCoordinate()));
+        lineNumbers.add(new LineNumber(pStartIndex + index + 1, startNumber.getYCoordinate() + index * pLineHeight, startNumber.getXCoordinate()));
       }
     }
     else
