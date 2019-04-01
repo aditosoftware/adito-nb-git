@@ -86,6 +86,7 @@ class PullAction extends AbstractAction
             pRepo.pull(false);
         if (rebaseResult.isSuccess())
         {
+          notifyUtil.notify("Pull successful", "The pull --rebase was successful, files are up-to-date", false);
           break;
         }
         if (!rebaseResult.getMergeConflicts().isEmpty())
