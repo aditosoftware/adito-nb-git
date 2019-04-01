@@ -160,7 +160,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     Set<LineNumber> lineNumbers = new HashSet<>();
     LineNumber startNumber = _calculateLineNumberPos(pEditorPane, pView, pStartIndex);
     LineNumber endNumber = _calculateLineNumberPos(pEditorPane, pView, pEndIndex);
-    if (endNumber.getYCoordinate() - startNumber.getYCoordinate() == (pEndIndex - pStartIndex) * pLineHeight || pStartIndex == pEndIndex)
+    if (endNumber.getYCoordinate() - startNumber.getYCoordinate() == (pEndIndex - pStartIndex) * pLineHeight || pEndIndex - pStartIndex <= 1)
     {
       for (int index = 0; index <= pEndIndex - pStartIndex; index++)
       {
