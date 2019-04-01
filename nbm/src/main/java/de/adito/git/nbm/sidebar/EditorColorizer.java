@@ -285,6 +285,17 @@ class EditorColorizer extends JPanel implements IDiscardable
     }
 
     @Override
+    public void mousePressed(MouseEvent pEvent)
+    {
+      if (pEvent.isPopupTrigger())
+      {
+        JPopupMenu popupMenu = new JPopupMenu();
+        popupMenu.add(new ShowAnnotationNBAction(targetEditor));
+        popupMenu.show(EditorColorizer.this, pEvent.getX(), pEvent.getY());
+      }
+    }
+
+    @Override
     public void mouseReleased(MouseEvent pEvent)
     {
       if (SwingUtilities.isLeftMouseButton(pEvent))

@@ -47,6 +47,35 @@ public class PopupMouseListener extends MouseAdapter
         doubleClickAction.actionPerformed(null);
       }
     }
+    if (pEvent.isPopupTrigger())
+    {
+      if (pEvent.getSource() instanceof JTable)
+      {
+        JTable source = (JTable) pEvent.getSource();
+        int row = source.rowAtPoint(pEvent.getPoint());
+        int column = source.columnAtPoint(pEvent.getPoint());
+
+        // if the row the user right-clicked on is not selected -> set it selected
+        if (!source.isRowSelected(row))
+          source.changeSelection(row, column, false, false);
+
+      }
+      else if (pEvent.getSource() instanceof JTree)
+      {
+        JTree source = (JTree) pEvent.getSource();
+        TreePath sourcePath = source.getClosestPathForLocation(pEvent.getX(), pEvent.getY());
+        if (!source.isPathSelected(sourcePath))
+          source.getSelectionModel().setSelectionPath(sourcePath);
+      }
+      if (popupMenu != null)
+      {
+        for (Component component : popupMenu.getComponents())
+          component.setEnabled(component.isEnabled());
+
+        popupMenu.show((JComponent) pEvent.getSource(), pEvent.getX(), pEvent.getY());
+      }
+
+    }
   }
 
   @Override
