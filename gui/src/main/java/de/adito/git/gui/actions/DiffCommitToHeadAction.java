@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IFileDiff;
@@ -28,12 +29,13 @@ class DiffCommitToHeadAction extends AbstractTableAction
 
   private final IDialogProvider dialogProvider;
   private final IAsyncProgressFacade progressFacade;
+  private final INotifyUtil notifyUtil;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final Observable<Optional<String>> selectedFile;
 
   @Inject
-  DiffCommitToHeadAction(IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
+  DiffCommitToHeadAction(IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil,
                          @Assisted Observable<Optional<IRepository>> pRepository,
                          @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
                          @Assisted @Nullable Observable<Optional<String>> pSelectedFile)
@@ -41,6 +43,7 @@ class DiffCommitToHeadAction extends AbstractTableAction
     super("Compare with HEAD", _getIsEnabledObservable(pSelectedCommitObservable));
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
+    notifyUtil = pNotifyUtil;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
     selectedFile = pSelectedFile;
@@ -64,7 +67,12 @@ class DiffCommitToHeadAction extends AbstractTableAction
             throw new RuntimeException(pE);
           }
         }).orElse(Collections.emptyList());
-        dialogProvider.showDiffDialog(fileDiffs, selectedFile.blockingFirst().orElse(null), false, true);
+        if (!fileDiffs.isEmpty())
+          dialogProvider.showDiffDialog(fileDiffs, selectedFile.blockingFirst().orElse(null), false, true);
+        else
+        {
+          notifyUtil.notify("No differences found", "No differences found for HEAD and commit " + selectedCommit.getId(), false);
+        }
       }
     });
   }
