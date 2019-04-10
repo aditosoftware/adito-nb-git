@@ -9,6 +9,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -111,9 +112,13 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
    * @param pLineNumColors    Areas affected by the ChangeChunks
    * @return BufferedImage that represents the content of this panel
    */
-  private BufferedImage _calculateLineNumImage(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, List<LineNumberColor> pLineNumColors)
+  @Nullable
+  private BufferedImage _calculateLineNumImage(@NotNull JEditorPane pEditorPane, @NotNull IFileChangesEvent pFileChangesEvent,
+                                               @NotNull List<LineNumberColor> pLineNumColors)
   {
     View view = pEditorPane.getUI().getRootView(pEditorPane);
+    if (pEditorPane.getHeight() <= 0)
+      return null;
     try
     {
       Set<LineNumber> lineNums = _calculateLineNumbers(pEditorPane, view, pEditorPane.getFontMetrics(pEditorPane.getFont()).getHeight(), 0,
@@ -182,7 +187,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
    * @return LineNumber with the number of the line and its position
    * @throws BadLocationException if the lineIndex is out of bounds
    */
-  private LineNumber _calculateLineNumberPos(JEditorPane pEditorPane, View pView, int pLineIndex) throws BadLocationException
+  private LineNumber _calculateLineNumberPos(@NotNull JEditorPane pEditorPane, @NotNull View pView, int pLineIndex) throws BadLocationException
   {
     Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineIndex);
     if (lineElement == null)
@@ -199,7 +204,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
    * @param pChangesEvent IFileChangesEvent with the latest list of IFileChangeChunks
    * @return the number of the last line
    */
-  private int _calculateLineWidth(IFileChangesEvent pChangesEvent)
+  private int _calculateLineWidth(@NotNull IFileChangesEvent pChangesEvent)
   {
     return getFontMetrics(getFont()).stringWidth(String.valueOf(_getLastLineNum(pChangesEvent)));
   }
