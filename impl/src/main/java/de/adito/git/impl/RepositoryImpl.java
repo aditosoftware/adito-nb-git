@@ -705,6 +705,7 @@ public class RepositoryImpl implements IRepository
     });
     try
     {
+      ResetCommand resetCommand = git.reset();
       for (File file : pFiles)
       {
         String relativePath = Util.getRelativePath(file, git);
@@ -712,7 +713,9 @@ public class RepositoryImpl implements IRepository
           filesToCheckout.add(relativePath);
         else
           Files.deleteIfExists(file.toPath());
+        resetCommand.addPath(relativePath);
       }
+      resetCommand.call();
       if (!filesToCheckout.isEmpty())
       {
         CheckoutCommand checkoutCommand = git.checkout();
