@@ -3,8 +3,7 @@ package de.adito.git.api;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import java.util.List;
 
@@ -35,13 +34,14 @@ public interface ICloneRepo
    * @param pLocalPath      The local path to clone
    * @param pURL            The URL to clone
    * @param pBranchName     The branch to checkout
-   * @param pRemote         Name of the remote repository
+   * @param pRemote         The remote to checkout
+   * @param pTag            The tag to checkout
    * @param pSshPath        The path of the private SSH file (optional)
    * @param pSshKey         The SSH key (optional)
    * @param pProjectName    the project name
    * @throws AditoGitException if any error occurs during the clone
    */
   void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
-                    @NotNull String pURL, @Nullable String pBranchName, @Nullable String pRemote,
+                    @NotNull String pURL, @Nullable String pBranchName, @Nullable String pTag, @Nullable String pRemote,
                     String pSshPath, char[] pSshKey) throws AditoGitException;
 }

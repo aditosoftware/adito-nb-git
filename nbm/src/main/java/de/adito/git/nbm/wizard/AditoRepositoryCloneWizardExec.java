@@ -27,7 +27,7 @@ class AditoRepositoryCloneWizardExec
     try
     {
       cloneRepo.cloneProject(AsyncProgressFacadeImpl.wrapNBHandle(pHandle), pLocalPath, pProjectName, pRepoPath,
-                             pBranch != null ? pBranch.getName() : null, null, pSshPath, pSshKey);
+                             pBranch != null ? pBranch.getName() : null, null, null, pSshPath, pSshKey);
     }
     catch (Exception e)
     {

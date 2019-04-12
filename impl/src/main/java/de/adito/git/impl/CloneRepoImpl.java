@@ -5,21 +5,15 @@ import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
-import de.adito.git.impl.data.BranchImpl;
-import de.adito.git.impl.data.CloneConfig;
+import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import org.eclipse.jgit.api.*;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.lib.ProgressMonitor;
-import org.eclipse.jgit.lib.Ref;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.lib.*;
+import org.jetbrains.annotations.*;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 /**
  * a Class for the clone wizard. There is a checkout option inside the wizard.
@@ -69,30 +63,41 @@ public class CloneRepoImpl implements ICloneRepo
 
   @Override
   public void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
-                           @NotNull String pURL, @Nullable String pBranchName, @Nullable String pRemote,
+                           @NotNull String pURL, @Nullable String pBranchName, @Nullable String pTag, @Nullable String pRemote,
                            String pSshPath, char[] pSshKey) throws AditoGitException
   {
+    File target = new File(pLocalPath, pProjectName);
     CloneCommand cloneCommand = Git.cloneRepository()
         .setURI(pURL)
         .setTransportConfigCallback(_getTransportConfigCallBack(pSshPath, pSshKey))
-        .setDirectory(new File(pLocalPath, pProjectName));
+        .setDirectory(target);
 
     if (pProgressHandle != null)
       cloneCommand = cloneCommand.setProgressMonitor(new _ProgressMonitor(pProgressHandle));
     if (pRemote != null)
       cloneCommand = cloneCommand.setRemote(pRemote);
-
-    if (pBranchName != null)
-    {
+    if (pBranchName != null && pTag == null)
       cloneCommand.setBranch(pBranchName);
-    }
+
     try
     {
+      // Execute clone
       cloneCommand.call();
+
+      // Checkout Tag
+      if (pTag != null)
+      {
+        try (Git git = Git.open(target))
+        {
+          git.checkout()
+              .setName(pTag)
+              .call();
+        }
+      }
     }
-    catch (GitAPIException pE)
+    catch (GitAPIException | IOException e)
     {
-      throw new AditoGitException("Failed to clone project", pE);
+      throw new AditoGitException("Failed to clone / checkout project", e);
     }
   }
 
