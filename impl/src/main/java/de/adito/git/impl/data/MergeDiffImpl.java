@@ -234,10 +234,10 @@ public class MergeDiffImpl implements IMergeDiff
     {
       numCharsToDelete += pFileChangeChunkList.get(num).getEditorLines(EChangeSide.OLD).length();
       pFileChangeChunkList.set(num, MergeDiffImpl.applyChange(pToInsert, pFileChangeChunkList.get(num)));
+      MergeDiffImpl.propagateAdditionalLines(pFileChangeChunkList, num + 1,
+                                             (pToInsert.getEnd(EChangeSide.NEW) - pToInsert.getStart(EChangeSide.NEW))
+                                                 - (pToInsert.getEnd(EChangeSide.OLD) - pToInsert.getStart(EChangeSide.OLD)));
     }
-    MergeDiffImpl.propagateAdditionalLines(pFileChangeChunkList, affectedIndizes.get(affectedIndizes.size() - 1) + 1,
-                                           (pToInsert.getEnd(EChangeSide.NEW) - pToInsert.getStart(EChangeSide.NEW))
-                                               - (pToInsert.getEnd(EChangeSide.OLD) - pToInsert.getStart(EChangeSide.OLD)));
     return new EditorChangeImpl(startOffset, numCharsToDelete, pToInsert.getLines(EChangeSide.NEW));
   }
 
