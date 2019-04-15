@@ -8,6 +8,7 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,8 @@ public interface IDialogProvider
   DialogResult showUserPromptDialog(String pMessage);
 
   DialogResult showYesNoDialog(String pMessage);
+
+  DialogResult showRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDir);
 
   DialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(String pBranchName);
 

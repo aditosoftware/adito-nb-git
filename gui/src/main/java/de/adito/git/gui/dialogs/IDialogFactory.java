@@ -7,6 +7,7 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +51,6 @@ interface IDialogFactory
   StashChangesDialog createStashChangesDialog();
 
   FileSelectionDialog createFileSelectionDialog();
+
+  RevertFilesDialog createRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
 }

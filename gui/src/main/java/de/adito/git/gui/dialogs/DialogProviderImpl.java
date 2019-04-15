@@ -10,6 +10,7 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -160,6 +161,12 @@ class DialogProviderImpl implements IDialogProvider
   public DialogResult showYesNoDialog(String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createYesNoDialog(pMessage), pMessage);
+  }
+
+  @Override
+  public DialogResult showRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDirectory)
+  {
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pFilesToRevert, pProjectDirectory), "Confirm revert of files");
   }
 
   @Override

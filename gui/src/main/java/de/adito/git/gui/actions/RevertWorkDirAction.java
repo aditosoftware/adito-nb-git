@@ -7,11 +7,14 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -26,12 +29,14 @@ class RevertWorkDirAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
+  private final IDialogProvider dialogProvider;
 
   @Inject
-  RevertWorkDirAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
-                      @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  RevertWorkDirAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Revert", _getIsEnabledObservable(pSelectedFilesObservable));
+    dialogProvider = pDialogProvider;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.REVERT_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Revert changes");
     progressFacade = pProgressFacade;
@@ -42,15 +47,19 @@ class RevertWorkDirAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Reverting", pHandle -> {
-      repository.blockingFirst()
-          .orElseThrow(() -> new RuntimeException("no valid repository found"))
-          .revertWorkDir(selectedFilesObservable.blockingFirst()
-                             .orElse(Collections.emptyList())
-                             .stream()
-                             .map(IFileChangeType::getFile)
-                             .collect(Collectors.toList()));
-    });
+    List<IFileChangeType> filesToRevert = selectedFilesObservable.blockingFirst().orElse(Collections.emptyList());
+    DialogResult result = dialogProvider.showRevertDialog(filesToRevert, repository.blockingFirst().map(IRepository::getTopLevelDirectory).orElse(new File("")));
+    if (result.isPressedOk())
+    {
+      progressFacade.executeInBackground("Reverting", pHandle -> {
+        repository.blockingFirst()
+            .orElseThrow(() -> new RuntimeException("no valid repository found"))
+            .revertWorkDir(filesToRevert
+                               .stream()
+                               .map(IFileChangeType::getFile)
+                               .collect(Collectors.toList()));
+      });
+    }
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
