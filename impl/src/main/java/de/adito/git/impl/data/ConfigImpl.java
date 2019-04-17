@@ -54,13 +54,9 @@ public class ConfigImpl implements IConfig
   {
     try
     {
-      String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
-      // Fallback: get remoteBranch of master and resolve remoteName with that branch
-      if (remoteTrackingBranch == null)
-        remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, "master");
-      if (remoteTrackingBranch == null)
+      String remoteName = getRemoteName();
+      if (remoteName == null)
         return null;
-      String remoteName = git.getRepository().getRemoteName(remoteTrackingBranch);
       return git.getRepository().getConfig().getString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY);
     }
     catch (IOException pE)
@@ -81,7 +77,16 @@ public class ConfigImpl implements IConfig
   @Override
   public char[] getPassword()
   {
-    throw new UnsupportedOperationException("not implemented yet");
+    try
+    {
+      String userName = getUserName();
+      String remoteName = getRemoteName();
+      return userName != null && remoteName != null ? keyStore.read(userName + remoteName) : null;
+    }
+    catch (IOException pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
   @Override
@@ -128,13 +133,9 @@ public class ConfigImpl implements IConfig
   {
     try
     {
-      String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
-      // Fallback: get remoteBranch of master and resolve remoteName with that branch
-      if (remoteTrackingBranch == null)
-        remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, "master");
-      if (remoteTrackingBranch != null)
+      String remoteName = getRemoteName();
+      if (remoteName != null)
       {
-        String remoteName = git.getRepository().getRemoteName(remoteTrackingBranch);
         git.getRepository().getConfig().setString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY, pSshKeyLocation);
         git.getRepository().getConfig().save();
       }
@@ -165,7 +166,48 @@ public class ConfigImpl implements IConfig
   @Override
   public void setPassword(@Nullable char[] pPassword)
   {
-    throw new UnsupportedOperationException("not implemented yet");
+    try
+    {
+      String userName = getUserName();
+      String remoteName = getRemoteName();
+      String key = userName != null && remoteName != null ? userName + remoteName : null;
+      if (key != null)
+      {
+        if (pPassword == null)
+          keyStore.delete(key);
+        else
+          keyStore.save(key, pPassword, null);
+      }
+      else
+      {
+        throw new RuntimeException("Could not find any valid key in the config for which to set passphrase");
+      }
+    }
+    catch (IOException pE)
+    {
+      throw new RuntimeException(pE);
+    }
+  }
+
+  /**
+   * Figures out the name of the remote by using the tracked branch of the currently active branch, or the remote of master if the current branch does not have a
+   * tracked branch
+   *
+   * @return name of the remote
+   * @throws IOException if an exception occurs while JGit is reading the git config file
+   */
+  @Nullable
+  private String getRemoteName() throws IOException
+  {
+    String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
+    // Fallback: get remoteBranch of master and resolve remoteName with that branch
+    if (remoteTrackingBranch == null)
+      remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, "master");
+    if (remoteTrackingBranch != null)
+    {
+      return git.getRepository().getRemoteName(remoteTrackingBranch);
+    }
+    return null;
   }
 
 }
