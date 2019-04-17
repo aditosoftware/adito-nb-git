@@ -18,6 +18,13 @@
       <artifactId>api</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- http connection tool -->
+    <dependency>
+      <groupId>com.mashape.unirest</groupId>
+      <artifactId>unirest-java</artifactId>
+      <version>1.4.9</version>
+    </dependency>
   </dependencies>
 
 
