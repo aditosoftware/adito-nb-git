@@ -13,6 +13,7 @@ import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
@@ -114,9 +115,31 @@ class ChunkPopupWindow extends JWindow
       editorPane.setText(pRollbackInformation.getReplacement().substring(0, pRollbackInformation.getReplacement().length() - 1));
     else
       editorPane.setText(pRollbackInformation.getReplacement());
-    editorPane.setEnabled(false);
+    editorPane.setEditable(false);
     scrollPane = new JScrollPane(editorPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    InputMap iMap = editorPane.getInputMap(JComponent.WHEN_FOCUSED);
+    ActionMap aMap = editorPane.getActionMap();
+    iMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "ctrlV");
+    aMap.put("ctrlV", new AbstractAction()
+    {
+      @Override
+      public void actionPerformed(ActionEvent e)
+      {
+        Toolkit.getDefaultToolkit()
+            .getSystemClipboard()
+            .setContents(
+                new StringSelection(editorPane.getSelectedText()),
+                null
+            );
+      }
+    });
     add(scrollPane, BorderLayout.CENTER);
+    toolBar = _initToolbar(pRollbackInformation, pTextComponent);
+    add(toolBar, BorderLayout.NORTH);
+  }
+
+  private JToolBar _initToolbar(_RollbackInformation pRollbackInformation, JTextComponent pTextComponent)
+  {
     JButton button = new JButton(iconLoader.getIcon(Constants.ROLLBACK_ICON));
     button.setToolTipText("Undo changes");
     button.addActionListener(e -> {
@@ -130,17 +153,7 @@ class ChunkPopupWindow extends JWindow
     IFileChangeChunk nextChunk = IFileChanges.getNextChangedChunk(this.changeChunk, changeChunkList.blockingFirst());
     if (nextChunk != null)
     {
-      nextChangeButton.addActionListener(e -> {
-        IDiffPaneUtil.moveCaretToChunk(pTextComponent, nextChunk, EChangeSide.NEW);
-        try
-        {
-          editorColorizer.showPopupForChunk(nextChunk);
-        }
-        catch (BadLocationException pE)
-        {
-          // nothing, no popup is shown
-        }
-      });
+      nextChangeButton.addActionListener(new MoveChunkActionListener(pTextComponent, nextChunk));
     }
     else
     {
@@ -150,17 +163,7 @@ class ChunkPopupWindow extends JWindow
     IFileChangeChunk previousChunk = IFileChanges.getPreviousChangedChunk(changeChunk, changeChunkList.blockingFirst());
     if (previousChunk != null)
     {
-      previousChangeButton.addActionListener(e -> {
-        IDiffPaneUtil.moveCaretToChunk(pTextComponent, previousChunk, EChangeSide.NEW);
-        try
-        {
-          editorColorizer.showPopupForChunk(previousChunk);
-        }
-        catch (BadLocationException pE)
-        {
-          // nothing, no popup is shown
-        }
-      });
+      previousChangeButton.addActionListener(new MoveChunkActionListener(pTextComponent, previousChunk));
     }
     else
     {
@@ -168,7 +171,7 @@ class ChunkPopupWindow extends JWindow
     }
     toolBar.add(nextChangeButton);
     toolBar.add(previousChangeButton);
-    add(toolBar, BorderLayout.NORTH);
+    return toolBar;
   }
 
   /**
@@ -324,6 +327,33 @@ class ChunkPopupWindow extends JWindow
           return true;
       }
       return false;
+    }
+  }
+
+  private class MoveChunkActionListener implements ActionListener
+  {
+
+    private final JTextComponent textComponent;
+    private final IFileChangeChunk moveTo;
+
+    public MoveChunkActionListener(JTextComponent pTextComponent, IFileChangeChunk pMoveTo)
+    {
+      textComponent = pTextComponent;
+      moveTo = pMoveTo;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      IDiffPaneUtil.moveCaretToChunk(textComponent, moveTo, EChangeSide.NEW);
+      try
+      {
+        editorColorizer.showPopupForChunk(moveTo);
+      }
+      catch (BadLocationException pE)
+      {
+        // nothing, no popup is shown
+      }
     }
   }
 
