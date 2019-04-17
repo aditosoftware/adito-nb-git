@@ -16,6 +16,7 @@ import javax.swing.filechooser.FileSystemView;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import static de.adito.git.nbm.IGitConstants.GIT_PROJECT_LOCATION;
 import static de.adito.git.nbm.IGitConstants.GIT_SSH_KEY;
@@ -29,6 +30,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
   private WizardDescriptor wizard;
   private ChangeSupport cs = new ChangeSupport(this);
   private NBPrefStore preferences;
+  private Pattern compiledUrlPattern;
 
   @Override
   public Component getComponent()
@@ -45,6 +47,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
    */
   private void _createComponent()
   {
+    compiledUrlPattern = Pattern.compile("((ssh://)?git@.*:?.*/+.*[.]git)|(https://.*(/.*)+[.]git)");
     preferences = new NBPrefStore();
     panel1 = new CloneWizardVisualPanel1();
     panel1.getProjectNameTextField().getDocument().addDocumentListener(new DocumentUpdateChangeListener()
@@ -140,6 +143,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
     boolean valid = _isNotEmpty();
     _checkValidPath(_getProjectPath());
     _checkValidFileName(_getProjectName());
+    _checkValidRepository(_getRepositoryPath());
     return valid && (wizard == null || wizard.getProperty(WizardDescriptor.PROP_ERROR_MESSAGE) == null);
   }
 
@@ -215,6 +219,19 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
     catch (IOException pE)
     {
       wizard.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, AditoRepositoryCloneWizard.getMessage(this, "Invalid.FileName", pFileName));
+    }
+  }
+
+  /**
+   * checks whether or not the url for the repository may be a valid ssh or https url
+   *
+   * @param pUrl url input for the repository
+   */
+  private void _checkValidRepository(@NotNull String pUrl)
+  {
+    if (!pUrl.isEmpty() && !compiledUrlPattern.matcher(pUrl).matches())
+    {
+      wizard.putProperty(WizardDescriptor.PROP_WARNING_MESSAGE, AditoRepositoryCloneWizard.getMessage(this, "Invalid.Url", pUrl));
     }
   }
 
