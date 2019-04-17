@@ -5,8 +5,11 @@ import com.google.inject.assistedinject.Assisted;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IUserInputPrompt;
 import de.adito.git.api.data.IConfig;
+import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.impl.http.GitHttpUtil;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
@@ -23,14 +26,18 @@ import java.io.File;
 class TransportConfigCallbackImpl implements TransportConfigCallback
 {
 
+  private final IPrefStore prefStore;
+  private final IKeyStore keyStore;
   private GitUserInfo gitUserInfo;
   private final IUserInputPrompt userInputPrompt;
   private final IConfig config;
   private String sshKeyPath;
 
   @Inject
-  TransportConfigCallbackImpl(IUserInputPrompt pUserInputPrompt, ISshProvider pSshProvider, @Assisted IConfig pConfig)
+  TransportConfigCallbackImpl(IPrefStore pPrefStore, IKeyStore pKeyStore, IUserInputPrompt pUserInputPrompt, ISshProvider pSshProvider, @Assisted IConfig pConfig)
   {
+    prefStore = pPrefStore;
+    keyStore = pKeyStore;
     gitUserInfo = pSshProvider.getUserInfo(null, null);
     userInputPrompt = pUserInputPrompt;
     config = pConfig;
@@ -42,9 +49,20 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   @Override
   public void configure(Transport pTransport)
   {
-    SshTransport sshTransport = (SshTransport) pTransport;
-    sshTransport.setCredentialsProvider(new ResetCredentialsProvider());
-    sshTransport.setSshSessionFactory(new _SshSessionFactory());
+    if (pTransport instanceof SshTransport)
+    {
+      SshTransport sshTransport = (SshTransport) pTransport;
+      sshTransport.setCredentialsProvider(new ResetCredentialsProvider());
+      sshTransport.setSshSessionFactory(new _SshSessionFactory());
+    }
+    else if (pTransport instanceof HttpTransport)
+    {
+      HttpTransport httpTransport = (HttpTransport) pTransport;
+      String realmName = GitHttpUtil.getRealmName(pTransport.getURI().toString());
+      httpTransport.setCredentialsProvider(new UsernamePasswordCredentialsProvider(prefStore.get("org/netbeans/core/authentication", realmName),
+                                                                                   keyStore.read("authentication." + realmName)));
+    }
+    else throw new RuntimeException("Unsupported Transport protocol, make sure the project is configured to use either ssh or http");
   }
 
   /**
