@@ -3,13 +3,16 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.gui.*;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.Observable;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author m.kaspera, 24.12.2018
@@ -28,7 +31,7 @@ public class GitConfigDialog extends AditoBaseDialog<Map<String, String>>
   public GitConfigDialog(@Assisted Observable<Optional<IRepository>> pRepository)
   {
     _initGui();
-    pRepository.blockingFirst().map(IRepository::getConfig).ifPresent(pConfig -> sshKeyField.setText(pConfig.getSshKeyLocation()));
+    pRepository.blockingFirst().map(IRepository::getConfig).ifPresent(pConfig -> sshKeyField.setText(pConfig.getSshKeyLocation(null)));
     sshPassphraseField.setEnabled(false);
     sshPassphraseField.setToolTipText(CANT_CHANGE_PASSW_HINT);
   }

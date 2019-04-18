@@ -42,8 +42,9 @@ public interface IConfig
    * if the default ssh key doesn't exist either
    *
    * @return ssh key location set for this repository/current remote or null if none set
+   * @param pRemoteUrl Url of the remote for which the ssh key is searched for. can be null
    */
-  @Nullable String getSshKeyLocation();
+  @Nullable String getSshKeyLocation(@Nullable String pRemoteUrl);
 
   /**
    * returns the passphrase registered with the sshKey of this config or null if no passphrase saved/the key is not set
@@ -80,8 +81,9 @@ public interface IConfig
 
   /**
    * @param pSshKeyLocation location of the ssh key, null means the default key (user_home/.ssh/id_rsa)
+   * @param pRemoteUrl Url of the remote for which the ssh key should be saved, may be null (remote is determined via current branch and its tracked branch)
    */
-  void setSshKeyLocation(@Nullable String pSshKeyLocation);
+  void setSshKeyLocation(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl);
 
   /**
    * @param pPassphrase new passphrase for the ssh key, null means no passphrase required

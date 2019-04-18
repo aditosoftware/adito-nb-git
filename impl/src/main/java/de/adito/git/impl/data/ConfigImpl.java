@@ -27,6 +27,7 @@ public class ConfigImpl implements IConfig
   private static final String SSH_KEY_KEY = "puttykeyfile";
   private static final String AUTO_CRLF_SECTION_KEY = "core";
   private static final String AUTO_CRLF_KEY = "autocrlf";
+  private static final String REMOTE_URL_KEY = "url";
   private final IKeyStore keyStore;
   private final Git git;
 
@@ -50,11 +51,11 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public @Nullable String getSshKeyLocation()
+  public @Nullable String getSshKeyLocation(String pRemoteUrl)
   {
     try
     {
-      String remoteName = getRemoteName();
+      String remoteName = getRemoteName(pRemoteUrl);
       if (remoteName == null)
         return null;
       return git.getRepository().getConfig().getString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY);
@@ -69,7 +70,7 @@ public class ConfigImpl implements IConfig
   @Override
   public char[] getPassphrase()
   {
-    String sshKeyLocation = getSshKeyLocation();
+    String sshKeyLocation = getSshKeyLocation(null);
     return sshKeyLocation == null ? null : keyStore.read(sshKeyLocation);
   }
 
@@ -80,7 +81,7 @@ public class ConfigImpl implements IConfig
     try
     {
       String userName = getUserName();
-      String remoteName = getRemoteName();
+      String remoteName = getRemoteName(null);
       return userName != null && remoteName != null ? keyStore.read(userName + remoteName) : null;
     }
     catch (IOException pE)
@@ -129,11 +130,11 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setSshKeyLocation(@Nullable String pSshKeyLocation)
+  public void setSshKeyLocation(@Nullable String pSshKeyLocation, String pRemoteUrl)
   {
     try
     {
-      String remoteName = getRemoteName();
+      String remoteName = getRemoteName(null);
       if (remoteName != null)
       {
         git.getRepository().getConfig().setString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY, pSshKeyLocation);
@@ -149,7 +150,7 @@ public class ConfigImpl implements IConfig
   @Override
   public void setPassphrase(@Nullable char[] pPassphrase)
   {
-    String sshKeyLocation = getSshKeyLocation();
+    String sshKeyLocation = getSshKeyLocation(null);
     if (sshKeyLocation != null)
     {
       if (pPassphrase == null)
@@ -169,7 +170,7 @@ public class ConfigImpl implements IConfig
     try
     {
       String userName = getUserName();
-      String remoteName = getRemoteName();
+      String remoteName = getRemoteName(null);
       String key = userName != null && remoteName != null ? userName + remoteName : null;
       if (key != null)
       {
@@ -197,13 +198,22 @@ public class ConfigImpl implements IConfig
    * @throws IOException if an exception occurs while JGit is reading the git config file
    */
   @Nullable
-  private String getRemoteName() throws IOException
+  private String getRemoteName(@Nullable String pRemoteUrl) throws IOException
   {
+    String remoteName = null;
+    if (pRemoteUrl != null)
+    {
+      remoteName = git.getRepository().getRemoteNames()
+          .stream()
+          .filter(pRemote -> git.getRepository().getConfig().getString(SSH_SECTION_KEY, pRemote, REMOTE_URL_KEY).equals(pRemoteUrl))
+          .findFirst()
+          .orElse(null);
+    }
+    if (remoteName != null)
+      return remoteName;
     String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
     // Fallback: get remoteBranch of master and resolve remoteName with that branch
     if (remoteTrackingBranch == null)
-      remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, "master");
-    if (remoteTrackingBranch != null)
     {
       return git.getRepository().getRemoteName(remoteTrackingBranch);
     }

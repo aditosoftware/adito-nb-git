@@ -53,7 +53,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     {
       SshTransport sshTransport = (SshTransport) pTransport;
       sshTransport.setCredentialsProvider(new ResetCredentialsProvider());
-      sshTransport.setSshSessionFactory(new _SshSessionFactory());
+      sshTransport.setSshSessionFactory(new _SshSessionFactory(sshTransport.getURI().toString()));
     }
     else if (pTransport instanceof HttpTransport)
     {
@@ -99,6 +99,14 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   private class _SshSessionFactory extends JschConfigSessionFactory
   {
 
+    private final String remoteUrl;
+
+    _SshSessionFactory(String pRemoteUrl)
+    {
+
+      remoteUrl = pRemoteUrl;
+    }
+
     @Override
     protected void configure(OpenSshConfig.Host pHost, Session pSession)
     {
@@ -110,7 +118,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     {
       JSch defaultJSch = super.createDefaultJSch(pFs);
       String storedKeyFilePath;
-      storedKeyFilePath = config.getSshKeyLocation();
+      storedKeyFilePath = config.getSshKeyLocation(remoteUrl);
       if (storedKeyFilePath != null && !new File(storedKeyFilePath).exists())
       {
         storedKeyFilePath = null;
@@ -134,7 +142,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
         IUserInputPrompt.PromptResult result = userInputPrompt.promptFile("Please enter the path to your SSH key");
         if (result.isPressedOK())
         {
-          config.setSshKeyLocation(result.getUserInput());
+          config.setSshKeyLocation(result.getUserInput(), remoteUrl);
           defaultJSch.addIdentity(result.getUserInput());
           gitUserInfo.setSshKeyFile(new File(result.getUserInput()));
         }

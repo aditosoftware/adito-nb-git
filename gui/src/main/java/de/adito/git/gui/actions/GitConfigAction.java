@@ -36,7 +36,7 @@ class GitConfigAction extends AbstractTableAction
   {
     DialogResult<?, Map<String, String>> dialogResult = dialogProvider.showGitConfigDialog(repository);
     // only set sshKeyLocation for now since that is the only supported setting (for now)
-    repository.blockingFirst().ifPresent(pRepo -> pRepo.getConfig().setSshKeyLocation(dialogResult.getInformation().get(Constants.SSH_KEY_KEY)));
+    repository.blockingFirst().ifPresent(pRepo -> pRepo.getConfig().setSshKeyLocation(dialogResult.getInformation().get(Constants.SSH_KEY_KEY), null));
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IRepository>> pRepository)

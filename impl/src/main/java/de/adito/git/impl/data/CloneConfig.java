@@ -25,7 +25,7 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public @Nullable String getSshKeyLocation()
+  public @Nullable String getSshKeyLocation(String pRemoteUrl)
   {
     return sshKeyLocation;
   }
@@ -63,7 +63,7 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void setSshKeyLocation(@Nullable String pSshKeyLocation)
+  public void setSshKeyLocation(@Nullable String pSshKeyLocation, String pRemoteUrl)
   {
     sshKeyLocation = pSshKeyLocation;
   }

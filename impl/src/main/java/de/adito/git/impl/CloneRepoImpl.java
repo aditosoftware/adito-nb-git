@@ -5,15 +5,22 @@ import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
-import de.adito.git.impl.data.*;
+import de.adito.git.impl.data.BranchImpl;
+import de.adito.git.impl.data.CloneConfig;
 import de.adito.git.impl.ssh.ISshProvider;
 import org.eclipse.jgit.api.*;
-import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.lib.*;
-import org.jetbrains.annotations.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * a Class for the clone wizard. There is a checkout option inside the wizard.
@@ -104,7 +111,7 @@ public class CloneRepoImpl implements ICloneRepo
   private TransportConfigCallback _getTransportConfigCallBack(String pSshKeyLocation, char[] pSshKey)
   {
     CloneConfig cloneConfig = new CloneConfig();
-    cloneConfig.setSshKeyLocation(pSshKeyLocation);
+    cloneConfig.setSshKeyLocation(pSshKeyLocation, null);
     cloneConfig.setPassword(pSshKey);
 
     return sshProvider.getTransportConfigCallBack(cloneConfig);
