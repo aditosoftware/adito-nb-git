@@ -71,18 +71,17 @@ class MergeAction extends AbstractTableAction
       if (!mergeConflictDiffs.isEmpty())
       {
         DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs);
-        if (dialogResult.isPressedOk())
-        {
-          repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
-                                + repository.getRepositoryState().blockingFirst().map(pState -> pState.getCurrentBranch().getSimpleName())
-              .orElse("current Branch"));
-        }
-        else
+        if (!dialogResult.isPressedOk())
         {
           pProgressHandle.setDescription("Aborting merge");
           repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
+          // do not execute the "show commit dialog" part after this, the finally block should still be executed even if we return here
+          return;
         }
       }
+      repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
+                            + repository.getRepositoryState().blockingFirst().map(pState -> pState.getCurrentBranch().getSimpleName())
+          .orElse("current Branch"));
     }
     finally
     {
