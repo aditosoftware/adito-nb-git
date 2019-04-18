@@ -20,14 +20,6 @@ import java.io.IOException;
 public class ConfigImpl implements IConfig
 {
 
-  private static final String USER_SECTION_KEY = "user";
-  private static final String USER_NAME_KEY = "name";
-  private static final String USER_EMAIL_KEY = "email";
-  private static final String SSH_SECTION_KEY = "remote";
-  private static final String SSH_KEY_KEY = "puttykeyfile";
-  private static final String AUTO_CRLF_SECTION_KEY = "core";
-  private static final String AUTO_CRLF_KEY = "autocrlf";
-  private static final String REMOTE_URL_KEY = "url";
   private final IKeyStore keyStore;
   private final Git git;
 
@@ -55,7 +47,7 @@ public class ConfigImpl implements IConfig
   {
     try
     {
-      String remoteName = getRemoteName(pRemoteUrl);
+      String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
       if (remoteName == null)
         return null;
       return git.getRepository().getConfig().getString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY);
@@ -68,9 +60,9 @@ public class ConfigImpl implements IConfig
 
   @Nullable
   @Override
-  public char[] getPassphrase()
+  public char[] getPassphrase(@Nullable String pRemoteUrl)
   {
-    String sshKeyLocation = getSshKeyLocation(null);
+    String sshKeyLocation = getSshKeyLocation(pRemoteUrl);
     return sshKeyLocation == null ? null : keyStore.read(sshKeyLocation);
   }
 
@@ -81,7 +73,7 @@ public class ConfigImpl implements IConfig
     try
     {
       String userName = getUserName();
-      String remoteName = getRemoteName(null);
+      String remoteName = RepositoryImplHelper.getRemoteName(git, null);
       return userName != null && remoteName != null ? keyStore.read(userName + remoteName) : null;
     }
     catch (IOException pE)
@@ -130,11 +122,11 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setSshKeyLocation(@Nullable String pSshKeyLocation, String pRemoteUrl)
+  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl)
   {
     try
     {
-      String remoteName = getRemoteName(null);
+      String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
       if (remoteName != null)
       {
         git.getRepository().getConfig().setString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY, pSshKeyLocation);
@@ -170,7 +162,7 @@ public class ConfigImpl implements IConfig
     try
     {
       String userName = getUserName();
-      String remoteName = getRemoteName(null);
+      String remoteName = RepositoryImplHelper.getRemoteName(git, null);
       String key = userName != null && remoteName != null ? userName + remoteName : null;
       if (key != null)
       {
@@ -190,34 +182,17 @@ public class ConfigImpl implements IConfig
     }
   }
 
-  /**
-   * Figures out the name of the remote by using the tracked branch of the currently active branch, or the remote of master if the current branch does not have a
-   * tracked branch
-   *
-   * @return name of the remote
-   * @throws IOException if an exception occurs while JGit is reading the git config file
-   */
-  @Nullable
-  private String getRemoteName(@Nullable String pRemoteUrl) throws IOException
+  @Override
+  public @Nullable String getRemoteName(@Nullable String pRemoteUrl)
   {
-    String remoteName = null;
-    if (pRemoteUrl != null)
+    try
     {
-      remoteName = git.getRepository().getRemoteNames()
-          .stream()
-          .filter(pRemote -> git.getRepository().getConfig().getString(SSH_SECTION_KEY, pRemote, REMOTE_URL_KEY).equals(pRemoteUrl))
-          .findFirst()
-          .orElse(null);
+      return RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
     }
-    if (remoteName != null)
-      return remoteName;
-    String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
-    // Fallback: get remoteBranch of master and resolve remoteName with that branch
-    if (remoteTrackingBranch == null)
+    catch (IOException pE)
     {
-      return git.getRepository().getRemoteName(remoteTrackingBranch);
+      return null;
     }
-    return null;
   }
 
 }

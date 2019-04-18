@@ -1,5 +1,8 @@
 package de.adito.git.api;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Interface that offers methods to ask the user for specific inputs regarding authentication,
  * such as passwords or passPhrases for ssh keys
@@ -24,6 +27,19 @@ public interface IUserInputPrompt
    * @return PromptResult with information about the entered text by the user and if the user clicked OK
    */
   PromptResult promptPassphrase(String pMessage);
+
+  /**
+   * Prompt the user for the location and password of their ssh key. If a key is selected, the panel automatically enters the saved password for the selected key if
+   * a password for that key was saved at some point
+   *
+   * @param pMessage        Message to display to the user
+   * @param pSshKeyLocation ssh key location, if already known
+   * @param pPassphrase     passphrase for the ssh key, if already known
+   * @param pKeyStore       KeyStore object, so if a ssh key is chosen in the dialog, an eventually already known passphrase for the key can be automatically loaded
+   * @return PromptResult with the information if the user clicked okay and the ssh key location and passphrase
+   */
+  @NotNull
+  PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @Nullable IKeyStore pKeyStore);
 
   /**
    * Prompts the user for a String (such as a filePath or username), with pMessage as information for the user
@@ -59,6 +75,12 @@ public interface IUserInputPrompt
     private final String userInput;
     private final char[] userArrayInput;
 
+    /**
+     * Use this construcor if you have only a username or the location of an ssh key
+     *
+     * @param pIsPressedOK whether the user pressed the OK button or not
+     * @param pUserInput   String with the input from the user, used for insensitive information such as username or location of an ssh key
+     */
     public PromptResult(boolean pIsPressedOK, String pUserInput)
     {
       isPressedOK = pIsPressedOK;
@@ -66,10 +88,30 @@ public interface IUserInputPrompt
       userArrayInput = null;
     }
 
+    /**
+     * Use this constructor if you have only a passphrase or password
+     *
+     * @param pIsPressedOK whether the user pressed the OK button or not
+     * @param pUserArrayInput char array with input from the user (should be used for passwords/sensitive information)
+     */
     public PromptResult(boolean pIsPressedOK, char[] pUserArrayInput)
     {
       isPressedOK = pIsPressedOK;
       userInput = null;
+      userArrayInput = pUserArrayInput;
+    }
+
+    /**
+     * Use this constructor if you have a combination of username/password or location of ssh Key/passphrase
+     *
+     * @param pIsPressedOK    whether the user pressed the OK button or not
+     * @param pUserInput      String with the input from the user, used for insensitive information such as username or location of an ssh key
+     * @param pUserArrayInput char array with input from the user (should be used for passwords/sensitive information)
+     */
+    public PromptResult(boolean pIsPressedOK, String pUserInput, char[] pUserArrayInput)
+    {
+      isPressedOK = pIsPressedOK;
+      userInput = pUserInput;
       userArrayInput = pUserArrayInput;
     }
 
@@ -82,7 +124,7 @@ public interface IUserInputPrompt
     }
 
     /**
-     * @return String with the input from the user
+     * @return String with the input from the user, used for insensitive information such as username or location of an ssh key
      */
     public String getUserInput()
     {
@@ -90,7 +132,7 @@ public interface IUserInputPrompt
     }
 
     /**
-     * @return char array with input from the user (should be user for passwords/sensitive information)
+     * @return char array with input from the user (should be used for passwords/sensitive information)
      */
     public char[] getUserArrayInput()
     {

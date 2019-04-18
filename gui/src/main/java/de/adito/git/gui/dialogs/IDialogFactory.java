@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
@@ -53,4 +54,7 @@ interface IDialogFactory
   FileSelectionDialog createFileSelectionDialog();
 
   RevertFilesDialog createRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
+
+  SshInfoPrompt createSshInfoPromptDialog(@Assisted("message") String pMessage, @javax.annotation.Nullable @Assisted("keyLocation") String pSshKeyLocation,
+                                          @javax.annotation.Nullable char[] pPassphrase, @javax.annotation.Nullable IKeyStore pKeyStore);
 }

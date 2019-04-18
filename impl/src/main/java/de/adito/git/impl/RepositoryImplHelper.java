@@ -24,6 +24,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.adito.git.api.data.IConfig.REMOTE_URL_KEY;
+import static de.adito.git.api.data.IConfig.SSH_SECTION_KEY;
 import static de.adito.git.impl.Util.getRelativePath;
 
 public class RepositoryImplHelper
@@ -457,6 +459,36 @@ public class RepositoryImplHelper
     walk.markStart(pYourCommit);
     walk.markStart(pTheirCommit);
     return walk.next();
+  }
+
+  /**
+   * Figures out the name of the remote by using the tracked branch of the currently active branch, or the remote of master if the current branch does not have a
+   * tracked branch
+   *
+   * @return name of the remote
+   * @throws IOException if an exception occurs while JGit is reading the git config file
+   */
+  @Nullable
+  public static String getRemoteName(@NotNull Git pGit, @Nullable String pRemoteUrl) throws IOException
+  {
+    String remoteName = null;
+    if (pRemoteUrl != null)
+    {
+      remoteName = pGit.getRepository().getRemoteNames()
+          .stream()
+          .filter(pRemote -> pGit.getRepository().getConfig().getString(SSH_SECTION_KEY, pRemote, REMOTE_URL_KEY).equals(pRemoteUrl))
+          .findFirst()
+          .orElse(null);
+    }
+    if (remoteName != null)
+      return remoteName;
+    String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(pGit, null);
+    // Fallback: get remoteBranch of master and resolve remoteName with that branch
+    if (remoteTrackingBranch == null)
+    {
+      return pGit.getRepository().getRemoteName(remoteTrackingBranch);
+    }
+    return null;
   }
 
 }

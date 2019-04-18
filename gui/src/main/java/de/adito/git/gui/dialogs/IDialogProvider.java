@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs;
 
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
@@ -53,4 +54,6 @@ public interface IDialogProvider
   DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 
   DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog();
+
+  DialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(String pMessage, String pSshKeyLocation, char[] pPassphrase, IKeyStore pKeyStore);
 }

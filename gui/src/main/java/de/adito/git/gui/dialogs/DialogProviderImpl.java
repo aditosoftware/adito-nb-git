@@ -2,6 +2,7 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
@@ -193,5 +194,12 @@ class DialogProviderImpl implements IDialogProvider
   public DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog()
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashChangesDialog(), "Stash Changes - stash message");
+  }
+
+  @Override
+  public DialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(String pMessage, String pSshKeyLocation, char[] pPassphrase, IKeyStore pKeyStore)
+  {
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore),
+                                      "SSH key information");
   }
 }

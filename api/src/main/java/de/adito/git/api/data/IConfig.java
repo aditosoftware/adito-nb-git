@@ -11,6 +11,15 @@ import org.jetbrains.annotations.Nullable;
 public interface IConfig
 {
 
+  String USER_SECTION_KEY = "user";
+  String USER_NAME_KEY = "name";
+  String USER_EMAIL_KEY = "email";
+  String SSH_SECTION_KEY = "remote";
+  String SSH_KEY_KEY = "puttykeyfile";
+  String AUTO_CRLF_SECTION_KEY = "core";
+  String AUTO_CRLF_KEY = "autocrlf";
+  String REMOTE_URL_KEY = "url";
+
   /**
    * Represents the three different autoCRLF setting available in git
    */
@@ -50,9 +59,10 @@ public interface IConfig
    * returns the passphrase registered with the sshKey of this config or null if no passphrase saved/the key is not set
    * IMPORTANT: Overwrite the returned char array as soon as possible
    *
+   * @param pRemoteUrl url for the remote for which to retrieve the passphrase, null if not known
    * @return passphrase registered with the sshKey
    */
-  @Nullable char[] getPassphrase();
+  @Nullable char[] getPassphrase(@Nullable String pRemoteUrl);
 
   /**
    * returns the password registered to the current user/repository/remote combination if available, else null
@@ -80,6 +90,8 @@ public interface IConfig
   void setUserEmail(@NotNull String pUserEmail);
 
   /**
+   * save the location of the ssh key
+   *
    * @param pSshKeyLocation location of the ssh key, null means the default key (user_home/.ssh/id_rsa)
    * @param pRemoteUrl Url of the remote for which the ssh key should be saved, may be null (remote is determined via current branch and its tracked branch)
    */
@@ -94,6 +106,14 @@ public interface IConfig
    * @param pPassword new password for the user, null means no password is required
    */
   void setPassword(@Nullable char[] pPassword);
+
+  /**
+   * get the name of either the remote with the passes url or the remote that is connected to the current branch (if any is)
+   *
+   * @param pRemoteUrl url of the remote, or null if not known
+   * @return the name of the remote with the passed url, the name of the remote of the current branch if known, or null if the remote of the current branch is not known
+   */
+  @Nullable String getRemoteName(@Nullable String pRemoteUrl);
 
 
 }

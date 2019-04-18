@@ -1,7 +1,10 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IUserInputPrompt;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation of the IUserInputPrompt interface, uses the DialogProvider from the gui package
@@ -37,6 +40,13 @@ public class UserInputPromptImpl implements IUserInputPrompt
   {
     DialogResult<?, char[]> result = dialogProvider.showPasswordPromptDialog(pMessage);
     return new PromptResult(result.isPressedOk(), result.getInformation());
+  }
+
+  @Override
+  public @NotNull PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @Nullable IKeyStore pKeyStore)
+  {
+    DialogResult<?, char[]> result = dialogProvider.showSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore);
+    return new PromptResult(result.isPressedOk(), result.getMessage(), result.getInformation());
   }
 
   /**

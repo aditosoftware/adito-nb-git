@@ -32,7 +32,7 @@ public class CloneConfig implements IConfig
 
   @Nullable
   @Override
-  public char[] getPassphrase()
+  public char[] getPassphrase(String pRemoteUrl)
   {
     return passphrase;
   }
@@ -78,5 +78,12 @@ public class CloneConfig implements IConfig
   public void setPassword(@Nullable char[] pPassword)
   {
     //not implemented
+  }
+
+  @Override
+  public @Nullable String getRemoteName(@Nullable String pRemoteUrl)
+  {
+    //not implemented
+    return null;
   }
 }

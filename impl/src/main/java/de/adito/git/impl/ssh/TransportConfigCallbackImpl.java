@@ -139,12 +139,17 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
       }
       if (defaultJSch.getIdentityRepository().getIdentities().isEmpty())
       {
-        IUserInputPrompt.PromptResult result = userInputPrompt.promptFile("Please enter the path to your SSH key");
+        IUserInputPrompt.PromptResult result = userInputPrompt.promptSSHInfo("Please enter the path to your SSH key for remote \"" + config.getRemoteName(remoteUrl)
+                                                                                 + "\":", null, null, keyStore);
         if (result.isPressedOK())
         {
           config.setSshKeyLocation(result.getUserInput(), remoteUrl);
           defaultJSch.addIdentity(result.getUserInput());
           gitUserInfo.setSshKeyFile(new File(result.getUserInput()));
+          if (result.getUserArrayInput() != null)
+          {
+            gitUserInfo.setPassPhrase(String.valueOf(result.getUserArrayInput()));
+          }
         }
       }
       return defaultJSch;
