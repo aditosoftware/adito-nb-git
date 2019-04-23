@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
@@ -44,41 +45,47 @@ class ResolveConflictsAction extends AbstractTableAction
   {
     progressFacade.executeInBackground(NOTIFY_MESSAGE, pHandle -> {
       IRepository repo = repository.blockingFirst().orElseThrow();
-      List<IMergeDiff> conflicts;
-      try
+      _resolveConflicts(repo);
+    });
+  }
+
+  private void _resolveConflicts(IRepository pRepo) throws AditoGitException
+  {
+    List<IMergeDiff> conflicts;
+    try
+    {
+      conflicts = pRepo.getConflicts();
+    }
+    catch (TargetBranchNotFoundException pTBNFE)
+    {
+      if (pTBNFE.getOrigHead() != null)
       {
-        conflicts = repo.getConflicts();
+        DialogResult dialogResult = dialogProvider.showYesNoDialog("Could not determine target of operation that led to conflict," +
+                                                                       " do you want to go back to the state before merge/pull/cherry pick?");
+        if (dialogResult.isPressedOk())
+          pRepo.reset(pTBNFE.getOrigHead().getId(), EResetType.HARD);
       }
-      catch (TargetBranchNotFoundException pTBNFE)
+      else
       {
-        if (pTBNFE.getOrigHead() != null)
-        {
-          notifyUtil.notify(NOTIFY_MESSAGE, "Could not determine target of operation that led to conflict," +
-              " resetting back to state before merge/pull/cherry pick", false);
-          repo.reset(pTBNFE.getOrigHead().getId(), EResetType.HARD);
-        }
-        else
-        {
-          notifyUtil.notify(NOTIFY_MESSAGE, "Could determine neither the target nor the state before the operation that led to the conflict" +
-              ", please reset the current branch to the commit you based from manually", false);
-        }
+        notifyUtil.notify(NOTIFY_MESSAGE, "Could determine neither the target nor the state before the operation that led to the conflict" +
+            ", please reset the current branch to the commit you based from manually", false);
+      }
+      return;
+    }
+    catch (AmbiguousStashCommitsException pE)
+    {
+      DialogResult<?, String> dialogResult = dialogProvider.showStashedCommitSelectionDialog(repository, pRepo.getStashedCommits());
+      if (dialogResult.isPressedOk())
+      {
+        String selectedStashCommitId = dialogResult.getInformation();
+        conflicts = pRepo.getStashConflicts(selectedStashCommitId);
+      }
+      else
+      {
         return;
       }
-      catch (AmbiguousStashCommitsException pE)
-      {
-        DialogResult<?, String> dialogResult = dialogProvider.showStashedCommitSelectionDialog(repository, repo.getStashedCommits());
-        if (dialogResult.isPressedOk())
-        {
-          String selectedStashCommitId = dialogResult.getInformation();
-          conflicts = repo.getStashConflicts(selectedStashCommitId);
-        }
-        else
-        {
-          return;
-        }
-      }
-      dialogProvider.showMergeConflictDialog(repository, conflicts);
-    });
+    }
+    dialogProvider.showMergeConflictDialog(repository, conflicts);
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
