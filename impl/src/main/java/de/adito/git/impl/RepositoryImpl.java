@@ -487,8 +487,9 @@ public class RepositoryImpl implements IRepository
           }
           String oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? "" :
               getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
+          Charset encoding = fileSystemUtil.getEncoding(new File(getTopLevelDirectory(), diffEntry.getNewPath()));
           returnList.add(new FileDiffImpl(diffEntry, fileHeader, getTopLevelDirectory(),
-                                          oldFileContents, newFileBytes == null ? "" : new String(newFileBytes)));
+                                          oldFileContents, newFileBytes == null ? "" : new String(newFileBytes, encoding)));
         }
       }
       return returnList;
