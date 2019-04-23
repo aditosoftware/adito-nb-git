@@ -49,6 +49,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   @Override
   public void configure(Transport pTransport)
   {
+    //ssh and https transport is supported
     if (pTransport instanceof SshTransport)
     {
       SshTransport sshTransport = (SshTransport) pTransport;
@@ -59,6 +60,8 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     {
       HttpTransport httpTransport = (HttpTransport) pTransport;
       String realmName = GitHttpUtil.getRealmName(pTransport.getURI().toString());
+      // netbeans stores the username in the preferences of the org/netbeans/core/authentication node, the key is the realm name. The password is stored in the KeyRing
+      // with authentication.realmName as key
       httpTransport.setCredentialsProvider(new UsernamePasswordCredentialsProvider(prefStore.get("org/netbeans/core/authentication", realmName),
                                                                                    keyStore.read("authentication." + realmName)));
     }
@@ -103,7 +106,6 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
 
     _SshSessionFactory(String pRemoteUrl)
     {
-
       remoteUrl = pRemoteUrl;
     }
 
