@@ -122,7 +122,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     try
     {
       Set<LineNumber> lineNums = _calculateLineNumbers(pEditorPane, view, pEditorPane.getFontMetrics(pEditorPane.getFont()).getHeight(), 0,
-                                                       _getLastLineNum(pFileChangesEvent) - 1);
+                                                       Math.max(0, _getLastLineNum(pFileChangesEvent) - 1));
       BufferedImage image = new BufferedImage(lineNumFacadeWidth, pEditorPane.getHeight(), BufferedImage.TYPE_INT_ARGB);
       Graphics graphics = image.getGraphics();
       for (LineNumberColor lineNumberColor : pLineNumColors)
