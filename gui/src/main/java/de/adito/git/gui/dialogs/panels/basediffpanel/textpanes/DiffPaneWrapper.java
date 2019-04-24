@@ -43,6 +43,7 @@ public class DiffPaneWrapper implements IDiscardable
   private final ScrollbarMarkingsModel scrollbarMarkingsModel;
   private Field attribsFields;
   private Object attribsParentLayer;
+  private int cachedListHash = 0;
 
   /**
    * @param pModel DiffPanelModel that defines what is done when inserting text/how the LineNumbers are retrieved
@@ -72,7 +73,12 @@ public class DiffPaneWrapper implements IDiscardable
     fileChangeDisposable = model.getFileChangesObservable()
         .subscribe(pFileChangesEvent -> {
           if (pFileChangesEvent.isUpdateUI())
+          {
+            if (cachedListHash != System.identityHashCode(pFileChangesEvent.getNewValue()))
+              editorPane.setText("");
+            cachedListHash = System.identityHashCode(pFileChangesEvent.getNewValue());
             _textChanged(pFileChangesEvent);
+          }
         });
     editorKitDisposable = pEditorKitObservable.subscribe(pEditorKit -> SwingUtilities.invokeLater(() -> _setEditorKit(pEditorKit)));
     MarkedScrollbar markedScrollbar = new MarkedScrollbar();
