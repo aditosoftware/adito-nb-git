@@ -1435,6 +1435,8 @@ public class RepositoryImpl implements IRepository
           throw new AditoGitException(pE1);
         }
       }
+      else throw new AditoGitException("Failed to apply stash, there may be existing changes. Undo/commit these changes and try again " +
+                                           "or check the attached stackTrace for more information", pStashApplyFailureEx);
     }
     catch (GitAPIException pE)
     {
