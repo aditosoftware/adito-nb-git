@@ -103,4 +103,19 @@ public class BranchImpl implements IBranch
       return this.getId();
     return branchRef.getName();
   }
+
+  @Override
+  public int hashCode()
+  {
+    return (155 + getId().hashCode() + getName().hashCode() + getType().hashCode()) * 43;
+  }
+
+  @Override
+  public boolean equals(Object obj)
+  {
+    if (obj == null || !(IBranch.class.isAssignableFrom(obj.getClass())))
+      return false;
+    IBranch branch = (IBranch) obj;
+    return branch.getId().equals(getId()) && branch.getName().equals(getName()) && branch.getType() == getType();
+  }
 }

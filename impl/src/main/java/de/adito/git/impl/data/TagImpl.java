@@ -45,4 +45,19 @@ public class TagImpl implements ITag
       return ObjectId.toString(tagRef.getPeeledObjectId());
     else return ObjectId.toString(tagRef.getObjectId());
   }
+
+  @Override
+  public int hashCode()
+  {
+    return (42 + getName().hashCode() + getId().hashCode()) * 73;
+  }
+
+  @Override
+  public boolean equals(Object obj)
+  {
+    if (obj == null || !(ITag.class.isAssignableFrom(obj.getClass())))
+      return false;
+    ITag tag = (ITag) obj;
+    return tag.getName().equals(getName()) && tag.getId().equals(getId());
+  }
 }

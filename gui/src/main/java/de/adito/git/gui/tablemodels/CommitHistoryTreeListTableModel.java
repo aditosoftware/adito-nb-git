@@ -67,8 +67,11 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
    */
   public void resetData(List<CommitHistoryTreeListItem> pNewValues)
   {
-    commitList.clear();
-    addData(pNewValues);
+    if (!commitListsEqual(commitList, pNewValues))
+    {
+      commitList.clear();
+      addData(pNewValues);
+    }
   }
 
   @Override
@@ -120,6 +123,25 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
       default:
         return null;
     }
+  }
+
+  /**
+   * checks if the commits contained in the two CommitHistoryTreeListItem lists are equal and in the same order
+   *
+   * @param pOldValues List with CommitHistoryTreeListItems
+   * @param pNewValues List with CommitHistoryTreeListItems
+   * @return true if the same commits are in the same order, false otherwise
+   */
+  private boolean commitListsEqual(List<CommitHistoryTreeListItem> pOldValues, List<CommitHistoryTreeListItem> pNewValues)
+  {
+    if (pOldValues.size() != pNewValues.size())
+      return false;
+    for (int index = 0; index < pNewValues.size(); index++)
+    {
+      if (!pOldValues.get(index).commitDetailsEquals(pNewValues.get(index)))
+        return false;
+    }
+    return true;
   }
 
 }

@@ -142,6 +142,23 @@ public class CommitHistoryTreeListItem
   }
 
   /**
+   * Check if the commit, tags and branches of this and pOther are the same. Does not take into account the AncestryLines (so do not use this to check if a list contains
+   * the same CHTLI if you are also interested in the position of the CHTLIs, only use in a list if the position does not matter to you or you are comparing the
+   * same indices in the list)
+   *
+   * @param pOther the second CommitHistoryTreeListItem
+   * @return true if the commit, the tags and the branches referenced by the other CHTLI are the same as those referenced by this
+   */
+  public boolean commitDetailsEquals(CommitHistoryTreeListItem pOther)
+  {
+    if (!pOther.getCommit().equals(getCommit()))
+      return false;
+    if (!pOther.getTags().equals(getTags()))
+      return false;
+    return pOther.getBranches().equals(getBranches());
+  }
+
+  /**
    * Provided with the next commit in the List, this method calculates the
    * CommitHistoryTreeListItem following this CommitHistoryTreeListItem
    *
