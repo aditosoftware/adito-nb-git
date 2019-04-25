@@ -81,9 +81,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository,
-                                                                         Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                                                                         String pMessageTemplate)
+  public DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                         @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                                                         @NotNull String pMessageTemplate)
   {
     DialogResult<CommitDialog, CommitDialogResult> result = null;
     try

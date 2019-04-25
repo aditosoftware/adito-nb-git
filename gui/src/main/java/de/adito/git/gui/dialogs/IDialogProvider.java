@@ -26,9 +26,9 @@ public interface IDialogProvider
 
   DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange, boolean pShowFileTable);
 
-  DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(Observable<Optional<IRepository>> pRepository,
-                                                                  Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                                                                  String pMessageTemplate);
+  DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                  @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                                                  @NotNull String pMessageTemplate);
 
   DialogResult showNewBranchDialog(Observable<Optional<IRepository>> pRepository);
 

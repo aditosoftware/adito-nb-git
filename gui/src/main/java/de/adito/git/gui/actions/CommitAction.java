@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
@@ -27,18 +28,22 @@ import java.util.stream.Collectors;
 class CommitAction extends AbstractTableAction
 {
 
+  private static final String COMMIT_MESSAGE_BASE_STORAGE_KEY = "adito.git.commit.tmp.message.";
+
   private final IAsyncProgressFacade progressFacade;
-  private final String messageTemplate;
+  private final IPrefStore prefStore;
+  private String messageTemplate;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
-  CommitAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+  CommitAction(IPrefStore pPrefStore, IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
                @Assisted Observable<Optional<IRepository>> pRepository,
                @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @Assisted String pMessageTemplate)
   {
     super("Commit");
+    prefStore = pPrefStore;
     messageTemplate = pMessageTemplate;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.COMMIT_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Commit selected changed files");
@@ -51,7 +56,15 @@ class CommitAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    Observable<Optional<IRepository>> repo = Observable.just(repository.blockingFirst());
+    Optional<IRepository> currentRepoOpt = repository.blockingFirst();
+    String prefStoreInstanceKey = COMMIT_MESSAGE_BASE_STORAGE_KEY + currentRepoOpt.map(pRepo -> pRepo.getTopLevelDirectory().getAbsolutePath()).orElse("");
+    Observable<Optional<IRepository>> repo = Observable.just(currentRepoOpt);
+    if (messageTemplate == null || messageTemplate.isEmpty())
+    {
+      messageTemplate = prefStore.get(prefStoreInstanceKey);
+      if (messageTemplate == null)
+        messageTemplate = "";
+    }
     DialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repo, selectedFilesObservable, messageTemplate);
     // if user didn't cancel the dialogs
     if (dialogResult.isPressedOk())
@@ -63,7 +76,12 @@ class CommitAction extends AbstractTableAction
             .collect(Collectors.toList());
         repo.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
             .commit(dialogResult.getMessage(), files, dialogResult.getInformation().isDoAmend());
+        prefStore.put(prefStoreInstanceKey, null);
       });
+    }
+    else
+    {
+      prefStore.put(prefStoreInstanceKey, dialogResult.getMessage());
     }
   }
 
