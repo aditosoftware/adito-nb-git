@@ -67,9 +67,12 @@ class CheckoutAction extends AbstractTableAction
           }
           if (branch.getType() == EBranchType.REMOTE)
           {
-            DialogResult dialogResult = dialogProvider.showUserPromptDialog("Choose a name for the local branch");
-            String branchName = dialogResult.getMessage();
-            repository.checkoutRemote(branch, branchName);
+            DialogResult dialogResult = dialogProvider.showUserPromptDialog("Choose a name for the local branch", branch.getSimpleName().replace("origin/", ""));
+            if (dialogResult.isPressedOk())
+            {
+              String branchName = dialogResult.getMessage();
+              repository.checkoutRemote(branch, branchName);
+            }
           }
           else
           {

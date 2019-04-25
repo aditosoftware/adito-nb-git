@@ -41,7 +41,7 @@ interface IDialogFactory
 
   PasswordPromptDialog createPasswordPromptDialog();
 
-  UserPromptDialog createUserPromptDialog();
+  UserPromptDialog createUserPromptDialog(@Nullable String pDefault);
 
   YesNoDialog createYesNoDialog(String pMessage);
 

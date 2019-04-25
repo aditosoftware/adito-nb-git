@@ -55,7 +55,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptText(String pMessage)
   {
-    DialogResult result = dialogProvider.showUserPromptDialog(pMessage);
+    DialogResult result = dialogProvider.showUserPromptDialog(pMessage, null);
     return new PromptResult(result.isPressedOk(), result.getMessage());
   }
 

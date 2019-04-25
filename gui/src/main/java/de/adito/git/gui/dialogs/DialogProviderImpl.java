@@ -153,19 +153,20 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult showUserPromptDialog(String pMessage)
+  public DialogResult showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefault)
   {
-    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createUserPromptDialog(), pMessage);
+    final String defaultValue = pDefault;
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createUserPromptDialog(defaultValue), pMessage);
   }
 
   @Override
-  public DialogResult showYesNoDialog(String pMessage)
+  public DialogResult showYesNoDialog(@NotNull String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createYesNoDialog(pMessage), pMessage);
   }
 
   @Override
-  public DialogResult showRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDirectory)
+  public DialogResult showRevertDialog(@NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pFilesToRevert, pProjectDirectory), "Confirm revert of files");
   }

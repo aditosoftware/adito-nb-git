@@ -51,7 +51,7 @@ class AddTagAction extends AbstractTableAction
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
     if (selectedCommits.size() == 1)
     {
-      DialogResult dialogResult = dialogProvider.showUserPromptDialog("Insert the name of the tag");
+      DialogResult dialogResult = dialogProvider.showUserPromptDialog("Insert the name of the tag", null);
       if (dialogResult.isPressedOk())
       {
         repository.blockingFirst().ifPresent(pRepoOpt -> pRepoOpt.createTag(dialogResult.getMessage(), selectedCommits.get(0).getId()));

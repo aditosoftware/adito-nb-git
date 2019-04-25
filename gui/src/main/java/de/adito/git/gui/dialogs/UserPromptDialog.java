@@ -1,9 +1,11 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import de.adito.git.gui.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 
 /**
@@ -18,9 +20,11 @@ class UserPromptDialog extends AditoBaseDialog<Object>
   private final JTextField textField;
 
   @Inject
-  UserPromptDialog()
+  UserPromptDialog(@Nullable @Assisted String pDefault)
   {
     textField = new JTextField(PATH_NUM_CHARS);
+    if (pDefault != null)
+      textField.setText(pDefault);
     _initGui();
   }
 
@@ -31,8 +35,7 @@ class UserPromptDialog extends AditoBaseDialog<Object>
     final double gap = 15;
     double[] cols = {gap, fill, gap};
     double[] rows = {gap,
-                     pref,
-                     gap};
+                     pref};
     setLayout(new TableLayout(cols, rows));
     TableLayoutUtil tlu = new TableLayoutUtil(this);
     tlu.add(1, 1, textField);

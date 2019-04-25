@@ -41,11 +41,11 @@ public interface IDialogProvider
 
   DialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(String pMessage);
 
-  DialogResult showUserPromptDialog(String pMessage);
+  DialogResult showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefaultValue);
 
-  DialogResult showYesNoDialog(String pMessage);
+  DialogResult showYesNoDialog(@NotNull String pMessage);
 
-  DialogResult showRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDir);
+  DialogResult showRevertDialog(@NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDir);
 
   DialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(String pBranchName);
 
