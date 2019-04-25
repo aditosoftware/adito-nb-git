@@ -1,12 +1,17 @@
 package de.adito.git.nbm.dialogs;
 
 import com.google.inject.Inject;
-import de.adito.git.gui.dialogs.*;
-import org.openide.*;
+import de.adito.git.gui.dialogs.AditoBaseDialog;
+import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.gui.dialogs.IDialogDisplayer;
+import org.openide.DialogDescriptor;
+import org.openide.DialogDisplayer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dialog;
+import java.awt.Dimension;
 import java.util.function.Function;
 
 /**
@@ -41,7 +46,7 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     dialogDescriptor.setMessage(borderPane);
     Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
     dialog.setResizable(true);
-    dialog.setMinimumSize(new Dimension(250, 200));
+    dialog.setMinimumSize(new Dimension(250, 50));
     dialog.pack();
     dialog.setVisible(true);
     return new DialogResult<>(content, dialogDescriptor.getValue() == DialogDescriptor.OK_OPTION, content.getMessage(), content.getInformation());
