@@ -74,7 +74,12 @@ class PullAction extends AbstractAction
     boolean doAbort = false;
     try
     {
-      if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty() || !pStatus.getConflicting().isEmpty()).orElse(true))
+      if (pRepo.getStatus().blockingFirst().map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(false))
+      {
+        notifyUtil.notify("Found conflicting files", "There are files that have the conflicting state, resolve these conflicts first before pulling", false);
+        return;
+      }
+      if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
       {
         pProgressHandle.setDescription("Stashing existing changes");
         prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, false));
