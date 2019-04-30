@@ -63,7 +63,7 @@ class CheckoutAction extends AbstractTableAction
           if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
           {
             pProgress.setDescription("Stashing uncommitted local changes");
-            prefStore.put(STASH_ID_KEY, repository.stashChanges(null, false));
+            prefStore.put(STASH_ID_KEY, repository.stashChanges(null, true));
           }
           if (branch.getType() == EBranchType.REMOTE)
           {

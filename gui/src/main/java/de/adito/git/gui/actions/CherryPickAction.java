@@ -72,7 +72,7 @@ class CherryPickAction extends AbstractTableAction
           if (status.map(pStatus -> !pStatus.getUncommitted().isEmpty()).orElse(false))
           {
             pHandle.setDescription("Stashing existing changes");
-            prefStore.put(STASH_ID_KEY, repo.stashChanges(null, false));
+            prefStore.put(STASH_ID_KEY, repo.stashChanges(null, true));
           }
           pHandle.setDescription("Cherry picking " + commitsToPick.size() + " commit(s)");
           _doCherryPick(repo, commitsToPick);
