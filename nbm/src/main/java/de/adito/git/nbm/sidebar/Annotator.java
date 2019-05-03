@@ -110,11 +110,15 @@ public class Annotator extends JPanel implements IDiscardable
           if (pRepoOpt.isPresent())
           {
             IRepository repo = pRepoOpt.get();
-            EChangeType changeType = repo.getStatusOfSingleFile(pFile).getChangeType();
-            // No changes if added or new, because the file can not be diffed -> not in index
-            if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
+            // No check for new or deleted file (not in index in that case) since we just catch all Exceptions and if anything doesnt work we just do not show anything
+            try
+            {
+              return repo.diffOffline(pText, pFile);
+            }
+            catch (Exception pE)
+            {
               return List.of();
-            return repo.diffOffline(pText, pFile);
+            }
           }
           return List.of();
         });
@@ -175,10 +179,9 @@ public class Annotator extends JPanel implements IDiscardable
   }
 
   /**
-   *
    * @param pImageGraphics Graphics object of i.e. a bufferedImage
-   * @param pLines List of Strings with the information about what to write for each line. Sorted by order in which they appear
-   * @param pView View of the JTextComponent, used to get the y Coordinates of the lines
+   * @param pLines         List of Strings with the information about what to write for each line. Sorted by order in which they appear
+   * @param pView          View of the JTextComponent, used to get the y Coordinates of the lines
    */
   private void _drawImage(Graphics pImageGraphics, List<String> pLines, View pView)
   {
