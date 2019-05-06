@@ -26,7 +26,7 @@ public class SimpleFileSystemUtil implements IFileSystemUtil
   }
 
   @Override
-  public Image getIcon(File pFile, boolean pIsOpened)
+  public Image getIcon(@NotNull File pFile, boolean pIsOpened)
   {
     return null;
   }

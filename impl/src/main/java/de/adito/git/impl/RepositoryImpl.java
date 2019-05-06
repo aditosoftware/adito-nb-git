@@ -386,7 +386,7 @@ public class RepositoryImpl implements IRepository
     String headId = ObjectId.toString(git.getRepository().resolve(Constants.HEAD));
 
 
-    RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(pCompareWith, git)), pCompareWith).getBytes());
+    RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(pCompareWith, git)), pCompareWith).getFileContent().getBytes());
     RawText currentFileContents = new RawText(pFileContents.getBytes());
 
     EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, headFileContents, currentFileContents);
@@ -418,8 +418,10 @@ public class RepositoryImpl implements IRepository
           {
             formatter.setRepository(git.getRepository());
             FileHeader fileHeader = formatter.toFileHeader(diff);
-            String oldFileContent = VOID_PATH.equals(diff.getOldPath()) ? "" : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
-            String newFileContent = VOID_PATH.equals(diff.getNewPath()) ? "" : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
+            IFileContentInfo oldFileContent = VOID_PATH.equals(diff.getOldPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+                : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
+            IFileContentInfo newFileContent = VOID_PATH.equals(diff.getNewPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+                : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
             listDiffImpl.add(new FileDiffImpl(diff, fileHeader, getTopLevelDirectory(), oldFileContent, newFileContent));
           }
         }
@@ -485,11 +487,12 @@ public class RepositoryImpl implements IRepository
           {
             newFileBytes = Files.readAllBytes(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath());
           }
-          String oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? "" :
-              getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
+          IFileContentInfo oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+              : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
           Charset encoding = fileSystemUtil.getEncoding(new File(getTopLevelDirectory(), diffEntry.getNewPath()));
           returnList.add(new FileDiffImpl(diffEntry, fileHeader, getTopLevelDirectory(),
-                                          oldFileContents, newFileBytes == null ? "" : new String(newFileBytes, encoding)));
+                                          oldFileContents, newFileBytes == null ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+                                              : new FileContentInfoImpl(new String(newFileBytes, encoding), encoding)));
         }
       }
       return returnList;
@@ -530,21 +533,23 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public String getFileContents(String pIdentifier, File pFile) throws IOException
+  public IFileContentInfo getFileContents(String pIdentifier, File pFile) throws IOException
   {
     Charset encoding = fileSystemUtil.getEncoding(pFile);
     ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
-    return new String(loader.getBytes(), encoding);
+    return new FileContentInfoImpl(new String(loader.getBytes(), encoding), encoding);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public String getFileContents(String pIdentifier) throws IOException
+  public IFileContentInfo getFileContents(String pIdentifier) throws IOException
   {
     ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
-    return new String(loader.getBytes(), StandardCharsets.UTF_8);
+    byte[] bytes = loader.getBytes();
+    Charset encoding = Util.getEncoding(bytes, fileSystemUtil);
+    return new FileContentInfoImpl(new String(bytes, encoding), encoding);
   }
 
   /**

@@ -2,11 +2,14 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.*;
 import de.adito.git.impl.EnumMappings;
-import org.eclipse.jgit.diff.*;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.patch.FileHeader;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 /**
  * Represents information about the uncovered changes by the diff command
@@ -16,28 +19,28 @@ import java.io.File;
 public class FileDiffImpl implements IFileDiff
 {
 
-  private DiffEntry diffEntry;
-  private FileHeader fileHeader;
+  private final DiffEntry diffEntry;
+  private final FileHeader fileHeader;
   private FileChangesImpl fileChanges;
-  private File topLevelDirectory;
-  private String originalFileContents;
-  private String newFileContents;
+  private final File topLevelDirectory;
+  private final IFileContentInfo originalFileContent;
+  private final IFileContentInfo newFileContent;
 
   public FileDiffImpl(DiffEntry pDiffEntry, FileHeader pFileHeader, @Nullable File pTopLevelDirectory,
-                      String pOriginalFileContents, String pNewFileContents)
+                      IFileContentInfo pOriginalFileContent, IFileContentInfo pNewFileContent)
   {
     diffEntry = pDiffEntry;
     fileHeader = pFileHeader;
     topLevelDirectory = pTopLevelDirectory;
-    originalFileContents = pOriginalFileContents;
-    newFileContents = pNewFileContents;
+    originalFileContent = pOriginalFileContent;
+    newFileContent = pNewFileContent;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public String getId(EChangeSide pSide)
+  public String getId(@NotNull EChangeSide pSide)
   {
     return (pSide == EChangeSide.NEW ? diffEntry.getNewId() : diffEntry.getOldId()).toString();
   }
@@ -55,7 +58,7 @@ public class FileDiffImpl implements IFileDiff
    * {@inheritDoc}
    */
   @Override
-  public EFileType getFileType(EChangeSide pSide)
+  public EFileType getFileType(@NotNull EChangeSide pSide)
   {
     return EnumMappings.toEFileType(pSide == EChangeSide.NEW ? diffEntry.getMode(DiffEntry.Side.NEW) : diffEntry.getMode(DiffEntry.Side.OLD));
   }
@@ -64,9 +67,18 @@ public class FileDiffImpl implements IFileDiff
    * {@inheritDoc}
    */
   @Override
-  public String getFilePath(EChangeSide pSide)
+  public String getFilePath(@NotNull EChangeSide pSide)
   {
     return pSide == EChangeSide.NEW ? diffEntry.getNewPath() : diffEntry.getOldPath();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Charset getEncoding(@NotNull EChangeSide pSide)
+  {
+    return pSide == EChangeSide.NEW ? newFileContent.getEncoding() : originalFileContent.getEncoding();
   }
 
   @Override
@@ -99,7 +111,7 @@ public class FileDiffImpl implements IFileDiff
     if (fileChanges == null)
     {
       EditList edits = fileHeader.getHunks().get(0).toEditList();
-      fileChanges = new FileChangesImpl(edits, originalFileContents, newFileContents);
+      fileChanges = new FileChangesImpl(edits, originalFileContent.getFileContent(), newFileContent.getFileContent());
     }
     return fileChanges;
   }

@@ -203,7 +203,7 @@ class ChunkPopupWindow extends JWindow
   {
     int startOffset;
     int length;
-    String contents;
+    String content;
     try
     {
       startOffset = pTextComponent.getDocument().getDefaultRootElement().getElement(pChangeChunk.getStart(EChangeSide.NEW)).getStartOffset();
@@ -212,8 +212,8 @@ class ChunkPopupWindow extends JWindow
         length = 0;
       else
         length = endOffset - startOffset - 1;
-      contents = pRepo.getFileContents(pRepo.getFileVersion(pRepo.getCommit(null).getId(),
-                                                            pRepo.getTopLevelDirectory().toURI().relativize(pFile.toURI()).getPath()));
+      content = pRepo.getFileContents(pRepo.getFileVersion(pRepo.getCommit(null).getId(),
+                                                           pRepo.getTopLevelDirectory().toURI().relativize(pFile.toURI()).getPath())).getFileContent();
     }
     catch (AditoGitException | IOException pE)
     {
@@ -222,7 +222,7 @@ class ChunkPopupWindow extends JWindow
     // If it is an insert, remove the newline at the end as well (because else the newline is still an insertion)
     if (pChangeChunk.getEnd(EChangeSide.OLD) == pChangeChunk.getStart(EChangeSide.OLD))
       length += 1;
-    return new _RollbackInformation(startOffset, length, _getAffectedContents(contents, pChangeChunk));
+    return new _RollbackInformation(startOffset, length, _getAffectedContents(content, pChangeChunk));
   }
 
   /**

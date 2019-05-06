@@ -194,14 +194,20 @@ public interface IRepository
    */
   @NotNull List<IFileDiff> diff(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith) throws AditoGitException;
 
-  String getFileContents(String pIdentifier, File pFile) throws IOException;
+  /**
+   * @param pIdentifier String identifying the specific version of the file
+   * @param pFile
+   * @return the contents of the requested file as IFileContentInfo, with the content as String and the used encoding
+   * @throws IOException if an error occurs during transport/reading of the file
+   */
+  IFileContentInfo getFileContents(String pIdentifier, File pFile) throws IOException;
 
   /**
    * @param pIdentifier String identifying the specific version of the file
-   * @return the contents of the requested file as String
+   * @return the contents of the requested file as IFileContentInfo, with the content as String and the used encoding
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  String getFileContents(String pIdentifier) throws IOException;
+  IFileContentInfo getFileContents(String pIdentifier) throws IOException;
 
   /**
    * @param pFile the File to check the status

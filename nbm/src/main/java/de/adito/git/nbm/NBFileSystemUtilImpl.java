@@ -52,7 +52,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
 
   @Nullable
   @Override
-  public Image getIcon(File pFile, boolean pIsOpened)
+  public Image getIcon(@NotNull File pFile, boolean pIsOpened)
   {
     try
     {

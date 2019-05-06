@@ -77,7 +77,7 @@ class DiffToHeadAction extends AbstractTableAction
     if (path == null)
       return; // File does not exist -> no changes needed
 
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(path), false)))
+    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File(path), false), pFileDiff.getEncoding(EChangeSide.NEW)))
     {
       StringBuilder fileDiffContents = new StringBuilder();
       pFileDiff.getFileChanges().getChangeChunks().blockingFirst()

@@ -2,18 +2,23 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.*;
+import de.adito.git.api.IDiscardable;
+import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.*;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.*;
-import java.util.List;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -138,7 +143,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
             // BLines is always the "new" version of the file, in comparison to the fork point
             fileContents.append(changeChunk.getLines(EChangeSide.NEW));
           }
-          _writeToFile(fileContents.toString(), selectedMergeDiff, selectedFile);
+          _writeToFile(fileContents.toString(), selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, selectedFile);
         }
       }
     }
@@ -157,21 +162,22 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       for (IFileChangeChunk changeChunk : pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges()
           .getChangeChunks().blockingFirst().getNewValue())
       {
-        // BLines is always the "new" version of the file, in comparison to the fork point
+        // use "OLD" side here since the fork-point is the final result in the manual version
         fileContents.append(changeChunk.getLines(EChangeSide.OLD));
       }
-      _writeToFile(fileContents.toString(), pMergeDiff, selectedFile);
+      _writeToFile(fileContents.toString(), pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getEncoding(EChangeSide.OLD), pMergeDiff, selectedFile);
     }
   }
 
   /**
    * @param pFileContents      Contents that should be written to the file
+   * @param pCharset           Charset used to write pFileContents to disk (gets transferred from String to byte array)
    * @param pSelectedMergeDiff IMergeDiff that will get resolved by writing the contents to the file
    * @param pSelectedFile      file which should be overridden with pFileContents
    */
-  private void _writeToFile(String pFileContents, IMergeDiff pSelectedMergeDiff, File pSelectedFile)
+  private void _writeToFile(String pFileContents, Charset pCharset, IMergeDiff pSelectedMergeDiff, File pSelectedFile)
   {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(pSelectedFile, false)))
+    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pSelectedFile, false), pCharset))
     {
       writer.write(pFileContents);
       List<IMergeDiff> mergeDiffs = mergeConflictDiffs.blockingFirst();
