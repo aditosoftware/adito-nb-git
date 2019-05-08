@@ -174,7 +174,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     @Override
     public void reset(URIish pUri)
     {
-      config.setPassphrase(null);
+      config.setPassphrase(null, pUri.toString());
     }
 
     @Override

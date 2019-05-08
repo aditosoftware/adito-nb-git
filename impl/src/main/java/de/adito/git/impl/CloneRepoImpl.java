@@ -112,7 +112,7 @@ public class CloneRepoImpl implements ICloneRepo
   {
     CloneConfig cloneConfig = new CloneConfig();
     cloneConfig.setSshKeyLocation(pSshKeyLocation, null);
-    cloneConfig.setPassword(pSshKey);
+    cloneConfig.setPassphrase(pSshKey, null);
 
     return sshProvider.getTransportConfigCallBack(cloneConfig);
   }

@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs;
 
+import com.google.common.collect.Multimap;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
@@ -11,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -51,7 +51,7 @@ public interface IDialogProvider
 
   DialogResult showFileSelectionDialog(String pMessage);
 
-  DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository);
+  DialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 
   DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog();
 

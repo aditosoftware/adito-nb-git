@@ -69,19 +69,26 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void setPassphrase(@Nullable char[] pPassphrase)
+  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl)
   {
     passphrase = pPassphrase;
   }
 
   @Override
-  public void setPassword(@Nullable char[] pPassword)
+  public void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl)
   {
     //not implemented
   }
 
   @Override
   public @Nullable String getRemoteName(@Nullable String pRemoteUrl)
+  {
+    //not implemented
+    return null;
+  }
+
+  @Override
+  public @Nullable String getRemoteUrl(@Nullable String pRemoteName)
   {
     //not implemented
     return null;

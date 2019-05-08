@@ -140,9 +140,9 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setPassphrase(@Nullable char[] pPassphrase)
+  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl)
   {
-    String sshKeyLocation = getSshKeyLocation(null);
+    String sshKeyLocation = getSshKeyLocation(pRemoteUrl);
     if (sshKeyLocation != null)
     {
       if (pPassphrase == null)
@@ -152,17 +152,17 @@ public class ConfigImpl implements IConfig
     }
     else
     {
-      throw new RuntimeException("Could not find any valid key in the config for which to set passphrase");
+      throw new RuntimeException("Could not find any valid key in the config for which to set passphrase. Passed url for the remote was: " + pRemoteUrl);
     }
   }
 
   @Override
-  public void setPassword(@Nullable char[] pPassword)
+  public void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl)
   {
     try
     {
       String userName = getUserName();
-      String remoteName = RepositoryImplHelper.getRemoteName(git, null);
+      String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
       String key = userName != null && remoteName != null ? userName + remoteName : null;
       if (key != null)
       {
@@ -173,7 +173,7 @@ public class ConfigImpl implements IConfig
       }
       else
       {
-        throw new RuntimeException("Could not find any valid key in the config for which to set passphrase");
+        throw new RuntimeException("Could not find any valid key in the config for which to set password. Passed url for the remote was: " + pRemoteUrl);
       }
     }
     catch (IOException pE)
@@ -193,6 +193,12 @@ public class ConfigImpl implements IConfig
     {
       return null;
     }
+  }
+
+  @Override
+  public @Nullable String getRemoteUrl(@Nullable String pRemoteName)
+  {
+    return git.getRepository().getConfig().getString(SSH_SECTION_KEY, pRemoteName, REMOTE_URL_KEY);
   }
 
 }

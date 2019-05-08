@@ -50,8 +50,8 @@ public interface IConfig
    * returns the ssh key set for this repository/current remote, if none is set the default ssh key (id_rsa), or null
    * if the default ssh key doesn't exist either
    *
-   * @return ssh key location set for this repository/current remote or null if none set
    * @param pRemoteUrl Url of the remote for which the ssh key is searched for. can be null
+   * @return ssh key location set for this repository/current remote or null if none set
    */
   @Nullable String getSshKeyLocation(@Nullable String pRemoteUrl);
 
@@ -93,19 +93,21 @@ public interface IConfig
    * save the location of the ssh key
    *
    * @param pSshKeyLocation location of the ssh key, null means the default key (user_home/.ssh/id_rsa)
-   * @param pRemoteUrl Url of the remote for which the ssh key should be saved, may be null (remote is determined via current branch and its tracked branch)
+   * @param pRemoteUrl      Url of the remote for which the ssh key should be saved, may be null (remote is determined via current branch and its tracked branch)
    */
   void setSshKeyLocation(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl);
 
   /**
    * @param pPassphrase new passphrase for the ssh key, null means no passphrase required
+   * @param pRemoteUrl  url of the remote, or null if not known
    */
-  void setPassphrase(@Nullable char[] pPassphrase);
+  void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl);
 
   /**
    * @param pPassword new password for the user, null means no password is required
+   * @param pRemoteUrl  url of the remote, or null if not known
    */
-  void setPassword(@Nullable char[] pPassword);
+  void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl);
 
   /**
    * get the name of either the remote with the passes url or the remote that is connected to the current branch (if any is)
@@ -115,5 +117,12 @@ public interface IConfig
    */
   @Nullable String getRemoteName(@Nullable String pRemoteUrl);
 
+  /**
+   * get the url stored in the config for the given remote
+   *
+   * @param pRemoteName name of the remote, e.g. "origin"
+   * @return url stored in the config for the given remote, or null if no such remote exists/no url is stored
+   */
+  @Nullable String getRemoteUrl(@Nullable String pRemoteName);
 
 }

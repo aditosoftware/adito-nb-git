@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs;
 
+import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import de.adito.git.api.IKeyStore;
@@ -13,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -184,7 +184,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public DialogResult<GitConfigDialog, Map<String, String>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository)
+  public DialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository)
   {
     String repoName = pRepository.blockingFirst().map(pRepo -> pRepo.getTopLevelDirectory().getName()).orElse("unknown repository");
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createGitConfigDialog(pRepository),

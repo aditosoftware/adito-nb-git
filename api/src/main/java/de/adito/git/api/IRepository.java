@@ -8,9 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera 20.09.2018
@@ -558,4 +556,12 @@ public interface IRepository
    * @return IConfig object
    */
   IConfig getConfig();
+
+  /**
+   * get the names of all remotes referenced in the git config
+   *
+   * @return List with names of the remotes (e.g. "origin")
+   */
+  @NotNull
+  Set<String> getRemoteNames();
 }

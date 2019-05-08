@@ -1478,6 +1478,12 @@ public class RepositoryImpl implements IRepository
     return dataFactory.createConfig(git);
   }
 
+  @Override
+  public @NotNull Set<String> getRemoteNames()
+  {
+    return git.getRepository().getRemoteNames();
+  }
+
 
   /**
    * Bridge from the FileSystemChangeListener to Observables
