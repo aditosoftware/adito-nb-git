@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -1054,15 +1055,19 @@ public class RepositoryImpl implements IRepository
    */
   @NotNull
   @Override
-  public List<IFileChangeType> getCommittedFiles(String pCommitId) throws AditoGitException
+  public List<IFileChangeType> getCommittedFiles(String pCommitId, int... pParentCommitIds) throws AditoGitException
   {
     try
     {
       RevCommit thisCommit = RepositoryImplHelper.getRevCommit(git, pCommitId);
       List<DiffEntry> diffEntries = new ArrayList<>();
-      for (RevCommit parent : thisCommit.getParents())
+      if (pParentCommitIds.length == 0)
       {
-        diffEntries.addAll(RepositoryImplHelper.doDiff(git, thisCommit.getId(), parent.getId()));
+        pParentCommitIds = IntStream.rangeClosed(0, thisCommit.getParents().length - 1).toArray();
+      }
+      for (int parentCommitIndex : pParentCommitIds)
+      {
+        diffEntries.addAll(RepositoryImplHelper.doDiff(git, thisCommit.getId(), thisCommit.getParent(parentCommitIndex)));
       }
       return diffEntries.stream()
           .map(pDiffEntry -> {

@@ -64,6 +64,7 @@ interface IActionFactory
 
   DiffCommitsAction createDiffCommitsAction(Observable<Optional<IRepository>> pRepository,
                                             Observable<Optional<List<ICommit>>> pSelectedCommitsObservable,
+                                            Observable<Optional<ICommit>> pParentCommit,
                                             Observable<Optional<String>> pSelectedFile);
 
   DiffCommitToHeadAction createDiffCommitToHeadAction(Observable<Optional<IRepository>> pRepository,

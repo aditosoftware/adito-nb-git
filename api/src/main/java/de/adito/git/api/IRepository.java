@@ -347,12 +347,13 @@ public interface IRepository
 
   /**
    * @param pCommitId Id of the commit for which the changed files should be retrieved
+   * @param pParentCommitIds which parent commits to include, no numbers passed means all
    * @return {@code List<String>} detailing the changed files in the commit
    * @throws AditoGitException if JGit encountered an error condition
    * @throws AditoGitException if an error occurs
    */
   @NotNull
-  List<IFileChangeType> getCommittedFiles(String pCommitId) throws AditoGitException;
+  List<IFileChangeType> getCommittedFiles(String pCommitId, int... pParentCommitIds) throws AditoGitException;
 
   /**
    * @param pIdentifier String with identifier of the commit, or NULL for HEAD

@@ -26,12 +26,14 @@ class DiffCommitsAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
+  private final Observable<Optional<ICommit>> parentCommitObservable;
   private final Observable<Optional<String>> selectedFile;
 
   @Inject
   DiffCommitsAction(IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
                     @Assisted Observable<Optional<IRepository>> pRepository,
                     @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                    @Assisted Observable<Optional<ICommit>> pParentCommit,
                     @Assisted @Nullable Observable<Optional<String>> pSelectedFile)
   {
     super("Show Diff", _getIsEnabledObservable(pSelectedCommitObservable));
@@ -39,6 +41,7 @@ class DiffCommitsAction extends AbstractTableAction
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
+    parentCommitObservable = pParentCommit;
     selectedFile = pSelectedFile;
   }
 
@@ -54,7 +57,7 @@ class DiffCommitsAction extends AbstractTableAction
         List<IFileDiff> fileDiffs = repository.blockingFirst().map(pRepository -> {
           try
           {
-            return pRepository.diff(selectedCommit, oldestSelectedCommit.getParents().get(0));
+            return pRepository.diff(selectedCommit, parentCommitObservable.blockingFirst().orElse(oldestSelectedCommit.getParents().get(0)));
           }
           catch (AditoGitException pE)
           {

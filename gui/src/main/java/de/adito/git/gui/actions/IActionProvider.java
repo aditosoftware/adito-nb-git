@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -161,11 +162,12 @@ public interface IActionProvider
   /**
    * @param pRepository               Observable with the current Repository
    * @param pSelectedCommitObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @param pParentCommit             to which parentCommit the diff should be made, important for merge-commits
    * @param pSelectedFile             File that is currently selected and should also be selected in the diff dialog. Can be optional.empty
    * @return Action whose actionPerformed method shows a dialog that shows the differences between the commit and its parent
    */
-  Action getDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
-                              Observable<Optional<String>> pSelectedFile);
+  Action getDiffCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                              @NotNull Observable<Optional<ICommit>> pParentCommit, @NotNull Observable<Optional<String>> pSelectedFile);
 
   /**
    * @param pRepository               Observable with the current Repository

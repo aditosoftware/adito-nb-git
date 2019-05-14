@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -202,13 +203,13 @@ class ActionProvider implements IActionProvider
   public Action getDiffCommitsAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
                                      Observable<Optional<String>> pSelectedFile)
   {
-    return actionFactory.createDiffCommitsAction(pRepository, pSelectedCommitObservable, pSelectedFile);
+    return actionFactory.createDiffCommitsAction(pRepository, pSelectedCommitObservable, pParentCommit, pSelectedFile);
   }
 
   @Override
-  public Action getDiffCommitToHeadAction(Observable<Optional<IRepository>> pRepository,
-                                          Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
-                                          Observable<Optional<String>> pSelectedFile)
+  public Action getDiffCommitToHeadAction(@NotNull Observable<Optional<IRepository>> pRepository,
+                                          @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                          @NotNull Observable<Optional<String>> pSelectedFile)
   {
     return actionFactory.createDiffCommitToHeadAction(pRepository, pSelectedCommitObservable, pSelectedFile);
   }
