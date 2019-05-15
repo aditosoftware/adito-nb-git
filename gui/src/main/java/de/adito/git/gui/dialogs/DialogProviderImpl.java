@@ -67,7 +67,7 @@ class DialogProviderImpl implements IDialogProvider
       String title = "Diff for file ";
       if (pSelectedFile != null)
         title += pSelectedFile;
-      else
+      else if (!pFileDiffs.isEmpty())
         title += pFileDiffs.get(0).getFilePath();
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs, pSelectedFile, pAcceptChange, pShowFileTable),
                                           title);
