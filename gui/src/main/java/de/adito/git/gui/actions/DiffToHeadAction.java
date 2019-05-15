@@ -37,7 +37,7 @@ class DiffToHeadAction extends AbstractTableAction
                    @Assisted Observable<Optional<IRepository>> pRepository,
                    @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
-    super("Compare with local", _getIsEnabledObservable(pSelectedFilesObservable));
+    super("Show Changes", _getIsEnabledObservable(pSelectedFilesObservable));
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.DIFF_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Diff to HEAD");
     progressFacade = pProgressFacade;

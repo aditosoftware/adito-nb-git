@@ -36,7 +36,7 @@ class DiffCommitsAction extends AbstractTableAction
                     @Assisted Observable<Optional<ICommit>> pParentCommit,
                     @Assisted @Nullable Observable<Optional<String>> pSelectedFile)
   {
-    super("Show Diff", _getIsEnabledObservable(pSelectedCommitObservable, pSelectedFile));
+    super("Show Changes", _getIsEnabledObservable(pSelectedCommitObservable, pSelectedFile));
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
     repository = pRepository;

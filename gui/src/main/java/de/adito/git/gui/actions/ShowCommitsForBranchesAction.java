@@ -10,7 +10,9 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Action class to show all commits of one branch
@@ -29,10 +31,10 @@ class ShowCommitsForBranchesAction extends AbstractTableAction
   ShowCommitsForBranchesAction(IWindowProvider pWindowProvider, IAsyncProgressFacade pProgressFacade,
                                @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IBranch>>> pBranches)
   {
-    super("Show Commits", getIsEnabledObservable(pBranches));
+    super("Show History", getIsEnabledObservable(pBranches));
     windowProvider = pWindowProvider;
     progressFacade = pProgressFacade;
-    putValue(Action.NAME, "Show Commits");
+    putValue(Action.NAME, "Show History");
     putValue(Action.SHORT_DESCRIPTION, "Get all commits of this Branch or file");
     repository = pRepository;
     branches = pBranches;
