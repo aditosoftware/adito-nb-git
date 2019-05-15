@@ -2,6 +2,7 @@ package de.adito.git.gui.quicksearch;
 
 import de.adito.git.api.IQuickSearch;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -88,7 +89,7 @@ public class QuickSearchTreeCallbackImpl implements IQuickSearch.ICallback
     for (TreeNode childNode : Collections.list(pNode.children()))
     {
       TreePath childPath = pPath == null ? new TreePath(pNode) : pPath.pathByAddingChild(pNode);
-      if (((FileChangeTypeNodeInfo) ((DefaultMutableTreeNode) childNode).getUserObject()).getNodeDescription().contains(pSearchString))
+      if (StringUtils.containsIgnoreCase(((FileChangeTypeNodeInfo) ((DefaultMutableTreeNode) childNode).getUserObject()).getNodeDescription(), pSearchString))
       {
         foundOccurrences++;
         lastFoundBuffer = childPath.pathByAddingChild(childNode);

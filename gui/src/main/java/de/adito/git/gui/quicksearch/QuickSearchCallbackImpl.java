@@ -1,6 +1,7 @@
 package de.adito.git.gui.quicksearch;
 
 import de.adito.git.api.IQuickSearch;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -123,7 +124,7 @@ public class QuickSearchCallbackImpl implements IQuickSearch.ICallback
   private boolean _isOccurrence(String pSearchString, int pRowIndex, int pColIndex)
   {
     Object foundObj = table.getModel().getValueAt(pRowIndex, pColIndex);
-    return foundObj.toString().contains(pSearchString);
+    return StringUtils.containsIgnoreCase(foundObj.toString(), pSearchString);
   }
 
   /**
