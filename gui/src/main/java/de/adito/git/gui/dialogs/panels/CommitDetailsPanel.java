@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.PopupMouseListener;
@@ -11,16 +12,21 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
-import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.models.DiffTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
+import de.adito.git.impl.data.DiffInfoImpl;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
 import java.util.*;
@@ -66,27 +72,34 @@ public class CommitDetailsPanel implements IDiscardable
   {
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
-    Observable<List<IFileChangeType>> changedFilesObs = Observable
+    Observable<List<IDiffInfo>> changedFilesObs = Observable
         .combineLatest(selectedCommitObservable, repository, (pSelectedCommitsOpt, currentRepo) -> {
           Set<IFileChangeType> changedFilesSet = new HashSet<>();
           if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
           {
-            for (ICommit selectedCommit : pSelectedCommitsOpt.get())
+            for (ICommit selectedCommit : pSelectedCommitsOpt.get().subList(0, pSelectedCommitsOpt.get().size() - 1))
             {
               changedFilesSet.addAll(currentRepo.get().getCommittedFiles(selectedCommit.getId())
                                          .stream()
-                                         .map(pChangeType -> new FileChangeTypeImpl(
-                                             new File(projectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType()))
+                                         .flatMap(pDiffInfo -> pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
+                                             new File(projectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType())))
                                          .collect(Collectors.toList()));
             }
-            return new ArrayList<>(changedFilesSet);
+            return currentRepo.get().getCommittedFiles(pSelectedCommitsOpt.get().get(pSelectedCommitsOpt.get().size() - 1).getId())
+                .stream()
+                .map(pDiffInfo -> {
+                  Set<IFileChangeType> changedFiles = new HashSet<>(changedFilesSet);
+                  changedFiles.addAll(pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
+                      new File(projectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType())).collect(Collectors.toList()));
+                  return new DiffInfoImpl(pSelectedCommitsOpt.get().get(0), pDiffInfo.getParentCommit(), new ArrayList<>(changedFiles));
+                }).collect(Collectors.toList());
           }
           else
           {
             return Collections.emptyList();
           }
         });
-    StatusTreeModel statusTreeModel = new StatusTreeModel(changedFilesObs, projectDirectory);
+    DiffTreeModel statusTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
     statusTree.init(tableViewPanel, statusTreeModel);
     statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
     pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
@@ -94,24 +107,40 @@ public class CommitDetailsPanel implements IDiscardable
     tableViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
     ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
     statusTree.setSelectionModel(observableTreeSelectionModel);
+    // combineLatest here only so the observable is also updated when changedFilesObs updates
     Observable<Optional<String>> selectedFile = Observable
         .combineLatest(observableTreeSelectionModel.getSelectedPaths(), changedFilesObs, (pSelected, pStatus) -> {
           if (pSelected == null)
             return Optional.empty();
           return Arrays.stream(pSelected)
-              .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getMembers())
-              .flatMap(Collection::stream)
-              .map(pChangeType -> pChangeType.getFile().getAbsolutePath())
+              .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getNodeFile())
+              .filter(pFile -> pFile.exists() && pFile.isFile())
+              .map(File::getAbsolutePath)
               .findFirst();
+        });
+    Observable<Optional<ICommit>> parentCommitObs = Observable
+        .combineLatest(observableTreeSelectionModel.getSelectedPaths(), changedFilesObs, (pSelected, pStatus) -> {
+          if (pSelected == null)
+            return Optional.empty();
+          return Arrays.stream(pSelected)
+              .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getAssignedCommit()).findFirst();
         });
     JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(actionProvider.getOpenFileStringAction(selectedFile));
     popupMenu.addSeparator();
     popupMenu.add(actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, selectedFile));
-    popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
+    popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, parentCommitObs, selectedFile));
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
-    popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, selectedFile));
+    popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, parentCommitObs, selectedFile));
     statusTree.addMouseListener(popupMouseListener);
+    statusTree.getModel().addTreeModelListener(new _ExpandTreeModelListener(new AbstractAction()
+    {
+      @Override
+      public void actionPerformed(ActionEvent e)
+      {
+        statusTree.expandPath(new TreePath(statusTree.getModel().getRoot()));
+      }
+    }));
   }
 
   private JToolBar _getTreeToolbar()
@@ -287,6 +316,44 @@ public class CommitDetailsPanel implements IDiscardable
       shortMessageComp.setWrapStyleWord(true);
       shortMessageComp.setEditable(false);
       return shortMessageComp;
+    }
+  }
+
+  /**
+   * TreeListener that performs the passed expand Action each time the model changes
+   */
+  private static class _ExpandTreeModelListener implements TreeModelListener
+  {
+
+    private final Action expandTreeAction;
+
+    _ExpandTreeModelListener(Action pExpandTreeAction)
+    {
+      expandTreeAction = pExpandTreeAction;
+    }
+
+    @Override
+    public void treeNodesChanged(TreeModelEvent e)
+    {
+      expandTreeAction.actionPerformed(null);
+    }
+
+    @Override
+    public void treeNodesInserted(TreeModelEvent e)
+    {
+      expandTreeAction.actionPerformed(null);
+    }
+
+    @Override
+    public void treeNodesRemoved(TreeModelEvent e)
+    {
+      expandTreeAction.actionPerformed(null);
+    }
+
+    @Override
+    public void treeStructureChanged(TreeModelEvent e)
+    {
+      expandTreeAction.actionPerformed(null);
     }
   }
 }

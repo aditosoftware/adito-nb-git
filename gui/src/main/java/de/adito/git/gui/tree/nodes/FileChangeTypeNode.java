@@ -1,5 +1,6 @@
 package de.adito.git.gui.tree.nodes;
 
+import de.adito.git.api.data.ICommit;
 import de.adito.git.impl.util.Util;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,9 +21,18 @@ import java.util.List;
 public class FileChangeTypeNode extends DefaultMutableTreeNode
 {
 
+  @Nullable
+  private ICommit assignedCommit;
+
   public FileChangeTypeNode(FileChangeTypeNodeInfo pUserObject)
   {
     super(pUserObject);
+  }
+
+  public FileChangeTypeNode(FileChangeTypeNodeInfo pUserObject, @Nullable ICommit pAssignedCommit)
+  {
+    super(pUserObject);
+    assignedCommit = pAssignedCommit;
   }
 
   /**
@@ -100,5 +110,16 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
       pModel.removeNodeFromParent((FileChangeTypeNode) childrenCopy.get(index));
       pModel.insertNodeInto((FileChangeTypeNode) childrenCopy.get(index), this, index);
     }
+  }
+
+  @Nullable
+  public ICommit getAssignedCommit()
+  {
+    return assignedCommit;
+  }
+
+  public void setAssignedCommit(@Nullable ICommit pAssignedCommit)
+  {
+    assignedCommit = pAssignedCommit;
   }
 }

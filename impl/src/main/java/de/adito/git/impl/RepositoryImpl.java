@@ -41,7 +41,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static de.adito.git.impl.Util.getRelativePath;
 
@@ -1055,32 +1054,29 @@ public class RepositoryImpl implements IRepository
    */
   @NotNull
   @Override
-  public List<IFileChangeType> getCommittedFiles(String pCommitId, int... pParentCommitIds) throws AditoGitException
+  public List<IDiffInfo> getCommittedFiles(String pCommitId) throws AditoGitException
   {
     try
     {
       RevCommit thisCommit = RepositoryImplHelper.getRevCommit(git, pCommitId);
-      List<DiffEntry> diffEntries = new ArrayList<>();
-      if (pParentCommitIds.length == 0)
+      List<IDiffInfo> diffInfos = new ArrayList<>();
+      for (RevCommit parentCommit : thisCommit.getParents())
       {
-        pParentCommitIds = IntStream.rangeClosed(0, thisCommit.getParents().length - 1).toArray();
+        List<IFileChangeType> fileChangeTypes = RepositoryImplHelper.doDiff(git, thisCommit.getId(), parentCommit).stream()
+            .map(pDiffEntry -> {
+              EChangeType changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
+              String path;
+              if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
+                path = pDiffEntry.getNewPath();
+              else
+                path = pDiffEntry.getOldPath();
+              return new FileChangeTypeImpl(new File(path), changeType);
+            })
+            .distinct()
+            .collect(Collectors.toList());
+        diffInfos.add(new DiffInfoImpl(new CommitImpl(thisCommit), new CommitImpl(parentCommit), fileChangeTypes));
       }
-      for (int parentCommitIndex : pParentCommitIds)
-      {
-        diffEntries.addAll(RepositoryImplHelper.doDiff(git, thisCommit.getId(), thisCommit.getParent(parentCommitIndex)));
-      }
-      return diffEntries.stream()
-          .map(pDiffEntry -> {
-            EChangeType changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
-            String path;
-            if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
-              path = pDiffEntry.getNewPath();
-            else
-              path = pDiffEntry.getOldPath();
-            return new FileChangeTypeImpl(new File(path), changeType);
-          })
-          .distinct()
-          .collect(Collectors.toList());
+      return diffInfos;
     }
     catch (IOException pE)
     {
