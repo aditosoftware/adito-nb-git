@@ -182,7 +182,8 @@ class ChunkPopupWindow extends JWindow
   {
     try
     {
-      pTextComponent.getDocument().remove(pRollbackInformation.getStartOffset(), pRollbackInformation.getLength());
+      pTextComponent.getDocument().remove(pRollbackInformation.getStartOffset(),
+                                          Math.min(pRollbackInformation.getLength(), pTextComponent.getDocument().getLength() - pRollbackInformation.getStartOffset()));
       pTextComponent.getDocument().insertString(pRollbackInformation.getStartOffset(), pRollbackInformation.getReplacement(), null);
     }
     catch (BadLocationException pE)
