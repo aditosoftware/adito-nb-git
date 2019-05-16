@@ -27,6 +27,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.List;
 import java.util.*;
@@ -40,6 +41,7 @@ public class CommitDetailsPanel implements IDiscardable
 
   private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
   private static final String DETAILS_FORMAT_STRING = "%7.7s %s <%s> on %s";
+  private static final String STANDARD_ACTION_STRING = "STANDARD_ACTION";
   private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
   private final JPanel tableViewPanel = new JPanel(new BorderLayout());
   private final IActionProvider actionProvider;
@@ -108,8 +110,29 @@ public class CommitDetailsPanel implements IDiscardable
     ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
     statusTree.setSelectionModel(observableTreeSelectionModel);
     // combineLatest here only so the observable is also updated when changedFilesObs updates
+
+    _initStatusTreeActions(observableTreeSelectionModel, changedFilesObs);
+
+    statusTree.getModel().addTreeModelListener(new _ExpandTreeModelListener(new AbstractAction()
+    {
+      @Override
+      public void actionPerformed(ActionEvent e)
+      {
+        statusTree.expandPath(new TreePath(statusTree.getModel().getRoot()));
+      }
+    }));
+  }
+
+  /**
+   * init all actions/menus of the statusTree in this metgod
+   *
+   * @param pObservableTreeSelectionModel Model of the observable tree
+   * @param pChangedFilesObs              Observable with the changed files of the selected commits
+   */
+  private void _initStatusTreeActions(ObservableTreeSelectionModel pObservableTreeSelectionModel, Observable<List<IDiffInfo>> pChangedFilesObs)
+  {
     Observable<Optional<String>> selectedFile = Observable
-        .combineLatest(observableTreeSelectionModel.getSelectedPaths(), changedFilesObs, (pSelected, pStatus) -> {
+        .combineLatest(pObservableTreeSelectionModel.getSelectedPaths(), pChangedFilesObs, (pSelected, pStatus) -> {
           if (pSelected == null)
             return Optional.empty();
           return Arrays.stream(pSelected)
@@ -119,27 +142,23 @@ public class CommitDetailsPanel implements IDiscardable
               .findFirst();
         });
     Observable<Optional<ICommit>> parentCommitObs = Observable
-        .combineLatest(observableTreeSelectionModel.getSelectedPaths(), changedFilesObs, (pSelected, pStatus) -> {
+        .combineLatest(pObservableTreeSelectionModel.getSelectedPaths(), pChangedFilesObs, (pSelected, pStatus) -> {
           if (pSelected == null)
             return Optional.empty();
           return Arrays.stream(pSelected)
               .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getAssignedCommit()).findFirst();
         });
+
     JPopupMenu popupMenu = new JPopupMenu();
+    Action diffCommitsAction = actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, parentCommitObs, selectedFile);
     popupMenu.add(actionProvider.getOpenFileStringAction(selectedFile));
     popupMenu.addSeparator();
-    popupMenu.add(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, parentCommitObs, selectedFile));
+    popupMenu.add(diffCommitsAction);
+    statusTree.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
+    statusTree.getActionMap().put(STANDARD_ACTION_STRING, diffCommitsAction);
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
-    popupMouseListener.setDoubleClickAction(actionProvider.getDiffCommitsAction(repository, selectedCommitObservable, parentCommitObs, selectedFile));
+    popupMouseListener.setDoubleClickAction(diffCommitsAction);
     statusTree.addMouseListener(popupMouseListener);
-    statusTree.getModel().addTreeModelListener(new _ExpandTreeModelListener(new AbstractAction()
-    {
-      @Override
-      public void actionPerformed(ActionEvent e)
-      {
-        statusTree.expandPath(new TreePath(statusTree.getModel().getRoot()));
-      }
-    }));
   }
 
   private JToolBar _getTreeToolbar()

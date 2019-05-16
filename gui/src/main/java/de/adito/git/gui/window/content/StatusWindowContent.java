@@ -18,6 +18,7 @@ import io.reactivex.Observable;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
  */
 class StatusWindowContent extends JPanel implements IDiscardable
 {
+
+  private static final String STANDARD_ACTION_STRING = "STANDARD_ACTION";
 
   private final Observable<Optional<IRepository>> repository;
   private final IActionProvider actionProvider;
@@ -109,7 +112,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
     tableViewPanel.add(toolBar, BorderLayout.WEST);
 
     popupMenu = new JPopupMenu();
-    popupMenu.add(actionProvider.getOpenFileAction(selectionObservable));
+    popupMenu.add(openFileAction);
     popupMenu.addSeparator();
     popupMenu.add(commitAction);
     popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
@@ -121,6 +124,8 @@ class StatusWindowContent extends JPanel implements IDiscardable
     popupMenu.addSeparator();
     popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
     statusTree.addMouseListener(new PopupMouseListener(popupMenu));
+    statusTree.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
+    statusTree.getActionMap().put(STANDARD_ACTION_STRING, openFileAction);
   }
 
   @Override
