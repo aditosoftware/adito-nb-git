@@ -19,6 +19,7 @@ import javax.swing.text.EditorKit;
 import java.awt.BorderLayout;
 import java.awt.ComponentOrientation;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -70,6 +71,8 @@ public class DiffPanel extends JPanel implements IDiscardable
     setBorder(new JScrollPane().getBorder());
     add(mainSplitPane, BorderLayout.CENTER);
     add(_initToolBar(pIconLoader), BorderLayout.NORTH);
+    // couple horizontal scrollbars
+    IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel()), List.of(oldVersionScrollPane.getHorizontalScrollBar().getModel()));
     differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionScrollPane, currentVersionScrollPane,
                                                               oldVersionDiffPane.getEditorPane(),
                                                               currentVersionDiffPane.getEditorPane(),

@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
+import com.google.common.collect.Collections2;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.rxjava.EditorKitChangeObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
@@ -145,5 +146,39 @@ public interface IDiffPaneUtil
       }
     }
     return heightMap;
+  }
+
+  /**
+   * Connect all passed boundedModels such that their scrolling is coupled (until one hits the maximum, at which point only the others move until the value drops
+   * below the value of the first model again).
+   * The lists can be empty
+   *
+   * @param pUpwardsModels BoundedModels in their normal form
+   * @param pInverseModels BoundedModels that have their scrolling reversed (e.g. by setting ComponentOrientation.RIGHT_TO_LEFT)
+   */
+  static void bridge(@NotNull List<BoundedRangeModel> pUpwardsModels, @NotNull List<BoundedRangeModel> pInverseModels)
+  {
+    for (BoundedRangeModel model : pUpwardsModels)
+    {
+      model.addChangeListener(pE -> {
+        Collections2
+            .filter(pUpwardsModels, pModel -> pModel != null && !pModel.equals(model))
+            .forEach(pModel -> pModel.setValue(model.getValue()));
+        // the value for "to the very left" of an inverse boundedModel is its maximum minus its extent (which equals 0 on a normal model). For every point up
+        // on the normal model the inverse model has its value reduced by one - thus we subtract the value from the "leftmost point"
+        pInverseModels.forEach(pModel -> pModel.setValue((pModel.getMaximum() - pModel.getExtent()) - model.getValue()));
+      });
+    }
+    for (BoundedRangeModel model : pInverseModels)
+    {
+      model.addChangeListener(pE -> {
+        Collections2
+            .filter(pInverseModels, pModel -> pModel != null && !pModel.equals(model))
+            .forEach(pModel -> pModel.setValue(model.getValue()));
+        // way easier to convert this way, since the starting point of the normal boundedModel is plain 0 so just calculate the distance of this inverse boundedModel
+        // from the "leftmost point" and set it on the other model
+        pUpwardsModels.forEach(pModel -> pModel.setValue(model.getMaximum() - (model.getValue() + model.getExtent())));
+      });
+    }
   }
 }

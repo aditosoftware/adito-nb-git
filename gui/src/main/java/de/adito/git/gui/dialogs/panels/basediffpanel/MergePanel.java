@@ -85,6 +85,10 @@ public class MergePanel extends JPanel implements IDiscardable
     yoursTheirsPanel.setBorder(new EmptyBorder(3, 16, 3, 16));
     yoursTheirsPanel.add(new JLabel("Your changes"), BorderLayout.WEST);
     yoursTheirsPanel.add(new JLabel("Their changes"), BorderLayout.EAST);
+    // couple horizontal scrollbars
+    IDiffPaneUtil.bridge(List.of(theirsPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel(),
+                                 forkPointPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel()),
+                         List.of(yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel()));
     add(yoursTheirsPanel, BorderLayout.NORTH);
   }
 
