@@ -1,7 +1,8 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.git.nbm.util.ProjectUtility;
 import io.reactivex.Observable;
@@ -9,8 +10,10 @@ import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
 import org.openide.filesystems.FileObject;
+import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
+import org.openide.util.Lookup;
 import org.openide.util.actions.NodeAction;
 
 import java.io.File;
@@ -58,9 +61,18 @@ abstract class NBAction extends NodeAction
     List<File> fileList = new ArrayList<>();
     for (Node node : pActivatedNodes)
     {
-      if (node.getLookup().lookup(FileObject.class) != null)
+      Lookup lookup = node.getLookup();
+      if (lookup.lookup(FileObject.class) != null)
       {
-        fileList.add(new File(node.getLookup().lookup(FileObject.class).getPath()));
+        fileList.add(new File(lookup.lookup(FileObject.class).getPath()));
+      }
+      else if (lookup.lookup(File.class) != null)
+      {
+        fileList.add(lookup.lookup(File.class));
+      }
+      else if (lookup.lookup(DataObject.class) != null)
+      {
+        fileList.add(new File(lookup.lookup(DataObject.class).getPrimaryFile().getPath()));
       }
     }
     return fileList;
