@@ -72,10 +72,12 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     repository = pRepository;
     commitTableModel = (CommitHistoryTreeListTableModel) pTableModel;
     commitTable = new _SearchableCommitTable(commitTableModel, commitTableView);
+    commitTable.removeColumn(commitTable.getColumn(CommitHistoryTreeListTableModel.COMMIT_ID_COL_NAME));
     List<Integer> searchAbleColumns = new ArrayList<>();
     searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.BRANCHING_COL_NAME));
     searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME));
     searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.DATE_COL_NAME));
+    searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.COMMIT_ID_COL_NAME));
     pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(commitTable, searchAbleColumns));
     ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
     commitTable.setSelectionModel(observableCommitListSelectionModel);

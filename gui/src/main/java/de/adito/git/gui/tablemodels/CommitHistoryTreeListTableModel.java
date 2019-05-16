@@ -21,12 +21,14 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
   public static final String BRANCHING_COL_NAME = "Branching / Commit Message";
   public static final String AUTHOR_COL_NAME = "Author";
   public static final String DATE_COL_NAME = "Date";
+  public static final String COMMIT_ID_COL_NAME = "Commit Id";
 
   private static final int BRANCHING = 0;
   private static final int AUTHOR = 1;
   private static final int TIME = 2;
+  private static final int COMMIT_ID = 3;
 
-  private static final List<String> columnNames = new ArrayList<>(Arrays.asList(BRANCHING_COL_NAME, AUTHOR_COL_NAME, DATE_COL_NAME));
+  private static final List<String> columnNames = new ArrayList<>(Arrays.asList(BRANCHING_COL_NAME, AUTHOR_COL_NAME, DATE_COL_NAME, COMMIT_ID_COL_NAME));
 
   private final List<CommitHistoryTreeListItem> commitList;
 
@@ -100,7 +102,7 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
       case BRANCHING:
         return CommitHistoryTreeListItem.class;
       case AUTHOR:
-        return String.class;
+      case COMMIT_ID:
       case TIME:
         return String.class;
       default:
@@ -120,6 +122,8 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
         return commitHistoryTreeListItem.getCommit().getAuthor();
       case TIME:
         return DateTimeRenderer.asString(commitHistoryTreeListItem.getCommit().getTime());
+      case COMMIT_ID:
+        return commitHistoryTreeListItem.getCommit().getId();
       default:
         return null;
     }
