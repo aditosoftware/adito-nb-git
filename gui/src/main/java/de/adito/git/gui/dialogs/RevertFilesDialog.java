@@ -25,26 +25,33 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
   @Inject
   public RevertFilesDialog(IActionProvider pActionProvider, IFileSystemUtil pFileSystemUtil, @Assisted List<IFileChangeType> pFilesToRevert, @Assisted File pProjectDir)
   {
-    setPreferredSize(new Dimension(600, 500));
-    setLayout(new BorderLayout(0, 10));
+    if (pFilesToRevert.size() > 1)
+    {
+      setPreferredSize(new Dimension(600, 500));
+      setLayout(new BorderLayout(0, 10));
 
-    // Label at the top
-    JLabel topLabel = new JLabel("Revert the listed files back to the state of HEAD?");
-    topLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    add(topLabel, BorderLayout.NORTH);
+      // Label at the top
+      JLabel topLabel = new JLabel("Revert the listed files back to the state of HEAD?");
+      topLabel.setHorizontalAlignment(SwingConstants.CENTER);
+      add(topLabel, BorderLayout.NORTH);
 
-    // Tree and scrollPane for tree
-    JTree fileTree = new JTree(new StatusTreeModel(Observable.just(pFilesToRevert), pProjectDir));
-    fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
-    JScrollPane scrollPane = new JScrollPane(fileTree);
-    add(scrollPane, BorderLayout.CENTER);
+      // Tree and scrollPane for tree
+      JTree fileTree = new JTree(new StatusTreeModel(Observable.just(pFilesToRevert), pProjectDir));
+      fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
+      JScrollPane scrollPane = new JScrollPane(fileTree);
+      add(scrollPane, BorderLayout.CENTER);
 
-    // Toolbar
-    JToolBar toolBar = new JToolBar(JToolBar.VERTICAL);
-    toolBar.setFloatable(false);
-    toolBar.add(pActionProvider.getExpandTreeAction(fileTree));
-    toolBar.add(pActionProvider.getCollapseTreeAction(fileTree));
-    add(toolBar, BorderLayout.WEST);
+      // Toolbar
+      JToolBar toolBar = new JToolBar(JToolBar.VERTICAL);
+      toolBar.setFloatable(false);
+      toolBar.add(pActionProvider.getExpandTreeAction(fileTree));
+      toolBar.add(pActionProvider.getCollapseTreeAction(fileTree));
+      add(toolBar, BorderLayout.WEST);
+    }
+    else if (pFilesToRevert.size() == 1)
+    {
+      add(new JLabel("Revert file " + pFilesToRevert.get(0).getFile().getAbsolutePath() + " back to the state of HEAD?"));
+    }
   }
 
   @Override
