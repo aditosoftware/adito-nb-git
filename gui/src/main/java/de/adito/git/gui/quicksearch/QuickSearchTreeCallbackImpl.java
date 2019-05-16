@@ -86,25 +86,30 @@ public class QuickSearchTreeCallbackImpl implements IQuickSearch.ICallback
   {
     // keeps track of how many occurrences have been found so far
     int foundOccurrences = 0;
-    for (TreeNode childNode : Collections.list(pNode.children()))
     {
-      TreePath childPath = pPath == null ? new TreePath(pNode) : pPath.pathByAddingChild(pNode);
-      if (StringUtils.containsIgnoreCase(((FileChangeTypeNodeInfo) ((DefaultMutableTreeNode) childNode).getUserObject()).getNodeDescription(), pSearchString))
+      for (TreeNode childNode : Collections.list(pNode.children()))
       {
-        foundOccurrences++;
-        lastFoundBuffer = childPath.pathByAddingChild(childNode);
-        if (pN == 0)
-          return new _SearchResult(foundOccurrences, childPath.pathByAddingChild(childNode));
-        else
-          pN--;
-      }
-      if (!childNode.isLeaf())
-      {
-        _SearchResult searchResult = _findNthOccurrence(pSearchString, pN, childPath, (DefaultMutableTreeNode) childNode);
-        foundOccurrences += searchResult.getFoundOccurrences();
-        if ((pN == 0 || pN - foundOccurrences == -1) && searchResult.getValidPath() != null)
-          return new _SearchResult(foundOccurrences, searchResult.getValidPath());
-        pN -= searchResult.getFoundOccurrences();
+        TreePath childPath = pPath == null ? new TreePath(pNode) : pPath.pathByAddingChild(pNode);
+        if (tree.isVisible(childPath.pathByAddingChild(childNode)))
+        {
+          if (StringUtils.containsIgnoreCase(((FileChangeTypeNodeInfo) ((DefaultMutableTreeNode) childNode).getUserObject()).getNodeDescription(), pSearchString))
+          {
+            foundOccurrences++;
+            lastFoundBuffer = childPath.pathByAddingChild(childNode);
+            if (pN == 0)
+              return new _SearchResult(foundOccurrences, childPath.pathByAddingChild(childNode));
+            else
+              pN--;
+          }
+          if (!childNode.isLeaf())
+          {
+            _SearchResult searchResult = _findNthOccurrence(pSearchString, pN, childPath, (DefaultMutableTreeNode) childNode);
+            foundOccurrences += searchResult.getFoundOccurrences();
+            if ((pN == 0 || pN - foundOccurrences == -1) && searchResult.getValidPath() != null)
+              return new _SearchResult(foundOccurrences, searchResult.getValidPath());
+            pN -= searchResult.getFoundOccurrences();
+          }
+        }
       }
     }
     if (pPath == null)
