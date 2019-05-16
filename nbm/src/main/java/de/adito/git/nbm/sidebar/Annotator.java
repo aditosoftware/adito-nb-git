@@ -3,7 +3,9 @@ package de.adito.git.nbm.sidebar;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.nbm.IGitConstants;
+import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
@@ -40,7 +42,7 @@ public class Annotator extends JPanel implements IDiscardable
 {
   private static final String NOT_COMMITTED_YET = "Not Committed Yet";
   private static final int FREE_SPACE = 6; // have to be modulo 2
-  private static DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+  private DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
   private final JTextComponent target;
   private final CompositeDisposable disposables = new CompositeDisposable();
   private BufferedImage blameImage;
@@ -64,6 +66,9 @@ public class Annotator extends JPanel implements IDiscardable
     nbFont = pTarget.getFont();
     File file = new File(pDataObject.getPrimaryFile().toURI());
     _buildObservableChain(pRepository, pTarget, file);
+    JPopupMenu popupMenu = new JPopupMenu();
+    popupMenu.add(new ShowAnnotationNBAction(target));
+    addMouseListener(new PopupMouseListener(popupMenu));
   }
 
   /**
@@ -376,7 +381,6 @@ public class Annotator extends JPanel implements IDiscardable
       nbFont = lineFont;
     }
   }
-
 
   /*
    * An observable to check the values on the ScrollPane.
