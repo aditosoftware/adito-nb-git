@@ -6,13 +6,14 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.awt.*;
-import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,18 +70,36 @@ public class DiffLocalChangesNBAction extends NBAction
     return NbBundle.getMessage(DiffLocalChangesNBAction.class, "LBL_DiffLocalChangesNBAction_Name");
   }
 
+  /**
+   * Checks how/if the file contained in the selected node is changed. If the selected node is for a directory, checks if any aod files are
+   * in the directory and if exactly one file matches that criterium, return the IFileChangeType of that file instead
+   *
+   * @param pActivatedNodes selected nodes
+   * @param pRepository     observable with the repository containing the files from the selected nodes
+   * @return IFileChangeType of the file in the selected node, or null if no or more than one node are selected
+   */
   @Nullable
   private static IFileChangeType _getIFileChangeType(Node[] pActivatedNodes, Observable<Optional<IRepository>> pRepository)
   {
-    if (pActivatedNodes.length == 1)
+    List<File> filesOfNodes = getAllFilesOfNodes(pActivatedNodes);
+    if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory())
     {
-      FileObject fileObject = pActivatedNodes[0].getLookup().lookup(FileObject.class);
-      if (fileObject != null)
-      {
-        File fileFromNode = new File(fileObject.getPath());
-        return pRepository.blockingFirst().map(pRepo -> pRepo.getStatusOfSingleFile(fileFromNode)).orElse(null);
-      }
+      List<File> aodFiles = _getFilesOfType(filesOfNodes.get(0), ".aod");
+      if (aodFiles.size() == 1)
+        return pRepository.blockingFirst().map(pRepo -> pRepo.getStatusOfSingleFile(aodFiles.get(0))).orElse(null);
     }
     return null;
+  }
+
+  /**
+   * @param pParent File whose children should be searched
+   * @param pEnding ending of the file. Can be just the type, but may also be more than that
+   * @return List of files (NOTE: not directories!) matching the ending
+   */
+  @NotNull
+  private static List<File> _getFilesOfType(@NotNull File pParent, @NotNull String pEnding)
+  {
+    File[] matchingFiles = pParent.listFiles(pFile -> pFile.isFile() && pFile.getName().endsWith(pEnding));
+    return matchingFiles == null ? List.of() : Arrays.asList(matchingFiles);
   }
 }
