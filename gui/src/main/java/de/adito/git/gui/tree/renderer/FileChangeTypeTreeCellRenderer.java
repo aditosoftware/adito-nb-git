@@ -38,6 +38,8 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
     {
       FileChangeTypeNode node = (FileChangeTypeNode) pValue;
       FileChangeTypeNodeInfo nodeInfo = node.getInfo();
+      if (nodeInfo == null)
+        return defaultRenderer.getTreeCellRendererComponent(pTree, pValue, pSelected, pExpanded, pLeaf, pRow, pHasFocus);
       JPanel panel = new JPanel(new BorderLayout(PANEL_HGAP, 0));
       // icon for the file/folder
       JLabel iconLabel = new JLabel();
@@ -49,7 +51,7 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
       }
       // name of the file/folder, if nodes are collapsed the path from the parentNode to the childNode
       JLabel fileLabel = new JLabel(nodeInfo.getNodeDescription());
-      if (!pSelected && node.isLeaf())
+      if (!pSelected && pLeaf)
       {
         fileLabel.setForeground(nodeInfo.getMembers().get(0).getChangeType().getStatusColor());
       }
