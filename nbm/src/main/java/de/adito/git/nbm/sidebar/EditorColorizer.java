@@ -89,7 +89,7 @@ class EditorColorizer extends JPanel implements IDiscardable
 
 
     chunkObservable = Observable
-        .combineLatest(pRepository, actualText.throttleLatest(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
+        .combineLatest(pRepository, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
           if (pRepoOpt.isPresent())
           {
             try
