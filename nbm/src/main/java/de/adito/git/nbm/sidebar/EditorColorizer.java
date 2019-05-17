@@ -65,11 +65,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     file = new File(pDataObject.getPrimaryFile().toURI());
     addMouseListener(new _ChunkPopupMouseListener(pRepository, targetEditor));
 
-    /*
-     * An observable to check the values on the ScrollPane.
-     * this is important for the rectangles inside the editor bar.
-     * The rectangles will be only rendered if the clipping is shown.
-     */
+    // An observable that only triggers if the viewPort changes its size (not if it moves)
     Observable<Dimension> viewPortSizeObs = Observable.create(new ViewPortSizeObservable(editorViewPort));
 
     chunkObservable = Observable
@@ -84,11 +80,10 @@ class EditorColorizer extends JPanel implements IDiscardable
               if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
                 return new ArrayList<IFileChangeChunk>();
               return repo.diff(pText, file);
-              // do nothing on error, the EditorColorizer should just show nothing in that case
             }
             catch (Exception pE)
             {
-              return new ArrayList<IFileChangeChunk>();
+              // do nothing on error, the EditorColorizer should just show nothing in that case
             }
           }
           return new ArrayList<IFileChangeChunk>();
@@ -105,7 +100,13 @@ class EditorColorizer extends JPanel implements IDiscardable
         });
   }
 
-  private BufferedImage _createBufferedImage(List<_ChangeHolder> pChangeList, int pHeight)
+  /**
+   * @param pChangeList List of _ChangeHolders that should be drawn in the bufferedImage
+   * @param pHeight     height of the targetPanel and thus the height of the bufferedImage
+   * @return BufferedImage containing all the _ChangeHolders, background trasnparent
+   */
+  @NotNull
+  private BufferedImage _createBufferedImage(@NotNull List<_ChangeHolder> pChangeList, int pHeight)
   {
     BufferedImage image = new BufferedImage(COLORIZER_WIDTH, Math.max(1, pHeight), BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = (Graphics2D) image.getGraphics();
@@ -168,8 +169,8 @@ class EditorColorizer extends JPanel implements IDiscardable
   }
 
   /**
-   * @param pTarget              The text component of the editor
-   * @param pChange              A chunk of a file that was changed
+   * @param pTarget The text component of the editor
+   * @param pChange A chunk of a file that was changed
    */
   @Nullable
   private _ChangeHolder _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange) throws BadLocationException
@@ -190,8 +191,8 @@ class EditorColorizer extends JPanel implements IDiscardable
       default:
         break;
     }
-    Element startElement = pTarget.getDocument().getDefaultRootElement().getElement(startLine);
-    Element endElement = pTarget.getDocument().getDefaultRootElement().getElement(endLine);
+    Element startElement = pTarget.getDocument().getDefaultRootElement().getElement(Math.min(startLine, pTarget.getDocument().getDefaultRootElement().getElementCount()));
+    Element endElement = pTarget.getDocument().getDefaultRootElement().getElement(Math.min(endLine, pTarget.getDocument().getDefaultRootElement().getElementCount()));
     int endOffset = endElement.getStartOffset();
     int startOffset = startElement.getStartOffset();
 
@@ -207,7 +208,7 @@ class EditorColorizer extends JPanel implements IDiscardable
           view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Forward, new Rectangle()).getBounds();
       if (changeRectangle.width == 0 && changeRectangle.height != 0)
         changeRectangle.width = COLORIZER_WIDTH;
-        return new _ChangeHolder(changeRectangle, pChange);
+      return new _ChangeHolder(changeRectangle, pChange);
     }
     return null;
   }
@@ -247,6 +248,10 @@ class EditorColorizer extends JPanel implements IDiscardable
     _drawImage(pG, bufferedImage);
   }
 
+  /**
+   * @param pG             Graphics object used to draw the image
+   * @param pBufferedImage the bufferedImage to draw
+   */
   private void _drawImage(Graphics pG, BufferedImage pBufferedImage)
   {
     int yCoordinate = editorViewPort.getViewRect().y;
