@@ -37,7 +37,7 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
 
       // Tree and scrollPane for tree
       JTree fileTree = new JTree(new StatusTreeModel(Observable.just(pFilesToRevert), pProjectDir));
-      fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
+      fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDir));
       JScrollPane scrollPane = new JScrollPane(fileTree);
       add(scrollPane, BorderLayout.CENTER);
 

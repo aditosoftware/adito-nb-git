@@ -9,6 +9,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;
+import java.io.File;
 
 /**
  * Renderer with special logic for FileChangeTypeNodes
@@ -22,11 +23,13 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
   private static final String FILE_PLURAL = "files";
   private static final int PANEL_HGAP = 5;
   private final IFileSystemUtil fileSystemUtil;
+  private final File projectDir;
   private final DefaultTreeCellRenderer defaultRenderer;
 
-  public FileChangeTypeTreeCellRenderer(IFileSystemUtil pFileSystemUtil)
+  public FileChangeTypeTreeCellRenderer(IFileSystemUtil pFileSystemUtil, File pProjectDir)
   {
     fileSystemUtil = pFileSystemUtil;
+    projectDir = pProjectDir;
     defaultRenderer = new DefaultTreeCellRenderer();
   }
 
@@ -44,6 +47,10 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
       // icon for the file/folder
       JLabel iconLabel = new JLabel();
       Image icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
+      if (icon == null && !pLeaf)
+      {
+        icon = fileSystemUtil.getIcon(projectDir, pExpanded);
+      }
       if (icon != null)
       {
         iconLabel.setIcon(new ImageIcon(icon));

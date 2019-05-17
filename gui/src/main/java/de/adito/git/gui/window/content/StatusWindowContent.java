@@ -61,7 +61,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
     statusTreeModel = new StatusTreeModel(status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of())),
                                           projectDirectory);
     statusTree.init(tableViewPanel, statusTreeModel);
-    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
+    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, projectDirectory));
     pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
     tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
     statusTree.addMouseListener(new _DoubleClickListener());

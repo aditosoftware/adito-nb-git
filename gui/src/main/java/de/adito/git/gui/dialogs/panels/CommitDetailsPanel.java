@@ -103,7 +103,7 @@ public class CommitDetailsPanel implements IDiscardable
         });
     DiffTreeModel statusTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
     statusTree.init(tableViewPanel, statusTreeModel);
-    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil));
+    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, projectDirectory));
     pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
     tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
     tableViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
