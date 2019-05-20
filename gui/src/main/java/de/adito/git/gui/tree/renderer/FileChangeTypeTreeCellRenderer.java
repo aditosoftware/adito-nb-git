@@ -58,7 +58,7 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
       }
       // name of the file/folder, if nodes are collapsed the path from the parentNode to the childNode
       JLabel fileLabel = new JLabel(nodeInfo.getNodeDescription());
-      if (!pSelected && pLeaf)
+      if (!pSelected && pLeaf && !nodeInfo.getMembers().isEmpty())
       {
         fileLabel.setForeground(nodeInfo.getMembers().get(0).getChangeType().getStatusColor());
       }
