@@ -4,9 +4,11 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.TableLayoutUtil;
+import de.adito.git.impl.data.SSHKeyDetails;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -25,12 +27,10 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
 
   private static final String SSH_KEY_FIELD_LABEL = "SSH key path: ";
   private static final String SSH_PASSPHRASE_FIELD_LABEL = "Passphrase for ssh key: ";
-  private static final String CANT_CHANGE_PASSW_HINT = "Password is only changed if it gets queried because required and no password is" +
-      " saved/saved password is wrong";
   private List<RemotePanel> remoteSettingsPanels = new ArrayList<>();
 
   @Inject
-  public GitConfigDialog(@Assisted Observable<Optional<IRepository>> pRepository)
+  public GitConfigDialog(IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     setLayout(new BorderLayout(0, 10));
 
@@ -45,7 +45,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
         // selber inset wie remotePanel
         remoteNameLabel.setBorder(new EmptyBorder(15, 15, 0, 0));
         add(remoteNameLabel, BorderLayout.NORTH);
-        RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), remoteName);
+        RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), remoteName, pKeyStore);
         add(remoteSettingsPanel, BorderLayout.CENTER);
         remoteSettingsPanels.add(remoteSettingsPanel);
       }
@@ -58,7 +58,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
         add(tabbedPane, BorderLayout.CENTER);
         for (String remote : remotes)
         {
-          RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), remote);
+          RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), remote, pKeyStore);
           tabbedPane.add(remote, remoteSettingsPanel);
           remoteSettingsPanels.add(remoteSettingsPanel);
         }
@@ -90,13 +90,25 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
     private final JPasswordField sshPassphraseField = new JPasswordField(30);
     private final String remoteUrl;
 
-    RemotePanel(IRepository pRepository, String pRemoteName)
+    RemotePanel(IRepository pRepository, String pRemoteName, IKeyStore pKeyStore)
     {
       remoteUrl = pRepository.getConfig().getRemoteUrl(pRemoteName);
       _initGui();
-      sshKeyField.setText(pRepository.getConfig().getSshKeyLocation(pRepository.getConfig().getRemoteUrl(pRemoteName)));
-      sshPassphraseField.setEnabled(false);
-      sshPassphraseField.setToolTipText(CANT_CHANGE_PASSW_HINT);
+      String sshKeyLocation = pRepository.getConfig().getSshKeyLocation(remoteUrl);
+      if (sshKeyLocation != null)
+      {
+        sshKeyField.setText(sshKeyLocation);
+        char[] passphrase = pKeyStore.read(sshKeyLocation);
+        if (passphrase != null)
+        {
+          sshPassphraseField.setText(String.valueOf(passphrase));
+          // null passphrase array
+          for (int index = 0; index < passphrase.length; index++)
+          {
+            passphrase[index] = '0';
+          }
+        }
+      }
     }
 
     private void _initGui()
@@ -137,8 +149,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
     public Multimap<String, Object> getInformation()
     {
       Multimap<String, Object> settingsMap = HashMultimap.create();
-      String[] value = {sshKeyField.getText(), remoteUrl};
-      settingsMap.put(Constants.SSH_KEY_KEY, value);
+      settingsMap.put(Constants.SSH_KEY_KEY, new SSHKeyDetails(sshKeyField.getText(), remoteUrl, sshPassphraseField.getPassword()));
       return settingsMap;
     }
 
