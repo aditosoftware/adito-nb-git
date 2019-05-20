@@ -165,7 +165,14 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     Set<LineNumber> lineNumbers = new HashSet<>();
     LineNumber startNumber = _calculateLineNumberPos(pEditorPane, pView, pStartIndex);
     LineNumber endNumber = _calculateLineNumberPos(pEditorPane, pView, pEndIndex);
-    if (endNumber.getYCoordinate() - startNumber.getYCoordinate() == (pEndIndex - pStartIndex) * pLineHeight || pEndIndex - pStartIndex <= 1)
+    // we're down to two lines here, if the first one is the on taking up more space the for loop in the "else if" gives the space to the second line,
+    // so seperate treatment here
+    if (pEndIndex - pStartIndex <= 1)
+    {
+      lineNumbers.add(new LineNumber(pStartIndex + 1, startNumber.getYCoordinate(), startNumber.getXCoordinate()));
+      lineNumbers.add(new LineNumber(pEndIndex + 1, endNumber.getYCoordinate(), endNumber.getXCoordinate()));
+    }
+    else if (endNumber.getYCoordinate() - startNumber.getYCoordinate() == (pEndIndex - pStartIndex) * pLineHeight)
     {
       for (int index = 0; index <= pEndIndex - pStartIndex; index++)
       {
