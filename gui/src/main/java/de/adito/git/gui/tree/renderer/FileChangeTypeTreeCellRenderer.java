@@ -71,6 +71,10 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
         numChangedFilesLabel.setEnabled(false);
         panel.add(numChangedFilesLabel, BorderLayout.EAST);
       }
+      if (pSelected)
+      {
+        panel.setBackground(getBackgroundSelectionColor());
+      }
       return panel;
     }
     return defaultRenderer.getTreeCellRendererComponent(pTree, pValue, pSelected, pExpanded, pLeaf, pRow, pHasFocus);
