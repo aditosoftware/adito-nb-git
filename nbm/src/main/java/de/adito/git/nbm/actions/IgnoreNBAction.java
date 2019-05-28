@@ -53,12 +53,6 @@ public class IgnoreNBAction extends NBAction
     actionProvider.getIgnoreAction(repository, filesToIgnore).actionPerformed(null);
   }
 
-  @Override
-  protected String iconResource()
-  {
-    return NbBundle.getMessage(PushNBAction.class, "ICON_IgnoreNBAction_Path");
-  }
-
   /**
    * @param pActivatedNodes the activated nodes in NetBeans
    * @return true if the can be ignored (no synthetic files) and the files are uncommitted, else false

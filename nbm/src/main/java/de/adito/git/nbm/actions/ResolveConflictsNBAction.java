@@ -45,12 +45,6 @@ public class ResolveConflictsNBAction extends NBAction
   }
 
   @Override
-  protected String iconResource()
-  {
-    return NbBundle.getMessage(PushNBAction.class, "ICON_ResolveConflictsNBAction_Path");
-  }
-
-  @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
     Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);

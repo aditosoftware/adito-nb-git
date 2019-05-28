@@ -45,12 +45,6 @@ public class ExcludeNBAction extends IgnoreNBAction
   }
 
   @Override
-  protected String iconResource()
-  {
-    return NbBundle.getMessage(PushNBAction.class, "ICON_ExcludeNBAction_Path");
-  }
-
-  @Override
   public String getName()
   {
     return NbBundle.getMessage(IgnoreNBAction.class, "LBL_ExcludeAction_Name");
