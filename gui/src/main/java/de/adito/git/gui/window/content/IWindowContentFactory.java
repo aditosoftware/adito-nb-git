@@ -1,11 +1,13 @@
 package de.adito.git.gui.window.content;
 
-import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.ICommitFilter;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableModel;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author m.kaspera 29.10.2018
@@ -13,14 +15,15 @@ import java.util.Optional;
 interface IWindowContentFactory
 {
 
-  StatusWindowContent createStatusWindowContent(Observable<Optional<IRepository>> pRepository);
+  StatusWindowContent createStatusWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
 
-  BranchListWindowContent createBranchListWindowContent(Observable<Optional<IRepository>> pRepository);
+  BranchListWindowContent createBranchListWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
 
-  CommitHistoryWindowContent createCommitHistoryWindowContent(Observable<Optional<IRepository>> pRepository, TableModel pTableModel,
-                                                              @Assisted("loadMore") Runnable pLoadMoreCallback,
-                                                              @Assisted("refreshContent") Runnable pRefreshContentCallBack);
+  CommitHistoryWindowContent createCommitHistoryWindowContent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
+                                                              @NotNull Runnable pLoadMoreCallback,
+                                                              @NotNull Consumer<ICommitFilter> pRefreshContentCallBack,
+                                                              @NotNull ICommitFilter pStartFilter);
 
-  StatusLineWindowContent createStatusLineWindowContent(Observable<Optional<IRepository>> pRepository);
+  StatusLineWindowContent createStatusLineWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
 
 }

@@ -1,5 +1,6 @@
 package de.adito.git.api;
 
+import de.adito.git.api.dag.IDAGFilterIterator;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
@@ -194,7 +195,7 @@ public interface IRepository
 
   /**
    * @param pIdentifier String identifying the specific version of the file
-   * @param pFile
+   * @param pFile the file whose contents should be retrieved
    * @return the contents of the requested file as IFileContentInfo, with the content as String and the used encoding
    * @throws IOException if an error occurs during transport/reading of the file
    */
@@ -362,58 +363,12 @@ public interface IRepository
   ICommit getCommit(@Nullable String pIdentifier) throws AditoGitException;
 
   /**
-   * @param pSourceBranch IBranch for which all commits should be retrieved. Pass NULL for all commits
-   * @return List with all ICommits in the sourceBranch
+   * @param pCommitFilter Filter responsible for filtering all commits. Can contain things such as branch, files, number of commits etc.
+   * @return List with all ICommits matching the filter
    * @throws AditoGitException if an error occurs
    */
   @NotNull
-  List<ICommit> getCommits(IBranch pSourceBranch) throws AditoGitException;
-
-  /**
-   * @param pSourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
-   * @param pNumCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
-   * @return List with all ICommits in the sourceBranch
-   * @throws AditoGitException if an error occurs
-   */
-  @NotNull
-  List<ICommit> getCommits(IBranch pSourceBranch, int pNumCommits) throws AditoGitException;
-
-  /**
-   * @param pSourceBranch IBranch for which commits should be retrieved. Pass NULL for all commits
-   * @param pIndexFrom    how many commits should be skipped. Pass -1 if the parameter should be ignored
-   * @param pNumCommits   how many commits should be loaded. Pass -1 if the parameter should be ignored
-   * @return List with all ICommits in the sourceBranch
-   * @throws AditoGitException if an error occurs
-   */
-  @NotNull
-  List<ICommit> getCommits(IBranch pSourceBranch, int pIndexFrom, int pNumCommits) throws AditoGitException;
-
-  /**
-   * @param pForFile File for which all commits should be retrieved. Pass NULL for all commits
-   * @return List with ICommits that contains all commits that affected the file
-   * @throws AditoGitException if an error occurs
-   */
-  @NotNull
-  List<ICommit> getCommits(File pForFile) throws AditoGitException;
-
-  /**
-   * @param pForFile    File for which commits should be retrieved. Pass NULL for all commits
-   * @param pNumCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
-   * @return List with ICommits that contains all commits that affected the file
-   * @throws AditoGitException if an error occurs
-   */
-  @NotNull
-  List<ICommit> getCommits(File pForFile, int pNumCommits) throws AditoGitException;
-
-  /**
-   * @param pForFile    File for which commits should be retrieved. Pass NULL for all commits
-   * @param pIndexFrom  how many commits should be skipped. Pass -1 if the parameter should be ignored
-   * @param pNumCommits how many commits should be loaded. Pass -1 if the parameter should be ignored
-   * @return List with ICommits that contains all commits that affected the file
-   * @throws AditoGitException if an error occurs
-   */
-  @NotNull
-  List<ICommit> getCommits(File pForFile, int pIndexFrom, int pNumCommits) throws AditoGitException;
+  IDAGFilterIterator<ICommit> getCommits(@NotNull ICommitFilter pCommitFilter) throws AditoGitException;
 
   /**
    * retrieves all local commits that do not yet exist on the remote-tracking branch of the current branch
@@ -423,14 +378,6 @@ public interface IRepository
    */
   @NotNull
   List<ICommit> getUnPushedCommits() throws AditoGitException;
-
-  /**
-   * @param pCommits    List of commits for which the CommitHistoryTreeList should be created
-   * @param pStartCHTLI If the List of commits is an extension of a list, pass the last CommitHistoryTreeListItem of that list here
-   * @return List of CommitHistoryTreeListItems
-   */
-  @NotNull
-  List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> pCommits, @Nullable CommitHistoryTreeListItem pStartCHTLI);
 
   /**
    * @return the directory of the actual repository
@@ -462,10 +409,9 @@ public interface IRepository
 
   /**
    * @return List of all IBranches in the repository
-   * @throws AditoGitException if an error occurs
    */
   @NotNull
-  Observable<Optional<List<IBranch>>> getBranches() throws AditoGitException;
+  Observable<Optional<List<IBranch>>> getBranches();
 
   /**
    * create a new tag

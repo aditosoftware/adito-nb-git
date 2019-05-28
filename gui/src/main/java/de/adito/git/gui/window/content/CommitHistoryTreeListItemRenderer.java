@@ -1,6 +1,7 @@
 package de.adito.git.gui.window.content;
 
 import de.adito.git.api.CommitHistoryTreeListItem;
+import de.adito.git.api.HistoryGraphElement;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ITag;
@@ -91,9 +92,9 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
       super.paintComponent(pG);
       Graphics2D g2d = (Graphics2D) pG;
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g2d.setStroke(new BasicStroke(CommitHistoryTreeListItem.ColoredLineCoordinates.LINE_WIDTH));
+      g2d.setStroke(new BasicStroke(HistoryGraphElement.ColoredLineCoordinates.LINE_WIDTH));
       // draw all the lines that belong to the CommitHistoryTreeListItem
-      for (CommitHistoryTreeListItem.ColoredLineCoordinates coloredLineCoordinate : commitHistoryTreeListItem.getLinesToDraw())
+      for (HistoryGraphElement.ColoredLineCoordinates coloredLineCoordinate : commitHistoryTreeListItem.getLinesToDraw())
       {
         pG.setColor(coloredLineCoordinate.getColor());
         if (coloredLineCoordinate.isUpperPart())
@@ -116,8 +117,8 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
      */
     private void _paintKnot(Graphics pG, int pXValue)
     {
-      pG.fillOval(pXValue, getHeight() / 2 - CommitHistoryTreeListItem.KnotCoordinates.RADIUS / 2,
-                  CommitHistoryTreeListItem.KnotCoordinates.RADIUS, CommitHistoryTreeListItem.KnotCoordinates.RADIUS);
+      pG.fillOval(pXValue, getHeight() / 2 - HistoryGraphElement.KnotCoordinates.RADIUS / 2,
+                  HistoryGraphElement.KnotCoordinates.RADIUS, HistoryGraphElement.KnotCoordinates.RADIUS);
     }
 
     /**

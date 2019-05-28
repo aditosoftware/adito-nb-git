@@ -1,13 +1,10 @@
 package de.adito.git.nbm.window;
 
 import com.google.inject.Inject;
-import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.IUserPreferences;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
+import de.adito.git.api.data.ICommitFilter;
+import de.adito.git.gui.window.HistoryTableManager;
 import de.adito.git.gui.window.IWindowProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +13,9 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 import javax.swing.*;
-import java.io.File;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -38,52 +36,26 @@ class WindowProviderNBImpl implements IWindowProvider
   }
 
   @Override
-  public void showBranchListWindow(Observable<Optional<IRepository>> pRepository)
+  public void showBranchListWindow(@NotNull Observable<Optional<IRepository>> pRepository)
   {
     _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showBranchListWindow");
     _openTCinEDT(identifier, () -> topComponentFactory.createAllBranchTopComponent(pRepository));
   }
 
   @Override
-  public void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch)
+  public void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter)
   {
     try
     {
       IRepository repo = _getRepository(pRepository);
-      List<ICommit> commits = repo.getCommits(pBranch, userPreferences.getNumLoadAdditionalCHEntries());
-      CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
-      Runnable loadMoreCallBack = () -> {
-        try
-        {
-          if (tableModel.getRowCount() > 0)
-          {
-            tableModel.addData(
-                repo.getCommitHistoryTreeList(
-                    repo.getCommits(pBranch, tableModel.getRowCount(), userPreferences.getNumLoadAdditionalCHEntries()),
-                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
-          }
-        }
-        catch (Exception e)
-        {
-          throw new RuntimeException(e);
-        }
-      };
-      Runnable refreshContentCallBack = () -> {
-        try
-        {
-          tableModel.resetData(repo.getCommitHistoryTreeList(
-              repo.getCommits(pBranch, 0, userPreferences.getNumLoadAdditionalCHEntries()), null));
-        }
-        catch (AditoGitException pE)
-        {
-          throw new RuntimeException(pE);
-        }
-      };
+      HistoryTableManager historyTableManager = new HistoryTableManager(repo, pCommitFilter, userPreferences);
 
-      _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showCommitHistoryWindow", pBranch == null ? "null" : pBranch.getName());
+      _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "CommitHistoryWindow" + (pCommitFilter.getFiles().isEmpty()
+          ? "" : pCommitFilter.getFiles()));
+      String title = NbBundle.getMessage(WindowProviderNBImpl.class, "Label.Commits") + (pCommitFilter.getFiles().isEmpty() ? "" : pCommitFilter.getFiles());
       _openTCinEDT(identifier, () -> topComponentFactory
-                       .createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack,
-                                                        pBranch != null ? pBranch.getSimpleName() : null));
+          .createCommitHistoryTopComponent(pRepository, historyTableManager.getTableModel(),
+                                           historyTableManager.getLoadMoreRunnable(), historyTableManager.getFilterChangedConsumer(), pCommitFilter, title));
     }
     catch (Exception e)
     {
@@ -92,54 +64,7 @@ class WindowProviderNBImpl implements IWindowProvider
   }
 
   @Override
-  public void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile)
-  {
-    try
-    {
-      IRepository repo = _getRepository(pRepository);
-      List<ICommit> commits = repo.getCommits(pFile, userPreferences.getNumLoadAdditionalCHEntries());
-      CommitHistoryTreeListTableModel tableModel = new CommitHistoryTreeListTableModel(repo.getCommitHistoryTreeList(commits, null));
-      Runnable loadMoreCallBack = () -> {
-        try
-        {
-          if (tableModel.getRowCount() > 0)
-          {
-            tableModel.addData(
-                repo.getCommitHistoryTreeList(
-                    repo.getCommits(pFile, tableModel.getRowCount(), userPreferences.getNumLoadAdditionalCHEntries()),
-                    (CommitHistoryTreeListItem) tableModel.getValueAt(tableModel.getRowCount() - 1, 0)));
-          }
-        }
-        catch (Exception e)
-        {
-          throw new RuntimeException(e);
-        }
-      };
-      Runnable refreshContentCallBack = () -> {
-        try
-        {
-          tableModel.resetData(repo.getCommitHistoryTreeList(
-              repo.getCommits(pFile, 0, userPreferences.getNumLoadAdditionalCHEntries()), null));
-        }
-        catch (AditoGitException pE)
-        {
-          throw new RuntimeException(pE);
-        }
-      };
-
-      String path = pFile.getAbsolutePath();
-      _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showFileCommitHistoryWindow", path);
-      _openTCinEDT(identifier, () -> topComponentFactory
-          .createCommitHistoryTopComponent(pRepository, tableModel, loadMoreCallBack, refreshContentCallBack, path));
-    }
-    catch (Exception e)
-    {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  public void showStatusWindow(Observable<Optional<IRepository>> pRepository)
+  public void showStatusWindow(@NotNull Observable<Optional<IRepository>> pRepository)
   {
     _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showStatusWindow");
     _openTCinEDT(identifier, () -> topComponentFactory.createStatusWindowTopComponent(pRepository));
@@ -185,7 +110,7 @@ class WindowProviderNBImpl implements IWindowProvider
     private Observable<Optional<IRepository>> repoObservable;
     private Set<Object> objects;
 
-    public _SingletonIdentifier(Observable<Optional<IRepository>> pRepoObservable, Object... pObjects)
+    _SingletonIdentifier(Observable<Optional<IRepository>> pRepoObservable, Object... pObjects)
     {
       repoObservable = pRepoObservable;
       objects = Set.of(pObjects);

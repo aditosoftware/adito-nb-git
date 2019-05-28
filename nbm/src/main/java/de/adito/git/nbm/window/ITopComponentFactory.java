@@ -2,11 +2,14 @@ package de.adito.git.nbm.window;
 
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.ICommitFilter;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.swing.table.TableModel;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * An interface to create all topComponents in NetBeans
@@ -16,13 +19,13 @@ import java.util.Optional;
 interface ITopComponentFactory
 {
 
-  AllBranchTopComponent createAllBranchTopComponent(Observable<Optional<IRepository>> pRepository);
+  AllBranchTopComponent createAllBranchTopComponent(@NotNull Observable<Optional<IRepository>> pRepository);
 
-  CommitHistoryTopComponent createCommitHistoryTopComponent(Observable<Optional<IRepository>> pRepository,
-                                                            TableModel pTableModel, @Assisted("loadMore") Runnable pLoadMoreCallback,
-                                                            @Assisted("refreshContent") Runnable pRefreshContentCallBack,
-                                                            @Nullable String pDisplayableContext);
+  CommitHistoryTopComponent createCommitHistoryTopComponent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
+                                                            @NotNull @Assisted Runnable pLoadMoreCallback,
+                                                            @NotNull @Assisted Consumer<ICommitFilter> pRefreshContentCallBack,
+                                                            @NotNull ICommitFilter pStartFilter, @Nullable String pDisplayableContext);
 
-  StatusWindowTopComponent createStatusWindowTopComponent(Observable<Optional<IRepository>> pRepository);
+  StatusWindowTopComponent createStatusWindowTopComponent(@NotNull Observable<Optional<IRepository>> pRepository);
 
 }

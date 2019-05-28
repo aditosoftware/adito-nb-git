@@ -1,16 +1,17 @@
 package de.adito.git.impl;
 
-import com.google.common.base.Predicates;
-import com.google.common.base.Throwables;
+import com.google.common.collect.Iterators;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
+import de.adito.git.impl.revfilters.StashCommitFilter;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
-import org.eclipse.jgit.revwalk.filter.*;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,13 +52,13 @@ public class RepositoryImplHelper
   }
 
   /**
-   * @param pGit Git object to call for retrieving commits/objects/info about the repository status
+   * @param pGit    Git object to call for retrieving commits/objects/info about the repository status
    * @param pBranch String with the name of the branch for which the remote tracking branch should be fetched, pass null for the current branch
    * @return String with the name of the remote branch that the current branch is tracking
    * @throws IOException if an exception occurs while JGit is reading the git config file
    */
   @Nullable
-  public static String getRemoteTrackingBranch(@NotNull Git pGit, @Nullable String pBranch) throws IOException
+  static String getRemoteTrackingBranch(@NotNull Git pGit, @Nullable String pBranch) throws IOException
   {
     return new BranchConfig(pGit.getRepository().getConfig(), pBranch == null ? pGit.getRepository().getBranch() : pBranch).getRemoteTrackingBranch();
   }
@@ -368,57 +369,34 @@ public class RepositoryImplHelper
    * Returns all commits matching the criteria, always filters out any stashed commits
    *
    * @param pGit          Git object to call for retrieving commits/objects/info about the repository status
-   * @param pSourceBranch IBranch that the retrieved commits should be from
-   * @param pFile         File that is affected by all commits that are retrieved
-   * @param pIndexFrom    number of (matching) commits to skip before retrieving commits from the log
-   * @param pNumCommits   number of (matching) commits to retrieve
+   * @param pCommitFilter filter that defines which commits are considered as result
    * @return List of ICommits matching the provided criteria
    * @throws AditoGitException if JGit throws an exception/returns null
    */
   @NotNull
-  static List<ICommit> getCommits(@NotNull Git pGit, @Nullable IBranch pSourceBranch, @Nullable File pFile,
-                                  int pIndexFrom, int pNumCommits) throws AditoGitException
+  static DAGFilterIterator<ICommit> getCommits(@NotNull Git pGit, @NotNull ICommitFilter pCommitFilter) throws AditoGitException
   {
     try
     {
-      List<ICommit> commitList = new ArrayList<>();
       Iterable<RevCommit> refCommits;
       LogCommand logCommand = pGit.log();
       RevFilter revFilter = new StashCommitFilter(pGit);
-      if (pSourceBranch != null)
+      if (pCommitFilter.getBranch() != null && !pCommitFilter.getBranch().equals(IBranch.ALL_BRANCHES))
       {
-        logCommand.add(pGit.getRepository().resolve(pSourceBranch.getName()));
+        logCommand.add(pGit.getRepository().resolve(pCommitFilter.getBranch().getName()));
       }
       else
       {
         logCommand.all();
       }
-      if (pFile != null)
+      if (!pCommitFilter.getFiles().isEmpty())
       {
-        logCommand.addPath(getRelativePath(pFile, pGit));
-      }
-      if (pIndexFrom >= 0)
-      {
-        // Since setting an explicit revFilter overrides the skip and max options, create the filters and AND them together with our filter
-        revFilter = AndRevFilter.create(revFilter, SkipRevFilter.create(pIndexFrom));
-      }
-      if (pNumCommits >= 0)
-      {
-        // Since setting an explicit revFilter overrides the skip and max options, create the filters and AND them together with our filter
-        revFilter = AndRevFilter.create(revFilter, MaxCountRevFilter.create(pNumCommits));
+        pCommitFilter.getFiles().forEach(pFile -> logCommand.addPath(getRelativePath(pFile, pGit)));
       }
       logCommand.setRevFilter(revFilter);
       refCommits = logCommand.call();
-      if (refCommits != null)
-      {
-        refCommits.forEach(commit -> commitList.add(new CommitImpl(commit)));
-      }
-      else
-      {
-        throw new AditoGitException("Object returned by JGit was null while trying to retrieve commits. Branch: "
-                                        + pSourceBranch + ", File: " + pFile);
-      }
-      return commitList;
+      Function<RevCommit, ICommit> trasnformFn = CommitImpl::new;
+      return new DAGFilterIterator<>(Iterators.transform(refCommits.iterator(), trasnformFn::apply), pCommitFilter);
     }
     catch (IOException pE)
     {
@@ -426,21 +404,9 @@ public class RepositoryImplHelper
     }
     catch (GitAPIException pE)
     {
-      throw new AditoGitException("Unable to check the commits of one branch and/or file. Branch: " + pSourceBranch + ", File: " + pFile, pE);
+      throw new AditoGitException("Unable to check the commits of one branch and/or file. Branch: " + pCommitFilter.getBranch()
+                                      + ", File: " + pCommitFilter.getFiles(), pE);
     }
-  }
-
-  /**
-   * Searches the causal chain of pThrowable and looks for any occurrences of pLookFor
-   *
-   * @param pThrowable The exception whose causal chain should be searched for pLookFor
-   * @param pLookFor   The exception that should be searched in the causal chain of pThrowable
-   * @param <EX>       Exception class
-   * @return whether or not pLookFor is in the causal chain of pThrowable
-   */
-  static <EX extends Throwable> boolean containsCause(Throwable pThrowable, Class<EX> pLookFor)
-  {
-    return Throwables.getCausalChain(pThrowable).stream().anyMatch(Predicates.instanceOf(pLookFor)::apply);
   }
 
   /**
@@ -490,5 +456,4 @@ public class RepositoryImplHelper
     }
     return null;
   }
-
 }

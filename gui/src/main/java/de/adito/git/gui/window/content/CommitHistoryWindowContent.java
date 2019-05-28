@@ -3,7 +3,9 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
+import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.ICommitFilter;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
@@ -12,19 +14,29 @@ import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
+import de.adito.git.impl.data.CommitFilterImpl;
+import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +65,13 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final Disposable disposable;
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
+  // Variables for filtering the shown entries
+  private JTextField authorField = new JTextField();
+  private JComboBox<IBranch> branchSelectionBox = new JComboBox<>();
+  private Observable<ICommitFilter> commitFilterObs;
+  private Disposable commitFilterDisposable;
+  private Disposable branchObservable;
+
   /**
    * @param pActionProvider         IActionProvider from which actions can be retrieved
    * @param pRepository             Observable with the Repository of the current project
@@ -64,12 +83,14 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   CommitHistoryWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, IMenuProvider pMenuProvider,
                              CommitDetailsPanel.IPanelFactory pPanelFactory,
                              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted TableModel pTableModel,
-                             @Assisted("loadMore") Runnable pLoadMoreCallback,
-                             @Assisted("refreshContent") Runnable pRefreshContentCallBack)
+                             @Assisted Runnable pLoadMoreCallback, @Assisted Consumer<ICommitFilter> pRefreshContentCallBack, @Assisted ICommitFilter pStartFilter)
   {
     actionProvider = pActionProvider;
     menuProvider = pMenuProvider;
     repository = pRepository;
+    if (pStartFilter.getAuthor() != null) authorField.setText(pStartFilter.getAuthor());
+    if (pStartFilter.getBranch() != null) branchSelectionBox.setSelectedItem(pStartFilter.getBranch());
+    else branchSelectionBox.setSelectedItem(IBranch.ALL_BRANCHES);
     commitTableModel = (CommitHistoryTreeListTableModel) pTableModel;
     commitTable = new _SearchableCommitTable(commitTableModel, commitTableView);
     commitTable.removeColumn(commitTable.getColumn(CommitHistoryTreeListTableModel.COMMIT_ID_COL_NAME));
@@ -89,13 +110,28 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       }
       return Optional.of(selectedCommits);
     });
+    branchObservable = repository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getBranches).orElse(Observable.just(Optional.of(List.of()))))
+        .subscribe(pOptBranches -> {
+          if (pOptBranches.isPresent())
+          {
+            branchSelectionBox.removeAllItems();
+            branchSelectionBox.addItem(IBranch.ALL_BRANCHES);
+            pOptBranches.get().forEach(pBranch -> branchSelectionBox.addItem(pBranch));
+          }
+        });
     selectedCommitObservable = selectedCommitHistoryItems.map(pOptSelectedItems ->
                                                                   pOptSelectedItems
                                                                       .map(pSelectedItems -> pSelectedItems
                                                                           .stream()
                                                                           .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList())));
+    commitFilterObs = Observable.combineLatest(
+        Observable.create(new _ComboBoxObservable(branchSelectionBox)).startWith(Optional.empty()),
+        Observable.create(new _JTextFieldObservable(authorField)).startWith("").debounce(500, TimeUnit.MILLISECONDS),
+        (pBranch, pAuthor) -> (ICommitFilter) new CommitFilterImpl().setAuthor(pAuthor.isEmpty() ? null : pAuthor).setBranch(pBranch.orElse(null)))
+        .share()
+        .subscribeWith(BehaviorSubject.create());
     disposable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
-        .subscribe(pStatus -> pRefreshContentCallBack.run());
+        .subscribe(pStatus -> pRefreshContentCallBack.accept(commitFilterObs.blockingFirst()));
     commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
   }
@@ -104,10 +140,12 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   public void discard()
   {
     disposable.dispose();
+    commitFilterDisposable.dispose();
+    branchObservable.dispose();
     commitDetailsPanel.discard();
   }
 
-  private void _initGUI(Runnable pLoadMoreCallback, Runnable pRefreshContentCallBack)
+  private void _initGUI(Runnable pLoadMoreCallback, Consumer<ICommitFilter> pRefreshContentCallBack)
   {
     setLayout(new BorderLayout());
     _setUpCommitTable();
@@ -139,13 +177,25 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     add(mainSplitPane, BorderLayout.CENTER);
   }
 
-  private void _setUpToolbar(Runnable pRefreshContentCallBack)
+  private void _setUpToolbar(Consumer<ICommitFilter> pRefreshContentCallBack)
   {
     toolBar.setOrientation(JToolBar.HORIZONTAL);
     toolBar.setFloatable(false);
-    toolBar.add(actionProvider.getRefreshContentAction(pRefreshContentCallBack));
+    toolBar.add(actionProvider.getRefreshContentAction(() -> pRefreshContentCallBack.accept(commitFilterObs.blockingFirst())));
     toolBar.addSeparator();
     toolBar.add(actionProvider.getCherryPickAction(repository, selectedCommitObservable));
+    toolBar.addSeparator();
+    JLabel branchLabel = new JLabel("Branch");
+    branchLabel.setBorder(new EmptyBorder(0, 2, 0, 5));
+    JLabel authorLabel = new JLabel("Author");
+    authorLabel.setBorder(new EmptyBorder(0, 8, 0, 5));
+    toolBar.add(branchLabel);
+    branchSelectionBox.setPreferredSize(new Dimension(200, 26));
+    toolBar.add(branchSelectionBox);
+    toolBar.add(authorLabel);
+    authorField.setPreferredSize(new Dimension(400, 26));
+    toolBar.add(authorField);
+    commitFilterDisposable = commitFilterObs.subscribe(pRefreshContentCallBack::accept);
   }
 
   private void _setUpCommitTable()
@@ -213,6 +263,82 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       // No tip from the renderer get our own tip
       return getToolTipText();
 
+    }
+  }
+
+  /**
+   * Observable that sends the current Text of a TextField each time the text changes
+   */
+  private static class _JTextFieldObservable extends AbstractListenerObservable<DocumentListener, JTextField, String>
+  {
+
+    _JTextFieldObservable(@NotNull JTextField pListenableValue)
+    {
+      super(pListenableValue);
+    }
+
+    @NotNull
+    @Override
+    protected DocumentListener registerListener(@NotNull JTextField pJTextField, @NotNull IFireable<String> pIFireable)
+    {
+      DocumentListener listener = new DocumentListener()
+      {
+        @Override
+        public void insertUpdate(DocumentEvent e)
+        {
+          pIFireable.fireValueChanged(pJTextField.getText());
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e)
+        {
+          pIFireable.fireValueChanged(pJTextField.getText());
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e)
+        {
+          pIFireable.fireValueChanged(pJTextField.getText());
+        }
+      };
+      pJTextField.getDocument().addDocumentListener(listener);
+      return listener;
+    }
+
+    @Override
+    protected void removeListener(@NotNull JTextField pJTextField, @NotNull DocumentListener pDocumentListener)
+    {
+      pJTextField.getDocument().removeDocumentListener(pDocumentListener);
+    }
+  }
+
+  /**
+   * Observable that fires the currently selected Branch (or optional.empty) if the selection of the ComboBox with Branches changes
+   */
+  private static class _ComboBoxObservable extends AbstractListenerObservable<ItemListener, JComboBox<IBranch>, Optional<IBranch>>
+  {
+
+    _ComboBoxObservable(@NotNull JComboBox<IBranch> pListenableValue)
+    {
+      super(pListenableValue);
+    }
+
+    @NotNull
+    @Override
+    protected ItemListener registerListener(@NotNull JComboBox<IBranch> pIBranchJComboBox, @NotNull IFireable<Optional<IBranch>> pIFireable)
+    {
+      ItemListener listener = e -> {
+        if (e.getStateChange() == ItemEvent.SELECTED)
+          pIFireable.fireValueChanged(Optional.of((IBranch) e.getItem()));
+      };
+      pIBranchJComboBox.addItemListener(listener);
+      return listener;
+    }
+
+    @Override
+    protected void removeListener(@NotNull JComboBox<IBranch> pIBranchJComboBox, @NotNull ItemListener pItemListener)
+    {
+      pIBranchJComboBox.removeItemListener(pItemListener);
     }
   }
 

@@ -6,6 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.window.IWindowProvider;
+import de.adito.git.impl.data.CommitFilterImpl;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -49,13 +50,13 @@ class ShowCommitsForBranchesAction extends AbstractTableAction
     progressFacade.executeInBackground("Preparing Overview", pHandle -> {
       branches.blockingFirst()
           .orElse(Collections.emptyList())
-          .forEach(pBranch -> windowProvider.showCommitHistoryWindow(repository, pBranch)); //shows in EDT
+          .forEach(pBranch -> windowProvider.showCommitHistoryWindow(repository, new CommitFilterImpl().setBranch(pBranch))); //shows in EDT
     });
   }
 
   private static Observable<Optional<Boolean>> getIsEnabledObservable(Observable<Optional<List<IBranch>>> pBranches)
   {
-    return pBranches.map(branchList -> Optional.of(branchList.orElse(Collections.emptyList()).size() > 0));
+    return pBranches.map(branchList -> Optional.of(!branchList.orElse(Collections.emptyList()).isEmpty()));
   }
 
 }

@@ -1,10 +1,10 @@
 package de.adito.git.gui.window;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.ICommitFilter;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.Optional;
 
 /**
@@ -15,12 +15,10 @@ import java.util.Optional;
 public interface IWindowProvider
 {
 
-  void showBranchListWindow(Observable<Optional<IRepository>> pRepository);
+  void showBranchListWindow(@NotNull Observable<Optional<IRepository>> pRepository);
 
-  void showCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, IBranch pBranch);
+  void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter);
 
-  void showFileCommitHistoryWindow(Observable<Optional<IRepository>> pRepository, File pFile);
-
-  void showStatusWindow(Observable<Optional<IRepository>> pRepository);
+  void showStatusWindow(@NotNull Observable<Optional<IRepository>> pRepository);
 
 }

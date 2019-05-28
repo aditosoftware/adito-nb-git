@@ -1,4 +1,4 @@
-package de.adito.git.impl;
+package de.adito.git.impl.revfilters;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -26,7 +26,7 @@ public class StashCommitFilter extends RevFilter
   private ArrayList<ObjectId> stashedCommitIdList = new ArrayList<>();
   private RevCommit latestStashedCommit = null;
 
-  StashCommitFilter(@NotNull Git pGit)
+  public StashCommitFilter(@NotNull Git pGit)
   {
     git = pGit;
     try

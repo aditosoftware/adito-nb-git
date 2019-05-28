@@ -6,6 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.window.IWindowProvider;
+import de.adito.git.impl.data.CommitFilterImpl;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -39,7 +40,7 @@ class FileHistoryAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    windowProvider.showFileCommitHistoryWindow(repository, filesObservable.blockingFirst().get(0));
+    windowProvider.showCommitHistoryWindow(repository, new CommitFilterImpl().setFileList(List.of(filesObservable.blockingFirst().get(0))));
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<List<File>> pSelectedFileObservable)

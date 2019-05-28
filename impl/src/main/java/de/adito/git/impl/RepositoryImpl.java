@@ -7,6 +7,7 @@ import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
+import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
@@ -58,16 +59,14 @@ public class RepositoryImpl implements IRepository
   private final Observable<Optional<IFileStatus>> status;
   private final Observable<Optional<IRepositoryState>> currentStateObservable;
   private final IFileSystemUtil fileSystemUtil;
-  private final ColorRoulette colorRoulette;
   private final IFileSystemObserver fileSystemObserver;
 
   @Inject
-  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, ColorRoulette pColorRoulette,
+  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider,
                         IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory,
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
     fileSystemUtil = pIFileSystemUtil;
-    colorRoulette = pColorRoulette;
     sshProvider = pSshProvider;
     dataFactory = pDataFactory;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
@@ -1111,59 +1110,9 @@ public class RepositoryImpl implements IRepository
    */
   @NotNull
   @Override
-  public List<ICommit> getCommits(@Nullable IBranch pSourceBranch) throws AditoGitException
+  public DAGFilterIterator<ICommit> getCommits(@Nullable ICommitFilter pCommitFilter) throws AditoGitException
   {
-    return getCommits(pSourceBranch, -1);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @NotNull
-  @Override
-  public List<ICommit> getCommits(@Nullable IBranch pSourceBranch, int pNumCommits) throws AditoGitException
-  {
-    return getCommits(pSourceBranch, -1, pNumCommits);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @NotNull
-  @Override
-  public List<ICommit> getCommits(@Nullable IBranch pSourceBranch, int pIndexFrom, int pNumCommits) throws AditoGitException
-  {
-    return RepositoryImplHelper.getCommits(git, pSourceBranch, null, pIndexFrom, pNumCommits);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @NotNull
-  @Override
-  public List<ICommit> getCommits(@Nullable File pForFile) throws AditoGitException
-  {
-    return getCommits(pForFile, -1);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @NotNull
-  @Override
-  public List<ICommit> getCommits(@Nullable File pFile, int pNumCommits) throws AditoGitException
-  {
-    return getCommits(pFile, -1, pNumCommits);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @NotNull
-  @Override
-  public List<ICommit> getCommits(@Nullable File pFile, int pIndexFrom, int pNumCommits) throws AditoGitException
-  {
-    return RepositoryImplHelper.getCommits(git, null, pFile, pIndexFrom, pNumCommits);
+    return RepositoryImplHelper.getCommits(git, pCommitFilter == null ? new CommitFilterImpl() : pCommitFilter);
   }
 
   @NotNull
@@ -1192,53 +1141,6 @@ public class RepositoryImpl implements IRepository
       throw new AditoGitException(pE);
     }
     return unPushedCommits;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @NotNull
-  public List<CommitHistoryTreeListItem> getCommitHistoryTreeList(@NotNull List<ICommit> pCommits, @Nullable CommitHistoryTreeListItem pStartCHTLI)
-  {
-    List<IBranch> branches;
-    try
-    {
-      branches = git.getRepository().getRefDatabase().getRefs().stream()
-          .filter(pRef -> !pRef.getName().startsWith("refs/tags/"))
-          .map(BranchImpl::new)
-          .collect(Collectors.toList());
-    }
-    catch (IOException pE)
-    {
-      branches = RepositoryImplHelper.branchList(git);
-    }
-    List<CommitHistoryTreeListItem> commitHistoryTreeList = new ArrayList<>();
-    if (!pCommits.isEmpty())
-    {
-      // special case for first item
-      if (pStartCHTLI != null)
-      {
-        commitHistoryTreeList.add(pStartCHTLI.nextItem(pCommits.get(0), pCommits.size() > 1 ? pCommits.get(1) : null));
-      }
-      else
-      {
-        List<AncestryLine> ancestryLines = new ArrayList<>();
-        ancestryLines.add(new AncestryLine(pCommits.get(0), colorRoulette.get(), colorRoulette, true));
-        commitHistoryTreeList.add(new CommitHistoryTreeListItem(pCommits.get(0), ancestryLines, colorRoulette, branches, getTags()));
-      }
-      // main loop iterating over the commits
-      for (int index = 1; index < pCommits.size() - 1; index++)
-      {
-        commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(pCommits.get(index), pCommits.get(index + 1)));
-      }
-      // special case for the last item in the list, only needed if more than one item in the list
-      if (pCommits.size() > 1)
-      {
-        commitHistoryTreeList.add(commitHistoryTreeList.get(commitHistoryTreeList.size() - 1).nextItem(pCommits.get(pCommits.size() - 1), null));
-      }
-    }
-    colorRoulette.reset();
-    return commitHistoryTreeList;
   }
 
   @Override

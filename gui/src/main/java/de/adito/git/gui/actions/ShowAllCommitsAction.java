@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.window.IWindowProvider;
+import de.adito.git.impl.data.CommitFilterImpl;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -37,7 +38,7 @@ class ShowAllCommitsAction extends AbstractAction
   public void actionPerformed(ActionEvent e)
   {
     progressFacade.executeInBackground("Preparing Overview", pHandle -> {
-      windowProvider.showCommitHistoryWindow(repository, null); //shows in EDT
+      windowProvider.showCommitHistoryWindow(repository, new CommitFilterImpl()); //shows in EDT
     });
   }
 
