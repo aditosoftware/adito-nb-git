@@ -116,6 +116,6 @@ public class BranchImpl implements IBranch
     if (obj == null || !(IBranch.class.isAssignableFrom(obj.getClass())))
       return false;
     IBranch branch = (IBranch) obj;
-    return branch.getId().equals(getId()) && branch.getName().equals(getName()) && branch.getType() == getType();
+    return getId() != null && getId().equals(branch.getId()) && getName().equals(branch.getName()) && branch.getType() == getType();
   }
 }
