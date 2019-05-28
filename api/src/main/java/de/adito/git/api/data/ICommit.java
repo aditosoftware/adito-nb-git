@@ -1,7 +1,9 @@
 package de.adito.git.api.data;
 
+import de.adito.git.api.dag.IDAGObject;
+import org.jetbrains.annotations.NotNull;
+
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -9,7 +11,8 @@ import java.util.List;
  *
  * @author m.kaspera 25.09.2018
  */
-public interface ICommit {
+public interface ICommit extends IDAGObject<ICommit>
+{
 
     /**
      *
@@ -56,5 +59,13 @@ public interface ICommit {
     /**
      * @return List of ICommits that form the parents of this ICommit
      */
+    @NotNull
     List<ICommit> getParents();
+
+    /**
+     * overrides the parents of this commit, can be used to make a DAG into a dense DAG
+     *
+     * @param pCommits list of commits that should be given out as parents
+     */
+    void setParents(@NotNull List<ICommit> pCommits);
 }
