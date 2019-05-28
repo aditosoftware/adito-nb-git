@@ -37,7 +37,7 @@ public class ColorRoulette
   );
   private final LinkedList<Color> availableColors = new LinkedList<>();
 
-  private ColorRoulette()
+  ColorRoulette()
   {
     availableColors.addAll(initialColors);
   }
