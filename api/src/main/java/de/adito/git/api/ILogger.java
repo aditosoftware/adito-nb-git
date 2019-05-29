@@ -22,7 +22,30 @@ public interface ILogger
     DEBUG,
     INFO,
     WARN,
-    ERROR
+    ERROR;
+
+    /**
+     * creates the matching logLevel from the passed string representation
+     *
+     * @param pLevel Level that was converted to a string
+     * @return Level whose string representation matches the provided string, or ERROR as default
+     */
+    public static Level fromString(String pLevel)
+    {
+      switch (pLevel)
+      {
+        case "TRACE":
+          return TRACE;
+        case "DEBUG":
+          return DEBUG;
+        case "INFO":
+          return INFO;
+        case "WARN":
+          return WARN;
+        default:
+          return ERROR;
+      }
+    }
   }
 
   /**
@@ -39,5 +62,12 @@ public interface ILogger
    * @param pLogLevel minimum logLevel
    */
   void setLogLevel(Level pLogLevel);
+
+  /**
+   * retrieves the currently used logLevel
+   *
+   * @return current logLevel
+   */
+  Level getLogLevel();
 
 }

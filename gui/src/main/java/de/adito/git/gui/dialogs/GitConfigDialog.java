@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
+import de.adito.git.api.ILogger;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.TableLayoutUtil;
@@ -14,10 +15,15 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.util.*;
+
+import static de.adito.git.gui.Constants.LOG_LEVEL_SETTINGS_KEY;
 
 /**
  * @author m.kaspera, 24.12.2018
@@ -25,14 +31,16 @@ import java.util.*;
 public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
 {
 
+  private static final Border DEFAULT_MARGIN_BORDER = new EmptyBorder(15, 15, 0, 0);
   private static final String SSH_KEY_FIELD_LABEL = "SSH key path: ";
   private static final String SSH_PASSPHRASE_FIELD_LABEL = "Passphrase for ssh key: ";
   private List<RemotePanel> remoteSettingsPanels = new ArrayList<>();
+  private GlobalSettingsPanel globalSettingsPanel;
 
   @Inject
-  public GitConfigDialog(IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
+  public GitConfigDialog(IKeyStore pKeyStore, ILogger pLogger, @Assisted Observable<Optional<IRepository>> pRepository)
   {
-    setLayout(new BorderLayout(0, 10));
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
     Optional<IRepository> optionalIRepository = pRepository.blockingFirst();
     if (optionalIRepository.isPresent())
@@ -41,21 +49,28 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
       if (remotes.size() == 1)
       {
         String remoteName = remotes.iterator().next();
-        JLabel remoteNameLabel = new JLabel("Remote: " + remoteName);
+        JPanel labelPanel = new JPanel(new BorderLayout());
+        JLabel remoteNameLabel = _getBoldLabel("Remote: " + remoteName);
         // selber inset wie remotePanel
-        remoteNameLabel.setBorder(new EmptyBorder(15, 15, 0, 0));
-        add(remoteNameLabel, BorderLayout.NORTH);
+        remoteNameLabel.setBorder(DEFAULT_MARGIN_BORDER);
+        labelPanel.add(remoteNameLabel);
+        add(labelPanel);
         RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), remoteName, pKeyStore);
-        add(remoteSettingsPanel, BorderLayout.CENTER);
+        add(remoteSettingsPanel);
         remoteSettingsPanels.add(remoteSettingsPanel);
+        add(new JSeparator(SwingConstants.HORIZONTAL));
       }
       else
       {
         JTabbedPane tabbedPane = new JTabbedPane();
-        JLabel remotesLabel = new JLabel("Remotes:");
-        remotesLabel.setBorder(new EmptyBorder(15, 0, 0, 0));
-        add(remotesLabel, BorderLayout.NORTH);
-        add(tabbedPane, BorderLayout.CENTER);
+        JPanel labelPanel = new JPanel(new BorderLayout());
+        JLabel remotesLabel = _getBoldLabel("Remotes:");
+        remotesLabel.setAlignmentX(LEFT_ALIGNMENT);
+        labelPanel.add(remotesLabel);
+        add(labelPanel);
+        remotesLabel.setBorder(DEFAULT_MARGIN_BORDER);
+        tabbedPane.setBorder(new CompoundBorder(DEFAULT_MARGIN_BORDER, tabbedPane.getBorder()));
+        add(tabbedPane);
         for (String remote : remotes)
         {
           RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), remote, pKeyStore);
@@ -64,6 +79,8 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
         }
       }
     }
+    globalSettingsPanel = new GlobalSettingsPanel(pLogger);
+    add(globalSettingsPanel);
   }
 
   @Override
@@ -80,7 +97,52 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
     {
       settingsMap.putAll(remoteSettingsPanel.getInformation());
     }
+    settingsMap.putAll(globalSettingsPanel.getInformation());
     return settingsMap;
+  }
+
+  /**
+   * creates a normal JLabel, except that the text is bold
+   *
+   * @param pText Text the label should have
+   * @return JLabel with pText in bold
+   */
+  private static JLabel _getBoldLabel(String pText)
+  {
+    JLabel label = new JLabel(pText);
+    label.setFont(new Font(label.getFont().getFontName(), Font.BOLD, label.getFont().getSize()));
+    return label;
+  }
+
+  /**
+   * Put any global settings in to this panel (settings that affect all repositories)
+   */
+  private static class GlobalSettingsPanel extends JPanel
+  {
+
+    private JComboBox<ILogger.Level> logLevelBox;
+
+    GlobalSettingsPanel(ILogger pLogger)
+    {
+      setBorder(new EmptyBorder(15, 15, 0, 15));
+      setLayout(new BorderLayout(0, 15));
+      JLabel titleLabel = _getBoldLabel("Global settings");
+      add(titleLabel, BorderLayout.NORTH);
+      JPanel otherSettingsPanel = new JPanel(new BorderLayout());
+      logLevelBox = new JComboBox<>(ILogger.Level.values());
+      logLevelBox.setSelectedItem(pLogger.getLogLevel());
+      otherSettingsPanel.add(new JLabel("Log level:"), BorderLayout.WEST);
+      otherSettingsPanel.add(logLevelBox, BorderLayout.EAST);
+      add(otherSettingsPanel, BorderLayout.CENTER);
+    }
+
+    public Multimap<String, Object> getInformation()
+    {
+      Multimap<String, Object> settingsMap = HashMultimap.create();
+      settingsMap.put(LOG_LEVEL_SETTINGS_KEY, logLevelBox.getSelectedItem());
+      return settingsMap;
+    }
+
   }
 
   private static class RemotePanel extends JPanel

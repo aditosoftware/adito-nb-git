@@ -47,6 +47,7 @@ public class Constants
 
   //Settings map keys
   public static final String SSH_KEY_KEY = "sshKey";
+  public static final String LOG_LEVEL_SETTINGS_KEY = "logLevelSetting";
 
   private Constants()
   {
