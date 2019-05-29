@@ -52,8 +52,10 @@ public class RepositoryImpl implements IRepository
 {
 
   private static final String VOID_PATH = "/dev/null";
+  private static final String CHECKOUT_FORMATTED_STRING = "git checkout %s";
   private final ISshProvider sshProvider;
   private final IDataFactory dataFactory;
+  private final ILogger logger;
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<Optional<IFileStatus>> status;
@@ -63,12 +65,13 @@ public class RepositoryImpl implements IRepository
 
   @Inject
   public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider,
-                        IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory,
+                        IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory, ILogger pLogger,
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
     fileSystemUtil = pIFileSystemUtil;
     sshProvider = pSshProvider;
     dataFactory = pDataFactory;
+    logger = pLogger;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
 
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
@@ -98,6 +101,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void add(List<File> pAddList) throws AditoGitException
   {
+    logger.println(String.format("git add %s", pAddList), ILogger.Level.DEBUG);
     AddCommand adder = git.add();
     for (File file : pAddList)
     {
@@ -119,6 +123,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public String commit(@NotNull String pMessage) throws AditoGitException
   {
+    logger.println(String.format("git commit -m \"%s\"", pMessage), ILogger.Level.DEBUG);
     CommitCommand commit = git.commit();
     RevCommit revCommit;
     try
@@ -153,6 +158,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public String commit(@NotNull String pMessage, List<File> pFileList, boolean pIsAmend) throws AditoGitException
   {
+    logger.println(String.format("git commit %s -m \"%s\" %s", pFileList, pMessage, pIsAmend ? "--amend" : ""), ILogger.Level.DEBUG);
     CommitCommand commit = git.commit();
     RevCommit revCommit;
     for (File file : pFileList)
@@ -181,6 +187,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public Map<String, EPushResult> push(boolean pIsPushTags)
   {
+    logger.println(String.format("git push %s", pIsPushTags ? "--tags" : ""), ILogger.Level.DEBUG);
     Map<String, EPushResult> resultMap = new HashMap<>();
     try
     {
@@ -217,6 +224,7 @@ public class RepositoryImpl implements IRepository
     {
       if (pDoAbort)
       {
+        logger.println("git rebase --abort", ILogger.Level.DEBUG);
         RebaseCommand rebaseCommand = git.rebase();
         rebaseCommand.setOperation(RebaseCommand.Operation.ABORT);
         RebaseResult rebaseResult = rebaseCommand.call();
@@ -230,6 +238,7 @@ public class RepositoryImpl implements IRepository
       IRebaseResult iRebaseResult;
       if (!git.getRepository().getRepositoryState().isRebasing())
       {
+        logger.println("git pull --rebase", ILogger.Level.DEBUG);
         String currentHeadName = git.getRepository().getFullBranch();
         String targetName = RepositoryImplHelper.getRemoteTrackingBranch(git, null);
         PullCommand pullCommand = git.pull();
@@ -244,6 +253,7 @@ public class RepositoryImpl implements IRepository
       }
       else
       {
+        logger.println("git rebase --continue", ILogger.Level.DEBUG);
         Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
         String targetName;
         String currentHeadName;
@@ -353,6 +363,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void fetch(boolean pPrune) throws AditoGitException
   {
+    logger.println(String.format("git fetch (with prune = %s)", pPrune), ILogger.Level.INFO);
     try
     {
       git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
@@ -439,6 +450,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public @NotNull List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith) throws AditoGitException
   {
+    logger.println(String.format("git diff %s %s", pCompareWith == null ? "" : pCompareWith.getId(), pFilesToDiff), ILogger.Level.INFO);
     try
     {
       List<IFileDiff> returnList = new ArrayList<>();
@@ -535,6 +547,7 @@ public class RepositoryImpl implements IRepository
   public IFileContentInfo getFileContents(String pIdentifier, File pFile) throws IOException
   {
     Charset encoding = fileSystemUtil.getEncoding(pFile);
+    logger.println(String.format("Encoding for file %s in version with id %s: %s", pFile.getAbsolutePath(), pIdentifier, encoding), ILogger.Level.DEBUG);
     ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
     return new FileContentInfoImpl(new String(loader.getBytes(), encoding), encoding);
   }
@@ -548,6 +561,7 @@ public class RepositoryImpl implements IRepository
     ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
     byte[] bytes = loader.getBytes();
     Charset encoding = Util.getEncoding(bytes, fileSystemUtil);
+    logger.println(String.format("Encoding for Object with identifier %s: %s", pIdentifier, encoding), ILogger.Level.DEBUG);
     return new FileContentInfoImpl(new String(bytes, encoding), encoding);
   }
 
@@ -634,7 +648,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public boolean clone(@NotNull String pUrl, @NotNull File pLocalPath)
   {
-
+    logger.println(String.format("git clone %s %s", pUrl, pLocalPath), ILogger.Level.INFO);
     if (Util.isDirEmpty(pLocalPath))
     {
       try
@@ -670,6 +684,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void ignore(@NotNull List<File> pFiles) throws IOException
   {
+    logger.println(String.format("Writing files %s into the .gitignore", pFiles), ILogger.Level.INFO);
     File gitIgnore = new File(git.getRepository().getDirectory().getParent(), ".gitignore");
     try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
     {
@@ -686,6 +701,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void exclude(@NotNull List<File> pFiles) throws IOException
   {
+    logger.println(String.format("Writing files %s into the exclude file (info/exclude)", pFiles), ILogger.Level.INFO);
     File gitIgnore = new File(git.getRepository().getDirectory(), "info/exclude");
     try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
     {
@@ -720,6 +736,7 @@ public class RepositoryImpl implements IRepository
           Files.deleteIfExists(file.toPath());
         resetCommand.addPath(relativePath);
       }
+      logger.println(String.format(CHECKOUT_FORMATTED_STRING, filesToCheckout), ILogger.Level.INFO);
       resetCommand.call();
       if (!filesToCheckout.isEmpty())
       {
@@ -746,6 +763,7 @@ public class RepositoryImpl implements IRepository
       ResetCommand resetCommand = git.reset();
       for (File file : pFiles)
         resetCommand.addPath(Util.getRelativePath(file, git));
+      logger.println(String.format("git reset -- %s", pFiles), ILogger.Level.INFO);
       resetCommand.call();
     }
     catch (GitAPIException pE)
@@ -760,6 +778,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void reset(@NotNull String pIdentifier, @NotNull EResetType pResetType) throws AditoGitException
   {
+    logger.println(String.format("git reset --%s %s", pResetType, pIdentifier), ILogger.Level.INFO);
     try
     {
       ResetCommand resetCommand = git.reset();
@@ -783,6 +802,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void createBranch(@NotNull String pBranchName, boolean pCheckout) throws AditoGitException
   {
+    logger.println(String.format("git branch %s", pBranchName), ILogger.Level.INFO);
     try
     {
       List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
@@ -796,6 +816,7 @@ public class RepositoryImpl implements IRepository
       // the next line of code is for an automatically push after creating a branch
       if (pCheckout)
       {
+        logger.println(String.format(CHECKOUT_FORMATTED_STRING, pBranchName), ILogger.Level.INFO);
         checkout(getBranch(pBranchName));
       }
     }
@@ -858,6 +879,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void checkout(@NotNull String pId) throws AditoGitException
   {
+    logger.println(String.format(CHECKOUT_FORMATTED_STRING, pId), ILogger.Level.DEBUG);
     try
     {
       git.checkout().setName(pId).call();
@@ -874,6 +896,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void checkoutFileVersion(@NotNull String pId, List<String> pPaths) throws AditoGitException
   {
+    logger.println(String.format("git checkout %s %s", pId, pPaths), ILogger.Level.DEBUG);
     try
     {
       git.checkout().setStartPoint(pId).addPaths(pPaths).call();
@@ -890,6 +913,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void checkout(@NotNull IBranch pBranch) throws AditoGitException
   {
+    logger.println(String.format(CHECKOUT_FORMATTED_STRING, pBranch), ILogger.Level.DEBUG);
     CheckoutCommand checkout = git.checkout().setName(pBranch.getName()).setCreateBranch(false).setStartPoint(pBranch.getName());
     try
     {
@@ -907,6 +931,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException
   {
+    logger.println(String.format("git checkout %s %s", pLocalName, pBranch), ILogger.Level.DEBUG);
     CheckoutCommand checkoutCommand = git.checkout().
         setCreateBranch(true).
         setName(pLocalName).
@@ -931,6 +956,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
+      logger.println(String.format("found conflicting files: %s", conflictingFiles), ILogger.Level.TRACE);
       if (!conflictingFiles.isEmpty())
       {
         File aConflictingFile = new File(git.getRepository().getDirectory().getParent(), conflictingFiles.iterator().next());
@@ -993,6 +1019,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public List<IMergeDiff> merge(@NotNull IBranch pParentBranch, @NotNull IBranch pBranchToMerge) throws AditoGitException
   {
+    logger.println(String.format("git merge %s %s", pParentBranch, pBranchToMerge), ILogger.Level.DEBUG);
     try
     {
       String parentID = pParentBranch.getId();
@@ -1031,6 +1058,7 @@ public class RepositoryImpl implements IRepository
         if (mergeResult.getConflicts() != null)
         {
           RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
+          logger.println(String.format("base commit for merge: %s", forkCommit), ILogger.Level.DEBUG);
           if (forkCommit != null)
             mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, new CommitImpl(forkCommit),
                                                                     mergeResult.getConflicts().keySet(), this::diff);
@@ -1133,6 +1161,7 @@ public class RepositoryImpl implements IRepository
         if (remoteTrackingBranch != null)
           logCommand.not(git.getRepository().resolve(remoteTrackingBranch));
       }
+      logger.println(String.format("remote tracking branch for unpushed commits: %s", remoteTrackingBranch), ILogger.Level.DEBUG);
       Iterable<RevCommit> unPushedCommitsIter = logCommand.call();
       unPushedCommitsIter.forEach(pUnPushedCommit -> unPushedCommits.add(new CommitImpl(pUnPushedCommit)));
     }
@@ -1216,6 +1245,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public List<String> deleteTag(ITag pTag)
   {
+    logger.println(String.format("git tag --delete %s", pTag), ILogger.Level.DEBUG);
     List<String> deletedTags;
     try
     {
@@ -1359,6 +1389,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void dropStashedCommit(@Nullable String pStashCommitId) throws AditoGitException
   {
+    logger.println(String.format("deleting stash commit with id %s", pStashCommitId), ILogger.Level.DEBUG);
     try
     {
       StashDropCommand stashDropCommand = git.stashDrop();
