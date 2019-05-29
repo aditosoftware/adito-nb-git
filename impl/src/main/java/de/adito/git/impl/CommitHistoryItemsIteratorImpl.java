@@ -25,6 +25,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
   private final List<ITag> allTags;
   private ICommit currentCommit = null;
   private CommitHistoryTreeListItem latestHistoryItem = null;
+  private boolean encounteredLast = false;
 
   public CommitHistoryItemsIteratorImpl(IDAGFilterIterator<ICommit> pCommitFilterIter, List<IBranch> allBranches, List<ITag> allTags)
   {
@@ -41,7 +42,14 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     {
       currentCommit = commitFilterIter.next();
     }
-    return currentCommit != null && commitFilterIter.hasNext();
+    if (currentCommit != null && commitFilterIter.hasNext())
+      return true;
+    else if (!encounteredLast)
+    {
+      encounteredLast = true;
+      return true;
+    }
+    return false;
   }
 
   @Override
