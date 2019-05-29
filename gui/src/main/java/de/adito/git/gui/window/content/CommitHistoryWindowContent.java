@@ -32,6 +32,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,6 +69,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   // Variables for filtering the shown entries
   private JTextField authorField = new JTextField();
   private JComboBox<IBranch> branchSelectionBox = new JComboBox<>();
+  private final List<File> chosenFiles = new ArrayList<>();
   private Observable<ICommitFilter> commitFilterObs;
   private Disposable commitFilterDisposable;
   private Disposable branchObservable;
@@ -90,6 +92,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     repository = pRepository;
     if (pStartFilter.getAuthor() != null) authorField.setText(pStartFilter.getAuthor());
     if (pStartFilter.getBranch() != null) branchSelectionBox.setSelectedItem(pStartFilter.getBranch());
+    if (!pStartFilter.getFiles().isEmpty()) chosenFiles.addAll(pStartFilter.getFiles());
     else branchSelectionBox.setSelectedItem(IBranch.ALL_BRANCHES);
     commitTableModel = (CommitHistoryTreeListTableModel) pTableModel;
     commitTable = new _SearchableCommitTable(commitTableModel, commitTableView);
@@ -127,7 +130,10 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitFilterObs = Observable.combineLatest(
         Observable.create(new _ComboBoxObservable(branchSelectionBox)).startWith(Optional.empty()),
         Observable.create(new _JTextFieldObservable(authorField)).startWith("").debounce(500, TimeUnit.MILLISECONDS),
-        (pBranch, pAuthor) -> (ICommitFilter) new CommitFilterImpl().setAuthor(pAuthor.isEmpty() ? null : pAuthor).setBranch(pBranch.orElse(null)))
+        (pBranch, pAuthor) -> (ICommitFilter) new CommitFilterImpl()
+            .setAuthor(pAuthor.isEmpty() ? null : pAuthor)
+            .setBranch(pBranch.orElse(null))
+            .setFileList(chosenFiles))
         .share()
         .subscribeWith(BehaviorSubject.create());
     disposable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
