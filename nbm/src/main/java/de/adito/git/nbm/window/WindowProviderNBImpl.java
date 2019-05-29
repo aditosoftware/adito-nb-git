@@ -48,7 +48,7 @@ class WindowProviderNBImpl implements IWindowProvider
     try
     {
       IRepository repo = _getRepository(pRepository);
-      HistoryTableManager historyTableManager = new HistoryTableManager(repo, pCommitFilter, userPreferences);
+      HistoryTableManager historyTableManager = new HistoryTableManager(repo, userPreferences);
 
       _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "CommitHistoryWindow" + (pCommitFilter.getFiles().isEmpty()
           ? "" : pCommitFilter.getFiles()));

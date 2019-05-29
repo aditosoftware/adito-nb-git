@@ -8,6 +8,7 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import de.adito.git.impl.CommitHistoryItemsIteratorImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -24,15 +25,11 @@ public class HistoryTableManager
   private final IUserPreferences userPreferences;
   private CommitHistoryItemsIteratorImpl commitHistoryIterator;
 
-  public HistoryTableManager(IRepository pRepository, ICommitFilter pInitialCommitFilter, IUserPreferences pUserPreferences) throws AditoGitException
+  public HistoryTableManager(IRepository pRepository, IUserPreferences pUserPreferences)
   {
     repository = pRepository;
     userPreferences = pUserPreferences;
-    commitHistoryIterator = new CommitHistoryItemsIteratorImpl(pRepository.getCommits(pInitialCommitFilter),
-                                                               repository.getBranches().blockingFirst().orElse(List.of()),
-                                                               repository.getTags());
-    List<CommitHistoryTreeListItem> items = commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries());
-    tableModel = new CommitHistoryTreeListTableModel(items);
+    tableModel = new CommitHistoryTreeListTableModel(new ArrayList<>());
   }
 
   public Consumer<ICommitFilter> getFilterChangedConsumer()
@@ -56,7 +53,7 @@ public class HistoryTableManager
   public Runnable getLoadMoreRunnable()
   {
     return () -> tableModel
-        .addData(commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries()));
+        .addData(commitHistoryIterator == null ? List.of() : commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries()));
   }
 
   public CommitHistoryTreeListTableModel getTableModel()

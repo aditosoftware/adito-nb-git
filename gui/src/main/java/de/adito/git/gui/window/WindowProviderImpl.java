@@ -41,7 +41,7 @@ class WindowProviderImpl implements IWindowProvider
     try
     {
       IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("No valid repository found"));
-      HistoryTableManager historyTableManager = new HistoryTableManager(repo, pCommitFilter, userPreferences);
+      HistoryTableManager historyTableManager = new HistoryTableManager(repo, userPreferences);
       _showInFrame(factory.createCommitHistoryWindowContent(pRepository, historyTableManager.getTableModel(),
                                                             historyTableManager.getLoadMoreRunnable(), historyTableManager.getFilterChangedConsumer(), pCommitFilter));
     }
