@@ -4,7 +4,6 @@ import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
-import de.adito.git.api.ILogger;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
@@ -14,7 +13,6 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -26,14 +24,12 @@ class GitConfigAction extends AbstractTableAction
   private final IDialogProvider dialogProvider;
   private final Observable<Optional<IRepository>> repository;
   private final IKeyStore keyStore;
-  private final ILogger logger;
 
   @Inject
-  public GitConfigAction(IDialogProvider pDialogProvider, IKeyStore pKeyStore, ILogger pLogger, @Assisted Observable<Optional<IRepository>> pRepository)
+  public GitConfigAction(IDialogProvider pDialogProvider, IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     super("Settings", _getIsEnabledObservable(pRepository));
     keyStore = pKeyStore;
-    logger = pLogger;
     putValue(Action.SMALL_ICON, Constants.GIT_CONFIG_ICON);
     repository = pRepository;
     dialogProvider = pDialogProvider;
@@ -58,11 +54,6 @@ class GitConfigAction extends AbstractTableAction
           }
           value.nullifyPassphrase();
         }
-      }
-      Iterator<Object> logLevelIter = dialogResult.getInformation().get(Constants.LOG_LEVEL_SETTINGS_KEY).iterator();
-      if (logLevelIter.hasNext())
-      {
-        logger.setLogLevel((ILogger.Level) logLevelIter.next());
       }
     }
   }

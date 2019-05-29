@@ -15,7 +15,6 @@ import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.IFileSystemObserverProvider;
 import de.adito.git.nbm.*;
 import de.adito.git.nbm.dialogs.NBDialogsModule;
-import de.adito.git.nbm.log.LoggerNBImpl;
 import de.adito.git.nbm.prefs.NBPrefStore;
 import de.adito.git.nbm.progress.AsyncProgressFacadeImpl;
 import de.adito.git.nbm.quicksearch.QuickSearchProviderImpl;
@@ -52,6 +51,5 @@ public class AditoNbmModule extends AbstractModule
     bind(IFileSystemUtil.class).to(NBFileSystemUtilImpl.class);
     bind(IKeyStore.class).to(KeyStoreImpl.class);
     bind(IQuickSearchProvider.class).to(QuickSearchProviderImpl.class);
-    bind(ILogger.class).to(LoggerNBImpl.class);
   }
 }
