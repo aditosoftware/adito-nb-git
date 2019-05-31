@@ -165,6 +165,8 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     Set<LineNumber> lineNumbers = new HashSet<>();
     LineNumber startNumber = _calculateLineNumberPos(pEditorPane, pView, pStartIndex);
     LineNumber endNumber = _calculateLineNumberPos(pEditorPane, pView, pEndIndex);
+    if (startNumber == null || endNumber == null)
+      return lineNumbers;
     // we're down to two lines here, if the first one is the on taking up more space the for loop in the "else if" gives the space to the second line,
     // so seperate treatment here
     if (pEndIndex - pStartIndex <= 1)
@@ -194,8 +196,11 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
    * @return LineNumber with the number of the line and its position
    * @throws BadLocationException if the lineIndex is out of bounds
    */
+  @Nullable
   private LineNumber _calculateLineNumberPos(@NotNull JEditorPane pEditorPane, @NotNull View pView, int pLineIndex) throws BadLocationException
   {
+    if (pEditorPane.getDocument().getDefaultRootElement().getElementCount() < pLineIndex)
+      return null;
     Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineIndex);
     if (lineElement == null)
       throw new BadLocationException("Element in Document for line was null", pLineIndex);
