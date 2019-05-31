@@ -1,7 +1,6 @@
 package de.adito.git.gui.dialogs.results;
 
-import de.adito.git.api.data.IFileChangeType;
-
+import java.io.File;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -11,21 +10,25 @@ import java.util.function.Supplier;
  *
  * @author m.kaspera 20.09.2018
  */
-public class CommitDialogResult {
+public class CommitDialogResult
+{
 
-    private final Supplier<List<IFileChangeType>> selectedFilesSupplier;
-    private final boolean doAmend;
+  private final Supplier<List<File>> selectedFilesSupplier;
+  private final boolean doAmend;
 
-    public CommitDialogResult(Supplier<List<IFileChangeType>> pSelectedFilesSupplier, boolean pDoAmend) {
-        this.selectedFilesSupplier = pSelectedFilesSupplier;
-        this.doAmend = pDoAmend;
-    }
+  public CommitDialogResult(Supplier<List<File>> pSelectedFilesSupplier, boolean pDoAmend)
+  {
+    this.selectedFilesSupplier = pSelectedFilesSupplier;
+    this.doAmend = pDoAmend;
+  }
 
-    public Supplier<List<IFileChangeType>> getSelectedFilesSupplier() {
-        return selectedFilesSupplier;
-    }
+  public Supplier<List<File>> getSelectedFilesSupplier()
+  {
+    return selectedFilesSupplier;
+  }
 
-    public boolean isDoAmend() {
-        return doAmend;
-    }
+  public boolean isDoAmend()
+  {
+    return doAmend;
+  }
 }

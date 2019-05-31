@@ -2,32 +2,38 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IQuickSearchProvider;
-import de.adito.git.api.IRepository;
+import com.jidesoft.swing.CheckBoxTree;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
-import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTable;
-import de.adito.git.gui.rxjava.ObservableListSelectionModel;
+import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
 import de.adito.git.gui.swing.LinedDecorator;
-import de.adito.git.gui.tablemodels.StatusTableModel;
+import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
+import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
+import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.BehaviorSubject;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.Document;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.event.ActionEvent;
-import java.net.URI;
+import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -42,53 +48,58 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
   private static final int PREFERRED_WIDTH = 750;
   private static final int PREFERRED_HEIGHT = 700;
-  private static final int SELECTION_COL_MAX_WIDTH = 25;
   private static final Dimension MESSAGE_PANE_MIN_SIZE = new Dimension(100, 100);
-  private final SearchableTable fileStatusTable;
   private final JPanel tableSearchView = new JPanel(new BorderLayout());
-  private final _SelectedCommitTableModel commitTableModel;
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
-  private final Observable<Optional<IRepository>> repository;
-  private final DocumentListener allowCommitListener = new _EmptyDocumentListener();
-  private IDialogDisplayer.IDescriptor isValidDescriptor;
+  private final IActionProvider actionProvider;
+  private final SearchableCheckboxTree checkBoxTree;
+  private final Observable<List<File>> selectedFiles;
+  private final Disposable disposable;
 
   @Inject
-  public CommitDialog(IQuickSearchProvider pQuickSearchProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                      @Assisted String pMessageTemplate, IEditorKitProvider pEditorKitProvider)
+  public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
+                      @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor, @Assisted Observable<Optional<IRepository>> pRepository,
+                      @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @Assisted String pMessageTemplate, IEditorKitProvider pEditorKitProvider)
   {
-    isValidDescriptor = pIsValidDescriptor;
-    repository = pRepository;
+    actionProvider = pActionProvider;
     // disable OK button at the start since the commit message is empty then
-    isValidDescriptor.setValid(pMessageTemplate != null && !pMessageTemplate.isEmpty());
+    pIsValidDescriptor.setValid(pMessageTemplate != null && !pMessageTemplate.isEmpty());
     Observable<Optional<IFileStatus>> statusObservable = pRepository
         .switchMap(pRepo -> pRepo
             .orElseThrow(() -> new RuntimeException("no valid repository found"))
             .getStatus());
-    Observable<List<SelectedFileChangeType>> filesToCommitObservable = Observable
-        .combineLatest(statusObservable, pFilesToCommit, (pStatusObservable, pSelectedFiles) -> pStatusObservable
-            .map(IFileStatus::getUncommitted)
-            .orElse(Collections.emptyList())
-            .stream()
-            .map(pUncommitted -> new SelectedFileChangeType(pSelectedFiles.orElse(Collections.emptyList()).contains(pUncommitted), pUncommitted))
-            .collect(Collectors.toList()));
-    commitTableModel = new _SelectedCommitTableModel(filesToCommitObservable);
-    fileStatusTable = new SearchableTable(commitTableModel, tableSearchView);
-    List<Integer> searchableColumns = new ArrayList<>();
-    searchableColumns.add(commitTableModel.findColumn(_SelectedCommitTableModel.FILE_NAME_COLUMN_NAME));
-    searchableColumns.add(commitTableModel.findColumn(_SelectedCommitTableModel.FILE_PATH_COLUMN_NAME));
-    pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileStatusTable, searchableColumns));
-    JScrollPane scroller = new JScrollPane(fileStatusTable);
-    tableSearchView.add(scroller, BorderLayout.CENTER);
-    SwingUtilities.invokeLater(() -> {
-      // remove listener from current document, as the new editorKit is likely to change the document of the messagePane
-      messagePane.getDocument().removeDocumentListener(allowCommitListener);
-      messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
-      messagePane.setText(pMessageTemplate);
-      // (re-)register the listener for enabling/disabling the OK button
-      messagePane.getDocument().addDocumentListener(allowCommitListener);
-    });
+    Observable<List<IFileChangeType>> filesToCommitObservable = Observable
+        .combineLatest(statusObservable, pFilesToCommit, (pStatusObservable, pSelectedFiles) -> new ArrayList<>(pStatusObservable
+                                                                                                                    .map(IFileStatus::getUncommitted)
+                                                                                                                    .orElse(Collections.emptyList())));
+    checkBoxTree = new SearchableCheckboxTree();
+    Optional<IRepository> optRepo = pRepository.blockingFirst();
+    if (optRepo.isPresent())
+    {
+      File dir = optRepo.get().getTopLevelDirectory();
+      checkBoxTree.init(tableSearchView, new StatusTreeModel(filesToCommitObservable, dir));
+      checkBoxTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, dir));
+      JScrollPane scrollPane = new JScrollPane(checkBoxTree);
+      tableSearchView.add(scrollPane, BorderLayout.CENTER);
+      pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(checkBoxTree));
+      SwingUtilities.invokeLater(() -> {
+        messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
+        messagePane.setText(pMessageTemplate);
+      });
+      Observable<Boolean> nonEmptyTextObservable = Observable.create(new _DocumentObservable(messagePane))
+          .switchMap(pDocument -> Observable.create(new _NonEmptyTextObservable(pDocument)))
+          .startWith(messagePane.getDocument().getLength() > 0);
+      selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree)).startWith(List.<File>of()).share().subscribeWith(BehaviorSubject.create());
+      disposable = Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
+          .subscribe(pIsValidDescriptor::setValid);
+    }
+    else
+    {
+      // in case the repository was not present: Everything is empty, but no exception/crash
+      selectedFiles = Observable.just(List.of());
+      disposable = selectedFiles.subscribe();
+    }
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
@@ -112,20 +123,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    */
   private void _initGui()
   {
-    fileStatusTable.setSelectionModel(new ObservableListSelectionModel(fileStatusTable.getSelectionModel()));
-    fileStatusTable.getColumnModel().getColumn(commitTableModel.findColumn(_SelectedCommitTableModel.IS_SELECTED_COLUMN_NAME))
-        .setMaxWidth(SELECTION_COL_MAX_WIDTH);
-    fileStatusTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-    // Hide the status column from view, but leave the data (retrieved via table.getModel.getValueAt)
-    fileStatusTable.getColumnModel().removeColumn(fileStatusTable.getColumn(_SelectedCommitTableModel.CHANGE_TYPE_COLUMN_NAME));
-    // Set Renderer for cells so they are colored according to their EChangeType
-    for (int index = 1; index < fileStatusTable.getColumnModel().getColumnCount(); index++)
-    {
-      _setColumnSize(index);
-      fileStatusTable.getColumnModel().getColumn(index).setCellRenderer(new FileStatusCellRenderer());
-    }
-    fileStatusTable.setBorder(BorderFactory.createEmptyBorder());
-
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
 
@@ -142,15 +139,15 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
-    toolBar.add(new _SelectAllAction());
-    toolBar.add(new _DeselectAllAction());
+    toolBar.add(actionProvider.getExpandTreeAction(checkBoxTree));
+    toolBar.add(actionProvider.getCollapseTreeAction(checkBoxTree));
 
     JPanel contentWithToolbar = new JPanel(new BorderLayout());
-    contentWithToolbar.add(toolBar, BorderLayout.NORTH);
     contentWithToolbar.add(content, BorderLayout.CENTER);
 
     setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
     setLayout(new BorderLayout());
+    add(toolBar, BorderLayout.NORTH);
     add(contentWithToolbar, BorderLayout.CENTER);
     add(_createDetailsPanel(), BorderLayout.EAST);
   }
@@ -179,20 +176,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     pDetailsPanel.add(content);
   }
 
-  private void _setColumnSize(int pColumnNum)
-  {
-    FontMetrics fontMetrics = fileStatusTable.getFontMetrics(fileStatusTable.getFont());
-    int currentWidth;
-    int maxWidth = 0;
-    for (int index = 0; index < fileStatusTable.getModel().getRowCount(); index++)
-    {
-      currentWidth = fontMetrics.stringWidth(fileStatusTable.getModel().getValueAt(index, pColumnNum).toString());
-      if (currentWidth > maxWidth)
-        maxWidth = currentWidth;
-    }
-    fileStatusTable.getColumnModel().getColumn(pColumnNum).setMinWidth(maxWidth);
-  }
-
   @Override
   public String getMessage()
   {
@@ -205,233 +188,148 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     return new CommitDialogResult(_getFilesToCommit(), amendCheckBox.isSelected());
   }
 
-  private Supplier<List<IFileChangeType>> _getFilesToCommit()
+  private Supplier<List<File>> _getFilesToCommit()
   {
-    return () -> commitTableModel.fileList
-        .stream()
-        .filter(pSelectedFileChangeType -> pSelectedFileChangeType.isSelected)
-        .map(SelectedFileChangeType::getChangeType)
-        .collect(Collectors.toList());
+    return selectedFiles::blockingFirst;
   }
 
   @Override
   public void discard()
   {
-    commitTableModel.discard();
+    disposable.dispose();
   }
 
-  private static class SelectedFileChangeType
+  /**
+   * Observes a JEditorPane and fires the new Document in case the document changes
+   */
+  private static class _DocumentObservable extends AbstractListenerObservable<PropertyChangeListener, JEditorPane, Document>
   {
 
-    private final IFileChangeType changeType;
-    private boolean isSelected;
-
-    SelectedFileChangeType(boolean pIsSelected, IFileChangeType pChangeType)
+    _DocumentObservable(@NotNull JEditorPane pListenableValue)
     {
-      isSelected = pIsSelected;
-      changeType = pChangeType;
+      super(pListenableValue);
     }
 
-    IFileChangeType getChangeType()
+    @NotNull
+    @Override
+    protected PropertyChangeListener registerListener(@NotNull JEditorPane pJEditorPane, @NotNull IFireable<Document> pIFireable)
     {
-      return changeType;
+      PropertyChangeListener listener = evt -> {
+        if ("document".equals(evt.getPropertyName()))
+          pIFireable.fireValueChanged(pJEditorPane.getDocument());
+      };
+      pJEditorPane.addPropertyChangeListener(listener);
+      return listener;
     }
 
-    boolean isSelected()
+    @Override
+    protected void removeListener(@NotNull JEditorPane pJEditorPane, @NotNull PropertyChangeListener pPropertyChangeListener)
     {
-      return isSelected;
-    }
-
-    void setSelected(boolean pIsSelected)
-    {
-      isSelected = pIsSelected;
+      pJEditorPane.removePropertyChangeListener(pPropertyChangeListener);
     }
   }
 
   /**
-   * TableModel for the Table, has the list of files to commit. Similar to {@link StatusTableModel}
+   * Observable that observes a Document and fires if the document's text is empty or not
    */
-  private class _SelectedCommitTableModel extends AbstractTableModel implements IDiscardable
+  private static class _NonEmptyTextObservable extends AbstractListenerObservable<DocumentListener, Document, Boolean>
+  {
+    _NonEmptyTextObservable(@NotNull Document pListenableValue)
+    {
+      super(pListenableValue);
+    }
+
+    @NotNull
+    @Override
+    protected DocumentListener registerListener(@NotNull Document pDocument, @NotNull IFireable<Boolean> pIFireable)
+    {
+      DocumentListener documentListener = new DocumentListener()
+      {
+        @Override
+        public void insertUpdate(DocumentEvent e)
+        {
+          pIFireable.fireValueChanged(e.getDocument().getLength() != 0);
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e)
+        {
+          pIFireable.fireValueChanged(e.getDocument().getLength() != 0);
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e)
+        {
+          pIFireable.fireValueChanged(e.getDocument().getLength() != 0);
+        }
+      };
+      pDocument.addDocumentListener(documentListener);
+      return documentListener;
+    }
+
+    @Override
+    protected void removeListener(@NotNull Document pDocument, @NotNull DocumentListener pDocumentListener)
+    {
+      pDocument.removeDocumentListener(pDocumentListener);
+    }
+  }
+
+  /**
+   * Observable that observes the files of all selected child nodes of a checkboxtree
+   */
+  private static class _CBTreeObservable extends AbstractListenerObservable<TreeSelectionListener, CheckBoxTree, List<File>>
   {
 
-    static final String IS_SELECTED_COLUMN_NAME = "commit file";
-    static final String FILE_NAME_COLUMN_NAME = StatusTableModel.FILE_NAME_COLUMN_NAME;
-    static final String FILE_PATH_COLUMN_NAME = StatusTableModel.FILE_PATH_COLUMN_NAME;
-    static final String CHANGE_TYPE_COLUMN_NAME = StatusTableModel.CHANGE_TYPE_COLUMN_NAME;
-    final String[] columnNames = {IS_SELECTED_COLUMN_NAME, FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
-
-    private Disposable disposable;
-    private List<SelectedFileChangeType> fileList = List.of();
-
-    _SelectedCommitTableModel(Observable<List<SelectedFileChangeType>> pSelectedFileChangeTypes)
+    _CBTreeObservable(@NotNull CheckBoxTree pListenableValue)
     {
-      disposable = pSelectedFileChangeTypes.subscribe(pFilesToCommit -> fileList = pFilesToCommit);
+      super(pListenableValue);
+    }
+
+    @NotNull
+    @Override
+    protected TreeSelectionListener registerListener(@NotNull CheckBoxTree pCheckBoxTree, @NotNull IFireable<List<File>> pIFireable)
+    {
+      TreeSelectionListener listener = e -> pIFireable.fireValueChanged(Arrays.stream(pCheckBoxTree.getCheckBoxTreeSelectionModel().getSelectionPaths())
+                                                                            .map(TreePath::getLastPathComponent)
+                                                                            .filter(pObj -> pObj instanceof FileChangeTypeNode)
+                                                                            .map(FileChangeTypeNode.class::cast)
+                                                                            .map(this::_getAllChildrensFiles)
+                                                                            .flatMap(Collection::stream)
+                                                                            .collect(Collectors.toList()));
+      pCheckBoxTree.getCheckBoxTreeSelectionModel().addTreeSelectionListener(listener);
+      return listener;
     }
 
     @Override
-    public int findColumn(String pColumnName)
+    protected void removeListener(@NotNull CheckBoxTree pCheckBoxTree, @NotNull TreeSelectionListener pTreeSelectionListener)
     {
-      for (int index = 0; index < pColumnName.length(); index++)
-      {
-        if (columnNames[index].equals(pColumnName))
-        {
-          return index;
-        }
-      }
-      return -1;
-    }
-
-    @Override
-    public String getColumnName(int pColumn)
-    {
-      return pColumn == 0 ? "" : columnNames[pColumn];
-    }
-
-    @Override
-    public int getRowCount()
-    {
-      return fileList.size();
-    }
-
-    @Override
-    public Class<?> getColumnClass(int pColumnIndex)
-    {
-      if (pColumnIndex == findColumn(IS_SELECTED_COLUMN_NAME))
-        return Boolean.class;
-      else if (pColumnIndex == findColumn(CHANGE_TYPE_COLUMN_NAME))
-        return String.class;
-      else
-        return String.class;
-    }
-
-    @Override
-    public int getColumnCount()
-    {
-      return columnNames.length;
-    }
-
-    @Override
-    public void setValueAt(Object pAValue, int pRowIndex, int pColumnIndex)
-    {
-      if (pColumnIndex == findColumn(IS_SELECTED_COLUMN_NAME) && pAValue instanceof Boolean)
-      {
-        fileList.get(pRowIndex).setSelected((Boolean) pAValue);
-        fireTableDataChanged();
-      }
-      else
-        super.setValueAt(pAValue, pRowIndex, pColumnIndex);
-    }
-
-    @Override
-    public Object getValueAt(int pRowIndex, int pColumnIndex)
-    {
-      Object returnValue = null;
-      if (pColumnIndex == findColumn(IS_SELECTED_COLUMN_NAME))
-      {
-        returnValue = fileList.get(pRowIndex).isSelected;
-      }
-      else if (pColumnIndex == findColumn(FILE_NAME_COLUMN_NAME))
-      {
-        returnValue = fileList.get(pRowIndex).getChangeType().getFile().getName();
-      }
-      else if (pColumnIndex == findColumn(FILE_PATH_COLUMN_NAME))
-      {
-        final URI fileUri = fileList.get(pRowIndex).getChangeType().getFile().toURI();
-        returnValue = repository.blockingFirst().map(pRepository -> pRepository.getTopLevelDirectory().toURI().relativize(fileUri)).orElse(fileUri);
-      }
-      else if (pColumnIndex == findColumn(CHANGE_TYPE_COLUMN_NAME))
-      {
-        returnValue = fileList.get(pRowIndex).getChangeType().getChangeType();
-      }
-      return returnValue;
-    }
-
-    @Override
-    public boolean isCellEditable(int pRowIndex, int pColumnIndex)
-    {
-      return pColumnIndex == findColumn(IS_SELECTED_COLUMN_NAME);
-    }
-
-    @Override
-    public void discard()
-    {
-      disposable.dispose();
+      pCheckBoxTree.getCheckBoxTreeSelectionModel().removeTreeSelectionListener(pTreeSelectionListener);
     }
 
     /**
-     * Sets the selection state of all files in this tableModel to the passed value and fires a tableDataChanged event afterwards
-     *
-     * @param pSelectionState whether all files are selected or not
+     * @param pNode starting node
+     * @return list of files that are stored in the leaf nodes of the children (or children's children and so forth)
      */
-    void setSelectionStateForAll(boolean pSelectionState)
+    private List<File> _getAllChildrensFiles(FileChangeTypeNode pNode)
     {
-      for (SelectedFileChangeType selectedFileChangeType : fileList)
+      List<File> elements = new ArrayList<>();
+      LinkedList<TreeNode> stack = new LinkedList<>();
+      stack.add(pNode);
+      while (!stack.isEmpty())
       {
-        selectedFileChangeType.setSelected(pSelectionState);
+        TreeNode current = stack.poll();
+        if (current instanceof FileChangeTypeNode)
+        {
+          if (current.isLeaf())
+          {
+            FileChangeTypeNodeInfo nodeInfo = ((FileChangeTypeNode) current).getInfo();
+            if (nodeInfo != null)
+              elements.add(nodeInfo.getNodeFile());
+          }
+          stack.addAll(Collections.list(current.children()));
+        }
       }
-      fireTableDataChanged();
-    }
-
-  }
-
-  /**
-   * Action that selects all files in the list of files to commit
-   */
-  private class _SelectAllAction extends AbstractAction
-  {
-
-    _SelectAllAction()
-    {
-      super("Select all");
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent pEvent)
-    {
-      ((_SelectedCommitTableModel) fileStatusTable.getModel()).setSelectionStateForAll(true);
-    }
-  }
-
-  /**
-   * Action that deselects all files in the list of files to commit
-   */
-  private class _DeselectAllAction extends AbstractAction
-  {
-
-    _DeselectAllAction()
-    {
-      super("Deselect all");
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent pEvent)
-    {
-      ((_SelectedCommitTableModel) fileStatusTable.getModel()).setSelectionStateForAll(false);
-    }
-  }
-
-  /**
-   * Listen to document changes, disable the OK button if there is no text written by the user
-   */
-  private class _EmptyDocumentListener implements DocumentListener
-  {
-
-    @Override
-    public void insertUpdate(DocumentEvent pEvent)
-    {
-      isValidDescriptor.setValid(pEvent.getDocument().getLength() != 0);
-    }
-
-    @Override
-    public void removeUpdate(DocumentEvent pEvent)
-    {
-      isValidDescriptor.setValid(pEvent.getDocument().getLength() != 0);
-    }
-
-    @Override
-    public void changedUpdate(DocumentEvent pEvent)
-    {
-      isValidDescriptor.setValid(pEvent.getDocument().getLength() != 0);
+      return elements;
     }
   }
 

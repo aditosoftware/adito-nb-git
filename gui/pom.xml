@@ -52,6 +52,11 @@
       <version>1.0.2-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.jidesoft</groupId>
+      <artifactId>jide-common-layer</artifactId>
+      <version>3.2.4</version>
+    </dependency>
   </dependencies>
 
 </project>

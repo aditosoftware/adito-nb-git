@@ -18,7 +18,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Action class for showing the commit dialogs and implementing the commit functionality
@@ -70,10 +69,7 @@ class CommitAction extends AbstractTableAction
     if (dialogResult.isPressedOk())
     {
       progressFacade.executeInBackground("Committing Changes", pProgress -> {
-        List<File> files = dialogResult.getInformation().getSelectedFilesSupplier().get()
-            .stream()
-            .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
-            .collect(Collectors.toList());
+        List<File> files = dialogResult.getInformation().getSelectedFilesSupplier().get();
         repo.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
             .commit(dialogResult.getMessage(), files, dialogResult.getInformation().isDoAmend());
         prefStore.put(prefStoreInstanceKey, null);

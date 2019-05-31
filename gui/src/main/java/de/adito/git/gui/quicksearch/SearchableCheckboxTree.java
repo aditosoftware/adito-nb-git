@@ -1,5 +1,7 @@
 package de.adito.git.gui.quicksearch;
 
+import com.jidesoft.swing.CheckBoxTree;
+
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
 import java.awt.event.KeyAdapter;
@@ -8,7 +10,7 @@ import java.awt.event.KeyEvent;
 /**
  * @author m.kaspera, 19.02.2019
  */
-public class SearchableTree extends JTree
+public class SearchableCheckboxTree extends CheckBoxTree
 {
 
   private _KeyForwardAdapter keyForwardAdapter = null;
