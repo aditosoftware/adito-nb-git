@@ -4,6 +4,7 @@ import de.adito.git.api.data.IFileDiff;
 
 import javax.swing.table.AbstractTableModel;
 import java.io.File;
+import java.text.Collator;
 import java.util.List;
 
 /**
@@ -21,8 +22,9 @@ public class DiffTableModel extends AbstractTableModel
 
   public DiffTableModel(List<IFileDiff> pFileDiffs)
   {
-
     fileDiffs = pFileDiffs;
+    Collator collator = Collator.getInstance();
+    fileDiffs.sort((o1, o2) -> collator.compare(o1.getFilePath(), o2.getFilePath()));
   }
 
   @Override

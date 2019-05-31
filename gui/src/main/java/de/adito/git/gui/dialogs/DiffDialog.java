@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.ColorPicker;
 import de.adito.git.api.IDiscardable;
+import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileDiff;
@@ -12,6 +13,8 @@ import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.DiffTableModel;
 import de.adito.git.gui.tablemodels.StatusTableModel;
@@ -40,29 +43,32 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private static final Dimension PANEL_PREF_SIZE = new Dimension(1600, 900);
   private static final Dimension TABLE_MIN_SIZE = new Dimension(350, 600);
   private static final Dimension TABLE_PREF_SIZE = new Dimension(150, 900);
-  private final JTable fileListTable = new JTable();
+  private final JTable fileListTable;
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IEditorKitProvider editorKitProvider;
   private final IIconLoader iconLoader;
   private final boolean acceptChange;
   private final boolean showFileTable;
   private final JTextPane notificationArea = new JTextPane();
+  private final JPanel seachPanel = new JPanel(new BorderLayout());
   private DiffPanel diffPanel;
   private Disposable disposable;
   private List<IFileDiff> diffs;
 
   @Inject
-  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted List<IFileDiff> pDiffs,
+  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, @Assisted List<IFileDiff> pDiffs,
                     @Assisted @javax.annotation.Nullable String pSelectedFile,
                     @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTable") boolean pShowFileTable)
   {
     iconLoader = pIconLoader;
     acceptChange = pAcceptChange;
     showFileTable = pShowFileTable;
+    diffs = pDiffs;
+    fileListTable = new SearchableTable(new DiffTableModel(diffs), seachPanel);
     observableListSelectionModel = new ObservableListSelectionModel(fileListTable.getSelectionModel());
     fileListTable.setSelectionModel(observableListSelectionModel);
+    pQuickSearchProvider.attach(seachPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileListTable, List.of(0, 1)));
     editorKitProvider = pEditorKitProvider;
-    diffs = pDiffs;
     _initGui(pSelectedFile, pIconLoader);
   }
 
@@ -76,7 +82,6 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     setPreferredSize(PANEL_PREF_SIZE);
 
     // Table on which to select which IFileDiff is displayed in the DiffPanel
-    fileListTable.setModel(new DiffTableModel(diffs));
     fileListTable.setDefaultRenderer(String.class, new FileStatusCellRenderer());
     fileListTable.getColumnModel().removeColumn(fileListTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
     fileListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -115,8 +120,9 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     });
     if (diffs.size() > 1 && showFileTable)
     {
+      seachPanel.add(fileListTableScrollPane, BorderLayout.CENTER);
       // add table and DiffPanel to the SplitPane
-      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, fileListTableScrollPane);
+      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, seachPanel);
       diffToListSplitPane.setResizeWeight(1);
       add(diffToListSplitPane, BorderLayout.CENTER);
     }
@@ -134,7 +140,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     {
       for (int index = 0; index < diffs.size(); index++)
       {
-        if ((diffs.get(index).getAbsoluteFilePath() != null && new File(diffs.get(index).getAbsoluteFilePath()).equals(new File(pSelectedFile)))
+        String absoluteFilePath = diffs.get(index).getAbsoluteFilePath();
+        if ((absoluteFilePath != null && new File(absoluteFilePath).equals(new File(pSelectedFile)))
             || new File(diffs.get(index).getFilePath()).equals(new File(pSelectedFile)))
           fileListTable.getSelectionModel().setSelectionInterval(index, index);
       }
