@@ -1154,14 +1154,19 @@ public class RepositoryImpl implements IRepository
       LogCommand logCommand = git.log()
           .add(git.getRepository().resolve(git.getRepository().getBranch()));
       String remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
+      ObjectId remoteTrackingId = null;
       if (remoteTrackingBranch != null)
-        logCommand.not(git.getRepository().resolve(remoteTrackingBranch));
+      {
+        remoteTrackingId = git.getRepository().resolve(remoteTrackingBranch);
+      }
       else
       {
         remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), "master").getRemoteTrackingBranch();
         if (remoteTrackingBranch != null)
-          logCommand.not(git.getRepository().resolve(remoteTrackingBranch));
+          remoteTrackingId = git.getRepository().resolve(remoteTrackingBranch);
       }
+      if (remoteTrackingId != null)
+        logCommand.not(remoteTrackingId);
       logger.log(Level.WARNING, "remote tracking branch for unpushed commits: {0}", remoteTrackingBranch);
       Iterable<RevCommit> unPushedCommitsIter = logCommand.call();
       unPushedCommitsIter.forEach(pUnPushedCommit -> unPushedCommits.add(new CommitImpl(pUnPushedCommit)));
