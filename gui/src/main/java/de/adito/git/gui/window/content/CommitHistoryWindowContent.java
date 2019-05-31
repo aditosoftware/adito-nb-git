@@ -138,7 +138,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
         .subscribeWith(BehaviorSubject.create());
     disposable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
         .subscribe(pStatus -> pRefreshContentCallBack.accept(commitFilterObs.blockingFirst()));
-    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable);
+    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable, pStartFilter);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
   }
 

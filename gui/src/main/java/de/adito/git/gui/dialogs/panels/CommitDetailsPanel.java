@@ -3,9 +3,8 @@ package de.adito.git.gui.dialogs.panels;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IDiffInfo;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.*;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
@@ -17,6 +16,7 @@ import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import de.adito.git.impl.data.DiffInfoImpl;
 import de.adito.git.impl.data.FileChangeTypeImpl;
+import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
@@ -27,8 +27,10 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,6 +49,9 @@ public class CommitDetailsPanel implements IDiscardable
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
+  private final JCheckBox showAllCheckbox = new JCheckBox("Show all changed files");
+  private final Observable<Boolean> showAllCBObservable;
+  private final ICommitFilter commitFilter;
   private final _SelectedCommitsPanel commits;
   private final SearchableTree statusTree;
 
@@ -54,11 +59,16 @@ public class CommitDetailsPanel implements IDiscardable
   public CommitDetailsPanel(IActionProvider pActionProvider, IQuickSearchProvider pQuickSearchProvider,
                             IFileSystemUtil pFileSystemUtil,
                             @Assisted Observable<Optional<IRepository>> pRepository,
-                            @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+                            @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                            @Assisted ICommitFilter pCommitFilter)
   {
     actionProvider = pActionProvider;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
+    commitFilter = pCommitFilter;
+    showAllCheckbox.setEnabled(!pCommitFilter.getFiles().isEmpty());
+    showAllCheckbox.setSelected(pCommitFilter.getFiles().isEmpty());
+    showAllCBObservable = Observable.create(new _CheckboxObservable(showAllCheckbox)).startWith(pCommitFilter.getFiles().isEmpty());
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
     statusTree = new SearchableTree();
     _setUpChangedFilesTreePanel(pQuickSearchProvider, pFileSystemUtil);
@@ -75,26 +85,10 @@ public class CommitDetailsPanel implements IDiscardable
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
     Observable<List<IDiffInfo>> changedFilesObs = Observable
-        .combineLatest(selectedCommitObservable, repository, (pSelectedCommitsOpt, currentRepo) -> {
-          Set<IFileChangeType> changedFilesSet = new HashSet<>();
+        .combineLatest(selectedCommitObservable, repository, showAllCBObservable, (pSelectedCommitsOpt, currentRepo, pShowAll) -> {
           if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
           {
-            for (ICommit selectedCommit : pSelectedCommitsOpt.get().subList(0, pSelectedCommitsOpt.get().size() - 1))
-            {
-              changedFilesSet.addAll(currentRepo.get().getCommittedFiles(selectedCommit.getId())
-                                         .stream()
-                                         .flatMap(pDiffInfo -> pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
-                                             new File(projectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType())))
-                                         .collect(Collectors.toList()));
-            }
-            return currentRepo.get().getCommittedFiles(pSelectedCommitsOpt.get().get(pSelectedCommitsOpt.get().size() - 1).getId())
-                .stream()
-                .map(pDiffInfo -> {
-                  Set<IFileChangeType> changedFiles = new HashSet<>(changedFilesSet);
-                  changedFiles.addAll(pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
-                      new File(projectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType())).collect(Collectors.toList()));
-                  return new DiffInfoImpl(pSelectedCommitsOpt.get().get(0), pDiffInfo.getParentCommit(), new ArrayList<>(changedFiles));
-                }).collect(Collectors.toList());
+            return _getChangedFiles(projectDirectory, pSelectedCommitsOpt.get(), currentRepo.get(), pShowAll);
           }
           else
           {
@@ -121,6 +115,34 @@ public class CommitDetailsPanel implements IDiscardable
         statusTree.expandPath(new TreePath(statusTree.getModel().getRoot()));
       }
     }));
+  }
+
+  @NotNull
+  private List<IDiffInfo> _getChangedFiles(File pProjectDirectory, List<ICommit> pSelectedCommits, IRepository currentRepo, Boolean pShowAll) throws AditoGitException
+  {
+    Set<IFileChangeType> changedFilesSet = new HashSet<>();
+    for (ICommit selectedCommit : pSelectedCommits.subList(0, pSelectedCommits.size() - 1))
+    {
+      changedFilesSet.addAll(currentRepo.getCommittedFiles(selectedCommit.getId())
+                                 .stream()
+                                 .flatMap(pDiffInfo -> pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
+                                     new File(pProjectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType())))
+                                 .filter(pFileChangeType -> commitFilter.getFiles().isEmpty() || pShowAll
+                                     || commitFilter.getFiles().stream().anyMatch(pFile -> _isChildOf(pFile, pFileChangeType.getFile())))
+                                 .collect(Collectors.toList()));
+    }
+    return currentRepo.getCommittedFiles(pSelectedCommits.get(pSelectedCommits.size() - 1).getId())
+        .stream()
+        .map(pDiffInfo -> {
+          Set<IFileChangeType> changedFiles = new HashSet<>(changedFilesSet);
+          changedFiles.addAll(pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
+              new File(pProjectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType()))
+                                  .filter(pFileChangeType -> commitFilter.getFiles().isEmpty() || pShowAll
+                                      || commitFilter.getFiles().stream().anyMatch(pFile -> _isChildOf(pFile, pFileChangeType.getFile())))
+                                  .collect(Collectors.toList()));
+          return new DiffInfoImpl(pSelectedCommits.get(0), pDiffInfo.getParentCommit(), new ArrayList<>(changedFiles));
+        }).collect(Collectors.toList());
+
   }
 
   /**
@@ -167,6 +189,7 @@ public class CommitDetailsPanel implements IDiscardable
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getExpandTreeAction(statusTree));
     toolBar.add(actionProvider.getCollapseTreeAction(statusTree));
+    toolBar.add(showAllCheckbox);
     return toolBar;
   }
 
@@ -193,6 +216,24 @@ public class CommitDetailsPanel implements IDiscardable
     detailPanelPane.setResizeWeight(DETAIL_SPLIT_PANE_RATIO);
   }
 
+  /**
+   * @param pDirectory File
+   * @param pFile      File
+   * @return true if pFile is child of or equal to pDirectory
+   */
+  private boolean _isChildOf(File pDirectory, File pFile)
+  {
+    Path directoryPath = pDirectory.toPath();
+    Path parent = pFile.toPath();
+    while (parent != null)
+    {
+      if (parent.equals(directoryPath))
+        return true;
+      parent = parent.getParent();
+    }
+    return false;
+  }
+
   @Override
   public void discard()
   {
@@ -202,8 +243,9 @@ public class CommitDetailsPanel implements IDiscardable
   public interface IPanelFactory
   {
 
-    CommitDetailsPanel createCommitDetailsPanel(Observable<Optional<IRepository>> pRepository,
-                                                Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+    CommitDetailsPanel createCommitDetailsPanel(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                                @NotNull ICommitFilter pCommitFilter);
 
   }
 
@@ -372,6 +414,30 @@ public class CommitDetailsPanel implements IDiscardable
     public void treeStructureChanged(TreeModelEvent e)
     {
       expandTreeAction.actionPerformed(null);
+    }
+  }
+
+  private static class _CheckboxObservable extends AbstractListenerObservable<ItemListener, JCheckBox, Boolean>
+  {
+
+    public _CheckboxObservable(@NotNull JCheckBox pListenableValue)
+    {
+      super(pListenableValue);
+    }
+
+    @NotNull
+    @Override
+    protected ItemListener registerListener(@NotNull JCheckBox pJCheckBox, @NotNull IFireable<Boolean> pIFireable)
+    {
+      ItemListener listener = e -> pIFireable.fireValueChanged(pJCheckBox.isSelected());
+      pJCheckBox.addItemListener(listener);
+      return listener;
+    }
+
+    @Override
+    protected void removeListener(@NotNull JCheckBox pJCheckBox, @NotNull ItemListener pItemListener)
+    {
+      pJCheckBox.removeItemListener(pItemListener);
     }
   }
 }

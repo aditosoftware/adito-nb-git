@@ -11,6 +11,7 @@ import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.CommitListTableModel;
+import de.adito.git.impl.data.CommitFilterImpl;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -61,7 +62,7 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
       selectedCommitId = pOptSelectedCommits.map(pCommits -> pCommits.get(0).getId()).orElse("");
     });
     deleteStashCommitAction = pActionProvider.getDeleteStashedCommitAction(pRepository, selectedCommit);
-    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable);
+    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable, new CommitFilterImpl());
     commitListTable.setSelectionModel(observableListSelectionModel);
     commitListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     _initGui();
