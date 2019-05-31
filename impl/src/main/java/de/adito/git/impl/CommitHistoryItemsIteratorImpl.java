@@ -130,15 +130,13 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
       }
       if (isBranchHead)
       {
-        advancedLine = new AncestryLine(pBufferdCommit, colorRoulette.get(), AncestryLine.LineType.INFANT);
-        newLines.add(advancedLine);
+        advancedLine = _getBranchHeads(newLines, parentLines);
       }
     }
     else
     {
       // start from scratch and create AncestryLine from the very first commmit
-      advancedLine = new AncestryLine(pBufferdCommit, colorRoulette.get(), AncestryLine.LineType.FULL);
-      newLines.add(advancedLine);
+      advancedLine = _getBranchHeads(newLines, parentLines);
     }
     // check for stillborns
     if (parentLines.size() > 1)
@@ -150,6 +148,24 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     historyGraphElement.calculateUpperLines(latestHistoryItem == null ? List.of() : latestHistoryItem.getAncestryLines(), advancedLine, currentCommit);
     historyGraphElement.calculateLowerLines(newLines);
     return new CommitHistoryTreeListItem(currentCommit, newLines, historyGraphElement, allBranches, allTags);
+  }
+
+  /**
+   * Note: the returned advanced line is the first parent line here, since this is branchhead and we're starting a new line (or lines if parents > 1)
+   *
+   * @param pNewLines    list of the ancestryLines as they are after the current commit
+   * @param pParentLines list of lines that start at the current commit
+   * @return the advanced line
+   */
+  private AncestryLine _getBranchHeads(List<AncestryLine> pNewLines, List<AncestryLine> pParentLines)
+  {
+    pParentLines.add(new AncestryLine(currentCommit.getParents().get(0), colorRoulette.get(), AncestryLine.LineType.FULL));
+    for (int index = 1; index < currentCommit.getParents().size(); index++)
+    {
+      pParentLines.add(new AncestryLine(currentCommit.getParents().get(index), colorRoulette.get(), AncestryLine.LineType.INFANT));
+    }
+    pNewLines.addAll(pParentLines);
+    return pParentLines.get(0);
   }
 
   /**
@@ -172,7 +188,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
             && pParentLines.get(parentLIndex).getNextCommit().equals(pNewLines.get(index).getNextCommit())
             && pParentLines.get(parentLIndex).getNextCommit().equals(pBufferdCommit))
         {
-          double stillBornMeetingIndex = _getStillbornMeetingOffset(fullLineCount, pAdvancedLine);
+          double stillBornMeetingIndex = _getStillbornMeetingOffset(fullLineCount, pAdvancedLine, pNewLines);
           pParentLines.get(parentLIndex).setLineType(AncestryLine.LineType.STILLBORN);
           pParentLines.get(parentLIndex).setStillBornMeetingIndex(stillBornMeetingIndex);
           break;
@@ -186,12 +202,17 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
   /**
    * @param pIndex        number of ancestryLines of type full that come before the stillborn line begins
    * @param pAdvancedLine the ancestryLine that the current commit was on
+   * @param pNewLines     the current lines, in case the advanced line is not in the ancestryLines of the latestHistoryItem (aka a branchhead with > 1 parents)
    * @return index at which the line for the stillborn intersects the bootom of the table cell
    */
-  private double _getStillbornMeetingOffset(int pIndex, AncestryLine pAdvancedLine)
+  private double _getStillbornMeetingOffset(int pIndex, AncestryLine pAdvancedLine, List<AncestryLine> pNewLines)
   {
-    return (double) (pIndex + latestHistoryItem.getAncestryLines()
-        .subList(0, latestHistoryItem.getAncestryLines().indexOf(pAdvancedLine))
+    List<AncestryLine> linesToAnalyze;
+    if (latestHistoryItem.getAncestryLines().indexOf(pAdvancedLine) >= 0)
+      linesToAnalyze = latestHistoryItem.getAncestryLines().subList(0, latestHistoryItem.getAncestryLines().indexOf(pAdvancedLine));
+    else
+      linesToAnalyze = pNewLines.subList(0, pNewLines.indexOf(pAdvancedLine));
+    return (double) (pIndex + linesToAnalyze
         .stream()
         .filter(pLine -> pLine.getLineType() == AncestryLine.LineType.FULL)
         .count())
