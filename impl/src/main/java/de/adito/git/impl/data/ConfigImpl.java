@@ -3,7 +3,6 @@ package de.adito.git.impl.data;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
-import de.adito.git.api.ILogger;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
@@ -11,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implementation of IConfig, return values are the values in the config to the time the function is called,
@@ -22,14 +23,13 @@ public class ConfigImpl implements IConfig
 {
 
   private final IKeyStore keyStore;
-  private final ILogger logger;
+  private final Logger logger = Logger.getLogger(ConfigImpl.class.getName());
   private final Git git;
 
   @Inject
-  public ConfigImpl(IKeyStore pKeyStore, ILogger pLogger, @Assisted Git pGit)
+  public ConfigImpl(IKeyStore pKeyStore, @Assisted Git pGit)
   {
     keyStore = pKeyStore;
-    logger = pLogger;
     git = pGit;
   }
 
@@ -54,7 +54,7 @@ public class ConfigImpl implements IConfig
       if (remoteName == null)
         return null;
       String keyLocation = git.getRepository().getConfig().getString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY);
-      logger.println(String.format("key location for remote %s is %s", remoteName, keyLocation), ILogger.Level.INFO);
+      logger.log(Level.WARNING, () -> String.format("git: key location for remote \"%s\" is \"%s\"", remoteName, keyLocation));
       return keyLocation;
     }
     catch (IOException pE)
@@ -79,7 +79,7 @@ public class ConfigImpl implements IConfig
     {
       String userName = getUserName();
       String remoteName = RepositoryImplHelper.getRemoteName(git, null);
-      logger.println(String.format("retrieving password for user %s and realm %s", userName, remoteName), ILogger.Level.INFO);
+      logger.log(Level.WARNING, () -> String.format("git: retrieving password for user \"%s\" and realm \"%s\"", userName, remoteName));
       return userName != null && remoteName != null ? keyStore.read(userName + remoteName) : null;
     }
     catch (IOException pE)
@@ -135,13 +135,13 @@ public class ConfigImpl implements IConfig
       String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
       if (remoteName != null)
       {
-        logger.println(String.format("Setting ssh key location for remote %s to %s", remoteName, pSshKeyLocation), ILogger.Level.INFO);
+        logger.log(Level.WARNING, () -> String.format("git: Setting ssh key location for remote \"%s\" to %s", remoteName, pSshKeyLocation));
         git.getRepository().getConfig().setString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY, pSshKeyLocation);
         git.getRepository().getConfig().save();
       }
       else
       {
-        logger.println(String.format("Could not find remote for url %s, ssh key location was not saved", pRemoteUrl), ILogger.Level.INFO);
+        logger.log(Level.WARNING, () -> String.format("git: Could not find remote for url \"%s\", ssh key location was not saved", pRemoteUrl));
       }
     }
     catch (IOException pE)
@@ -159,12 +159,12 @@ public class ConfigImpl implements IConfig
       if (pPassphrase == null)
       {
         keyStore.delete(sshKeyLocation);
-        logger.println(String.format("removed password for key %s", sshKeyLocation), ILogger.Level.INFO);
+        logger.log(Level.WARNING, () -> String.format("git: removed password for key %s", sshKeyLocation));
       }
       else
       {
         keyStore.save(sshKeyLocation, pPassphrase, null);
-        logger.println(String.format("saved password for key %s", sshKeyLocation), ILogger.Level.INFO);
+        logger.log(Level.WARNING, () -> String.format("git: saved password for key %s", sshKeyLocation));
       }
     }
     else
