@@ -7,6 +7,7 @@ import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
+import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;
 import io.reactivex.Observable;
@@ -61,7 +62,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
 
-    Observable<String> actualText = DocumentObservable.create(targetEditor.getDocument());
+    Observable<String> actualText = Observable.create(new DocumentChangeObservable(pTarget)).startWith(pTarget.getDocument()).switchMap(DocumentObservable::create);
     file = new File(pDataObject.getPrimaryFile().toURI());
     addMouseListener(new _ChunkPopupMouseListener(pRepository, targetEditor));
 

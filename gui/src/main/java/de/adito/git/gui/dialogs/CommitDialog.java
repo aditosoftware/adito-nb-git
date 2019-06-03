@@ -16,6 +16,7 @@ import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
+import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -32,7 +33,6 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.*;
 import java.util.function.Supplier;
@@ -87,7 +87,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
         messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
         messagePane.setText(pMessageTemplate);
       });
-      Observable<Boolean> nonEmptyTextObservable = Observable.create(new _DocumentObservable(messagePane))
+      Observable<Boolean> nonEmptyTextObservable = Observable.create(new DocumentChangeObservable(messagePane))
           .switchMap(pDocument -> Observable.create(new _NonEmptyTextObservable(pDocument)))
           .startWith(messagePane.getDocument().getLength() > 0);
       selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree)).startWith(List.<File>of()).share().subscribeWith(BehaviorSubject.create());
@@ -197,36 +197,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   public void discard()
   {
     disposable.dispose();
-  }
-
-  /**
-   * Observes a JEditorPane and fires the new Document in case the document changes
-   */
-  private static class _DocumentObservable extends AbstractListenerObservable<PropertyChangeListener, JEditorPane, Document>
-  {
-
-    _DocumentObservable(@NotNull JEditorPane pListenableValue)
-    {
-      super(pListenableValue);
-    }
-
-    @NotNull
-    @Override
-    protected PropertyChangeListener registerListener(@NotNull JEditorPane pJEditorPane, @NotNull IFireable<Document> pIFireable)
-    {
-      PropertyChangeListener listener = evt -> {
-        if ("document".equals(evt.getPropertyName()))
-          pIFireable.fireValueChanged(pJEditorPane.getDocument());
-      };
-      pJEditorPane.addPropertyChangeListener(listener);
-      return listener;
-    }
-
-    @Override
-    protected void removeListener(@NotNull JEditorPane pJEditorPane, @NotNull PropertyChangeListener pPropertyChangeListener)
-    {
-      pJEditorPane.removePropertyChangeListener(pPropertyChangeListener);
-    }
   }
 
   /**
