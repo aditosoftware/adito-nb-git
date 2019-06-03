@@ -31,47 +31,50 @@ public class HistoryGraphElement
     int numClosing = 0, numStillborn = 0;
     for (int index = 0; index < pAncestryLines.size(); index++)
     {
-      if (pAncestryLines.get(index).getNextCommit().equals(pCurrentCommit))
+      if (pAncestryLines.get(index).getLineType() != AncestryLine.LineType.EMPTY)
       {
-        // if true, the first reference to the current commit was found -> set knotIndex to currentIndex so all following references can point
-        // to the location of this line
-        if (knotIndex == Integer.MAX_VALUE)
+        if (pAncestryLines.get(index).getNextCommit().equals(pCurrentCommit))
         {
-          if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.STILLBORN)
+          // if true, the first reference to the current commit was found -> set knotIndex to currentIndex so all following references can point
+          // to the location of this line
+          if (knotIndex == Integer.MAX_VALUE)
           {
-            calculateLater.add(pAncestryLines.get(index));
-            numStillborn++;
+            if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.STILLBORN)
+            {
+              calculateLater.add(pAncestryLines.get(index));
+              numStillborn++;
+            }
+            else
+            {
+              knotIndex = index - numStillborn - numClosing;
+              knotCoordinates = new KnotCoordinates(
+                  ColoredLineCoordinates.LEFT_OFFSET + (knotIndex * ColoredLineCoordinates.LINE_SEPARATION) - KnotCoordinates.RADIUS / 2,
+                  pAncestryLines.get(index).getColor());
+              lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn, knotIndex, true, pAncestryLines.get(index).getColor()));
+            }
           }
           else
           {
-            knotIndex = index - numStillborn - numClosing;
-            knotCoordinates = new KnotCoordinates(
-                ColoredLineCoordinates.LEFT_OFFSET + (knotIndex * ColoredLineCoordinates.LINE_SEPARATION) - KnotCoordinates.RADIUS / 2,
-                pAncestryLines.get(index).getColor());
-            lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn, knotIndex, true, pAncestryLines.get(index).getColor()));
+            if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.STILLBORN)
+            {
+              lineCoordinates.add(_getCoordinatesForIndices(pAncestryLines.get(index).getStillBornMeetingIndex(), knotIndex, true,
+                                                            pAncestryLines.get(index).getColor()));
+              numStillborn++;
+            }
+            else
+            {
+              numClosing++;
+              // draw line from top of the cell (at the incoming point of the line) to the dot/knot on the line that this particular commit is on
+              lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn, knotIndex, true, pAncestryLines.get(index).getColor()));
+            }
           }
         }
         else
         {
-          if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.STILLBORN)
-          {
-            lineCoordinates.add(_getCoordinatesForIndices(pAncestryLines.get(index).getStillBornMeetingIndex(), knotIndex, true,
-                                                          pAncestryLines.get(index).getColor()));
-            numStillborn++;
-          }
-          else
-          {
-            numClosing++;
-            // draw line from top of the cell (at the incoming point of the line) to the dot/knot on the line that this particular commit is on
-            lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn, knotIndex, true, pAncestryLines.get(index).getColor()));
-          }
+          // draw straight line from the incoming top of the cell to the middle
+          lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn, (double) index - numStillborn - numClosing,
+                                                        true, pAncestryLines.get(index).getColor()));
         }
-      }
-      else
-      {
-        // draw straight line from the incoming top of the cell to the middle
-        lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn, (double) index - numStillborn - numClosing,
-                                                      true, pAncestryLines.get(index).getColor()));
       }
     }
     // if a STILLBORN line would have been drawn before any other line had referenced the commit in the current line, the STILLBORN line would
@@ -103,21 +106,24 @@ public class HistoryGraphElement
     }
     for (int index = 0; index < pAncestryLines.size(); index++)
     {
-      if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.INFANT)
+      if (pAncestryLines.get(index).getLineType() != AncestryLine.LineType.EMPTY)
       {
-        lineCoordinates.add(_getCoordinatesForIndices(knotIndex, (double) index - numStillborn, false, pAncestryLines.get(index).getColor()));
-        numOpening++;
-      }
-      else if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.STILLBORN)
-      {
-        lineCoordinates.add(_getCoordinatesForIndices(knotIndex, pAncestryLines.get(index).getStillBornMeetingIndex(), false, pAncestryLines.get(index).getColor()));
-        numStillborn++;
-      }
-      else
-      {
-        // draw straight line from the incoming top of the cell to the middle
-        lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn - numOpening, (double) index - numStillborn - numClosing,
-                                                      false, pAncestryLines.get(index).getColor()));
+        if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.INFANT)
+        {
+          lineCoordinates.add(_getCoordinatesForIndices(knotIndex, (double) index - numStillborn, false, pAncestryLines.get(index).getColor()));
+          numOpening++;
+        }
+        else if (pAncestryLines.get(index).getLineType() == AncestryLine.LineType.STILLBORN)
+        {
+          lineCoordinates.add(_getCoordinatesForIndices(knotIndex, pAncestryLines.get(index).getStillBornMeetingIndex(), false, pAncestryLines.get(index).getColor()));
+          numStillborn++;
+        }
+        else
+        {
+          // draw straight line from the incoming top of the cell to the middle
+          lineCoordinates.add(_getCoordinatesForIndices((double) index - numStillborn - numOpening, (double) index - numStillborn - numClosing,
+                                                        false, pAncestryLines.get(index).getColor()));
+        }
       }
     }
   }

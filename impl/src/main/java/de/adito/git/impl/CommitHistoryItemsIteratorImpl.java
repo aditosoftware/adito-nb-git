@@ -122,7 +122,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
             newLines.add(formerLine);
           }
           // stillborn lines do not continue, all other lines do
-          else if (formerLine.getLineType() != AncestryLine.LineType.STILLBORN)
+          else if (formerLine.getLineType() != AncestryLine.LineType.STILLBORN && formerLine.getLineType() != AncestryLine.LineType.EMPTY)
           {
             newLines.add(formerLine);
           }
@@ -237,6 +237,10 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
           parentLines.add(new AncestryLine(currentCommit.getParents().get(parentIndex), colorRoulette.get(), AncestryLine.LineType.INFANT));
         }
       }
+    }
+    else
+    {
+      parentLines.add(new AncestryLine(currentCommit, pParentLineColor, AncestryLine.LineType.EMPTY));
     }
     return parentLines;
   }

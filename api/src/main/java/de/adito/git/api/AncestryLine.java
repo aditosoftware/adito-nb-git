@@ -24,10 +24,11 @@ public class AncestryLine
    * FULL: active line
    * INFANT: line that has yet to spawn
    * STILLBORN: line that will spawn and be gone in the very next line (usually a merge, but not all merges are STILLBORN)
+   * EMPTX: line that ended at the node above, just here to keep the spacing the way it needs to be for the next cell
    */
   public enum LineType
   {
-    FULL, INFANT, STILLBORN
+    FULL, INFANT, STILLBORN, EMPTY
   }
 
   /**
