@@ -395,8 +395,8 @@ public class RepositoryImplHelper
       }
       logCommand.setRevFilter(revFilter);
       refCommits = logCommand.call();
-      Function<RevCommit, ICommit> trasnformFn = CommitImpl::new;
-      return new DAGFilterIterator<>(Iterators.transform(refCommits.iterator(), trasnformFn::apply), pCommitFilter);
+      Function<RevCommit, ICommit> transformFn = CommitImpl::new;
+      return new DAGFilterIterator<>(Iterators.transform(refCommits.iterator(), transformFn::apply), pCommitFilter);
     }
     catch (IOException pE)
     {
