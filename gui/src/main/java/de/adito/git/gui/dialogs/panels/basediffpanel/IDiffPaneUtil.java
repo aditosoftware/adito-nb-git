@@ -39,9 +39,9 @@ public interface IDiffPaneUtil
     int moveToElementStartLine = 0;
     for (IFileChangeChunk changeChunk : pChangeChunks)
     {
+      moveToElementStartLine = changeChunk.getStart(pChangeSide);
       if (changeChunk.getChangeType() != EChangeType.SAME && changeChunk.getStart(pChangeSide) > caretLine)
       {
-        moveToElementStartLine = changeChunk.getStart(pChangeSide);
         break;
       }
     }
@@ -65,7 +65,8 @@ public interface IDiffPaneUtil
       if (pChangeChunks.get(index).getChangeType() != EChangeType.SAME && pChangeChunks.get(index).getEnd(pChangeSide) <= caretLine)
       {
         moveToElementStartLine = pChangeChunks.get(index).getStart(pChangeSide);
-        break;
+        if (pChangeChunks.get(index).getStart(pChangeSide) != pChangeChunks.get(index).getEnd(pChangeSide) || caretLine > pChangeChunks.get(index).getEnd(pChangeSide))
+          break;
       }
     }
     pTextComponent.getCaret().setDot(pTextComponent.getDocument().getDefaultRootElement().getElement(moveToElementStartLine).getStartOffset());
