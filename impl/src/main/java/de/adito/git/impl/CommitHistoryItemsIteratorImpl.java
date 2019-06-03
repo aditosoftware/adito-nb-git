@@ -159,10 +159,17 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    */
   private AncestryLine _getBranchHeads(List<AncestryLine> pNewLines, List<AncestryLine> pParentLines)
   {
-    pParentLines.add(new AncestryLine(currentCommit.getParents().get(0), colorRoulette.get(), AncestryLine.LineType.FULL));
-    for (int index = 1; index < currentCommit.getParents().size(); index++)
+    if (currentCommit.getParents().isEmpty())
     {
-      pParentLines.add(new AncestryLine(currentCommit.getParents().get(index), colorRoulette.get(), AncestryLine.LineType.INFANT));
+      pParentLines.add(new AncestryLine(currentCommit, colorRoulette.get(), AncestryLine.LineType.EMPTY));
+    }
+    else
+    {
+      pParentLines.add(new AncestryLine(currentCommit.getParents().get(0), colorRoulette.get(), AncestryLine.LineType.FULL));
+      for (int index = 1; index < currentCommit.getParents().size(); index++)
+      {
+        pParentLines.add(new AncestryLine(currentCommit.getParents().get(index), colorRoulette.get(), AncestryLine.LineType.INFANT));
+      }
     }
     pNewLines.addAll(pParentLines);
     return pParentLines.get(0);
