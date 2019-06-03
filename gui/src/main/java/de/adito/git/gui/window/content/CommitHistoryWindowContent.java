@@ -3,9 +3,7 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.ICommitFilter;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
@@ -63,7 +61,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<CommitHistoryTreeListItem>>> selectedCommitHistoryItems;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
-  private final Disposable disposable;
+  private final Observable<Optional<IFileStatus>> statusObservable;
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
   // Variables for filtering the shown entries
@@ -136,8 +134,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
             .setFileList(chosenFiles))
         .share()
         .subscribeWith(BehaviorSubject.create());
-    disposable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
-        .subscribe(pStatus -> pRefreshContentCallBack.accept(commitFilterObs.blockingFirst()));
+    statusObservable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())));
     commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable, pStartFilter);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
   }
@@ -145,7 +142,6 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   @Override
   public void discard()
   {
-    disposable.dispose();
     commitFilterDisposable.dispose();
     branchObservable.dispose();
     commitDetailsPanel.discard();
@@ -201,7 +197,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     toolBar.add(authorLabel);
     authorField.setPreferredSize(new Dimension(400, 26));
     toolBar.add(authorField);
-    commitFilterDisposable = commitFilterObs.subscribe(pRefreshContentCallBack::accept);
+    commitFilterDisposable = Observable.combineLatest(commitFilterObs, statusObservable, (pFilter, pStatus) -> pFilter).subscribe(pRefreshContentCallBack::accept);
   }
 
   private void _setUpCommitTable()

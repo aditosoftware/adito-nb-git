@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 public class HistoryTableManager
 {
 
+  private final Object lock = new Object();
   private final CommitHistoryTreeListTableModel tableModel;
   private final IRepository repository;
   private final IUserPreferences userPreferences;
@@ -37,11 +38,14 @@ public class HistoryTableManager
     return pNewFilter -> {
       try
       {
-        commitHistoryIterator = new CommitHistoryItemsIteratorImpl(repository.getCommits(pNewFilter),
-                                                                   repository.getBranches().blockingFirst().orElse(List.of()),
-                                                                   repository.getTags());
-        List<CommitHistoryTreeListItem> items = commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries());
-        tableModel.resetData(items);
+        synchronized (lock)
+        {
+          commitHistoryIterator = new CommitHistoryItemsIteratorImpl(repository.getCommits(pNewFilter),
+                                                                     repository.getBranches().blockingFirst().orElse(List.of()),
+                                                                     repository.getTags());
+          List<CommitHistoryTreeListItem> items = commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries());
+          tableModel.resetData(items);
+        }
       }
       catch (AditoGitException pE)
       {
@@ -52,8 +56,12 @@ public class HistoryTableManager
 
   public Runnable getLoadMoreRunnable()
   {
-    return () -> tableModel
-        .addData(commitHistoryIterator == null ? List.of() : commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries()));
+    return () -> {
+      synchronized (lock)
+      {
+        tableModel.addData(commitHistoryIterator == null ? List.of() : commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries()));
+      }
+    };
   }
 
   public CommitHistoryTreeListTableModel getTableModel()
