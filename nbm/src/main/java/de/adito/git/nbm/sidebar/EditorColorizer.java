@@ -192,8 +192,11 @@ class EditorColorizer extends JPanel implements IDiscardable
       default:
         break;
     }
-    Element startElement = pTarget.getDocument().getDefaultRootElement().getElement(Math.min(startLine, pTarget.getDocument().getDefaultRootElement().getElementCount()));
-    Element endElement = pTarget.getDocument().getDefaultRootElement().getElement(Math.min(endLine, pTarget.getDocument().getDefaultRootElement().getElementCount()));
+    Element defaultRootElement = pTarget.getDocument().getDefaultRootElement();
+    if (defaultRootElement.getElementCount() == 0)
+      return null;
+    Element startElement = defaultRootElement.getElement(Math.min(startLine, defaultRootElement.getElementCount() - 1));
+    Element endElement = defaultRootElement.getElement(Math.min(endLine, defaultRootElement.getElementCount() - 1));
     int endOffset = endElement.getStartOffset();
     int startOffset = startElement.getStartOffset();
 
