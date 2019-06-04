@@ -3,6 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.jidesoft.swing.CheckBoxTree;
+import com.jidesoft.swing.CheckBoxTreeSelectionModel;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
@@ -22,6 +23,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -78,8 +80,16 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     if (optRepo.isPresent())
     {
       File dir = optRepo.get().getTopLevelDirectory();
-      checkBoxTree.init(tableSearchView, new StatusTreeModel(filesToCommitObservable, dir));
+      StatusTreeModel statusTreeModel = new StatusTreeModel(filesToCommitObservable, dir);
+      checkBoxTree.init(tableSearchView, statusTreeModel);
       checkBoxTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, dir));
+      List<File> preSelectedFiles = pFilesToCommit.blockingFirst()
+          .map(pFileChangeTypes -> pFileChangeTypes.stream()
+              .map(IFileChangeType::getFile)
+              .collect(Collectors.toList()))
+          .orElse(List.of());
+      statusTreeModel.invokeAfterComputations(() -> _setSelected(preSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(),
+                                                                 checkBoxTree.getCheckBoxTreeSelectionModel()));
       JScrollPane scrollPane = new JScrollPane(checkBoxTree);
       tableSearchView.add(scrollPane, BorderLayout.CENTER);
       pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(checkBoxTree));
@@ -116,6 +126,30 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       }
     });
     _initGui();
+  }
+
+  /**
+   * Sets all the nodes that contain one of the selectedFiles in their nodeInfo selected (checkbox selected, not marked selected)
+   *
+   * @param pSelectedFiles              Files whose leaf nodes should have their checkbox checked
+   * @param pCurrentPath                current treePath up to, but not including, the current Node. Null if current node is root
+   * @param pCurrentNode                current Node
+   * @param pCheckBoxTreeSelectionModel the checkbox selectionModel of the tree
+   */
+  private void _setSelected(@NotNull List<File> pSelectedFiles, @Nullable TreePath pCurrentPath, @NotNull FileChangeTypeNode pCurrentNode,
+                            @NotNull CheckBoxTreeSelectionModel pCheckBoxTreeSelectionModel)
+  {
+    TreePath updatedPath = pCurrentPath == null ? new TreePath(pCurrentNode) : pCurrentPath.pathByAddingChild(pCurrentNode);
+    FileChangeTypeNodeInfo nodeInfo = pCurrentNode.getInfo();
+    if (pCurrentNode.isLeaf() && nodeInfo != null && pSelectedFiles.contains(nodeInfo.getNodeFile()))
+    {
+      pCheckBoxTreeSelectionModel.addSelectionPath(updatedPath);
+    }
+    Iterator<TreeNode> childIterator = pCurrentNode.children().asIterator();
+    while (childIterator.hasNext())
+    {
+      _setSelected(pSelectedFiles, updatedPath, (FileChangeTypeNode) childIterator.next(), pCheckBoxTreeSelectionModel);
+    }
   }
 
   /**

@@ -76,7 +76,7 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
     {
       updateFuture.cancel(true);
     }
-    updateFuture = service.submit(() -> {
+    updateFuture = invokeAfterComputations(() -> {
       try
       {
         _calculateTree(pList);

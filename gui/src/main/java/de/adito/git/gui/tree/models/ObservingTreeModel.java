@@ -32,6 +32,17 @@ class ObservingTreeModel extends DefaultTreeModel
   }
 
   /**
+   * Queues the Task in the Single-thread executor of this class
+   *
+   * @param pRunnable Runnable to execute
+   * @return Future of the submit method of the executor
+   */
+  public Future<?> invokeAfterComputations(Runnable pRunnable)
+  {
+    return service.submit(pRunnable);
+  }
+
+  /**
    * @param pMap  Map that is an image of the tree
    * @param pNode node to update
    */
