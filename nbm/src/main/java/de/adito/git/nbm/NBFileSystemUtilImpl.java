@@ -16,6 +16,7 @@ import org.openide.util.NbBundle;
 import java.awt.Image;
 import java.beans.BeanInfo;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -73,6 +74,13 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
   @Override
   public Charset getEncoding(@NotNull File pFile)
   {
-    return FileEncodingQuery.getEncoding(FileUtil.toFileObject(pFile));
+    try
+    {
+      return FileEncodingQuery.getEncoding(FileUtil.toFileObject(new File(pFile.getCanonicalPath())));
+    }
+    catch (IOException pE)
+    {
+      return FileEncodingQuery.getEncoding(FileUtil.toFileObject(pFile));
+    }
   }
 }
