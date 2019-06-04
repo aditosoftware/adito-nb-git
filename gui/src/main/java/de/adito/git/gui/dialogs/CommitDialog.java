@@ -8,10 +8,12 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
+import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.LinedDecorator;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
@@ -55,6 +57,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("amend commit");
   private final IActionProvider actionProvider;
+  private final Observable<Optional<IRepository>> repository;
   private final SearchableCheckboxTree checkBoxTree;
   private final Observable<List<File>> selectedFiles;
   private final Disposable disposable;
@@ -65,38 +68,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                       @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @Assisted String pMessageTemplate, IEditorKitProvider pEditorKitProvider)
   {
     actionProvider = pActionProvider;
+    repository = pRepository;
     // disable OK button at the start since the commit message is empty then
     pIsValidDescriptor.setValid(pMessageTemplate != null && !pMessageTemplate.isEmpty());
-    Observable<Optional<IFileStatus>> statusObservable = pRepository
-        .switchMap(pRepo -> pRepo
-            .orElseThrow(() -> new RuntimeException("no valid repository found"))
-            .getStatus());
-    Observable<List<IFileChangeType>> filesToCommitObservable = Observable
-        .combineLatest(statusObservable, pFilesToCommit, (pStatusObservable, pSelectedFiles) -> new ArrayList<>(pStatusObservable
-                                                                                                                    .map(IFileStatus::getUncommitted)
-                                                                                                                    .orElse(Collections.emptyList())));
     checkBoxTree = new SearchableCheckboxTree();
     Optional<IRepository> optRepo = pRepository.blockingFirst();
     if (optRepo.isPresent())
     {
-      File dir = optRepo.get().getTopLevelDirectory();
-      StatusTreeModel statusTreeModel = new StatusTreeModel(filesToCommitObservable, dir);
-      checkBoxTree.init(tableSearchView, statusTreeModel);
-      checkBoxTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, dir));
-      List<File> preSelectedFiles = pFilesToCommit.blockingFirst()
-          .map(pFileChangeTypes -> pFileChangeTypes.stream()
-              .map(IFileChangeType::getFile)
-              .collect(Collectors.toList()))
-          .orElse(List.of());
-      statusTreeModel.invokeAfterComputations(() -> _setSelected(preSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(),
-                                                                 checkBoxTree.getCheckBoxTreeSelectionModel()));
-      statusTreeModel.invokeAfterComputations(() -> {
-        if (statusTreeModel.getRoot() != null)
-          checkBoxTree.expandPath(new TreePath(statusTreeModel.getRoot()));
-      });
-      JScrollPane scrollPane = new JScrollPane(checkBoxTree);
-      tableSearchView.add(scrollPane, BorderLayout.CENTER);
-      pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(checkBoxTree));
+      _initCheckBoxTree(pFileSystemUtil, pQuickSearchProvider, pFilesToCommit, optRepo.get());
       SwingUtilities.invokeLater(() -> {
         messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
         messagePane.setText(pMessageTemplate);
@@ -133,6 +112,43 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   }
 
   /**
+   * initializes all necessary checboxtree attributes/abilites (QuickSearch, Popupmenu, preselected items...)
+   *
+   * @param pFileSystemUtil      FileSystemUtil to retrieve icons for files
+   * @param pQuickSearchProvider QuickSearchProvider to provide QuickSearch support for the tree
+   * @param pFilesToCommit       pre-selected files to commit by the user
+   * @param pRepo                repository
+   */
+  private void _initCheckBoxTree(@NotNull IFileSystemUtil pFileSystemUtil, @NotNull IQuickSearchProvider pQuickSearchProvider,
+                                 @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @NotNull IRepository pRepo)
+  {
+    Observable<Optional<IFileStatus>> statusObservable = pRepo.getStatus();
+    Observable<List<IFileChangeType>> filesToCommitObservable = Observable
+        .combineLatest(statusObservable, pFilesToCommit, (pStatusObs, pSelectedFiles) -> new ArrayList<>(pStatusObs
+                                                                                                             .map(IFileStatus::getUncommitted)
+                                                                                                             .orElse(Collections.emptyList())));
+    File dir = pRepo.getTopLevelDirectory();
+    StatusTreeModel statusTreeModel = new StatusTreeModel(filesToCommitObservable, dir);
+    checkBoxTree.init(tableSearchView, statusTreeModel);
+    checkBoxTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, dir));
+    List<File> preSelectedFiles = pFilesToCommit.blockingFirst()
+        .map(pFileChangeTypes -> pFileChangeTypes.stream()
+            .map(IFileChangeType::getFile)
+            .collect(Collectors.toList()))
+        .orElse(List.of());
+    statusTreeModel.invokeAfterComputations(() -> _setSelected(preSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(),
+                                                               checkBoxTree.getCheckBoxTreeSelectionModel()));
+    statusTreeModel.invokeAfterComputations(() -> {
+      if (statusTreeModel.getRoot() != null)
+        checkBoxTree.expandPath(new TreePath(statusTreeModel.getRoot()));
+    });
+    JScrollPane scrollPane = new JScrollPane(checkBoxTree);
+    tableSearchView.add(scrollPane, BorderLayout.CENTER);
+    pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(checkBoxTree));
+    _attachPopupMenu(checkBoxTree);
+  }
+
+  /**
    * Sets all the nodes that contain one of the selectedFiles in their nodeInfo selected (checkbox selected, not marked selected)
    *
    * @param pSelectedFiles              Files whose leaf nodes should have their checkbox checked
@@ -154,6 +170,30 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     {
       _setSelected(pSelectedFiles, updatedPath, (FileChangeTypeNode) childIterator.next(), pCheckBoxTreeSelectionModel);
     }
+  }
+
+  /**
+   * attach the popupMenu to the checkBoxTree
+   * This also changes the selectionModel of the Tree to an observableSelectionModel
+   *
+   * @param pCheckBoxTree tree that should have the popupMenu attached
+   */
+  private void _attachPopupMenu(@NotNull CheckBoxTree pCheckBoxTree)
+  {
+    ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(pCheckBoxTree.getSelectionModel());
+    pCheckBoxTree.setSelectionModel(observableTreeSelectionModel);
+    Observable<Optional<List<IFileChangeType>>> selectionObservable = observableTreeSelectionModel.getSelectedPaths().map(pSelected -> {
+      if (pSelected == null)
+        return Optional.of(Collections.emptyList());
+      return Optional.of(Arrays.stream(pSelected)
+                             .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getMembers())
+                             .flatMap(Collection::stream)
+                             .collect(Collectors.toList()));
+    });
+    JPopupMenu popupMenu = new JPopupMenu();
+    popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable));
+    popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
+    pCheckBoxTree.addMouseListener(new PopupMouseListener(popupMenu));
   }
 
   /**
