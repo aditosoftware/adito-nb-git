@@ -1,17 +1,27 @@
 package de.adito.git.nbm.vcs;
 
-import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.IDiscardable;
+import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.gui.Constants;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
-import org.netbeans.api.project.*;
-import org.netbeans.modules.versioning.spi.*;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
+import org.netbeans.modules.versioning.spi.VCSAnnotator;
+import org.netbeans.modules.versioning.spi.VersioningSystem;
+import org.openide.util.NbPreferences;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +38,9 @@ public class GitVersioningSystemImpl extends VersioningSystem implements IDiscar
 
   public GitVersioningSystemImpl()
   {
+    // central place that gets called early, so set the log level for the git module here
+    String logLevel = NbPreferences.forModule(IPrefStore.class).get(Constants.LOG_LEVEL_SETTINGS_KEY, null);
+    Logger.getLogger("de.adito.git").setLevel(logLevel != null ? Level.parse(logLevel) : Level.INFO);
     annotationsDisposable = RepositoryCache.getInstance().repositories()
         .switchMap(pRepoList -> pRepoList.stream()
             .map(IRepository::getStatus)

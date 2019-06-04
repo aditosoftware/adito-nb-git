@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -13,7 +14,9 @@ import io.reactivex.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Iterator;
 import java.util.Optional;
+import java.util.logging.*;
 
 /**
  * @author m.kaspera, 24.12.2018
@@ -23,12 +26,14 @@ class GitConfigAction extends AbstractTableAction
 
   private final IDialogProvider dialogProvider;
   private final Observable<Optional<IRepository>> repository;
+  private final IPrefStore prefStore;
   private final IKeyStore keyStore;
 
   @Inject
-  public GitConfigAction(IDialogProvider pDialogProvider, IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
+  public GitConfigAction(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     super("Settings", _getIsEnabledObservable(pRepository));
+    prefStore = pPrefStore;
     keyStore = pKeyStore;
     putValue(Action.SMALL_ICON, Constants.GIT_CONFIG_ICON);
     repository = pRepository;
@@ -53,6 +58,20 @@ class GitConfigAction extends AbstractTableAction
             keyStore.save(value.getKeyLocation(), value.getPassPhrase(), null);
           }
           value.nullifyPassphrase();
+        }
+      }
+      Iterator<Object> logLevelIter = dialogResult.getInformation().get(Constants.LOG_LEVEL_SETTINGS_KEY).iterator();
+      if (logLevelIter.hasNext())
+      {
+        Level setLevel = (Level) logLevelIter.next();
+        prefStore.put(Constants.LOG_LEVEL_SETTINGS_KEY, setLevel.toString());
+        Logger gitLogger = Logger.getLogger("de.adito.git");
+        Handler[] handlers = gitLogger.getHandlers();
+        gitLogger.setLevel(setLevel);
+        for (Handler h : handlers)
+        {
+          if (h instanceof FileHandler)
+            h.setLevel(setLevel);
         }
       }
     }

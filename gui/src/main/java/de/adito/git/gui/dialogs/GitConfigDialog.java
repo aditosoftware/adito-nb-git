@@ -21,6 +21,8 @@ import javax.swing.filechooser.FileSystemView;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author m.kaspera, 24.12.2018
@@ -32,6 +34,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
   private static final String SSH_KEY_FIELD_LABEL = "SSH key path: ";
   private static final String SSH_PASSPHRASE_FIELD_LABEL = "Passphrase for ssh key: ";
   private List<RemotePanel> remoteSettingsPanels = new ArrayList<>();
+  private GlobalSettingsPanel globalSettingsPanel;
 
   @Inject
   public GitConfigDialog(IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
@@ -75,6 +78,8 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
         }
       }
     }
+    globalSettingsPanel = new GlobalSettingsPanel();
+    add(globalSettingsPanel);
   }
 
   @Override
@@ -91,6 +96,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
     {
       settingsMap.putAll(remoteSettingsPanel.getInformation());
     }
+    settingsMap.putAll(globalSettingsPanel.getInformation());
     return settingsMap;
   }
 
@@ -105,6 +111,39 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>>
     JLabel label = new JLabel(pText);
     label.setFont(new Font(label.getFont().getFontName(), Font.BOLD, label.getFont().getSize()));
     return label;
+  }
+
+  /**
+   * Put any global settings in to this panel (settings that affect all repositories)
+   */
+  private static class GlobalSettingsPanel extends JPanel
+  {
+
+    private JComboBox<Level> logLevelBox;
+
+    GlobalSettingsPanel()
+    {
+      setBorder(new EmptyBorder(15, 15, 0, 15));
+      setLayout(new BorderLayout(0, 15));
+      JLabel titleLabel = _getBoldLabel("Global settings");
+      add(titleLabel, BorderLayout.NORTH);
+      JPanel otherSettingsPanel = new JPanel(new BorderLayout());
+      Logger gitLogger = Logger.getLogger("de.adito.git");
+      logLevelBox = new JComboBox<>(new Vector<>(List.of(Level.SEVERE, Level.WARNING, Level.INFO, Level.CONFIG, Level.FINE, Level.FINER, Level.FINEST)));
+      Level currentLogLevel = gitLogger.getLevel() == null ? gitLogger.getParent().getLevel() : gitLogger.getLevel();
+      logLevelBox.setSelectedItem(currentLogLevel);
+      otherSettingsPanel.add(new JLabel("Log level:"), BorderLayout.WEST);
+      otherSettingsPanel.add(logLevelBox, BorderLayout.EAST);
+      add(otherSettingsPanel, BorderLayout.CENTER);
+    }
+
+    public Multimap<String, Object> getInformation()
+    {
+      Multimap<String, Object> settingsMap = HashMultimap.create();
+      settingsMap.put(Constants.LOG_LEVEL_SETTINGS_KEY, logLevelBox.getSelectedItem());
+      return settingsMap;
+    }
+
   }
 
   private static class RemotePanel extends JPanel

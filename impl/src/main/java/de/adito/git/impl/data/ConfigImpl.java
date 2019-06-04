@@ -54,7 +54,7 @@ public class ConfigImpl implements IConfig
       if (remoteName == null)
         return null;
       String keyLocation = git.getRepository().getConfig().getString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY);
-      logger.log(Level.WARNING, () -> String.format("git: key location for remote \"%s\" is \"%s\"", remoteName, keyLocation));
+      logger.log(Level.INFO, () -> String.format("git: key location for remote \"%s\" is \"%s\"", remoteName, keyLocation));
       return keyLocation;
     }
     catch (IOException pE)
@@ -79,7 +79,7 @@ public class ConfigImpl implements IConfig
     {
       String userName = getUserName();
       String remoteName = RepositoryImplHelper.getRemoteName(git, null);
-      logger.log(Level.WARNING, () -> String.format("git: retrieving password for user \"%s\" and realm \"%s\"", userName, remoteName));
+      logger.log(Level.INFO, () -> String.format("git: retrieving password for user \"%s\" and realm \"%s\"", userName, remoteName));
       return userName != null && remoteName != null ? keyStore.read(userName + remoteName) : null;
     }
     catch (IOException pE)
@@ -135,13 +135,13 @@ public class ConfigImpl implements IConfig
       String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
       if (remoteName != null)
       {
-        logger.log(Level.WARNING, () -> String.format("git: Setting ssh key location for remote \"%s\" to %s", remoteName, pSshKeyLocation));
+        logger.log(Level.INFO, () -> String.format("git: Setting ssh key location for remote \"%s\" to %s", remoteName, pSshKeyLocation));
         git.getRepository().getConfig().setString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY, pSshKeyLocation);
         git.getRepository().getConfig().save();
       }
       else
       {
-        logger.log(Level.WARNING, () -> String.format("git: Could not find remote for url \"%s\", ssh key location was not saved", pRemoteUrl));
+        logger.log(Level.INFO, () -> String.format("git: Could not find remote for url \"%s\", ssh key location was not saved", pRemoteUrl));
       }
     }
     catch (IOException pE)
@@ -159,12 +159,12 @@ public class ConfigImpl implements IConfig
       if (pPassphrase == null)
       {
         keyStore.delete(sshKeyLocation);
-        logger.log(Level.WARNING, () -> String.format("git: removed password for key %s", sshKeyLocation));
+        logger.log(Level.INFO, () -> String.format("git: removed password for key %s", sshKeyLocation));
       }
       else
       {
         keyStore.save(sshKeyLocation, pPassphrase, null);
-        logger.log(Level.WARNING, () -> String.format("git: saved password for key %s", sshKeyLocation));
+        logger.log(Level.INFO, () -> String.format("git: saved password for key %s", sshKeyLocation));
       }
     }
     else
