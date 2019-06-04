@@ -90,6 +90,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
           .orElse(List.of());
       statusTreeModel.invokeAfterComputations(() -> _setSelected(preSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(),
                                                                  checkBoxTree.getCheckBoxTreeSelectionModel()));
+      statusTreeModel.invokeAfterComputations(() -> {
+        if (statusTreeModel.getRoot() != null)
+          checkBoxTree.expandPath(new TreePath(statusTreeModel.getRoot()));
+      });
       JScrollPane scrollPane = new JScrollPane(checkBoxTree);
       tableSearchView.add(scrollPane, BorderLayout.CENTER);
       pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(checkBoxTree));
