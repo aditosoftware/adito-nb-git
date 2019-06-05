@@ -3,11 +3,14 @@ package de.adito.git.nbm.window;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
+import org.openide.windows.WindowManager;
 
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.Optional;
 
 /**
@@ -18,10 +21,14 @@ import java.util.Optional;
 public class StatusWindowTopComponent extends AbstractRepositoryTopComponent
 {
 
+  @NotNull
+  private final IPrefStore prefStore;
+
   @Inject
-  StatusWindowTopComponent(IWindowContentProvider pWindowContentProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  StatusWindowTopComponent(IWindowContentProvider pWindowContentProvider, @NotNull IPrefStore pPrefStore, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     super(pRepository);
+    prefStore = pPrefStore;
     setLayout(new BorderLayout());
     add(pWindowContentProvider.createStatusWindowContent(pRepository));
   }
@@ -29,7 +36,7 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent
   @Override
   protected String getInitialMode()
   {
-    return "output";
+    return prefStore.get(StatusWindowTopComponent.class.getName()) == null ? "output" : prefStore.get(StatusWindowTopComponent.class.getName());
   }
 
   @Override
@@ -37,4 +44,12 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent
   {
     return NbBundle.getMessage(StatusWindowTopComponent.class, "Label.StatusWindow");
   }
+
+  @Override
+  protected void componentClosed()
+  {
+    super.componentClosed();
+    prefStore.put(StatusWindowTopComponent.class.getName(), WindowManager.getDefault().findMode(this).getName());
+  }
+
 }
