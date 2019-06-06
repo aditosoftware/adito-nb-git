@@ -1,6 +1,7 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.IRebaseResult;
 import org.eclipse.jgit.api.RebaseResult;
 
 import java.util.List;
@@ -55,6 +56,9 @@ public class RebaseResultImpl implements IRebaseResult
         break;
       case CONFLICTS:
         returnValue = ResultType.EXISTING_CONFLICTS;
+        break;
+      case FAST_FORWARD:
+        returnValue = ResultType.FAST_FORWARD;
         break;
       default:
         returnValue = null;

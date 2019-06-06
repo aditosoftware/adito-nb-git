@@ -17,9 +17,10 @@ public interface IRebaseResult
    * STOPPED:               Rebase stopped, probably due to a conflict
    * FAILED:                Rebase operation failed
    * EXISTING_CONFLICTS:    Rebase operation cannot continue because there are still existing conflicts
+   * FAST_FORWARD:          Rebase was fast-forwarded
    */
   enum ResultType
-  {FINISHED, ABORTED, UP_TO_DATE, STOPPED, FAILED, EXISTING_CONFLICTS}
+  {FINISHED, ABORTED, UP_TO_DATE, STOPPED, FAILED, EXISTING_CONFLICTS, FAST_FORWARD}
 
   List<IMergeDiff> getMergeConflicts();
 
