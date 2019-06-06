@@ -11,19 +11,17 @@ import javax.swing.tree.TreeNode;
 import java.io.File;
 import java.text.Collator;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author m.kaspera, 14.05.2019
  */
-class ObservingTreeModel extends DefaultTreeModel
+public class ObservingTreeModel extends DefaultTreeModel
 {
 
   File projectDirectory;
-  ExecutorService service = Executors.newSingleThreadExecutor();
-  Future<?> updateFuture = null;
+  ThreadPoolExecutor service = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+  private Queue<Future<?>> trackedTasks = new LinkedList<>();
 
   ObservingTreeModel(File pProjectDirectory)
   {
@@ -39,7 +37,35 @@ class ObservingTreeModel extends DefaultTreeModel
    */
   public Future<?> invokeAfterComputations(Runnable pRunnable)
   {
-    return service.submit(pRunnable);
+    while (trackedTasks.peek() != null && trackedTasks.peek().isDone())
+    {
+      trackedTasks.poll();
+    }
+    Future<?> future = service.submit(pRunnable);
+    trackedTasks.add(future);
+    return future;
+  }
+
+  /**
+   * method to introduce a runnable with high priority to the pool, removes all other queued futures/runnables due to the assumption that those
+   * need the values of the high-priority task and will eventually be re-queued anyways
+   *
+   * @param pRunnable Runnable that should be executed ASAP
+   * @return Future handle for the runnable
+   */
+  Future<?> invokePriority(Runnable pRunnable)
+  {
+    Future<?> trackedFuture;
+    while ((trackedFuture = trackedTasks.peek()) != null)
+    {
+      boolean cancelled = trackedFuture.cancel(true);
+      if (cancelled || trackedFuture.isDone())
+        trackedTasks.poll();
+    }
+    service.purge();
+    Future<?> future = service.submit(pRunnable);
+    trackedTasks.add(future);
+    return future;
   }
 
   /**
@@ -48,7 +74,7 @@ class ObservingTreeModel extends DefaultTreeModel
    */
   void _updateTree(HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, FileChangeTypeNode pNode)
   {
-    if (Thread.interrupted())
+    if (Thread.currentThread().isInterrupted())
       throw new InterruptedRuntimeException();
     HashMap<File, FileChangeTypeNodeInfo> map = pMap.get(pNode.getInfo().getNodeFile());
     if (map != null)
@@ -92,6 +118,8 @@ class ObservingTreeModel extends DefaultTreeModel
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> groups = new HashMap<>();
     for (IFileChangeType changeType : pList)
     {
+      if (Thread.currentThread().isInterrupted())
+        throw new InterruptedRuntimeException();
       File file = changeType.getFile();
       while (!file.equals(projectDirectory.getParentFile()))
       {
@@ -132,11 +160,11 @@ class ObservingTreeModel extends DefaultTreeModel
    */
   HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, File pStart)
   {
-    if (Thread.interrupted())
-      throw new InterruptedRuntimeException();
     Set<File> iterableCopy = pMap.get(pStart) == null ? new HashSet<>() : new HashSet<>(pMap.get(pStart).keySet());
     for (File pChildFile : iterableCopy)
     {
+      if (Thread.currentThread().isInterrupted())
+        throw new InterruptedRuntimeException();
       if (pMap.containsKey(pChildFile) && pMap.get(pChildFile).keySet().size() == 1 && pChildFile.isDirectory() &&
           !pMap.get(pChildFile).keySet().iterator().next().isFile() && !pChildFile.equals(projectDirectory))
       {

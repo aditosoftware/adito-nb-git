@@ -107,11 +107,7 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
    */
   private void _treeChanged(List<IDiffInfo> pList)
   {
-    if (updateFuture != null && !updateFuture.isDone())
-    {
-      updateFuture.cancel(true);
-    }
-    updateFuture = service.submit(() -> {
+    invokePriority(() -> {
       try
       {
         _calculateTree(pList);

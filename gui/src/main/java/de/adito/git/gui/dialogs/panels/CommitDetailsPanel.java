@@ -11,6 +11,7 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.DiffTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
@@ -19,21 +20,20 @@ import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 
 /**
  * @author m.kaspera 13.12.2018
@@ -54,6 +54,7 @@ public class CommitDetailsPanel implements IDiscardable
   private final ICommitFilter commitFilter;
   private final _SelectedCommitsPanel commits;
   private final SearchableTree statusTree;
+  private Disposable onChangeExpandTreeDisposable;
 
   @Inject
   public CommitDetailsPanel(IActionProvider pActionProvider, IQuickSearchProvider pQuickSearchProvider,
@@ -92,9 +93,11 @@ public class CommitDetailsPanel implements IDiscardable
           }
           else
           {
-            return Collections.emptyList();
+            return Collections.<IDiffInfo>emptyList();
           }
-        });
+        })
+        .share()
+        .subscribeWith(BehaviorSubject.createDefault(List.of()));
     DiffTreeModel statusTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
     statusTree.init(tableViewPanel, statusTreeModel);
     statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, projectDirectory));
@@ -107,14 +110,9 @@ public class CommitDetailsPanel implements IDiscardable
 
     _initStatusTreeActions(observableTreeSelectionModel, changedFilesObs);
 
-    statusTree.getModel().addTreeModelListener(new _ExpandTreeModelListener(new AbstractAction()
-    {
-      @Override
-      public void actionPerformed(ActionEvent e)
-      {
-        statusTree.expandPath(new TreePath(statusTree.getModel().getRoot()));
-      }
-    }));
+    onChangeExpandTreeDisposable = TreeUtil.getTreeModelChangeObservable(statusTreeModel)
+        .debounce(100, TimeUnit.MILLISECONDS)
+        .subscribe(pEvent -> statusTreeModel.invokeAfterComputations(() -> TreeUtil._expandTreeInterruptible(statusTree)));
   }
 
   @NotNull
@@ -238,6 +236,8 @@ public class CommitDetailsPanel implements IDiscardable
   public void discard()
   {
     commits.discard();
+    if (onChangeExpandTreeDisposable != null)
+      onChangeExpandTreeDisposable.dispose();
   }
 
   public interface IPanelFactory
@@ -256,7 +256,7 @@ public class CommitDetailsPanel implements IDiscardable
   {
     private final Disposable disposable;
 
-    public _SelectedCommitsPanel(@NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+    _SelectedCommitsPanel(@NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
     {
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
       setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -379,48 +379,10 @@ public class CommitDetailsPanel implements IDiscardable
     }
   }
 
-  /**
-   * TreeListener that performs the passed expand Action each time the model changes
-   */
-  private static class _ExpandTreeModelListener implements TreeModelListener
-  {
-
-    private final Action expandTreeAction;
-
-    _ExpandTreeModelListener(Action pExpandTreeAction)
-    {
-      expandTreeAction = pExpandTreeAction;
-    }
-
-    @Override
-    public void treeNodesChanged(TreeModelEvent e)
-    {
-      expandTreeAction.actionPerformed(null);
-    }
-
-    @Override
-    public void treeNodesInserted(TreeModelEvent e)
-    {
-      expandTreeAction.actionPerformed(null);
-    }
-
-    @Override
-    public void treeNodesRemoved(TreeModelEvent e)
-    {
-      expandTreeAction.actionPerformed(null);
-    }
-
-    @Override
-    public void treeStructureChanged(TreeModelEvent e)
-    {
-      expandTreeAction.actionPerformed(null);
-    }
-  }
-
   private static class _CheckboxObservable extends AbstractListenerObservable<ItemListener, JCheckBox, Boolean>
   {
 
-    public _CheckboxObservable(@NotNull JCheckBox pListenableValue)
+    _CheckboxObservable(@NotNull JCheckBox pListenableValue)
     {
       super(pListenableValue);
     }

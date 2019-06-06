@@ -72,11 +72,7 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
 
   private void _treeChanged(List<IFileChangeType> pList)
   {
-    if (updateFuture != null && !updateFuture.isDone())
-    {
-      updateFuture.cancel(true);
-    }
-    updateFuture = invokeAfterComputations(() -> {
+    invokePriority(() -> {
       try
       {
         _calculateTree(pList);

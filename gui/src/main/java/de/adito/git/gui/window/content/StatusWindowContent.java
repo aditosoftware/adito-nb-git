@@ -10,6 +10,7 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
@@ -75,6 +76,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
                              .flatMap(Collection::stream)
                              .collect(Collectors.toList()));
     });
+    statusTreeModel.invokeAfterComputations(() -> TreeUtil._expandTreeInterruptible(statusTree));
     openFileAction = actionProvider.getOpenFileAction(selectionObservable);
     _initGui();
   }
