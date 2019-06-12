@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -202,5 +203,21 @@ class DialogProviderImpl implements IDialogProvider
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore),
                                       "SSH key information");
+  }
+
+  @Override
+  public DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository)
+  {
+    DialogResult<TagOverviewDialog, Object> result = null;
+    try
+    {
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createTagOverviewDialog(pSelectedCommitCallback, pRepository), "Tag Overview");
+      return result;
+    }
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
   }
 }

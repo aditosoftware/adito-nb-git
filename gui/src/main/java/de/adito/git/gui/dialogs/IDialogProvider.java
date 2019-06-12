@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -56,4 +57,6 @@ public interface IDialogProvider
   DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog();
 
   DialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(String pMessage, String pSshKeyLocation, char[] pPassphrase, IKeyStore pKeyStore);
+
+  DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(Consumer<ICommit> pSelectecCommitCallback, Observable<Optional<IRepository>> pRepository);
 }

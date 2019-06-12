@@ -144,7 +144,7 @@ public class CommitDetailsPanel implements IDiscardable
   }
 
   /**
-   * init all actions/menus of the statusTree in this metgod
+   * init all actions/menus of the statusTree in this method
    *
    * @param pObservableTreeSelectionModel Model of the observable tree
    * @param pChangedFilesObs              Observable with the changed files of the selected commits

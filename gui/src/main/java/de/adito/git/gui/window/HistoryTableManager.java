@@ -42,7 +42,7 @@ public class HistoryTableManager
         {
           commitHistoryIterator = new CommitHistoryItemsIteratorImpl(repository.getCommits(pNewFilter),
                                                                      repository.getBranches().blockingFirst().orElse(List.of()),
-                                                                     repository.getTags());
+                                                                     repository.getTags().blockingFirst());
           List<CommitHistoryTreeListItem> items = commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries());
           tableModel.resetData(items);
         }

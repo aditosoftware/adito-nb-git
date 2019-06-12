@@ -17,6 +17,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +25,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
@@ -59,9 +61,11 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final IActionProvider actionProvider;
   private final IMenuProvider menuProvider;
   private final Observable<Optional<IRepository>> repository;
+  private final Runnable loadMoreCallback;
   private final Observable<Optional<List<CommitHistoryTreeListItem>>> selectedCommitHistoryItems;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final Observable<Optional<IFileStatus>> statusObservable;
+  private final QuickSearchCallbackImpl quickSearchCallback;
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
   // Variables for filtering the shown entries
@@ -88,6 +92,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     actionProvider = pActionProvider;
     menuProvider = pMenuProvider;
     repository = pRepository;
+    loadMoreCallback = pLoadMoreCallback;
     if (pStartFilter.getAuthor() != null) authorField.setText(pStartFilter.getAuthor());
     if (pStartFilter.getBranch() != null) branchSelectionBox.setSelectedItem(pStartFilter.getBranch());
     if (!pStartFilter.getFiles().isEmpty()) chosenFiles.addAll(pStartFilter.getFiles());
@@ -100,7 +105,8 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME));
     searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.DATE_COL_NAME));
     searchAbleColumns.add(commitTableModel.findColumn(CommitHistoryTreeListTableModel.COMMIT_ID_COL_NAME));
-    pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, new QuickSearchCallbackImpl(commitTable, searchAbleColumns));
+    quickSearchCallback = new QuickSearchCallbackImpl(commitTable, searchAbleColumns);
+    pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, quickSearchCallback);
     ObservableListSelectionModel observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
     commitTable.setSelectionModel(observableCommitListSelectionModel);
     selectedCommitHistoryItems = observableCommitListSelectionModel.selectedRows().map(selectedRows -> {
@@ -186,6 +192,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     toolBar.add(actionProvider.getRefreshContentAction(() -> pRefreshContentCallBack.accept(commitFilterObs.blockingFirst())));
     toolBar.addSeparator();
     toolBar.add(actionProvider.getCherryPickAction(repository, selectedCommitObservable));
+    toolBar.add(actionProvider.getShowTagWindowAction(pCommit -> _selectCommit(pCommit, 0), repository));
     toolBar.addSeparator();
     JLabel branchLabel = new JLabel("Branch");
     branchLabel.setBorder(new EmptyBorder(0, 2, 0, 5));
@@ -198,6 +205,32 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     authorField.setPreferredSize(new Dimension(400, 26));
     toolBar.add(authorField);
     commitFilterDisposable = Observable.combineLatest(commitFilterObs, statusObservable, (pFilter, pStatus) -> pFilter).subscribe(pRefreshContentCallBack::accept);
+  }
+
+  private void _selectCommit(ICommit pCommit, int startIndex)
+  {
+    if (pCommit != null && startIndex < commitTable.getModel().getRowCount())
+    {
+      boolean foundCommit = false;
+      String searchString = pCommit.getId();
+      int commitColumn = ((AbstractTableModel) commitTable.getModel()).findColumn(CommitHistoryTreeListTableModel.COMMIT_ID_COL_NAME);
+      for (int index = startIndex; index < commitTable.getModel().getRowCount(); index++)
+      {
+        if (StringUtils.containsIgnoreCase(commitTable.getModel().getValueAt(index, commitColumn).toString(), searchString))
+        {
+          commitTable.scrollRectToVisible(commitTable.getCellRect(index, 1, true));
+          commitTable.setRowSelectionInterval(index, index);
+          foundCommit = true;
+          break;
+        }
+      }
+      if (!foundCommit)
+      {
+        int newStartIndex = commitTable.getModel().getRowCount();
+        loadMoreCallback.run();
+        _selectCommit(pCommit, newStartIndex);
+      }
+    }
   }
 
   private void _setUpCommitTable()
