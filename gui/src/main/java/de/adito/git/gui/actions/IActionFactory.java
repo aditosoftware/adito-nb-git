@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -60,7 +61,9 @@ interface IActionFactory
 
   AddTagAction createAddTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
-  DeleteTagAction createDeleteTagAction(Observable<Optional<IRepository>> pRepository, ITag pTag);
+  DeleteSpecificTagAction createDeleteSpecificTagAction(Observable<Optional<IRepository>> pRepository, ITag pTag);
+
+  DeleteTagAction createDeleteTagAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<ITag>> pTagObservable);
 
   DiffCommitsAction createDiffCommitsAction(Observable<Optional<IRepository>> pRepository,
                                             Observable<Optional<List<ICommit>>> pSelectedCommitsObservable,
@@ -95,4 +98,6 @@ interface IActionFactory
   CollapseTreeAction createCollapseTreeAction(JTree pTree);
 
   ExpandTreeAction createExpandTreeAction(JTree pTree);
+
+  ShowTagWindowAction createShowTagWindowAction(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
 }

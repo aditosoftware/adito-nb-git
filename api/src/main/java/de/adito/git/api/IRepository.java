@@ -436,7 +436,7 @@ public interface IRepository
    * @return List containing all the tags in this repository
    */
   @NotNull
-  List<ITag> getTags();
+  Observable<List<ITag>> getTags();
 
   /**
    * retrieve all stashed commits

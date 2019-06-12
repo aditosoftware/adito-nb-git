@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -157,7 +158,14 @@ public interface IActionProvider
    * @param pTag        tag that should be deleted
    * @return Action whose actionPreformed method tries to delete the passed tag
    */
-  Action getDeleteTagAction(@NotNull Observable<Optional<IRepository>> pRepository, ITag pTag);
+  Action getDeleteSpecificTagAction(@NotNull Observable<Optional<IRepository>> pRepository, ITag pTag);
+
+  /**
+   * @param pRepository    Observable with the current Repository
+   * @param pTagObservable Observable of the tag that should be deleted
+   * @return Action whose actionPreformed method tries to delete the passed tag
+   */
+  Action getDeleteTagAction(@NotNull Observable<Optional<IRepository>> pRepository, Observable<Optional<ITag>> pTagObservable);
 
   /**
    * @param pRepository               Observable with the current Repository
@@ -259,4 +267,13 @@ public interface IActionProvider
    * @return Action whose actionPerformed method expands all nodes in the tree
    */
   Action getExpandTreeAction(@NotNull JTree pTree);
+
+  /**
+   * Action that displays an overview of the tags in the git repository
+   *
+   * @param pSelectedCommitCallback Consumer that selects the passed Commit
+   * @param pRepository             Observable with the current Repository
+   * @return Action whose actionPerformed method displays an overview of the tags in the git repository
+   */
+  Action getShowTagWindowAction(@NotNull Consumer<ICommit> pSelectedCommitCallback, @NotNull Observable<Optional<IRepository>> pRepository);
 }

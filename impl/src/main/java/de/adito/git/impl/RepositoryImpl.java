@@ -60,6 +60,7 @@ public class RepositoryImpl implements IRepository
   private final Logger logger = Logger.getLogger(RepositoryImpl.class.getName());
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
+  private final Observable<List<ITag>> tagList;
   private final Observable<Optional<IFileStatus>> status;
   private final Observable<Optional<IRepositoryState>> currentStateObservable;
   private final IFileSystemUtil fileSystemUtil;
@@ -88,6 +89,10 @@ public class RepositoryImpl implements IRepository
     currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch))
         .share()
         .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.currentState(git, this::getBranch)));
+    tagList = status.map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
+        .distinctUntilChanged()
+        .share()
+        .subscribeWith(BehaviorSubject.createDefault(List.of()));
   }
 
   @Override
@@ -1266,16 +1271,9 @@ public class RepositoryImpl implements IRepository
 
   @NotNull
   @Override
-  public List<ITag> getTags()
+  public Observable<List<ITag>> getTags()
   {
-    try
-    {
-      return git.tagList().call().stream().map(TagImpl::new).collect(Collectors.toList());
-    }
-    catch (GitAPIException pE)
-    {
-      throw new RuntimeException(pE);
-    }
+    return tagList;
   }
 
   /**

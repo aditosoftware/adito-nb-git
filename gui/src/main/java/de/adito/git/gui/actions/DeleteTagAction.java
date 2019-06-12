@@ -10,26 +10,29 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 
 /**
- * @author m.kaspera, 07.03.2019
+ * General Action for deleting tags, the passed Observable determines which tag gets deleted when actionPerformed is called
+ *
+ * @author m.kaspera, 07.06.2019
  */
-class DeleteTagAction extends AbstractTableAction
+public class DeleteTagAction extends AbstractTableAction
 {
 
-  private final ITag tag;
   private final Observable<Optional<IRepository>> repository;
+  private final Observable<Optional<ITag>> tagObservable;
 
   @Inject
-  DeleteTagAction(@Assisted ITag pTag, @Assisted Observable<Optional<IRepository>> pRepository)
+  DeleteTagAction(@Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<ITag>> pTagObservable)
   {
-    super(pTag.getName(), Observable.just(Optional.of(true)));
-    tag = pTag;
+    super("Delete", Observable.just(Optional.of(true)));
     repository = pRepository;
+    tagObservable = pTagObservable;
   }
 
   @Override
   public void actionPerformed(ActionEvent e)
   {
     Optional<IRepository> repo = repository.blockingFirst();
-    repo.ifPresent(pIRepository -> pIRepository.deleteTag(tag));
+    repo.ifPresent(pIRepository -> tagObservable.blockingFirst().ifPresent(pIRepository::deleteTag));
   }
+
 }

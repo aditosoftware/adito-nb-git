@@ -47,7 +47,7 @@ public class DeleteTagsMenu extends JMenu implements IDiscardable
       for (CommitHistoryTreeListItem commitHistoryTreeListItem : pCommitHistoryTreeListItems)
       {
         for (ITag tag : commitHistoryTreeListItem.getTags())
-          add(actionProvider.getDeleteTagAction(pRepository, tag));
+          add(actionProvider.getDeleteSpecificTagAction(pRepository, tag));
       }
     }
   }

@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author m.kaspera 26.10.2018
@@ -194,9 +195,15 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
-  public Action getDeleteTagAction(@NotNull Observable<Optional<IRepository>> pRepository, ITag pTag)
+  public Action getDeleteSpecificTagAction(@NotNull Observable<Optional<IRepository>> pRepository, ITag pTag)
   {
-    return actionFactory.createDeleteTagAction(pRepository, pTag);
+    return actionFactory.createDeleteSpecificTagAction(pRepository, pTag);
+  }
+
+  @Override
+  public Action getDeleteTagAction(@NotNull Observable<Optional<IRepository>> pRepository, Observable<Optional<ITag>> pTagObservable)
+  {
+    return actionFactory.createDeleteTagAction(pRepository, pTagObservable);
   }
 
   @Override
@@ -279,6 +286,12 @@ class ActionProvider implements IActionProvider
   public Action getExpandTreeAction(@NotNull JTree pTree)
   {
     return actionFactory.createExpandTreeAction(pTree);
+  }
+
+  @Override
+  public Action getShowTagWindowAction(@NotNull Consumer<ICommit> pSelectedCommitCallback, @NotNull Observable<Optional<IRepository>> pRepository)
+  {
+    return actionFactory.createShowTagWindowAction(pSelectedCommitCallback, pRepository);
   }
 
 }
