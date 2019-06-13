@@ -2,8 +2,11 @@ package de.adito.git.gui.tree.models;
 
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
+import de.adito.git.gui.concurrency.PriorityDroppingExecutor;
+import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultTreeModel;
@@ -11,7 +14,6 @@ import javax.swing.tree.TreeNode;
 import java.io.File;
 import java.text.Collator;
 import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * @author m.kaspera, 14.05.2019
@@ -20,10 +22,9 @@ public class ObservingTreeModel extends DefaultTreeModel
 {
 
   File projectDirectory;
-  ThreadPoolExecutor service = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-  private Queue<Future<?>> trackedTasks = new LinkedList<>();
+  PriorityDroppingExecutor service = new PriorityDroppingExecutor();
 
-  ObservingTreeModel(File pProjectDirectory)
+  ObservingTreeModel(@NotNull File pProjectDirectory)
   {
     super(null);
     projectDirectory = pProjectDirectory;
@@ -33,50 +34,23 @@ public class ObservingTreeModel extends DefaultTreeModel
    * Queues the Task in the Single-thread executor of this class
    *
    * @param pRunnable Runnable to execute
-   * @return Future of the submit method of the executor
    */
-  public Future<?> invokeAfterComputations(Runnable pRunnable)
+  public void invokeAfterComputations(@NotNull Runnable pRunnable)
   {
-    while (trackedTasks.peek() != null && trackedTasks.peek().isDone())
-    {
-      trackedTasks.poll();
-    }
-    Future<?> future = service.submit(pRunnable);
-    trackedTasks.add(future);
-    return future;
-  }
-
-  /**
-   * method to introduce a runnable with high priority to the pool, removes all other queued futures/runnables due to the assumption that those
-   * need the values of the high-priority task and will eventually be re-queued anyways
-   *
-   * @param pRunnable Runnable that should be executed ASAP
-   * @return Future handle for the runnable
-   */
-  Future<?> invokePriority(Runnable pRunnable)
-  {
-    Future<?> trackedFuture;
-    while ((trackedFuture = trackedTasks.peek()) != null)
-    {
-      boolean cancelled = trackedFuture.cancel(true);
-      if (cancelled || trackedFuture.isDone())
-        trackedTasks.poll();
-    }
-    service.purge();
-    Future<?> future = service.submit(pRunnable);
-    trackedTasks.add(future);
-    return future;
+    service.invokeAfterComputations(pRunnable);
   }
 
   /**
    * @param pMap  Map that is an image of the tree
    * @param pNode node to update
    */
-  void _updateTree(HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, FileChangeTypeNode pNode)
+  @NotNull
+  List<TreeUpdate> _updateTree(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull FileChangeTypeNode pNode)
   {
+    List<TreeUpdate> treeUpdates = new ArrayList<>();
     if (Thread.currentThread().isInterrupted())
       throw new InterruptedRuntimeException();
-    HashMap<File, FileChangeTypeNodeInfo> map = pMap.get(pNode.getInfo().getNodeFile());
+    HashMap<File, FileChangeTypeNodeInfo> map = pNode.getInfo() == null ? null : pMap.get(pNode.getInfo().getNodeFile());
     if (map != null)
     {
       for (Map.Entry<File, FileChangeTypeNodeInfo> entry : map.entrySet())
@@ -92,18 +66,20 @@ public class ObservingTreeModel extends DefaultTreeModel
         else
         {
           childNode = new FileChangeTypeNode(entry.getValue(), pNode.getAssignedCommit());
-          insertNodeInto(childNode, pNode, 0);
+          treeUpdates.add(TreeUpdate.createInsert(childNode, pNode, 0));
         }
-        _updateTree(pMap, childNode);
+        treeUpdates.addAll(_updateTree(pMap, childNode));
       }
-      for (TreeNode childNode : Collections.list(pNode.children()))
+      for (TreeNode treeNode : Collections.list(pNode.children()))
       {
-        if (!map.containsKey(((FileChangeTypeNode) childNode).getInfo().getNodeFile()))
+        FileChangeTypeNode fileChangeTypeNode = ((FileChangeTypeNode) treeNode);
+        if (fileChangeTypeNode.getInfo() == null || !map.containsKey(fileChangeTypeNode.getInfo().getNodeFile()))
         {
-          removeNodeFromParent((FileChangeTypeNode) childNode);
+          treeUpdates.add(TreeUpdate.createRemove((FileChangeTypeNode) treeNode));
         }
       }
     }
+    return treeUpdates;
   }
 
   /**
@@ -113,7 +89,8 @@ public class ObservingTreeModel extends DefaultTreeModel
    * @param pList List of IFileChangeTypes
    * @return HashMap calculated from the list
    */
-  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateMap(List<IFileChangeType> pList)
+  @NotNull
+  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateMap(@NotNull List<IFileChangeType> pList)
   {
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> groups = new HashMap<>();
     for (IFileChangeType changeType : pList)
@@ -158,7 +135,8 @@ public class ObservingTreeModel extends DefaultTreeModel
    * @param pStart startNode
    * @return HashMap that has the nodes with only one node as child collapsed to the parentNode
    */
-  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, File pStart)
+  @NotNull
+  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull File pStart)
   {
     Set<File> iterableCopy = pMap.get(pStart) == null ? new HashSet<>() : new HashSet<>(pMap.get(pStart).keySet());
     for (File pChildFile : iterableCopy)
@@ -191,7 +169,7 @@ public class ObservingTreeModel extends DefaultTreeModel
    * @return the next parent file that is contained in the map
    */
   @Nullable
-  private File _getFirstAvailableParent(HashMap<File, ?> pMap, File pFile)
+  private File _getFirstAvailableParent(@NotNull HashMap<File, ?> pMap, @NotNull File pFile)
   {
     File parent = pFile.getParentFile();
     while (pMap.get(parent) == null)
@@ -203,6 +181,7 @@ public class ObservingTreeModel extends DefaultTreeModel
     return parent;
   }
 
+  @NotNull
   Comparator<TreeNode> _getDefaultComparator()
   {
     return Comparator.comparing(pO -> {

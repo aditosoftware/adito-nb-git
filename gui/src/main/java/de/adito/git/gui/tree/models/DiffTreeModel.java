@@ -4,6 +4,8 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
+import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
+import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import io.reactivex.Observable;
@@ -26,7 +28,7 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
   private final Disposable disposable;
   private Comparator<TreeNode> comparator = _getDefaultComparator();
 
-  public DiffTreeModel(Observable<List<IDiffInfo>> pChangeList, File pProjectDirectory)
+  public DiffTreeModel(@NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory)
   {
     super(pProjectDirectory);
     disposable = pChangeList.subscribe(this::_treeChanged);
@@ -44,12 +46,14 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
    *
    * @param pList list of DiffInfos to display
    */
-  private void _calculateTree(List<IDiffInfo> pList)
+  @NotNull
+  private List<TreeUpdate> _calculateTree(@NotNull List<IDiffInfo> pList)
   {
+    List<TreeUpdate> treeUpdates = new ArrayList<>();
     FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();
     if (!pList.isEmpty() && !(pList.size() == 1 && pList.get(0).getChangedFiles().isEmpty()))
     {
-      _updateNodes(pList, rootNode);
+      treeUpdates.addAll(_updateNodes(pList, rootNode));
     }
     else
     {
@@ -60,10 +64,11 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
           rootInfo.setMembers(new ArrayList<>());
         for (TreeNode treeNode : Collections.list(rootNode.children()))
         {
-          removeNodeFromParent((FileChangeTypeNode) treeNode);
+          treeUpdates.add(TreeUpdate.createRemove((FileChangeTypeNode) treeNode));
         }
       }
     }
+    return treeUpdates;
   }
 
   /**
@@ -72,14 +77,16 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
    * @param pList     list of DiffInfos to display
    * @param pRootNode root node of the tree
    */
-  private void _updateNodes(List<IDiffInfo> pList, FileChangeTypeNode pRootNode)
+  @NotNull
+  private List<TreeUpdate> _updateNodes(@NotNull List<IDiffInfo> pList, @Nullable FileChangeTypeNode pRootNode)
   {
+    List<TreeUpdate> treeUpdates = new ArrayList<>();
     List<IFileChangeType> allChangedFiles = _getAllChangedFiles(pList);
     if (pRootNode == null)
     {
-      setRoot(new FileChangeTypeNode(new FileChangeTypeNodeInfo(projectDirectory.getName(), projectDirectory, allChangedFiles)));
-      pRootNode = (FileChangeTypeNode) getRoot();
-      reload();
+      FileChangeTypeNode root = new FileChangeTypeNode(new FileChangeTypeNodeInfo(projectDirectory.getName(), projectDirectory, allChangedFiles));
+      treeUpdates.add(TreeUpdate.createRoot(root));
+      pRootNode = root;
     }
     FileChangeTypeNodeInfo rootInfo = pRootNode.getInfo();
     if (rootInfo != null)
@@ -89,34 +96,36 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
       HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(pList.get(0).getChangedFiles());
       fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
       pRootNode.setAssignedCommit(pList.get(0).getParentCommit());
-      _updateTree(fileHashMap, pRootNode);
+      treeUpdates.addAll(_updateTree(fileHashMap, pRootNode));
     }
     else
     {
-      _removeOldCommitNodes(pList, pRootNode);
+      treeUpdates.addAll(_removeOldCommitNodes(pList, pRootNode));
       for (IDiffInfo diffInfo : pList)
       {
-        _handleCommitNode(pRootNode, diffInfo);
+        treeUpdates.addAll(_handleCommitNode(pRootNode, diffInfo));
       }
     }
-    pRootNode.sort(comparator, this);
+    return treeUpdates;
   }
 
   /**
    * @param pList the up-to-date list of DiffInfos the tree should display
    */
-  private void _treeChanged(List<IDiffInfo> pList)
+  private void _treeChanged(@NotNull List<IDiffInfo> pList)
   {
-    invokePriority(() -> {
-      try
-      {
-        _calculateTree(pList);
-      }
-      catch (InterruptedRuntimeException pE)
-      {
-        // do nothing, exception is thrown to cancel the current computation
-      }
-    });
+    try
+    {
+      service.invokePriority(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pList, comparator));
+    }
+    catch (InterruptedRuntimeException pE)
+    {
+      // do nothing, exception is thrown to cancel the current computation
+    }
+    catch (Exception pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
   /**
@@ -125,15 +134,23 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
    * @param pList     list with the DiffInfos
    * @param pRootNode root node of the tree
    */
-  private void _removeOldCommitNodes(List<IDiffInfo> pList, FileChangeTypeNode pRootNode)
+  @NotNull
+  private List<TreeUpdate> _removeOldCommitNodes(@NotNull List<IDiffInfo> pList, @NotNull FileChangeTypeNode pRootNode)
   {
+    List<TreeUpdate> treeUpdates = new ArrayList<>();
     for (int index = pRootNode.getChildCount() - 1; index >= 0; index--)
     {
       FileChangeTypeNode child = (FileChangeTypeNode) pRootNode.getChildAt(index);
+      if (child.getInfo() == null)
+      {
+        treeUpdates.add(TreeUpdate.createRemove(child));
+        continue;
+      }
       final String childDisplayName = child.getInfo().getNodeDescription();
       if (pList.stream().noneMatch(pDiffInfo -> _getCommitNodeDescription(pDiffInfo).equals(childDisplayName)))
-        removeNodeFromParent(child);
+        treeUpdates.add(TreeUpdate.createRemove(child));
     }
+    return treeUpdates;
   }
 
   /**
@@ -142,8 +159,10 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
    * @param pRootNode the root node of the tree
    * @param diffInfo  DiffInfo for which a commit node should be created
    */
-  private void _handleCommitNode(FileChangeTypeNode pRootNode, IDiffInfo diffInfo)
+  @NotNull
+  private List<TreeUpdate> _handleCommitNode(@NotNull FileChangeTypeNode pRootNode, @NotNull IDiffInfo diffInfo)
   {
+    List<TreeUpdate> treeUpdates = new ArrayList<>();
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(diffInfo.getChangedFiles());
     fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
     FileChangeTypeNode commitInfoNode = _getChildNode(pRootNode, _getCommitNodeDescription(diffInfo));
@@ -152,14 +171,14 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
       commitInfoNode = new FileChangeTypeNode(
           new FileChangeTypeNodeInfo(_getCommitNodeDescription(diffInfo), projectDirectory, diffInfo.getChangedFiles()),
           diffInfo.getParentCommit());
-      insertNodeInto(commitInfoNode, pRootNode, 0);
+      treeUpdates.add(TreeUpdate.createInsert(commitInfoNode, pRootNode, 0));
     }
-    else
+    else if (commitInfoNode.getInfo() != null)
     {
       commitInfoNode.getInfo().setMembers(diffInfo.getChangedFiles());
-      reload(commitInfoNode);
     }
-    _updateTree(fileHashMap, commitInfoNode);
+    treeUpdates.addAll(_updateTree(fileHashMap, commitInfoNode));
+    return treeUpdates;
   }
 
   /**
@@ -175,6 +194,8 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
     for (int index = pNode.getChildCount() - 1; index >= 0; index--)
     {
       FileChangeTypeNode child = (FileChangeTypeNode) pNode.getChildAt(index);
+      if (child.getInfo() == null)
+        continue;
       final String childDisplayName = child.getInfo().getNodeDescription();
       if (pChildName.equals(childDisplayName))
         return child;

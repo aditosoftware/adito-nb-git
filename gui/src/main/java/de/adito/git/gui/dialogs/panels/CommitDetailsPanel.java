@@ -14,6 +14,7 @@ import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.DiffTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import de.adito.git.impl.data.DiffInfoImpl;
 import de.adito.git.impl.data.FileChangeTypeImpl;
@@ -54,6 +55,8 @@ public class CommitDetailsPanel implements IDiscardable
   private final ICommitFilter commitFilter;
   private final _SelectedCommitsPanel commits;
   private final SearchableTree statusTree;
+  private final JScrollPane treeScrollpane = new JScrollPane();
+  private final JLabel loadingLabel = new JLabel("Loading . . .");
   private Disposable onChangeExpandTreeDisposable;
 
   @Inject
@@ -76,17 +79,19 @@ public class CommitDetailsPanel implements IDiscardable
     _initDetailPanel();
   }
 
+  @NotNull
   public JComponent getPanel()
   {
     return detailPanelPane;
   }
 
-  private void _setUpChangedFilesTreePanel(IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil)
+  private void _setUpChangedFilesTreePanel(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil)
   {
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
     Observable<List<IDiffInfo>> changedFilesObs = Observable
         .combineLatest(selectedCommitObservable, repository, showAllCBObservable, (pSelectedCommitsOpt, currentRepo, pShowAll) -> {
+          _showLoading();
           if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
           {
             return _getChangedFiles(projectDirectory, pSelectedCommitsOpt.get(), currentRepo.get(), pShowAll);
@@ -98,25 +103,31 @@ public class CommitDetailsPanel implements IDiscardable
         })
         .share()
         .subscribeWith(BehaviorSubject.createDefault(List.of()));
-    DiffTreeModel statusTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
-    statusTree.init(tableViewPanel, statusTreeModel);
+    DiffTreeModel diffTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
+    statusTree.init(tableViewPanel, diffTreeModel);
     statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, projectDirectory));
     pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
-    tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
+    treeScrollpane.setViewportView(statusTree);
+    tableViewPanel.add(treeScrollpane, BorderLayout.CENTER);
     tableViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
     ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
     statusTree.setSelectionModel(observableTreeSelectionModel);
-    // combineLatest here only so the observable is also updated when changedFilesObs updates
 
     _initStatusTreeActions(observableTreeSelectionModel, changedFilesObs);
+    loadingLabel.setFont(new Font(loadingLabel.getFont().getFontName(), loadingLabel.getFont().getStyle(), 16));
+    loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-    onChangeExpandTreeDisposable = TreeUtil.getTreeModelChangeObservable(statusTreeModel)
+    onChangeExpandTreeDisposable = TreeUtil.getTreeModelChangeObservable(diffTreeModel)
         .debounce(100, TimeUnit.MILLISECONDS)
-        .subscribe(pEvent -> statusTreeModel.invokeAfterComputations(() -> TreeUtil._expandTreeInterruptible(statusTree)));
+        .subscribe(pEvent -> diffTreeModel.invokeAfterComputations(() -> {
+          TreeUtil._expandTreeInterruptible(statusTree);
+          _showTree();
+        }));
   }
 
   @NotNull
-  private List<IDiffInfo> _getChangedFiles(File pProjectDirectory, List<ICommit> pSelectedCommits, IRepository currentRepo, Boolean pShowAll) throws AditoGitException
+  private List<IDiffInfo> _getChangedFiles(@NotNull File pProjectDirectory, @NotNull List<ICommit> pSelectedCommits, @NotNull IRepository currentRepo,
+                                           @NotNull Boolean pShowAll) throws AditoGitException
   {
     Set<IFileChangeType> changedFilesSet = new HashSet<>();
     for (ICommit selectedCommit : pSelectedCommits.subList(0, pSelectedCommits.size() - 1))
@@ -149,14 +160,16 @@ public class CommitDetailsPanel implements IDiscardable
    * @param pObservableTreeSelectionModel Model of the observable tree
    * @param pChangedFilesObs              Observable with the changed files of the selected commits
    */
-  private void _initStatusTreeActions(ObservableTreeSelectionModel pObservableTreeSelectionModel, Observable<List<IDiffInfo>> pChangedFilesObs)
+  private void _initStatusTreeActions(@NotNull ObservableTreeSelectionModel pObservableTreeSelectionModel, @NotNull Observable<List<IDiffInfo>> pChangedFilesObs)
   {
     Observable<Optional<String>> selectedFile = Observable
         .combineLatest(pObservableTreeSelectionModel.getSelectedPaths(), pChangedFilesObs, (pSelected, pStatus) -> {
           if (pSelected == null)
             return Optional.empty();
           return Arrays.stream(pSelected)
-              .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getNodeFile())
+              .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo())
+              .filter(Objects::nonNull)
+              .map(FileChangeTypeNodeInfo::getNodeFile)
               .filter(pFile -> pFile.exists() && pFile.isFile())
               .map(File::getAbsolutePath)
               .findFirst();
@@ -179,6 +192,22 @@ public class CommitDetailsPanel implements IDiscardable
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
     popupMouseListener.setDoubleClickAction(diffCommitsAction);
     statusTree.addMouseListener(popupMouseListener);
+  }
+
+  private void _showTree()
+  {
+    tableViewPanel.remove(loadingLabel);
+    tableViewPanel.add(treeScrollpane, BorderLayout.CENTER);
+    tableViewPanel.revalidate();
+    tableViewPanel.repaint();
+  }
+
+  private void _showLoading()
+  {
+    tableViewPanel.remove(treeScrollpane);
+    tableViewPanel.add(loadingLabel, BorderLayout.CENTER);
+    tableViewPanel.revalidate();
+    tableViewPanel.repaint();
   }
 
   private JToolBar _getTreeToolbar()
@@ -219,7 +248,7 @@ public class CommitDetailsPanel implements IDiscardable
    * @param pFile      File
    * @return true if pFile is child of or equal to pDirectory
    */
-  private boolean _isChildOf(File pDirectory, File pFile)
+  private boolean _isChildOf(@NotNull File pDirectory, @NotNull File pFile)
   {
     Path directoryPath = pDirectory.toPath();
     Path parent = pFile.toPath();

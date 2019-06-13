@@ -1,16 +1,12 @@
 package de.adito.git.gui.tree.nodes;
 
 import de.adito.git.api.data.ICommit;
-import de.adito.git.impl.util.Util;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * Represents a directory with the information which of the changed files are parts of the directory being in the FileChangeTypeNodeInfo, which is
@@ -24,12 +20,12 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
   @Nullable
   private ICommit assignedCommit;
 
-  public FileChangeTypeNode(FileChangeTypeNodeInfo pUserObject)
+  public FileChangeTypeNode(@NotNull FileChangeTypeNodeInfo pUserObject)
   {
     super(pUserObject);
   }
 
-  public FileChangeTypeNode(FileChangeTypeNodeInfo pUserObject, @Nullable ICommit pAssignedCommit)
+  public FileChangeTypeNode(@NotNull FileChangeTypeNodeInfo pUserObject, @Nullable ICommit pAssignedCommit)
   {
     super(pUserObject);
     assignedCommit = pAssignedCommit;
@@ -47,29 +43,9 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
   /**
    * @param pUserObject FileChangeTypeNodeInfo to be stored in the userObject of the DefaultMutableTreeNode
    */
-  public void setInfo(FileChangeTypeNodeInfo pUserObject)
+  public void setInfo(@NotNull FileChangeTypeNodeInfo pUserObject)
   {
     setUserObject(pUserObject);
-  }
-
-  /**
-   * sorts the children of the node by the ordering imposed by the comparator, the calls the sort function of the children
-   *
-   * @param pComparator Comparator deciding the order in which the children are arranged
-   */
-  public void sort(Comparator<TreeNode> pComparator, DefaultTreeModel pModel)
-  {
-    if (children != null)
-    {
-      if (!Util.isSorted(children, pComparator))
-      {
-        _sort(pComparator, pModel);
-      }
-      for (TreeNode node : children)
-      {
-        ((FileChangeTypeNode) node).sort(pComparator, pModel);
-      }
-    }
   }
 
   /**
@@ -78,7 +54,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
    * @return FileChangeTypeNode that is a child of pNode and has the file in the userObject, null if no matching node was found
    */
   @Nullable
-  public static FileChangeTypeNode getChildNodeForFile(FileChangeTypeNode pNode, File pFile)
+  public static FileChangeTypeNode getChildNodeForFile(@NotNull FileChangeTypeNode pNode, @NotNull File pFile)
   {
     if (pNode.children != null)
     {
@@ -92,24 +68,6 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
       }
     }
     return null;
-  }
-
-  /**
-   * sort the children of this node only
-   *
-   * @param pComparator Comparator that determines the order of the children
-   * @param pModel      TreeModel of the tree this node belongs to, to remove and insert the childNodes so that the specific events are triggered and
-   *                    the ui is updated
-   */
-  private void _sort(Comparator<TreeNode> pComparator, DefaultTreeModel pModel)
-  {
-    List<TreeNode> childrenCopy = new ArrayList<>(children);
-    childrenCopy.sort(pComparator);
-    for (int index = 0; index < childrenCopy.size(); index++)
-    {
-      pModel.removeNodeFromParent((FileChangeTypeNode) childrenCopy.get(index));
-      pModel.insertNodeInto((FileChangeTypeNode) childrenCopy.get(index), this, index);
-    }
   }
 
   @Nullable

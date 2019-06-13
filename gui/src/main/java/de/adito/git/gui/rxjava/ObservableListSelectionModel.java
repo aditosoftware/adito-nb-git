@@ -2,6 +2,7 @@ package de.adito.git.gui.rxjava;
 
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +18,7 @@ public class ObservableListSelectionModel implements ListSelectionModel
   private final Observable<Integer[]> selectedRowsObservable;
   private final ListSelectionModel delegate;
 
-  public ObservableListSelectionModel(ListSelectionModel pDelegate)
+  public ObservableListSelectionModel(@NotNull ListSelectionModel pDelegate)
   {
     delegate = pDelegate;
     selectedRowsObservable = Observable.create(new _SelectedRowsObservable(this))
@@ -148,7 +149,8 @@ public class ObservableListSelectionModel implements ListSelectionModel
 
   public Observable<Integer[]> selectedRows()
   {
-    return selectedRowsObservable;
+    return selectedRowsObservable
+        .observeOn(Schedulers.computation());
   }
 
   private static class _SelectedRowsObservable extends AbstractListenerObservable<ListSelectionListener, ListSelectionModel, Integer[]>

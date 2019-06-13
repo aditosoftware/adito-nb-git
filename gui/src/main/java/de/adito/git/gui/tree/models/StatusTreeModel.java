@@ -3,10 +3,13 @@ package de.adito.git.gui.tree.models;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
+import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
+import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.TreeNode;
 import java.io.File;
@@ -23,7 +26,7 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
   private final Disposable disposable;
   private Comparator<TreeNode> comparator = _getDefaultComparator();
 
-  public StatusTreeModel(Observable<List<IFileChangeType>> pChangeList, File pProjectDirectory)
+  public StatusTreeModel(@NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory)
   {
     super(pProjectDirectory);
     disposable = pChangeList.subscribe(this::_treeChanged);
@@ -36,8 +39,10 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
     service.shutdown();
   }
 
-  private void _calculateTree(List<IFileChangeType> pList)
+  @NotNull
+  private List<TreeUpdate> _calculateTree(@NotNull List<IFileChangeType> pList)
   {
+    List<TreeUpdate> treeUpdates = new ArrayList<>();
     FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(pList);
     if (!fileHashMap.isEmpty())
@@ -45,15 +50,13 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
       fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
       if (rootNode == null)
       {
-        setRoot(new FileChangeTypeNode(fileHashMap.get(projectDirectory.getParentFile()).get(projectDirectory)));
-        rootNode = (FileChangeTypeNode) getRoot();
-        reload();
+        rootNode = new FileChangeTypeNode(fileHashMap.get(projectDirectory.getParentFile()).get(projectDirectory));
+        treeUpdates.add(TreeUpdate.createRoot(rootNode));
       }
       FileChangeTypeNodeInfo rootInfo = rootNode.getInfo();
       if (rootInfo != null)
         rootInfo.setMembers(pList);
-      _updateTree(fileHashMap, rootNode);
-      rootNode.sort(comparator, this);
+      treeUpdates.addAll(_updateTree(fileHashMap, rootNode));
     }
     else
     {
@@ -64,23 +67,26 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
           rootInfo.setMembers(new ArrayList<>());
         for (TreeNode treeNode : Collections.list(rootNode.children()))
         {
-          removeNodeFromParent((FileChangeTypeNode) treeNode);
+          treeUpdates.add(TreeUpdate.createRemove((FileChangeTypeNode) treeNode));
         }
       }
     }
+    return treeUpdates;
   }
 
-  private void _treeChanged(List<IFileChangeType> pList)
+  private void _treeChanged(@NotNull List<IFileChangeType> pList)
   {
-    invokePriority(() -> {
-      try
-      {
-        _calculateTree(pList);
-      }
-      catch (InterruptedRuntimeException pE)
-      {
-        // do nothing, exception is thrown to cancel the current computation
-      }
-    });
+    try
+    {
+      service.invokePriority(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pList, comparator));
+    }
+    catch (InterruptedRuntimeException pE)
+    {
+      // do nothing, exception is thrown to cancel the current computation
+    }
+    catch (Exception pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 }
