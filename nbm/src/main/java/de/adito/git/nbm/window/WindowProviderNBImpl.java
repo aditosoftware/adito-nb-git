@@ -9,6 +9,7 @@ import de.adito.git.gui.window.IWindowProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
+import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
@@ -17,6 +18,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A provider for all Windows in NetBeans
@@ -25,6 +28,7 @@ import java.util.function.Supplier;
  */
 class WindowProviderNBImpl implements IWindowProvider
 {
+  private static final Logger LOGGER = Logger.getLogger(WindowProviderNBImpl.class.getName());
   private final ITopComponentFactory topComponentFactory;
   private final IUserPreferences userPreferences;
 
@@ -98,7 +102,14 @@ class WindowProviderNBImpl implements IWindowProvider
     SwingUtilities.invokeLater(() -> {
       AbstractRepositoryTopComponent tc = pComponentSupplier.get();
       tc.putClientProperty("adito.git.windowprovider.key", pIdentifier);
-      WindowManager.getDefault().findMode(tc.getInitialMode()).dockInto(tc);
+      Mode tcMode = WindowManager.getDefault().findMode(tc.getInitialMode());
+      if (tcMode == null)
+      {
+        LOGGER.log(Level.WARNING, () -> String.format("Could not find valid mode for initial mode %s given by TopComponent %s, falling back to output mode",
+                                                      tc.getInitialMode(), tc.getTopComponentName()));
+        tcMode = WindowManager.getDefault().findMode("output");
+      }
+      tcMode.dockInto(tc);
       if (!tc.isOpened())
         tc.open();
       tc.requestActive();
