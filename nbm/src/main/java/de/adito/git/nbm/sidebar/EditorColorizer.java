@@ -38,14 +38,15 @@ class EditorColorizer extends JPanel implements IDiscardable
 {
   private static final int COLORIZER_WIDTH = 10;
   private static final int THROTTLE_LATEST_TIMER = 500;
+  private final Observable<Optional<IRepository>> repository;
   private final JTextComponent targetEditor;
-  private final Observable<List<IFileChangeChunk>> chunkObservable;
+  private Observable<List<IFileChangeChunk>> chunkObservable;
   private final JViewport editorViewPort;
   private Disposable disposable;
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList<>();
-  private BufferedImage bufferedImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+  private Observable<Optional<BufferedImage>> imageObservable;
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -55,22 +56,34 @@ class EditorColorizer extends JPanel implements IDiscardable
    */
   EditorColorizer(Observable<Optional<IRepository>> pRepository, DataObject pDataObject, JTextComponent pTarget)
   {
+    repository = pRepository;
     targetEditor = pTarget;
     editorViewPort = _getJScrollPane(targetEditor).getViewport();
     setMinimumSize(new Dimension(COLORIZER_WIDTH, 0));
     setPreferredSize(new Dimension(COLORIZER_WIDTH, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
-
-    Observable<String> actualText = Observable.create(new DocumentChangeObservable(pTarget)).startWith(pTarget.getDocument()).switchMap(DocumentObservable::create);
+    addPropertyChangeListener(evt -> {
+      if ("ancestor".equals(evt.getPropertyName()))
+      {
+        if (evt.getNewValue() == null)
+          discard();
+        else if (evt.getOldValue() == null)
+          _buildObservables();
+      }
+    });
     file = new File(pDataObject.getPrimaryFile().toURI());
     addMouseListener(new _ChunkPopupMouseListener(pRepository, targetEditor));
+  }
 
+  private void _buildObservables()
+  {
+    Observable<String> actualText = Observable.create(new DocumentChangeObservable(targetEditor)).startWith(targetEditor.getDocument()).switchMap(DocumentObservable::create);
     // An observable that only triggers if the viewPort changes its size (not if it moves)
     Observable<Dimension> viewPortSizeObs = Observable.create(new ViewPortSizeObservable(editorViewPort));
 
     chunkObservable = Observable
-        .combineLatest(pRepository, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
+        .combineLatest(repository, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
           if (pRepoOpt.isPresent())
           {
             try
@@ -93,12 +106,14 @@ class EditorColorizer extends JPanel implements IDiscardable
         .subscribeWith(BehaviorSubject.create())
         .distinctUntilChanged();
 
-    disposable = Observable.combineLatest(chunkObservable, viewPortSizeObs, (pChunks, pScroll) -> pChunks)
-        .subscribe(chunkList -> {
+    imageObservable = Observable.combineLatest(chunkObservable, viewPortSizeObs, (pChunks, pScroll) -> pChunks)
+        .map(chunkList -> {
           changeList = _calculateRectangles(targetEditor, chunkList);
-          bufferedImage = _createBufferedImage(changeList, targetEditor.getHeight());
-          repaint();
-        });
+          return Optional.of(_createBufferedImage(changeList, targetEditor.getHeight()));
+        })
+        .share()
+        .subscribeWith(BehaviorSubject.create());
+    disposable = imageObservable.subscribe(pImage -> repaint());
   }
 
   /**
@@ -249,7 +264,8 @@ class EditorColorizer extends JPanel implements IDiscardable
   protected void paintComponent(Graphics pG)
   {
     super.paintComponent(pG);
-    _drawImage(pG, bufferedImage);
+    if (imageObservable != null)
+      imageObservable.blockingFirst().ifPresent(pImage -> _drawImage(pG, pImage));
   }
 
   /**
