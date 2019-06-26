@@ -16,7 +16,7 @@ public class MarkedScrollbar extends JScrollBar
 {
 
   private static final int MARKINGS_OPACITY = 150;
-  private static final int MIN_MARKING_HEIGHT = 3;
+  public static final int MIN_MARKING_HEIGHT = 3;
   private List<ScrollbarMarking> markings = new ArrayList<>();
   private BufferedImage bufferedImage;
 

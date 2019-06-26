@@ -8,10 +8,12 @@ import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.impl.observables.DocumentChangeObservable;
+import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +48,8 @@ class EditorColorizer extends JPanel implements IDiscardable
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList<>();
-  private Observable<Optional<BufferedImage>> imageObservable;
+  private Observable<List<_ChangeHolder>> rectanglesObs;
+  private BufferedImage cachedImage;
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -67,9 +70,15 @@ class EditorColorizer extends JPanel implements IDiscardable
       if ("ancestor".equals(evt.getPropertyName()))
       {
         if (evt.getNewValue() == null)
+        {
           discard();
+          targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, null);
+        }
         else if (evt.getOldValue() == null)
+        {
           _buildObservables();
+          targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, rectanglesObs);
+        }
       }
     });
     file = new File(pDataObject.getPrimaryFile().toURI());
@@ -78,7 +87,9 @@ class EditorColorizer extends JPanel implements IDiscardable
 
   private void _buildObservables()
   {
-    Observable<String> actualText = Observable.create(new DocumentChangeObservable(targetEditor)).startWith(targetEditor.getDocument()).switchMap(DocumentObservable::create);
+    Observable<String> actualText = Observable.create(new DocumentChangeObservable(targetEditor))
+        .startWith(targetEditor.getDocument())
+        .switchMap(DocumentObservable::create);
     // An observable that only triggers if the viewPort changes its size (not if it moves)
     Observable<Dimension> viewPortSizeObs = Observable.create(new ViewPortSizeObservable(editorViewPort));
 
@@ -104,16 +115,20 @@ class EditorColorizer extends JPanel implements IDiscardable
         })
         .share()
         .subscribeWith(BehaviorSubject.create())
-        .distinctUntilChanged();
+        .distinctUntilChanged()
+        .observeOn(Schedulers.computation());
 
-    imageObservable = Observable.combineLatest(chunkObservable, viewPortSizeObs, (pChunks, pScroll) -> pChunks)
-        .map(chunkList -> {
-          changeList = _calculateRectangles(targetEditor, chunkList);
-          return Optional.of(_createBufferedImage(changeList, targetEditor.getHeight()));
-        })
+    rectanglesObs = Observable.combineLatest(chunkObservable, viewPortSizeObs, (pChunks, pScroll) -> pChunks)
+        .map(chunkList -> _calculateRectangles(targetEditor, chunkList))
         .share()
         .subscribeWith(BehaviorSubject.create());
-    disposable = imageObservable.subscribe(pImage -> repaint());
+
+    disposable = rectanglesObs
+        .subscribe(pChangeList -> {
+          changeList = pChangeList;
+          cachedImage = _createBufferedImage(changeList, targetEditor.getHeight());
+          repaint();
+        });
   }
 
   /**
@@ -236,7 +251,7 @@ class EditorColorizer extends JPanel implements IDiscardable
    * @param pTarget The JTextComponent of the editor
    * @return The JScrollPane of the editor
    */
-  private JScrollPane _getJScrollPane(JTextComponent pTarget)
+  static JScrollPane _getJScrollPane(JTextComponent pTarget)
   {
     Container parent = pTarget.getParent();
     while (!(parent instanceof JScrollPane))
@@ -246,7 +261,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     return (JScrollPane) parent;
   }
 
-  private class _ChangeHolder
+  class _ChangeHolder
   {
     final Rectangle rectangle;
     final Color color;
@@ -264,8 +279,8 @@ class EditorColorizer extends JPanel implements IDiscardable
   protected void paintComponent(Graphics pG)
   {
     super.paintComponent(pG);
-    if (imageObservable != null)
-      imageObservable.blockingFirst().ifPresent(pImage -> _drawImage(pG, pImage));
+    if (cachedImage != null)
+      _drawImage(pG, cachedImage);
   }
 
   /**
