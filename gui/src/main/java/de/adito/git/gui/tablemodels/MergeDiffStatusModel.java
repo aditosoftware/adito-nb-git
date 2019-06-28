@@ -6,6 +6,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,7 +15,7 @@ import java.util.List;
 public class MergeDiffStatusModel extends AbstractTableModel implements IDiscardable
 {
 
-  private List<IMergeDiff> mergeDiffs;
+  private List<IMergeDiff> mergeDiffs = new ArrayList<>();
   private final Disposable disposable;
 
   public MergeDiffStatusModel(Observable<List<IMergeDiff>> pMergeDiffObservable)

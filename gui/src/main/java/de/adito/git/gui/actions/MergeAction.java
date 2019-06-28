@@ -70,7 +70,7 @@ class MergeAction extends AbstractTableAction
                                                              pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs);
+        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs, true);
         if (!dialogResult.isPressedOk())
         {
           pProgressHandle.setDescription("Aborting merge");

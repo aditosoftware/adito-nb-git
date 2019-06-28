@@ -454,7 +454,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @NotNull List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith) throws AditoGitException
+  public @NotNull List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith)
   {
     logger.log(Level.INFO, () -> String.format("git diff %s %s", pCompareWith == null ? "" : pCompareWith.getId(), pFilesToDiff));
     try
@@ -516,7 +516,7 @@ public class RepositoryImpl implements IRepository
     }
     catch (IOException pE)
     {
-      throw new AditoGitException(pE);
+      throw new RuntimeException(pE);
     }
   }
 
@@ -983,7 +983,7 @@ public class RepositoryImpl implements IRepository
           if (stashedCommits.size() > 1)
             throw new AmbiguousStashCommitsException("num stashed commits: " + stashedCommits.size());
           else if (!stashedCommits.isEmpty())
-            return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, stashedCommits.get(0).getId(), this::diff);
+            return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, stashedCommits.get(0).getId(), this::diff, this::diff);
           else throw new AditoGitException("Conflict from failed un-stashing, but no more stashed commits exist");
         }
         if (git.getRepository().getRepositoryState() == RepositoryState.CHERRY_PICKING)
@@ -1010,7 +1010,7 @@ public class RepositoryImpl implements IRepository
     Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
     try
     {
-      return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, pStashedCommitId, this::diff);
+      return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, pStashedCommitId, this::diff, this::diff);
     }
     catch (IOException pE)
     {
@@ -1370,7 +1370,11 @@ public class RepositoryImpl implements IRepository
       {
         try
         {
-          return RepositoryImplHelper.getStashConflictMerge(git, RepositoryImplHelper.status(git).getConflicting(), pStashCommitId, this::diff);
+          List<IMergeDiff> stashConflicts = RepositoryImplHelper.getStashConflictMerge(git, RepositoryImplHelper.status(git).getConflicting(),
+                                                                                       pStashCommitId, this::diff, this::diff);
+          if (stashConflicts.isEmpty())
+            throw new AditoGitException("Could not determine conflicting files, commit or undo your changes before trying the unstash again", pStashApplyFailureEx);
+          else return stashConflicts;
         }
         catch (IOException pE1)
         {

@@ -33,13 +33,15 @@ class DialogProviderImpl implements IDialogProvider
     dialogFactory = pDialogFactory;
   }
 
+  @NotNull
   @Override
-  public DialogResult showMergeConflictDialog(Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs)
+  public DialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeDiff> pMergeConflictDiffs,
+                                              boolean pOnlyConflicting)
   {
     DialogResult<MergeConflictDialog, ?> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs),
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs, pOnlyConflicting),
                                           "Merge Conflicts");
       return result;
     }
@@ -50,14 +52,16 @@ class DialogProviderImpl implements IDialogProvider
     }
   }
 
+  @NotNull
   @Override
-  public DialogResult showMergeConflictResolutionDialog(IMergeDiff pMergeDiff)
+  public DialogResult showMergeConflictResolutionDialog(@NotNull IMergeDiff pMergeDiff)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
                                       "Conflict resolution for file "
                                           + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
   }
 
+  @NotNull
   @Override
   public DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange,
                                      boolean pShowFileTable)
@@ -81,6 +85,7 @@ class DialogProviderImpl implements IDialogProvider
     }
   }
 
+  @NotNull
   @Override
   public DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NotNull Observable<Optional<IRepository>> pRepository,
                                                                          @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
@@ -101,20 +106,23 @@ class DialogProviderImpl implements IDialogProvider
     }
   }
 
+  @NotNull
   @Override
-  public DialogResult showNewBranchDialog(Observable<Optional<IRepository>> pRepository)
+  public DialogResult showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createNewBranchDialog(pValidConsumer, pRepository), "New Branch");
   }
 
+  @NotNull
   @Override
   public DialogResult<ResetDialog, EResetType> showResetDialog()
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createResetDialog(), "Reset");
   }
 
+  @NotNull
   @Override
-  public DialogResult<PushDialog, Boolean> showPushDialog(Observable<Optional<IRepository>> pRepository, List<ICommit> pCommitList)
+  public DialogResult<PushDialog, Boolean> showPushDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<ICommit> pCommitList)
   {
     DialogResult<PushDialog, Boolean> result = null;
     try
@@ -129,9 +137,10 @@ class DialogProviderImpl implements IDialogProvider
     }
   }
 
+  @NotNull
   @Override
-  public DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(Observable<Optional<IRepository>> pRepo,
-                                                                                             List<ICommit> pStashedCommits)
+  public DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(@NotNull Observable<Optional<IRepository>> pRepo,
+                                                                                             @NotNull List<ICommit> pStashedCommits)
   {
     DialogResult<StashedCommitSelectionDialog, String> result = null;
     try
@@ -147,12 +156,14 @@ class DialogProviderImpl implements IDialogProvider
     }
   }
 
+  @NotNull
   @Override
-  public DialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(String pMessage)
+  public DialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(@NotNull String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createPasswordPromptDialog(), pMessage);
   }
 
+  @NotNull
   @Override
   public DialogResult showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefault)
   {
@@ -160,53 +171,63 @@ class DialogProviderImpl implements IDialogProvider
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createUserPromptDialog(defaultValue), pMessage);
   }
 
+  @NotNull
   @Override
   public DialogResult showYesNoDialog(@NotNull String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createYesNoDialog(pMessage), pMessage);
   }
 
+  @NotNull
   @Override
   public DialogResult showRevertDialog(@NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pFilesToRevert, pProjectDirectory), "Confirm revert of files");
   }
 
+  @NotNull
   @Override
-  public DialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(String pBranchName)
+  public DialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(@NotNull String pBranchName)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDeleteBranchDialog(), "Delete Branch");
   }
 
+  @NotNull
   @Override
   public DialogResult showFileSelectionDialog(String pMessage)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createFileSelectionDialog(), pMessage);
   }
 
+  @NotNull
   @Override
-  public DialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(Observable<Optional<IRepository>> pRepository)
+  public DialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(@NotNull Observable<Optional<IRepository>> pRepository)
   {
     String repoName = pRepository.blockingFirst().map(pRepo -> pRepo.getTopLevelDirectory().getName()).orElse("unknown repository");
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createGitConfigDialog(pRepository),
                                       "Setting for project: " + repoName);
   }
 
+  @NotNull
   @Override
   public DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog()
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashChangesDialog(), "Stash Changes - stash message");
   }
 
+  @NotNull
   @Override
-  public DialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(String pMessage, String pSshKeyLocation, char[] pPassphrase, IKeyStore pKeyStore)
+  public DialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase,
+                                                                     @NotNull IKeyStore pKeyStore)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore),
                                       "SSH key information");
   }
 
+  @NotNull
   @Override
-  public DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository)
+  public DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NotNull Consumer<ICommit> pSelectedCommitCallback,
+                                                                       @NotNull Observable<Optional<IRepository>> pRepository)
   {
     DialogResult<TagOverviewDialog, Object> result = null;
     try

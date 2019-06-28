@@ -26,10 +26,11 @@ public interface IDialogProvider
    *
    * @param pRepository         Observable with the current Repository
    * @param pMergeConflictDiffs List of IMergeDiffs detailing the conflicting files
+   * @param pOnlyConflicting    true if only files with status conflicting should be shown
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  DialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeDiff> pMergeConflictDiffs);
+  DialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeDiff> pMergeConflictDiffs, boolean pOnlyConflicting);
 
   /**
    * Shows a dialog with a three-way merge based on the information from pMergeDiff
@@ -115,7 +116,7 @@ public interface IDialogProvider
   /**
    * Shows a basic prompt dialog with a message for the user and an input field
    *
-   * @param pMessage Message to display
+   * @param pMessage      Message to display
    * @param pDefaultValue default value for the input field
    * @return DialogResult with information such as "has the user pressed OK?" and the text the user entered
    */
@@ -135,7 +136,7 @@ public interface IDialogProvider
    * Shows a dialog that presents the user the list of files to be reverted as tree
    *
    * @param pFilesToRevert List of files that are selected to be reverted
-   * @param pProjectDir top-level directory of the project
+   * @param pProjectDir    top-level directory of the project
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull

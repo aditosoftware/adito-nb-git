@@ -20,7 +20,7 @@ interface IDialogFactory
 {
 
   MergeConflictDialog createMergeConflictDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                                                Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs);
+                                                Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs, boolean pOnlyConflicting);
 
   MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
 

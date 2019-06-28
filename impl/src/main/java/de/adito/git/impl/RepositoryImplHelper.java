@@ -200,6 +200,7 @@ public class RepositoryImplHelper
    */
   @NotNull
   static List<IMergeDiff> getStashConflictMerge(@NotNull Git pGit, @NotNull Set<String> pConflicts, String pStashCommitId,
+                                                @NotNull BiFunction<List<File>, ICommit, List<IFileDiff>> pLocalDiffFn,
                                                 @NotNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFn)
       throws IOException, AditoGitException
   {
@@ -208,9 +209,33 @@ public class RepositoryImplHelper
       throw new AditoGitException("could not find any stashed commits while trying to resolve conflict of stashed commit with HEAD");
     RevCommit mergeBase = RepositoryImplHelper.getMergeBase(pGit, toUnstash,
                                                             pGit.getRepository().parseCommit(pGit.getRepository().resolve(Constants.HEAD)));
-    return RepositoryImplHelper.getMergeConflicts(pGit, toUnstash.getName(),
-                                                  ObjectId.toString(pGit.getRepository().resolve(Constants.HEAD)),
-                                                  new CommitImpl(mergeBase), pConflicts, pDiffFn);
+    List<IMergeDiff> mergeConflicts = new ArrayList<>();
+    ICommit parentBranchCommit;
+    try
+    {
+      parentBranchCommit = new CommitImpl(pGit.getRepository().parseCommit(pGit.getRepository().resolve(toUnstash.getName())));
+    }
+    catch (IOException e)
+    {
+      throw new AditoGitException(e);
+    }
+    List<IFileDiff> parentDiffList = pDiffFn.apply(parentBranchCommit, new CommitImpl(mergeBase));
+    List<IFileDiff> toMergeDiffList = pLocalDiffFn.apply(null, new CommitImpl(mergeBase));
+    for (IFileDiff parentDiff : parentDiffList)
+    {
+      // may be empty, because JGit unstash doesn't apply changes if a conflict arises during unstashing. Ignore conflicting file status then
+      if (pConflicts.isEmpty() || pConflicts.contains(parentDiff.getFilePath()))
+      {
+        for (IFileDiff toMergeDiff : toMergeDiffList)
+        {
+          if (toMergeDiff.getFilePath().equals(parentDiff.getFilePath()))
+          {
+            mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
+          }
+        }
+      }
+    }
+    return mergeConflicts;
   }
 
   @NotNull

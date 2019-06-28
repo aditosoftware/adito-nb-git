@@ -102,7 +102,7 @@ class CherryPickAction extends AbstractTableAction
       ICherryPickResult cherryPickResult = pRepo.cherryPick(pCommitsToPick);
       if (!cherryPickResult.getConflicts().isEmpty())
       {
-        DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), cherryPickResult.getConflicts());
+        DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), cherryPickResult.getConflicts(), true);
         if (conflictResult.isPressedOk())
         {
           Observable<Optional<List<IFileChangeType>>> changedFilesObs = pRepo.getStatus()

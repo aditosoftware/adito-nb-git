@@ -45,7 +45,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   @Inject
   MergeConflictDialog(IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeDiff> pMergeConflictDiffs)
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeDiff> pMergeConflictDiffs, @Assisted boolean pOnlyConflicting)
   {
     dialogProvider = pDialogProvider;
     isValidDescriptor = pIsValidDescriptor;
@@ -56,7 +56,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     Observable<Optional<IFileStatus>> obs = repository.getStatus();
     Observable<List<IMergeDiff>> mergeDiffListObservable = Observable
         .combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
-            .filter(pMergeDiff -> pStatus
+            .filter(pMergeDiff -> !pOnlyConflicting || pStatus
                 .map(IFileStatus::getConflicting)
                 .orElse(Collections.emptySet())
                 .contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath()))

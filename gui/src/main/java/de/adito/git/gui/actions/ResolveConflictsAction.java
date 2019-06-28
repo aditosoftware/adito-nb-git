@@ -85,7 +85,7 @@ class ResolveConflictsAction extends AbstractTableAction
         return;
       }
     }
-    dialogProvider.showMergeConflictDialog(repository, conflicts);
+    dialogProvider.showMergeConflictDialog(repository, conflicts, true);
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
