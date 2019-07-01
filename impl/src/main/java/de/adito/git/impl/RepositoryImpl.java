@@ -1313,6 +1313,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public @Nullable String stashChanges(String pMessage, boolean pIncludeUnTracked) throws AditoGitException
   {
+    logger.log(Level.INFO, () -> "trying to stash local changes to the working tree");
     try
     {
       StashCreateCommand stashCreate = git.stashCreate();
@@ -1325,8 +1326,10 @@ public class RepositoryImpl implements IRepository
       RevCommit stashCommit = stashCreate.call();
       if (stashCommit != null)
       {
+        logger.log(Level.INFO, () -> String.format("successfully stashed local changes, stash commit id is %s", ObjectId.toString(stashCommit.getId())));
         return stashCommit.getName();
       }
+      logger.log(Level.INFO, () -> "JGit returned null as stash id, probably because there are no changes to the local working tree");
       return null;
     }
     catch (GitAPIException pE)
@@ -1357,6 +1360,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException
   {
+    logger.log(Level.INFO, () -> String.format("unstashing stash with commit id %s", pStashCommitId));
     int stashIndexForId = RepositoryImplHelper.getStashIndexForId(git, pStashCommitId);
     if (stashIndexForId < 0)
       throw new AditoGitException("Could not find a stashed commit for id " + pStashCommitId);
