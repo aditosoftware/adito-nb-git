@@ -73,7 +73,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and the name of the branch that should be created
    */
   @NotNull
-  DialogResult showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository);
+  DialogResult<NewBranchDialog, Boolean> showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository);
 
   /**
    * Shows a dialog where the user can select the reset type

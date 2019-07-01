@@ -108,7 +108,7 @@ class DialogProviderImpl implements IDialogProvider
 
   @NotNull
   @Override
-  public DialogResult showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository)
+  public DialogResult<NewBranchDialog, Boolean> showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository)
   {
     return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createNewBranchDialog(pValidConsumer, pRepository), "New Branch");
   }

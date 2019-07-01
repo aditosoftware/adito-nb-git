@@ -68,6 +68,13 @@ public interface IActionProvider
   Action getNewBranchAction(Observable<Optional<IRepository>> pRepository);
 
   /**
+   * @param pRepository    Observable with the current Repository
+   * @param pStartingPoint Observable with the commit that should be the origin/source of the newly created branch
+   * @return Action whose actionPerformed method creates a new branch (only locally, still have to push it for it to be visible on origin/remotes)
+   */
+  Action getNewBranchAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pStartingPoint);
+
+  /**
    * @param pRepository     Observable with the current Repository
    * @param pSelectedBranch Observable determining the currently selected branch (and thus the one to be deleted)
    * @return Action whose actionPerformed method deletes the currently selected branch

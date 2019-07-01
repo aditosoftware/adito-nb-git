@@ -806,7 +806,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void createBranch(@NotNull String pBranchName, boolean pCheckout) throws AditoGitException
+  public void createBranch(@NotNull String pBranchName, @Nullable ICommit pStartPoint, boolean pCheckout) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git branch %s", pBranchName));
     try
@@ -818,7 +818,8 @@ public class RepositoryImpl implements IRepository
         throw new AditoGitException("Branch already exist. " + pBranchName);
       }
 
-      git.branchCreate().setName(pBranchName).call();
+      RevCommit startingPoint = pStartPoint == null ? null : git.getRepository().parseCommit(ObjectId.fromString(pStartPoint.getId()));
+      git.branchCreate().setName(pBranchName).setStartPoint(startingPoint).call();
       // the next line of code is for an automatically push after creating a branch
       if (pCheckout)
       {
@@ -826,7 +827,7 @@ public class RepositoryImpl implements IRepository
         checkout(getBranch(pBranchName));
       }
     }
-    catch (GitAPIException e)
+    catch (GitAPIException | IOException e)
     {
       throw new AditoGitException("Unable to create new branch: " + pBranchName, e);
     }

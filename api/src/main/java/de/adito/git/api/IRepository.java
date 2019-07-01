@@ -270,10 +270,11 @@ public interface IRepository
 
   /**
    * @param pBranchName String with the name of the branch
+   * @param pStartPoint ICommit that is the base/source of the branch to create. pass null if it should be HEAD
    * @param pCheckout   {@code true} if the branch should be automatically checked out after it was created
    * @throws AditoGitException if an error occurs
    */
-  void createBranch(@NotNull String pBranchName, boolean pCheckout) throws AditoGitException;
+  void createBranch(@NotNull String pBranchName, @Nullable ICommit pStartPoint, boolean pCheckout) throws AditoGitException;
 
   /**
    * deletes the branch with the passed name

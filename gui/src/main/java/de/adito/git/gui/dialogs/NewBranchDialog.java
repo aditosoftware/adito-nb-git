@@ -4,17 +4,18 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
-import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import java.awt.*;
-import java.util.List;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -23,7 +24,7 @@ import java.util.*;
  * @author A.Arnold 17.10.2018
  */
 
-class NewBranchDialog extends AditoBaseDialog<Object>
+class NewBranchDialog extends AditoBaseDialog<Boolean>
 {
 
   private final @NotNull List<IBranch> branchList;
@@ -37,9 +38,10 @@ class NewBranchDialog extends AditoBaseDialog<Object>
    */
   @Inject
   public NewBranchDialog(@Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                         @Assisted Observable<Optional<IRepository>> pRepository) throws AditoGitException
+                         @Assisted Observable<Optional<IRepository>> pRepository)
   {
     isValidDescriptor = pIsValidDescriptor;
+    isValidDescriptor.setValid(false);
     branchList = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
         .getBranches().blockingFirst().orElse(Collections.emptyList());
     checkbox.setSelected(true);
@@ -84,6 +86,8 @@ class NewBranchDialog extends AditoBaseDialog<Object>
     for (IBranch branch : branchList)
     {
       branchMap.add(branch.getSimpleName());
+      if (Paths.get(branch.getSimpleName()).getParent() != null)
+        branchMap.add(Paths.get(branch.getSimpleName()).getFileName().toString());
     }
     textField.getDocument().addDocumentListener(new _DocumentListener(branchMap, labelAlreadyExists));
   }
@@ -95,9 +99,9 @@ class NewBranchDialog extends AditoBaseDialog<Object>
   }
 
   @Override
-  public Object getInformation()
+  public Boolean getInformation()
   {
-    return null;
+    return checkbox.isSelected();
   }
 
   /**
@@ -108,76 +112,47 @@ class NewBranchDialog extends AditoBaseDialog<Object>
   private class _DocumentListener implements DocumentListener
   {
     private HashSet<String> branchMap;
-    private JLabel alreadyExists;
+    private JLabel alreadyExistsLabel;
 
     private _DocumentListener(HashSet<String> pBranchMap, JLabel pAlreadyExists)
     {
       branchMap = pBranchMap;
-      alreadyExists = pAlreadyExists;
+      alreadyExistsLabel = pAlreadyExists;
     }
 
     @Override
     public void insertUpdate(DocumentEvent pEvent)
     {
-      try
-      {
-        _checkingUpdate(pEvent, branchMap, alreadyExists);
-      }
-      catch (BadLocationException e1)
-      {
-        throw new RuntimeException(e1);
-      }
+      _checkingUpdate(pEvent, branchMap, alreadyExistsLabel);
     }
 
     @Override
     public void removeUpdate(DocumentEvent pEvent)
     {
-      try
-      {
-        _checkingUpdate(pEvent, branchMap, alreadyExists);
-      }
-      catch (BadLocationException e1)
-      {
-        throw new RuntimeException(e1);
-      }
+      _checkingUpdate(pEvent, branchMap, alreadyExistsLabel);
     }
 
     @Override
     public void changedUpdate(DocumentEvent pEvent)
     {
+      _checkingUpdate(pEvent, branchMap, alreadyExistsLabel);
+
+    }
+
+    private void _checkingUpdate(DocumentEvent pEvent, HashSet<String> pBranchMap, JLabel pAlreadyExists)
+    {
+      boolean alreadyExists;
       try
       {
-        _checkingUpdate(pEvent, branchMap, alreadyExists);
+        alreadyExists = pBranchMap.contains(pEvent.getDocument().getText(0, pEvent.getDocument().getLength()));
+        pAlreadyExists.setVisible(alreadyExists);
+        isValidDescriptor.setValid(!alreadyExists && pEvent.getDocument().getLength() > 0);
       }
-      catch (BadLocationException e1)
-      {
-        throw new RuntimeException(e1);
-      }
-    }
-
-    private void _checkingUpdate(DocumentEvent pEvent, HashSet<String> pBranchMap, JLabel pAlreadyExists) throws BadLocationException
-    {
-      if (pBranchMap.contains(pEvent.getDocument().getText(0, pEvent.getDocument().getLength())))
+      catch (BadLocationException pE)
       {
         isValidDescriptor.setValid(false);
-        pAlreadyExists.setVisible(true);
-      }
-      else if (pEvent.getDocument().getLength() == 0)
-      {
-        isValidDescriptor.setValid(false);
-        pAlreadyExists.setVisible(false);
-      }
-      else
-      {
-        isValidDescriptor.setValid(true);
-        pAlreadyExists.setVisible(false);
       }
     }
-  }
-
-  public boolean isCheckoutValid()
-  {
-    return checkbox.isSelected();
   }
 
 }
