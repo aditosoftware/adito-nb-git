@@ -3,11 +3,11 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.ICommit;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
+import javax.swing.*;
 import java.util.Optional;
 
 /**
@@ -16,10 +16,8 @@ import java.util.Optional;
  *
  * @author A.Arnold 18.10.2018
  */
-class NewBranchAction extends NewBranchBaseAction
+class NewBranchAction extends AbstractNewBranchAction
 {
-  private Observable<Optional<IRepository>> repository;
-
   /**
    * @param pProgressFacade ProgressFacade which is used to report back the progess of the task
    * @param pDialogProvider The Interface to provide functionality of giving an overlying framework
@@ -28,31 +26,8 @@ class NewBranchAction extends NewBranchBaseAction
   @Inject
   NewBranchAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository)
   {
-    super(pProgressFacade, pDialogProvider);
-    repository = pRepository;
-  }
-
-  @Override
-  Observable<Optional<ICommit>> getStartPoint()
-  {
-    return Observable.just(Optional.empty());
-  }
-
-  @Override
-  Observable<Optional<IRepository>> getRepository()
-  {
-    return repository;
-  }
-
-  @Override
-  String getActionName()
-  {
-    return "New Branch";
-  }
-
-  @Override
-  String getShortDescription()
-  {
-    return "Create a new branch in the repository";
+    super(pProgressFacade, pDialogProvider, pRepository, Observable.just(Optional.empty()));
+    putValue(Action.NAME, "New Branch");
+    putValue(Action.SHORT_DESCRIPTION, "Create a new branch in the repository");
   }
 }

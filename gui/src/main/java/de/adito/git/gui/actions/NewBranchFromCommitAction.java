@@ -8,16 +8,15 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.Optional;
 
 /**
  * @author m.kaspera, 01.07.2019
  */
-class NewBranchFromCommitAction extends NewBranchBaseAction
+class NewBranchFromCommitAction extends AbstractNewBranchAction
 {
-  private final Observable<Optional<IRepository>> repository;
-  private final Observable<Optional<List<ICommit>>> startingPoint;
 
   /**
    * @param pProgressFacade ProgressFacade which is used to report back the progess of the task
@@ -29,32 +28,10 @@ class NewBranchFromCommitAction extends NewBranchBaseAction
   NewBranchFromCommitAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                             @Assisted Observable<Optional<List<ICommit>>> pStartingPoint)
   {
-    super(pProgressFacade, pDialogProvider);
-    repository = pRepository;
-    startingPoint = pStartingPoint;
-  }
-
-  @Override
-  Observable<Optional<ICommit>> getStartPoint()
-  {
-    return startingPoint.map(pOpt -> pOpt.map(pList -> pList.size() == 1 ? pList.get(0) : null));
-  }
-
-  @Override
-  Observable<Optional<IRepository>> getRepository()
-  {
-    return repository;
-  }
-
-  @Override
-  String getActionName()
-  {
-    return "Create Branch from here";
-  }
-
-  @Override
-  String getShortDescription()
-  {
-    return "Create a new branch with this commit as its source/origin";
+    super(pProgressFacade, pDialogProvider, pRepository,
+          pStartingPoint.map(pOpt -> pOpt.map(pList -> pList.size() == 1 ? pList.get(0) : null)),
+          pStartingPoint.map(pOpt -> pOpt.map(pList -> pList.size() == 1)));
+    putValue(Action.NAME, "Create branch from here");
+    putValue(Action.SHORT_DESCRIPTION, "Create a new branch with this commit as its source/origin");
   }
 }
