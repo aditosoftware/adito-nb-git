@@ -94,9 +94,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     repository = pRepository;
     loadMoreCallback = pLoadMoreCallback;
     if (pStartFilter.getAuthor() != null) authorField.setText(pStartFilter.getAuthor());
-    if (pStartFilter.getBranch() != null) branchSelectionBox.setSelectedItem(pStartFilter.getBranch());
     if (!pStartFilter.getFiles().isEmpty()) chosenFiles.addAll(pStartFilter.getFiles());
-    else branchSelectionBox.setSelectedItem(IBranch.ALL_BRANCHES);
     commitTableModel = (CommitHistoryTreeListTableModel) pTableModel;
     commitTable = new _SearchableCommitTable(commitTableModel, commitTableView);
     commitTable.removeColumn(commitTable.getColumn(CommitHistoryTreeListTableModel.COMMIT_ID_COL_NAME));
@@ -118,21 +116,15 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       return Optional.of(selectedCommits);
     });
     branchObservable = repository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getBranches).orElse(Observable.just(Optional.of(List.of()))))
-        .subscribe(pOptBranches -> {
-          if (pOptBranches.isPresent())
-          {
-            branchSelectionBox.removeAllItems();
-            branchSelectionBox.addItem(IBranch.ALL_BRANCHES);
-            pOptBranches.get().forEach(pBranch -> branchSelectionBox.addItem(pBranch));
-          }
-        });
+        .subscribe(pOptBranches -> pOptBranches.ifPresent(pIBranches -> _resetSelectableBranches(pStartFilter, pIBranches)));
     selectedCommitObservable = selectedCommitHistoryItems.map(pOptSelectedItems ->
                                                                   pOptSelectedItems
                                                                       .map(pSelectedItems -> pSelectedItems
                                                                           .stream()
                                                                           .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList())));
     commitFilterObs = Observable.combineLatest(
-        Observable.create(new _ComboBoxObservable(branchSelectionBox)).startWith(Optional.empty()),
+        Observable.create(new _ComboBoxObservable(branchSelectionBox))
+            .startWith(branchSelectionBox.getSelectedItem() == null ? Optional.empty() : Optional.of((IBranch) branchSelectionBox.getSelectedItem())),
         Observable.create(new _JTextFieldObservable(authorField)).startWith("").debounce(500, TimeUnit.MILLISECONDS),
         (pBranch, pAuthor) -> (ICommitFilter) new CommitFilterImpl()
             .setAuthor(pAuthor.isEmpty() ? null : pAuthor)
@@ -143,6 +135,23 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     statusObservable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())));
     commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable, pStartFilter);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
+  }
+
+  /**
+   * Resets/Reloads the branches that are shown in the branch selection combobox
+   *
+   * @param pStartFilter filter that can be used to get a branch to pre-select/re-select
+   * @param pBranches    list of branches in the repository
+   */
+  private void _resetSelectableBranches(@Assisted ICommitFilter pStartFilter, List<IBranch> pBranches)
+  {
+    Object tmpSelectedItem = branchSelectionBox.getSelectedItem();
+    if (branchSelectionBox.getItemCount() == 0 && pStartFilter.getBranch() != null)
+      tmpSelectedItem = pStartFilter.getBranch();
+    branchSelectionBox.removeAllItems();
+    branchSelectionBox.addItem(IBranch.ALL_BRANCHES);
+    pBranches.forEach(pBranch -> branchSelectionBox.addItem(pBranch));
+    branchSelectionBox.setSelectedItem(tmpSelectedItem == null ? IBranch.ALL_BRANCHES : tmpSelectedItem);
   }
 
   @Override
