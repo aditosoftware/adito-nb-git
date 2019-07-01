@@ -11,13 +11,13 @@ import java.awt.event.ActionEvent;
 /**
  * @author m.kaspera, 17.03.2019
  */
-public class ExpandTreeAction extends AbstractAction
+class ExpandTreeAction extends AbstractAction
 {
 
   private final JTree tree;
 
   @Inject
-  public ExpandTreeAction(IIconLoader pIconLoader, @Assisted JTree pTree)
+  ExpandTreeAction(IIconLoader pIconLoader, @Assisted JTree pTree)
   {
     super("Expand nodes");
     tree = pTree;

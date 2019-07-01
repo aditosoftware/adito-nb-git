@@ -10,14 +10,14 @@ import javax.swing.*;
 /**
  * @author m.kaspera, 12.02.2019
  */
-public class StashChangesDialog extends AditoBaseDialog<StashChangesResult>
+class StashChangesDialog extends AditoBaseDialog<StashChangesResult>
 {
 
   private final JTextField stashMessageField;
   private final JCheckBox includeUnTrackedCheckbox;
 
   @Inject
-  public StashChangesDialog()
+  StashChangesDialog()
   {
     stashMessageField = new JTextField();
     includeUnTrackedCheckbox = new JCheckBox();

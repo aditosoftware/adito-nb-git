@@ -7,7 +7,6 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
-import de.adito.git.gui.dialogs.StashChangesDialog;
 import de.adito.git.gui.dialogs.results.StashChangesResult;
 import io.reactivex.Observable;
 
@@ -40,7 +39,7 @@ class StashChangesAction extends AbstractAction
     IRepository repo = repository.blockingFirst().orElse(null);
     if (repo != null)
     {
-      DialogResult<StashChangesDialog, StashChangesResult> dialogResult = dialogProvider.showStashChangesDialog();
+      DialogResult<?, StashChangesResult> dialogResult = dialogProvider.showStashChangesDialog();
       if (dialogResult.isPressedOk())
       {
         progressFacade.executeInBackground("Stashing changes", pHandle -> {

@@ -14,7 +14,7 @@ import java.util.Optional;
  *
  * @author m.kaspera, 07.06.2019
  */
-public class DeleteTagAction extends AbstractTableAction
+class DeleteTagAction extends AbstractTableAction
 {
 
   private final Observable<Optional<IRepository>> repository;

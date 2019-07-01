@@ -9,13 +9,13 @@ import javax.swing.*;
 /**
  * @author m.kaspera, 13.03.2019
  */
-public class DeleteBranchDialog extends AditoBaseDialog<Boolean>
+class DeleteBranchDialog extends AditoBaseDialog<Boolean>
 {
 
   private final JCheckBox checkBox = new JCheckBox();
 
   @Inject
-  public DeleteBranchDialog()
+  DeleteBranchDialog()
   {
     _initGui();
   }

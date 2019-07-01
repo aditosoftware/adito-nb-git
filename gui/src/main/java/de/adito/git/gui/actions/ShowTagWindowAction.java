@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 /**
  * @author m.kaspera, 06.06.2019
  */
-public class ShowTagWindowAction extends AbstractAction
+class ShowTagWindowAction extends AbstractAction
 {
 
   private final IDialogProvider dialogProvider;
@@ -25,8 +25,8 @@ public class ShowTagWindowAction extends AbstractAction
   private final Observable<Optional<IRepository>> repository;
 
   @Inject
-  public ShowTagWindowAction(IDialogProvider pDialogProvider, IIconLoader pIIconLoader, @Assisted Consumer<ICommit> pSelectCommitCallback,
-                             @Assisted Observable<Optional<IRepository>> pRepository)
+  ShowTagWindowAction(IDialogProvider pDialogProvider, IIconLoader pIIconLoader, @Assisted Consumer<ICommit> pSelectCommitCallback,
+                      @Assisted Observable<Optional<IRepository>> pRepository)
   {
     super("Show Tag Overview");
     selectCommitCallback = pSelectCommitCallback;

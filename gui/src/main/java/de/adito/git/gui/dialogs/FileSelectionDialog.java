@@ -13,14 +13,14 @@ import javax.swing.filechooser.FileSystemView;
  *
  * @author m.kaspera, 06.03.2019
  */
-public class FileSelectionDialog extends AditoBaseDialog<Object>
+class FileSelectionDialog extends AditoBaseDialog<Object>
 {
 
   private static final int PATH_NUM_CHARS = 60;
   private final JTextField textField;
 
   @Inject
-  public FileSelectionDialog()
+  FileSelectionDialog()
   {
     textField = new JTextField(PATH_NUM_CHARS);
     _initGui();

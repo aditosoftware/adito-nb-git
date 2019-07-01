@@ -12,13 +12,13 @@ import java.awt.event.ActionEvent;
 /**
  * @author m.kaspera, 17.03.2019
  */
-public class CollapseTreeAction extends AbstractAction
+class CollapseTreeAction extends AbstractAction
 {
 
   private final JTree tree;
 
   @Inject
-  public CollapseTreeAction(IIconLoader pIconLoader, @Assisted JTree pTree)
+  CollapseTreeAction(IIconLoader pIconLoader, @Assisted JTree pTree)
   {
     super("Collapse nodes");
     tree = pTree;
