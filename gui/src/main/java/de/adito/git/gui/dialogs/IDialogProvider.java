@@ -191,6 +191,16 @@ public interface IDialogProvider
                                                               @NotNull IKeyStore pKeyStore);
 
   /**
+   * Shows a dialog with some text and a checkbox (with its own description) that the use can tick
+   *
+   * @param pMessage      General message to show
+   * @param pCheckboxText description of the textbox
+   * @return DialogResult with information such as "has the user pressed OK?" and if the checkbox was ticket as information
+   */
+  @NotNull
+  DialogResult<CheckboxPrompt, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
+
+  /**
    * Shows a dialog with an overview over all tags of the current repository
    *
    * @param pSelectecCommitCallback Consumer that selects the passed ICommit in the log

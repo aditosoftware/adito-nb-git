@@ -59,5 +59,7 @@ interface IDialogFactory
   SshInfoPrompt createSshInfoPromptDialog(@Assisted("message") String pMessage, @javax.annotation.Nullable @Assisted("keyLocation") String pSshKeyLocation,
                                           @javax.annotation.Nullable char[] pPassphrase, @javax.annotation.Nullable IKeyStore pKeyStore);
 
+  CheckboxPrompt createCheckboxPrompt(@Assisted("message") String pMessage, @Assisted("checkbox") String pCheckboxText);
+
   TagOverviewDialog createTagOverviewDialog(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
 }

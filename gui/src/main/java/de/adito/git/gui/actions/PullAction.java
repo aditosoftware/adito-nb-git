@@ -81,6 +81,8 @@ class PullAction extends AbstractAction
       }
       if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
       {
+        if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
+          return;
         pProgressHandle.setDescription("Stashing existing changes");
         prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, true));
       }

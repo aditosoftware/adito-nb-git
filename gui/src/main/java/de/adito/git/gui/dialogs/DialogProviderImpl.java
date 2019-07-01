@@ -224,6 +224,12 @@ class DialogProviderImpl implements IDialogProvider
                                       "SSH key information");
   }
 
+  @Override
+  public @NotNull DialogResult<CheckboxPrompt, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText)
+  {
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createCheckboxPrompt(pMessage, pCheckboxText), "");
+  }
+
   @NotNull
   @Override
   public DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NotNull Consumer<ICommit> pSelectedCommitCallback,

@@ -49,6 +49,7 @@ public class Constants
   //Settings map keys
   public static final String SSH_KEY_KEY = "sshKey";
   public static final String LOG_LEVEL_SETTINGS_KEY = "gitLogLevel";
+  public static final String AUTOMATICALLY_STASH_LOCAL_CHANES = "git.settings.autostashIfLocalChanges";
 
   private Constants()
   {

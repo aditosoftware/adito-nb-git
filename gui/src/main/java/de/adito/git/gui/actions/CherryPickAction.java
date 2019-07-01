@@ -71,6 +71,8 @@ class CherryPickAction extends AbstractTableAction
           }
           if (status.map(pStatus -> !pStatus.getUncommitted().isEmpty()).orElse(false))
           {
+            if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
+              return;
             pHandle.setDescription("Stashing existing changes");
             prefStore.put(STASH_ID_KEY, repo.stashChanges(null, true));
           }
