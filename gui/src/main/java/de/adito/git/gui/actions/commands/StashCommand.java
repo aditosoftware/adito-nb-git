@@ -7,7 +7,6 @@ import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,24 +26,23 @@ public class StashCommand
    */
   public static void doUnStashing(IDialogProvider pDialogProvider, String pStashedCommitId, Observable<Optional<IRepository>> pRepository)
   {
-    List<IMergeDiff> stashConflicts = pRepository.blockingFirst().map(pRepo -> {
+    pRepository.blockingFirst().ifPresent(pRepo -> {
+      List<IMergeDiff> stashConflicts;
       try
       {
-        return pRepo.unStashChanges(pStashedCommitId);
+        stashConflicts = pRepo.unStashChanges(pStashedCommitId);
       }
       catch (AditoGitException pE)
       {
         throw new RuntimeException(pE);
       }
-    }).orElse(Collections.emptyList());
-    DialogResult dialogResult = null;
-    if (!stashConflicts.isEmpty())
-    {
-      dialogResult = pDialogProvider.showMergeConflictDialog(pRepository, stashConflicts, false);
-    }
-    if (stashConflicts.isEmpty() || dialogResult.isPressedOk())
-    {
-      pRepository.blockingFirst().ifPresent(pRepo -> {
+      DialogResult dialogResult = null;
+      if (!stashConflicts.isEmpty())
+      {
+        dialogResult = pDialogProvider.showMergeConflictDialog(pRepository, stashConflicts, false);
+      }
+      if (stashConflicts.isEmpty() || dialogResult.isPressedOk())
+      {
         try
         {
           pRepo.dropStashedCommit(pStashedCommitId);
@@ -53,8 +51,8 @@ public class StashCommand
         {
           throw new RuntimeException(pE);
         }
-      });
-    }
+      }
+    });
   }
 
 }
