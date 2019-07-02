@@ -292,7 +292,7 @@ public class RepositoryImpl implements IRepository
     catch (RefNotAdvertisedException pException)
     {
       throw new AditoGitException("The current Branch does not have a corresponding remote branch, " +
-                                      "please to switch to a branch that also exists in the remote repository", pException);
+                                      "please switch to a branch that also exists in the remote repository", pException);
     }
     catch (IOException | GitAPIException pE)
     {
