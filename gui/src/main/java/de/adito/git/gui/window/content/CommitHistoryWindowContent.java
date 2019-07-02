@@ -66,6 +66,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final Observable<Optional<IFileStatus>> statusObservable;
   private final QuickSearchCallbackImpl quickSearchCallback;
+  private final List<IDiscardable> popupDiscardables = new ArrayList<>();
   private JPopupMenu commitListPopupMenu = new JPopupMenu();
 
   // Variables for filtering the shown entries
@@ -160,6 +161,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitFilterDisposable.dispose();
     branchObservable.dispose();
     commitDetailsPanel.discard();
+    popupDiscardables.forEach(IDiscardable::discard);
   }
 
   private void _initGUI(Runnable pLoadMoreCallback, Consumer<ICommitFilter> pRefreshContentCallBack)
@@ -246,13 +248,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   {
     commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
     commitTable.setRowHeight(21);
-    commitListPopupMenu.add(actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, Observable.just(Optional.empty())));
-    commitListPopupMenu.add(actionProvider.getResetAction(repository, selectedCommitObservable));
-    commitListPopupMenu.add(actionProvider.getAddTagAction(repository, selectedCommitObservable));
-    commitListPopupMenu.add(menuProvider.getDeleteTagsMenu("Delete Tag", repository, selectedCommitHistoryItems));
-    commitListPopupMenu.add(actionProvider.getCherryPickAction(repository, selectedCommitObservable));
-    commitListPopupMenu.add(actionProvider.getNewBranchAction(repository, selectedCommitObservable));
-    commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
+    _buildPopupMenu();
 
     // cannot set preferred width of only last columns, so have to set a width for the first one as well
     // since the total width is not know the width for the first one has to be a guess that works for most screens
@@ -266,6 +262,29 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitTable.getColumnModel()
         .getColumn(commitTableModel.findColumn(CommitHistoryTreeListTableModel.AUTHOR_COL_NAME))
         .setPreferredWidth(AUTHOR_COL_PREF_WIDTH);
+  }
+
+  private void _buildPopupMenu()
+  {
+    Action diffCommitToHeadAction = actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, Observable.just(Optional.empty()));
+    Action resetAction = actionProvider.getResetAction(repository, selectedCommitObservable);
+    Action addTagAction = actionProvider.getAddTagAction(repository, selectedCommitObservable);
+    JMenu deleteTagsMenu = menuProvider.getDeleteTagsMenu("Delete Tag", repository, selectedCommitHistoryItems);
+    Action cherryPickAction = actionProvider.getCherryPickAction(repository, selectedCommitObservable);
+    Action newBranchAction = actionProvider.getNewBranchAction(repository, selectedCommitObservable);
+    popupDiscardables.add((IDiscardable) diffCommitToHeadAction);
+    popupDiscardables.add((IDiscardable) resetAction);
+    popupDiscardables.add((IDiscardable) addTagAction);
+    popupDiscardables.add((IDiscardable) deleteTagsMenu);
+    popupDiscardables.add((IDiscardable) cherryPickAction);
+    popupDiscardables.add((IDiscardable) newBranchAction);
+    commitListPopupMenu.add(diffCommitToHeadAction);
+    commitListPopupMenu.add(resetAction);
+    commitListPopupMenu.add(addTagAction);
+    commitListPopupMenu.add(deleteTagsMenu);
+    commitListPopupMenu.add(cherryPickAction);
+    commitListPopupMenu.add(newBranchAction);
+    commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
   }
 
   /**
