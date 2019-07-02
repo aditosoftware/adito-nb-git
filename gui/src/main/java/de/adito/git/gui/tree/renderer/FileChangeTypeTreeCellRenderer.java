@@ -1,6 +1,8 @@
 package de.adito.git.gui.tree.renderer;
 
 import de.adito.git.api.IFileSystemUtil;
+import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.EChangeType;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 
@@ -64,13 +66,7 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
       }
       panel.add(fileLabel, BorderLayout.CENTER);
       // if the node is not a leaf, write how many leaves the tree with node as root has
-      if (!node.isLeaf())
-      {
-        JLabel numChangedFilesLabel = new JLabel(nodeInfo.getMembers().size()
-                                                     + String.format(" %s changed", nodeInfo.getMembers().size() == 1 ? FILE_SINGULAR : FILE_PLURAL));
-        numChangedFilesLabel.setEnabled(false);
-        panel.add(numChangedFilesLabel, BorderLayout.EAST);
-      }
+      _addAdditionalInfo(pLeaf, nodeInfo, panel);
       if (pSelected)
       {
         panel.setBackground(getBackgroundSelectionColor());
@@ -78,5 +74,30 @@ public class FileChangeTypeTreeCellRenderer extends DefaultTreeCellRenderer
       return panel;
     }
     return defaultRenderer.getTreeCellRendererComponent(pTree, pValue, pSelected, pExpanded, pLeaf, pRow, pHasFocus);
+  }
+
+  /**
+   * Add additional info to the right of the file label, info can be things such as number of leaves or rename description if the file was renamed
+   *
+   * @param pLeaf     if the node is a leaf
+   * @param pNodeInfo information stored in the node
+   * @param pPanel    panel that is used to draw the row for the node
+   */
+  private void _addAdditionalInfo(boolean pLeaf, FileChangeTypeNodeInfo pNodeInfo, JPanel pPanel)
+  {
+    if (!pLeaf)
+    {
+      JLabel numChangedFilesLabel = new JLabel(pNodeInfo.getMembers().size()
+                                                   + String.format(" %s changed", pNodeInfo.getMembers().size() == 1 ? FILE_SINGULAR : FILE_PLURAL));
+      numChangedFilesLabel.setEnabled(false);
+      pPanel.add(numChangedFilesLabel, BorderLayout.EAST);
+    }
+    else if (pNodeInfo.getMembers().size() == 1 && pNodeInfo.getMembers().get(0).getChangeType() == EChangeType.RENAME)
+    {
+      JLabel renamedLabel = new JLabel("moved from "
+                                           + pNodeInfo.getMembers().get(0).getFile(EChangeSide.NEW).toPath()
+          .relativize(pNodeInfo.getMembers().get(0).getFile(EChangeSide.OLD).toPath()));
+      pPanel.add(renamedLabel, BorderLayout.EAST);
+    }
   }
 }

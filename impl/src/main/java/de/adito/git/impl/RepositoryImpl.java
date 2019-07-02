@@ -53,7 +53,7 @@ import static de.adito.git.impl.Util.getRelativePath;
 public class RepositoryImpl implements IRepository
 {
 
-  private static final String VOID_PATH = "/dev/null";
+  public static final String VOID_PATH = "/dev/null";
   private static final String CHECKOUT_FORMATTED_STRING = "git checkout %s";
   private final ISshProvider sshProvider;
   private final IDataFactory dataFactory;
@@ -581,37 +581,37 @@ public class RepositoryImpl implements IRepository
     {
       IndexDiff diff = new IndexDiff(git.getRepository(), "HEAD", new FileTreeIterator(git.getRepository()));
       if (getRelativePath(pFile, git).isEmpty())
-        return new FileChangeTypeImpl(pFile, EChangeType.SAME);
+        return new FileChangeTypeImpl(pFile, pFile, EChangeType.SAME);
       diff.setFilter(PathFilterGroup.createFromStrings(getRelativePath(pFile, git)));
       diff.diff();
       IFileChangeType result;
       if (!diff.getAdded().isEmpty())
       {
-        result = new FileChangeTypeImpl(pFile, EChangeType.ADD);
+        result = new FileChangeTypeImpl(pFile, pFile, EChangeType.ADD);
       }
       else if (!diff.getChanged().isEmpty())
       {
-        result = new FileChangeTypeImpl(pFile, EChangeType.CHANGED);
+        result = new FileChangeTypeImpl(pFile, pFile, EChangeType.CHANGED);
       }
       else if (!diff.getRemoved().isEmpty())
       {
-        result = new FileChangeTypeImpl(pFile, EChangeType.DELETE);
+        result = new FileChangeTypeImpl(new File(VOID_PATH), pFile, EChangeType.DELETE);
       }
       else if (!diff.getModified().isEmpty())
       {
-        result = new FileChangeTypeImpl(pFile, EChangeType.MODIFY);
+        result = new FileChangeTypeImpl(pFile, pFile, EChangeType.MODIFY);
       }
       else if (!diff.getUntracked().isEmpty())
       {
-        result = new FileChangeTypeImpl(pFile, EChangeType.NEW);
+        result = new FileChangeTypeImpl(pFile, new File(VOID_PATH), EChangeType.NEW);
       }
       else if (!diff.getConflicting().isEmpty())
       {
-        result = new FileChangeTypeImpl(pFile, EChangeType.CONFLICTING);
+        result = new FileChangeTypeImpl(pFile, pFile, EChangeType.CONFLICTING);
       }
       else
       {
-        result = new FileChangeTypeImpl(pFile, EChangeType.SAME);
+        result = new FileChangeTypeImpl(pFile, pFile, EChangeType.SAME);
       }
       return result;
     }
@@ -1099,12 +1099,7 @@ public class RepositoryImpl implements IRepository
         List<IFileChangeType> fileChangeTypes = RepositoryImplHelper.doDiff(git, thisCommit.getId(), parentCommit).stream()
             .map(pDiffEntry -> {
               EChangeType changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
-              String path;
-              if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
-                path = pDiffEntry.getNewPath();
-              else
-                path = pDiffEntry.getOldPath();
-              return new FileChangeTypeImpl(new File(path), changeType);
+              return new FileChangeTypeImpl(new File(pDiffEntry.getNewPath()), new File(pDiffEntry.getOldPath()), changeType);
             })
             .distinct()
             .collect(Collectors.toList());

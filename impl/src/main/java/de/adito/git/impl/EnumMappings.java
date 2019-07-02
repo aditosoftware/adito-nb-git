@@ -57,6 +57,7 @@ public class EnumMappings
    * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
    * @return translated {@link EChangeType}
    */
+  @NotNull
   public static EChangeType toEChangeType(@NotNull DiffEntry.ChangeType pChangeType)
   {
     switch (pChangeType)
@@ -72,7 +73,7 @@ public class EnumMappings
       case COPY:
         return EChangeType.COPY;
       default:
-        return null;
+        return EChangeType.SAME;
     }
   }
 

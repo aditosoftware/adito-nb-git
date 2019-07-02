@@ -9,10 +9,12 @@ import de.adito.git.impl.revfilters.StashCommitFilter;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.util.io.NullOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,9 +78,12 @@ public class RepositoryImplHelper
     {
       CanonicalTreeParser oldTreeIter = prepareTreeParser(pGit.getRepository(), pCompareToId);
       CanonicalTreeParser newTreeIter = prepareTreeParser(pGit.getRepository(), pCurrentId);
-      return pGit.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter).call();
+      DiffFormatter df = new DiffFormatter(NullOutputStream.INSTANCE);
+      df.setRepository(pGit.getRepository());
+      df.setDetectRenames(true);
+      return df.scan(oldTreeIter, newTreeIter);
     }
-    catch (IOException | GitAPIException pE)
+    catch (IOException pE)
     {
       throw new AditoGitException(pE);
     }

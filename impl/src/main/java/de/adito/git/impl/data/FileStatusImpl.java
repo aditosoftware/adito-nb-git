@@ -1,6 +1,7 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.*;
+import de.adito.git.impl.RepositoryImpl;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.IndexDiff;
 
@@ -165,7 +166,11 @@ public class FileStatusImpl implements IFileStatus
     List<IFileChangeType> fileChangeTypes = new ArrayList<>();
     for (Map.Entry<String, EChangeType> fileChangeEntry : pFileChanges.entrySet())
     {
-      fileChangeTypes.add(new FileChangeTypeImpl(new File(gitDirectory.getParent(), fileChangeEntry.getKey()), fileChangeEntry.getValue()));
+      File file = new File(gitDirectory.getParent(), fileChangeEntry.getKey());
+      // No RENAME possible here, so both old and newFile are either the VOID_PATH or the file above
+      File newFile = fileChangeEntry.getValue() == EChangeType.DELETE || fileChangeEntry.getValue() == EChangeType.MISSING ? new File(RepositoryImpl.VOID_PATH) : file;
+      File oldFile = fileChangeEntry.getValue() == EChangeType.ADD ? new File(RepositoryImpl.VOID_PATH) : file;
+      fileChangeTypes.add(new FileChangeTypeImpl(newFile, oldFile, fileChangeEntry.getValue()));
     }
     fileChangeTypes.sort(Comparator.comparing(pChangeType -> pChangeType.getFile().getName(), Collator.getInstance()));
     return fileChangeTypes;

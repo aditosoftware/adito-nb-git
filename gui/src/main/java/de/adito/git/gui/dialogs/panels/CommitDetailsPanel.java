@@ -135,7 +135,9 @@ public class CommitDetailsPanel implements IDiscardable
       changedFilesSet.addAll(currentRepo.getCommittedFiles(selectedCommit.getId())
                                  .stream()
                                  .flatMap(pDiffInfo -> pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
-                                     new File(pProjectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType())))
+                                     new File(pProjectDirectory, pChangeType.getFile(EChangeSide.NEW).getPath()),
+                                     new File(pProjectDirectory, pChangeType.getFile(EChangeSide.OLD).getPath()),
+                                     pChangeType.getChangeType())))
                                  .filter(pFileChangeType -> commitFilter.getFiles().isEmpty() || pShowAll
                                      || commitFilter.getFiles().stream().anyMatch(pFile -> _isChildOf(pFile, pFileChangeType.getFile())))
                                  .collect(Collectors.toList()));
@@ -145,7 +147,9 @@ public class CommitDetailsPanel implements IDiscardable
         .map(pDiffInfo -> {
           Set<IFileChangeType> changedFiles = new HashSet<>(changedFilesSet);
           changedFiles.addAll(pDiffInfo.getChangedFiles().stream().map(pChangeType -> new FileChangeTypeImpl(
-              new File(pProjectDirectory, pChangeType.getFile().getPath()), pChangeType.getChangeType()))
+              new File(pProjectDirectory, pChangeType.getFile(EChangeSide.NEW).getPath()),
+              new File(pProjectDirectory, pChangeType.getFile(EChangeSide.OLD).getPath()),
+              pChangeType.getChangeType()))
                                   .filter(pFileChangeType -> commitFilter.getFiles().isEmpty() || pShowAll
                                       || commitFilter.getFiles().stream().anyMatch(pFile -> _isChildOf(pFile, pFileChangeType.getFile())))
                                   .collect(Collectors.toList()));
@@ -170,7 +174,6 @@ public class CommitDetailsPanel implements IDiscardable
               .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo())
               .filter(Objects::nonNull)
               .map(FileChangeTypeNodeInfo::getNodeFile)
-              .filter(pFile -> pFile.exists() && pFile.isFile())
               .map(File::getAbsolutePath)
               .findFirst();
         });

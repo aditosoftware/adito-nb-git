@@ -39,7 +39,7 @@ public class ResolveConflictsNBAction extends NBAction
     fileChangeTypeList = Optional.of(repository.blockingFirst().orElseThrow()
                                          .getStatus().blockingFirst()
                                          .map(IFileStatus::getConflicting).orElse(Collections.emptySet())
-                                         .stream().map(pFilePath -> new FileChangeTypeImpl(new File(pFilePath), EChangeType.CONFLICTING))
+                                         .stream().map(pFilePath -> new FileChangeTypeImpl(new File(pFilePath), new File(pFilePath), EChangeType.CONFLICTING))
                                          .collect(Collectors.toList()));
     actionProvider.getResolveConflictsAction(repository, Observable.just(fileChangeTypeList)).actionPerformed(null);
   }
