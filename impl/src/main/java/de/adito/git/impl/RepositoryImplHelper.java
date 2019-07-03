@@ -131,13 +131,18 @@ public class RepositoryImplHelper
       String branch = pGit.getRepository().getFullBranch();
       if (branch == null)
         return Optional.empty();
+      String remoteTrackingBranchName = getRemoteTrackingBranch(pGit, null);
+      IBranch remoteTrackingBranch = null;
+      if (remoteTrackingBranchName != null)
+        remoteTrackingBranch = new BranchImpl(pGit.getRepository().resolve(remoteTrackingBranchName));
+      List<String> remoteNames = new ArrayList<>(pGit.getRepository().getRemoteNames());
       if (pGit.getRepository().getRefDatabase().getRef(branch) == null)
       {
-        return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch)),
-                                                   EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState())));
+        return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch)), remoteTrackingBranch,
+                                                   EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState()), remoteNames));
       }
-      return Optional.of(new RepositoryStateImpl(pGetBranchFunction.apply(branch),
-                                                 EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState())));
+      return Optional.of(new RepositoryStateImpl(pGetBranchFunction.apply(branch), remoteTrackingBranch,
+                                                 EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState()), remoteNames));
     }
     catch (Exception e)
     {

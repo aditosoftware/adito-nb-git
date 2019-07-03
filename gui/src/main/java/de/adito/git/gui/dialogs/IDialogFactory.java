@@ -62,4 +62,6 @@ interface IDialogFactory
   CheckboxPrompt createCheckboxPrompt(@Assisted("message") String pMessage, @Assisted("checkbox") String pCheckboxText);
 
   TagOverviewDialog createTagOverviewDialog(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
+
+  ComboBoxDialog<Object> createComboBoxDialog(String pMessage, List<Object> pOptions);
 }

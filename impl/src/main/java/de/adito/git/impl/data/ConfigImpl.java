@@ -6,6 +6,8 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -216,6 +218,24 @@ public class ConfigImpl implements IConfig
   public @Nullable String getRemoteUrl(@Nullable String pRemoteName)
   {
     return git.getRepository().getConfig().getString(SSH_SECTION_KEY, pRemoteName, REMOTE_URL_KEY);
+  }
+
+  @Override
+  public void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName)
+  {
+    logger.log(Level.INFO, () -> String.format("Git: establishing tracking relationsship between %s and remote branch %s on remote %s", pBranchname, pRemoteBranchname,
+                                               pRemoteName));
+    StoredConfig config = git.getRepository().getConfig();
+    config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, pBranchname, "remote", pRemoteName);
+    config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, pBranchname, "merge", pRemoteBranchname);
+    try
+    {
+      config.save();
+    }
+    catch (IOException pE)
+    {
+      logger.log(Level.SEVERE, pE, () -> "Error while saving the config");
+    }
   }
 
 }

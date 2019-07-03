@@ -6,11 +6,14 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EPushResult;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -52,34 +55,50 @@ class PushAction extends AbstractAction
   {
     progressFacade.executeInBackground("Pushing Commits", pHandle -> {
       pHandle.setDescription("Collecting Information");
-      Optional<List<ICommit>> commitList = repository.blockingFirst().map(pRepo -> {
-        try
-        {
-          return pRepo.getUnPushedCommits();
-        }
-        catch (AditoGitException pE)
-        {
-          throw new RuntimeException("Error while finding un-pushed commits", pE);
-        }
-      });
+      repository.blockingFirst().ifPresent(pRepo -> _preparePush(pHandle, pRepo));
+    });
+  }
+
+  private void _preparePush(@NotNull IProgressHandle pHandle, IRepository pRepo)
+  {
+    IRepositoryState repoState = pRepo.getRepositoryState().blockingFirst().orElse(null);
+    String remoteName = (repoState != null && repoState.getRemotes().size() == 1) ? repoState.getRemotes().get(0) : null;
+    if (repoState != null && repoState.getCurrentRemoteTrackedBranch() == null && repoState.getRemotes().size() > 1)
+    {
+      // need new ArrayList to convert to List<Object>
+      DialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
+      remoteName = (String) result.getInformation();
+    }
+    try
+    {
+      List<ICommit> commitList = pRepo.getUnPushedCommits();
       DialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
-                                                                            commitList.orElse(Collections.emptyList()));
+                                                                            commitList);
       boolean doCommit = dialogResult.isPressedOk();
       if (doCommit)
       {
         pHandle.setDescription("Pushing");
-        _doPush(dialogResult.getInformation());
+        _doPush(dialogResult.getInformation(), remoteName);
+        if (pRepo.getRepositoryState().blockingFirst().map(pRepoState -> pRepoState.getCurrentRemoteTrackedBranch() == null).orElse(false) && remoteName != null)
+        {
+
+          pRepo.getConfig().establishTrackingRelationship(repoState.getCurrentBranch().getSimpleName(), repoState.getCurrentBranch().getName(), remoteName);
+        }
         notifyUtil.notify("Push", "Push was successful", true);
       }
-    });
+    }
+    catch (AditoGitException pE)
+    {
+      throw new RuntimeException("Error while finding un-pushed commits", pE);
+    }
   }
 
-  private void _doPush(Boolean pIsPushTags) throws AditoGitException
+  private void _doPush(Boolean pIsPushTags, String pRemoteName) throws AditoGitException
   {
     Map<String, EPushResult> failedPushResults = repository
         .blockingFirst()
         .orElseThrow(() -> new RuntimeException("no valid repository found"))
-        .push(pIsPushTags);
+        .push(pIsPushTags, pRemoteName);
     if (!failedPushResults.isEmpty())
     {
       StringBuilder infoText = new StringBuilder();

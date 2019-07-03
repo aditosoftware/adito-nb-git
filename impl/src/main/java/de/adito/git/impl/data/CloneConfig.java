@@ -93,4 +93,10 @@ public class CloneConfig implements IConfig
     //not implemented
     return null;
   }
+
+  @Override
+  public void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName)
+  {
+    // no implemented
+  }
 }

@@ -247,4 +247,10 @@ class DialogProviderImpl implements IDialogProvider
         result.getSource().discard();
     }
   }
+
+  @Override
+  public DialogResult<ComboBoxDialog<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions)
+  {
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createComboBoxDialog(pMessage, pOptions), "");
+  }
 }

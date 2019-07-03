@@ -113,10 +113,12 @@ public interface IRepository
    * Pushes the changes made to HEAD onto the selected branch/remote
    *
    * @param pIsPushTags true if you want to push tags, false otherwise. Use false as default value
+   * @param pRemoteName A specific remote can be passed here if it is potentially unclear which remote to push to. Null if a remote tracking branch is configured or
+   *                    the remote is otherwise known
    * @return {@code true} if the operation was successful, {@code false} otherwise
    * @throws AditoGitException if an error occurs
    */
-  Map<String, EPushResult> push(boolean pIsPushTags) throws AditoGitException;
+  Map<String, EPushResult> push(boolean pIsPushTags, @Nullable String pRemoteName) throws AditoGitException;
 
   /**
    * Pulls the current contents of the tracked remote branch of the currently selected local branch

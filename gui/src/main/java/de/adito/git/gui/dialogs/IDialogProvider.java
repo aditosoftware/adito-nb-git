@@ -210,4 +210,13 @@ public interface IDialogProvider
   @NotNull
   DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NotNull Consumer<ICommit> pSelectecCommitCallback,
                                                                 @NotNull Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * Shows a dialog with a short message explaining the reason for the dialog to the user and a comboBox where the user may select one item
+   *
+   * @param pMessage Message to display to the user
+   * @param pOptions List of possible options to select from the comboBox
+   * @return DialogResult with information such as "has the user pressed OK?" and which item of the combobox the user selected
+   */
+  DialogResult<ComboBoxDialog<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions);
 }

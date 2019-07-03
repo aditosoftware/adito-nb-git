@@ -98,12 +98,16 @@ public interface IConfig
   void setSshKeyLocation(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl);
 
   /**
+   * save the passphrase for the given remote URL in the keyring
+   *
    * @param pPassphrase new passphrase for the ssh key, null means no passphrase required
    * @param pRemoteUrl  url of the remote, or null if not known
    */
   void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl);
 
   /**
+   * save the password for a remote URL in the keyring
+   *
    * @param pPassword new password for the user, null means no password is required
    * @param pRemoteUrl  url of the remote, or null if not known
    */
@@ -124,5 +128,15 @@ public interface IConfig
    * @return url stored in the config for the given remote, or null if no such remote exists/no url is stored
    */
   @Nullable String getRemoteUrl(@Nullable String pRemoteName);
+
+  /**
+   * estasblishes the tracking relationship between a local and a remote branch by writing the necessary information in the config
+   * the local branch must not have a tracked branch yet
+   *
+   * @param pBranchname       name of the local branch
+   * @param pRemoteBranchname name of the remote branch
+   * @param pRemoteName       name of the remote that the remote branch is on
+   */
+  void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName);
 
 }

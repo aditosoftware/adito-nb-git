@@ -38,6 +38,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
@@ -191,7 +192,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public Map<String, EPushResult> push(boolean pIsPushTags)
+  public Map<String, EPushResult> push(boolean pIsPushTags, @Nullable String pRemoteName)
   {
     logger.log(Level.INFO, "git push {0}", pIsPushTags ? "--tags" : "");
     Map<String, EPushResult> resultMap = new HashMap<>();
@@ -201,6 +202,8 @@ public class RepositoryImpl implements IRepository
       PushCommand push = git.push().setTransportConfigCallback(transportConfigCallback);
       if (pIsPushTags)
         push.setPushTags();
+      if (pRemoteName != null)
+        push.setRemote(pRemoteName);
       Iterable<PushResult> pushResults = push.call();
       for (PushResult pushResult : pushResults)
       {
