@@ -827,7 +827,10 @@ public class RepositoryImpl implements IRepository
       if (pCheckout)
       {
         logger.log(Level.INFO, () -> String.format(CHECKOUT_FORMATTED_STRING, pBranchName));
-        checkout(getBranch(pBranchName));
+        String fullBranchString = pBranchName;
+        if (!fullBranchString.startsWith("refs/heads"))
+          fullBranchString = Paths.get("refs", "heads", fullBranchString).toString().replace("\\", "/");
+        checkout(getBranch(fullBranchString));
       }
     }
     catch (GitAPIException | IOException e)
@@ -1156,7 +1159,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       LogCommand logCommand = git.log()
-          .add(git.getRepository().resolve(git.getRepository().getBranch()));
+          .add(git.getRepository().resolve(git.getRepository().getFullBranch()));
       String remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
       ObjectId remoteTrackingId = null;
       if (remoteTrackingBranch != null)
