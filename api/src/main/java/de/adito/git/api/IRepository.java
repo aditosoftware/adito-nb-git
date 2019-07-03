@@ -404,6 +404,10 @@ public interface IRepository
   void refreshStatus();
 
   /**
+   * retrieves the branch for the given name. If possible pass the full name of the branch, otherwise the name must and will be changed to /refs/heads/pBranchString
+   * by the method to make sure that an actual Branch is returned, instead of a Tag or some other reference with the same short name. This obviously means that
+   * if only the simple name for a branch is given, the local branch is returned
+   *
    * @param pBranchString String with the string of the targeted branch
    * @return the IBranch for the given identifier
    * @throws AditoGitException if an error occurs

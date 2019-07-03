@@ -44,6 +44,7 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static de.adito.git.impl.Util.getRelativePath;
@@ -1220,6 +1221,11 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
+      if ((!Pattern.matches("/refs/heads/.*", pBranchString) || Pattern.matches("refs/remotes/.*", pBranchString))
+          && (pBranchString.startsWith("/") || !pBranchString.contains("/")))
+      {
+        pBranchString = Paths.get("refs", "heads", pBranchString).toString().replace("\\", "/");
+      }
       return new BranchImpl(git.getRepository().getRefDatabase().getRef(pBranchString));
     }
     catch (IOException pE)
