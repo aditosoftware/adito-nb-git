@@ -78,7 +78,7 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
   {
     try
     {
-      service.invokePriority(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pList, comparator));
+      service.invokePriority(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pList, comparator, this::fireDataModelUpdated));
     }
     catch (InterruptedRuntimeException pE)
     {

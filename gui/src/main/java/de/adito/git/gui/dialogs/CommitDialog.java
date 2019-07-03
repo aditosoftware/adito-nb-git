@@ -15,6 +15,7 @@ import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.LinedDecorator;
+import de.adito.git.gui.tree.models.ObservingTreeModel;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
@@ -136,16 +137,37 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
             .map(IFileChangeType::getFile)
             .collect(Collectors.toList()))
         .orElse(List.of());
-    statusTreeModel.invokeAfterComputations(() -> _setSelected(preSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(),
-                                                               checkBoxTree.getCheckBoxTreeSelectionModel()));
-    statusTreeModel.invokeAfterComputations(() -> {
-      if (statusTreeModel.getRoot() != null)
-        checkBoxTree.expandPath(new TreePath(statusTreeModel.getRoot()));
-    });
+    _markPreselectedAndExpand(statusTreeModel, preSelectedFiles);
     JScrollPane scrollPane = new JScrollPane(checkBoxTree);
     tableSearchView.add(scrollPane, BorderLayout.CENTER);
     pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(checkBoxTree));
     _attachPopupMenu(checkBoxTree);
+  }
+
+  /**
+   * makes sure the preselected files are selected and expands the root node
+   *
+   * @param pStatusTreeModel  StatusTreeModel that should have the specified files selected and it's root node expanded
+   * @param pPreSelectedFiles list of files that should be preselected in the tree
+   */
+  private void _markPreselectedAndExpand(StatusTreeModel pStatusTreeModel, List<File> pPreSelectedFiles)
+  {
+    // use the IDataModelUpdateListener to wait for the first time that the model is fully updated
+    // otherwise the root node might still be null or some of the files to selected might not have their nodes registered yet
+    pStatusTreeModel.registerDataModelUpdatedListener(new ObservingTreeModel.IDataModelUpdateListener()
+    {
+      @Override
+      public void modelUpdated()
+      {
+        pStatusTreeModel.invokeAfterComputations(() -> _setSelected(pPreSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(),
+                                                                    checkBoxTree.getCheckBoxTreeSelectionModel()));
+        pStatusTreeModel.invokeAfterComputations(() -> {
+          if (pStatusTreeModel.getRoot() != null)
+            checkBoxTree.expandPath(new TreePath(pStatusTreeModel.getRoot()));
+        });
+        pStatusTreeModel.removeDataModelUpdateListener(this);
+      }
+    });
   }
 
   /**

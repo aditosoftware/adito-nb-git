@@ -21,6 +21,7 @@ import java.util.*;
 public class ObservingTreeModel extends DefaultTreeModel
 {
 
+  private final List<IDataModelUpdateListener> updateListeners = new ArrayList<>();
   File projectDirectory;
   PriorityDroppingExecutor service = new PriorityDroppingExecutor();
 
@@ -38,6 +39,38 @@ public class ObservingTreeModel extends DefaultTreeModel
   public void invokeAfterComputations(@NotNull Runnable pRunnable)
   {
     service.invokeAfterComputations(pRunnable);
+  }
+
+  /**
+   * registers a listener that is notified each time the model is fully updated (i.e. the update method completed a full run-through and was not interrupted. This means
+   * the current state of the tree can be considered "valid"/up-to-date for the immideate future)
+   *
+   * @param pListener listener to be notified
+   */
+  public void registerDataModelUpdatedListener(IDataModelUpdateListener pListener)
+  {
+    updateListeners.add(pListener);
+  }
+
+  /**
+   * removes a listener such that it gets no more updates
+   *
+   * @param pListener listener to be removed
+   */
+  public void removeDataModelUpdateListener(IDataModelUpdateListener pListener)
+  {
+    updateListeners.remove(pListener);
+  }
+
+  /**
+   * notifies the listeners that the model did a full update cycle/the update function passed without it being aborted due to new data coming in
+   */
+  void fireDataModelUpdated()
+  {
+    for (int index = updateListeners.size() - 1; index >= 0; index--)
+    {
+      updateListeners.get(index).modelUpdated();
+    }
   }
 
   /**
@@ -190,6 +223,15 @@ public class ObservingTreeModel extends DefaultTreeModel
         return nodeInfo.getNodeDescription();
       return "";
     }, Collator.getInstance());
+  }
+
+  /**
+   * Defines an interface for objects interested in knowing when the dataModel was completely updated (completely because if the data changes during an update,
+   * that update is aborted and a new update started)
+   */
+  public interface IDataModelUpdateListener extends EventListener
+  {
+    void modelUpdated();
   }
 
 }
