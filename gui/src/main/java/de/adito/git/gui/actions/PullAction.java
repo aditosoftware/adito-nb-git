@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.api.data.IRebaseResult;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.exception.MissingTrackedBranchException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
@@ -115,6 +116,10 @@ class PullAction extends AbstractAction
           doAbort = true;
         }
       }
+    }
+    catch (MissingTrackedBranchException pE)
+    {
+      notifyUtil.notify("Pull failed", pE.getMessage(), false);
     }
     catch (Exception e)
     {

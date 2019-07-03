@@ -4,9 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.exception.AmbiguousStashCommitsException;
-import de.adito.git.api.exception.TargetBranchNotFoundException;
+import de.adito.git.api.exception.*;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
@@ -295,7 +293,7 @@ public class RepositoryImpl implements IRepository
     }
     catch (RefNotAdvertisedException pException)
     {
-      throw new AditoGitException("The current Branch does not have a corresponding remote branch, " +
+      throw new MissingTrackedBranchException("The current Branch does not have a corresponding remote branch, " +
                                       "please switch to a branch that also exists in the remote repository", pException);
     }
     catch (IOException | GitAPIException pE)
