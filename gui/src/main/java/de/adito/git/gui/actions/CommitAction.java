@@ -88,7 +88,7 @@ class CommitAction extends AbstractTableAction
 
   private boolean _coverAutoCRLF(IRepository pRepository)
   {
-    if (SystemUtils.IS_OS_WINDOWS)//&& pRepository.getConfig().getAutoCRLF() == IConfig.AUTO_CRLF.FALSE)
+    if (SystemUtils.IS_OS_WINDOWS && pRepository.getConfig().getAutoCRLF() == IConfig.AUTO_CRLF.FALSE)
     {
       DialogResult<?, Boolean> dialogResult = dialogProvider
           .showCheckboxPrompt("Your AUTO_CRLF setting is set to FALSE, it is however advised to have it set to TRUE or at least INPUT in order to avoid " +
