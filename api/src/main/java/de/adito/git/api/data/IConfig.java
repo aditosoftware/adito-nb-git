@@ -27,7 +27,17 @@ public interface IConfig
   {
     TRUE,
     FALSE,
-    INPUT
+    INPUT;
+
+    @Override
+    public String toString()
+    {
+      if (this == TRUE)
+        return "true";
+      else if (this == FALSE)
+        return "false";
+      else return "input";
+    }
   }
 
   /**
@@ -79,6 +89,8 @@ public interface IConfig
    */
   AUTO_CRLF getAutoCRLF();
 
+  void setAutoCRLF(AUTO_CRLF pAUTOCrlf);
+
   /**
    * @param pUserName new name for the user
    */
@@ -108,8 +120,8 @@ public interface IConfig
   /**
    * save the password for a remote URL in the keyring
    *
-   * @param pPassword new password for the user, null means no password is required
-   * @param pRemoteUrl  url of the remote, or null if not known
+   * @param pPassword  new password for the user, null means no password is required
+   * @param pRemoteUrl url of the remote, or null if not known
    */
   void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl);
 

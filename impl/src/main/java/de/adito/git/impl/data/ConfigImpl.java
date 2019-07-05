@@ -3,6 +3,7 @@ package de.adito.git.impl.data;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
@@ -26,12 +27,14 @@ public class ConfigImpl implements IConfig
 
   private final IKeyStore keyStore;
   private final Logger logger = Logger.getLogger(ConfigImpl.class.getName());
+  private final INotifyUtil notifyUtil;
   private final Git git;
 
   @Inject
-  public ConfigImpl(IKeyStore pKeyStore, @Assisted Git pGit)
+  public ConfigImpl(IKeyStore pKeyStore, INotifyUtil pNotifyUtil, @Assisted Git pGit)
   {
     keyStore = pKeyStore;
+    notifyUtil = pNotifyUtil;
     git = pGit;
   }
 
@@ -99,6 +102,23 @@ public class ConfigImpl implements IConfig
     else if ("false".equals(autoCRLFSetting))
       return AUTO_CRLF.FALSE;
     else return AUTO_CRLF.INPUT;
+  }
+
+  @Override
+  public void setAutoCRLF(AUTO_CRLF pAUTOCrlf)
+  {
+    logger.log(Level.INFO, () -> String.format("git: setting AUTO_CRLF setting to %s", pAUTOCrlf.toString()));
+    StoredConfig config = git.getRepository().getConfig();
+    config.setString(AUTO_CRLF_SECTION_KEY, null, AUTO_CRLF_KEY, pAUTOCrlf.toString());
+    try
+    {
+      config.save();
+    }
+    catch (IOException pE)
+    {
+      notifyUtil.notify("Config", "Error while trying to save the config, see IDE log for further details", false);
+      logger.log(Level.SEVERE, pE, () -> "Error while saving the config");
+    }
   }
 
   @Override

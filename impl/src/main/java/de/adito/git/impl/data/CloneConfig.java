@@ -51,6 +51,12 @@ public class CloneConfig implements IConfig
   }
 
   @Override
+  public void setAutoCRLF(AUTO_CRLF pAUTOCrlf)
+  {
+    // not implemented
+  }
+
+  @Override
   public void setUserName(@NotNull String pUserName)
   {
     //not implemented
