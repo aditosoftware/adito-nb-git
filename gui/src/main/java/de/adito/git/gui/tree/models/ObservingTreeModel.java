@@ -131,7 +131,7 @@ public class ObservingTreeModel extends DefaultTreeModel
       if (Thread.currentThread().isInterrupted())
         throw new InterruptedRuntimeException();
       File file = changeType.getFile();
-      while (!file.equals(projectDirectory.getParentFile()))
+      while (file != null && !file.equals(projectDirectory.getParentFile()))
       {
         File parentFile = file.getParentFile();
         if (groups.containsKey(parentFile))
