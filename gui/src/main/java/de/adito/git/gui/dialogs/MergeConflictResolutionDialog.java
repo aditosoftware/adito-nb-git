@@ -16,6 +16,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.util.List;
 
 import static de.adito.git.gui.Constants.ACCEPT_CHANGE_THEIRS_ICON;
 import static de.adito.git.gui.Constants.ACCEPT_CHANGE_YOURS_ICON;
@@ -77,6 +78,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
 
     // Our Actions
     toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.YOURS)));
+    toolbar.add(new JButton(new _AcceptNonConflictingChangesAction()));
     toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.THEIRS)));
 
     return toolbar;
@@ -101,7 +103,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
   {
     private final IMergeDiff.CONFLICT_SIDE conflictSide;
 
-    public _AcceptAllActionImpl(@NotNull IMergeDiff.CONFLICT_SIDE pConflictSide)
+    _AcceptAllActionImpl(@NotNull IMergeDiff.CONFLICT_SIDE pConflictSide)
     {
       super("", new ImageIcon(_AcceptAllActionImpl.class.getResource(pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ?
                                                                          Constants.ACCEPT_ALL_LEFT : Constants.ACCEPT_ALL_RIGHT)));
@@ -119,6 +121,77 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
           mergeDiff.acceptChunk(changeChunk, conflictSide);
         }
       }
+    }
+  }
+
+  /**
+   * Action that accepts all non-conflicting changes of both sides
+   */
+  private class _AcceptNonConflictingChangesAction extends AbstractAction
+  {
+
+    _AcceptNonConflictingChangesAction()
+    {
+      super("", new ImageIcon(_AcceptNonConflictingChangesAction.class.getResource(Constants.ACCEPT_ALL_NON_CONFLICTING)));
+      putValue(SHORT_DESCRIPTION, "accept remaining non-conflicting changes");
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent pEvent)
+    {
+      _acceptSide(IMergeDiff.CONFLICT_SIDE.YOURS);
+      _acceptSide(IMergeDiff.CONFLICT_SIDE.THEIRS);
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return _containsNonConflicting(IMergeDiff.CONFLICT_SIDE.YOURS) || _containsNonConflicting(IMergeDiff.CONFLICT_SIDE.THEIRS);
+    }
+
+    /**
+     * accepts any as-of-yet unaccepted non-conflicting changes on the given conflict side
+     *
+     * @param pConflictSide CONFLICT_SIDE
+     */
+    private void _acceptSide(IMergeDiff.CONFLICT_SIDE pConflictSide)
+    {
+      IMergeDiff.CONFLICT_SIDE theirSide = pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ? IMergeDiff.CONFLICT_SIDE.THEIRS : IMergeDiff.CONFLICT_SIDE.YOURS;
+      List<IFileChangeChunk> theirChanges = mergeDiff.getDiff(theirSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue();
+      for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+      {
+        boolean isConflicting = IMergeDiff.affectedChunkIndices(changeChunk, theirChanges).stream()
+            .map(theirChanges::get)
+            .anyMatch(pChange -> pChange.getChangeType() != EChangeType.SAME);
+        if (changeChunk.getChangeType() != EChangeType.SAME && !isConflicting)
+        {
+          mergeDiff.acceptChunk(changeChunk, pConflictSide);
+        }
+      }
+    }
+
+    /**
+     * checks if there are any as-of-yet unaccepted non-conflicting changes on the given conflict side
+     *
+     * @param pConflictSide CONFLICT_SIDE to check
+     * @return true if there are any non-conflicting changes that are not accepted, false otherwise
+     */
+    private boolean _containsNonConflicting(IMergeDiff.CONFLICT_SIDE pConflictSide)
+    {
+      IMergeDiff.CONFLICT_SIDE theirSide = pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ? IMergeDiff.CONFLICT_SIDE.THEIRS : IMergeDiff.CONFLICT_SIDE.YOURS;
+      List<IFileChangeChunk> theirChanges = mergeDiff.getDiff(theirSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue();
+      for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+      {
+        boolean isConflicting = IMergeDiff.affectedChunkIndices(changeChunk, theirChanges).stream()
+            .map(theirChanges::get)
+            .anyMatch(pChange -> pChange.getChangeType() != EChangeType.SAME);
+        if (changeChunk.getChangeType() != EChangeType.SAME && !isConflicting)
+        {
+          // one changeChunk that can be accepted and that is not conflicting exists -> Action is enabled
+          return true;
+        }
+      }
+      return false;
     }
   }
 }
