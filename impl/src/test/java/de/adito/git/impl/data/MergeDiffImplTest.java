@@ -2,6 +2,7 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.IMergeDiff;
 import org.eclipse.jgit.diff.Edit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -30,7 +31,7 @@ class MergeDiffImplTest
     final int[] aEnd = {4, 4, 8, 12};
     List<IFileChangeChunk> fileChangeChunkList = createFileChangeChunkList(aStart, aEnd);
     IFileChangeChunk toInsert = new FileChangeChunkImpl(new Edit(4, 4, 4, 8), "", "");
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(toInsert, fileChangeChunkList);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(toInsert, fileChangeChunkList);
     Assertions.assertEquals(1, affectedIndizes.size());
     Assertions.assertEquals(1, (int) affectedIndizes.get(0));
   }
@@ -43,7 +44,7 @@ class MergeDiffImplTest
   {
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(4, 9, 4, 11), "", "");
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     Assertions.assertEquals(3, affectedIndizes.size());
     Assertions.assertTrue(affectedIndizes.containsAll(Arrays.asList(0, 1, 2)));
   }
@@ -56,7 +57,7 @@ class MergeDiffImplTest
   {
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(5, 7, 4, 12), "", "");
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     Assertions.assertEquals(1, affectedIndizes.size());
     Assertions.assertTrue(affectedIndizes.contains(1));
   }
@@ -69,7 +70,7 @@ class MergeDiffImplTest
   {
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(5, 5, 5, 6), "", "");
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     Assertions.assertEquals(1, affectedIndizes.size());
     Assertions.assertTrue(affectedIndizes.contains(1));
   }
@@ -82,7 +83,7 @@ class MergeDiffImplTest
   {
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(8, 10, 4, 11), "", "");
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     Assertions.assertEquals(1, affectedIndizes.size());
     Assertions.assertTrue(affectedIndizes.contains(2));
   }
@@ -95,7 +96,7 @@ class MergeDiffImplTest
   {
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(5, 6, 4, 11), "", "");
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     Assertions.assertEquals(1, affectedIndizes.size());
     Assertions.assertTrue(affectedIndizes.contains(1));
   }
@@ -108,7 +109,7 @@ class MergeDiffImplTest
   {
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(8, 10, 4, 11), "", "");
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     Assertions.assertEquals(1, affectedIndizes.size());
     Assertions.assertTrue(affectedIndizes.contains(2));
   }
@@ -177,7 +178,7 @@ class MergeDiffImplTest
     StringBuilder changedLines = new StringBuilder();
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds, aLines);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(4, 11, 4, 12), linesBeforeChange, linesAfterChange);
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     for (Integer num : affectedIndizes)
     {
       changeChunks.set(num, MergeDiffImpl.applyChange(changeChunk, changeChunks.get(num)));
@@ -209,7 +210,7 @@ class MergeDiffImplTest
     StringBuilder changedLines = new StringBuilder();
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds, aLines);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(4, 11, 4, 9), linesBeforeChange, linesAfterChange);
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     for (Integer num : affectedIndizes)
     {
       changeChunks.set(num, MergeDiffImpl.applyChange(changeChunk, changeChunks.get(num)));
@@ -242,7 +243,7 @@ class MergeDiffImplTest
     StringBuilder changedLines = new StringBuilder();
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds, aLines);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(7, 11, 4, 9), linesBeforeChange, linesAfterChange);
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     for (Integer num : affectedIndizes)
     {
       changeChunks.set(num, MergeDiffImpl.applyChange(changeChunk, changeChunks.get(num)));
@@ -274,7 +275,7 @@ class MergeDiffImplTest
     StringBuilder changedLines = new StringBuilder();
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds, aLines);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(4, 5, 4, 5), linesBeforeChange, linesAfterChange);
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     for (Integer num : affectedIndizes)
     {
       changeChunks.set(num, MergeDiffImpl.applyChange(changeChunk, changeChunks.get(num)));
@@ -306,7 +307,7 @@ class MergeDiffImplTest
     StringBuilder changedLines = new StringBuilder();
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds, aLines);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(10, 10, 4, 9), linesBeforeChange, linesAfterChange);
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     for (Integer num : affectedIndizes)
     {
       changeChunks.set(num, MergeDiffImpl.applyChange(changeChunk, changeChunks.get(num)));
@@ -336,7 +337,7 @@ class MergeDiffImplTest
     StringBuilder changedLines = new StringBuilder();
     List<IFileChangeChunk> changeChunks = createFileChangeChunkList(aStarts, aEnds, aLines);
     IFileChangeChunk changeChunk = new FileChangeChunkImpl(new Edit(4, 11, 4, 4), linesBeforeChange, linesAfterChange);
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(changeChunk, changeChunks);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(changeChunk, changeChunks);
     for (Integer num : affectedIndizes)
     {
       changeChunks.set(num, MergeDiffImpl.applyChange(changeChunk, changeChunks.get(num)));

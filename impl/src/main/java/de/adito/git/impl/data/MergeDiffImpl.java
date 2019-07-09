@@ -227,7 +227,7 @@ public class MergeDiffImpl implements IMergeDiff
    */
   private static IEditorChange _insertChangeChunk(@NotNull IFileChangeChunk pToInsert, @NotNull List<IFileChangeChunk> pFileChangeChunkList)
   {
-    List<Integer> affectedIndizes = MergeDiffImpl.affectedChunkIndices(pToInsert, pFileChangeChunkList);
+    List<Integer> affectedIndizes = IMergeDiff.affectedChunkIndices(pToInsert, pFileChangeChunkList);
     int startOffset = FileChangesImpl.getOffsetForChunk(affectedIndizes.get(0), pFileChangeChunkList, EChangeSide.OLD);
     int numCharsToDelete = 0;
     for (Integer num : affectedIndizes)
@@ -361,44 +361,6 @@ public class MergeDiffImpl implements IMergeDiff
                                    pToChange.getChangeType());
   }
 
-  /**
-   * checks which IFileChangeChunks in the list are affected by the IFileChangeChunk that gets inserted
-   *
-   * @param pToInsert            the IFileChangeChunk to apply to the list of IFileChangeChunks
-   * @param pFileChangeChunkList List of IFileChangeChunks on which to apply toInsert
-   * @return List of Integers with the indices of the affected IFileChangeChunks in the list
-   */
-  @NotNull
-  static List<Integer> affectedChunkIndices(@NotNull IFileChangeChunk pToInsert, @NotNull List<IFileChangeChunk> pFileChangeChunkList)
-  {
-    List<Integer> affectedChunks = new ArrayList<>();
-    int intersectionIndex = 0;
-    // Side A ist assumed to be the text from the fork-point
-    while (intersectionIndex < pFileChangeChunkList.size() - 1
-        && pFileChangeChunkList.get(intersectionIndex).getEnd(EChangeSide.OLD) <= pToInsert.getStart(EChangeSide.OLD))
-    {
-      intersectionIndex++;
-      if (pFileChangeChunkList.get(intersectionIndex).getEnd(EChangeSide.OLD) == pToInsert.getStart(EChangeSide.OLD)
-          && pToInsert.getStart(EChangeSide.OLD) == pToInsert.getEnd(EChangeSide.OLD))
-      {
-        break;
-      }
-    }
-    if (pToInsert.getChangeType() == EChangeType.ADD
-        && pToInsert.getStart(EChangeSide.OLD) == pFileChangeChunkList.get(intersectionIndex).getStart(EChangeSide.OLD))
-    {
-      affectedChunks.add(intersectionIndex);
-    }
-    // all chunks before the affected area are now excluded
-    while (intersectionIndex < pFileChangeChunkList.size()
-        && pFileChangeChunkList.get(intersectionIndex).getStart(EChangeSide.OLD) < pToInsert.getEnd(EChangeSide.OLD))
-    {
-      if (!affectedChunks.contains(intersectionIndex))
-        affectedChunks.add(intersectionIndex);
-      intersectionIndex++;
-    }
-    return affectedChunks;
-  }
 
   /**
    * Adjust the start/end indices of the IFileChangeChunks in the list, starting from the given index
