@@ -17,6 +17,8 @@ import java.util.*;
 public interface IRepository
 {
 
+  String VOID_PATH = "/dev/null";
+
   /**
    * Maps all the different status that an repository can have
    */

@@ -59,7 +59,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
             .filter(pMergeDiff -> !pOnlyConflicting || pStatus
                 .map(IFileStatus::getConflicting)
                 .orElse(Collections.emptySet())
-                .contains(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath()))
+                .stream().anyMatch(pFilePath -> IFileDiff._isSameFile(pFilePath, pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS))))
             .collect(Collectors.toList()));
     selectedMergeDiffObservable = Observable
         .combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {

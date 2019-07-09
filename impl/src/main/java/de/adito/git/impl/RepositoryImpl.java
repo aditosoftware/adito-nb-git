@@ -53,7 +53,6 @@ import static de.adito.git.impl.Util.getRelativePath;
 public class RepositoryImpl implements IRepository
 {
 
-  public static final String VOID_PATH = "/dev/null";
   private static final String CHECKOUT_FORMATTED_STRING = "git checkout %s";
   private final ISshProvider sshProvider;
   private final IDataFactory dataFactory;
@@ -294,7 +293,7 @@ public class RepositoryImpl implements IRepository
     catch (RefNotAdvertisedException pException)
     {
       throw new MissingTrackedBranchException("The current Branch does not have a corresponding remote branch, " +
-                                      "please switch to a branch that also exists in the remote repository", pException);
+                                                  "please switch to a branch that also exists in the remote repository", pException);
     }
     catch (IOException | GitAPIException pE)
     {
@@ -976,12 +975,17 @@ public class RepositoryImpl implements IRepository
         String conflictingBranchId = RepositoryImplHelper.getConflictingBranch(aConflictingFile);
         if (conflictingBranchId == null)
         {
-          if (git.getRepository().readCherryPickHead() == null)
+          if (git.getRepository().readCherryPickHead() != null)
           {
+            conflictingBranchId = ObjectId.toString(git.getRepository().readCherryPickHead());
+          }
+          else if (new File(git.getRepository().getDirectory(), "rebase-merge/head").exists())
+          {
+            conflictingBranchId = Files.readAllLines(new File(git.getRepository().getDirectory(), "rebase-merge/head").toPath()).get(0);
+          }
+          else
             throw new TargetBranchNotFoundException("Cannot determine target branch of conflict",
                                                     getCommit(ObjectId.toString(git.getRepository().readOrigHead())));
-          }
-          conflictingBranchId = ObjectId.toString(git.getRepository().readCherryPickHead());
         }
         if (conflictingBranchId.contains("Stashed changes"))
         {

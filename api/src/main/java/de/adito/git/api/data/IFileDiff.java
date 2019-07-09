@@ -1,5 +1,6 @@
 package de.adito.git.api.data;
 
+import de.adito.git.api.IRepository;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,5 +72,37 @@ public interface IFileDiff
    * @return {@link IFileChanges} that contains a list detailing the changes in each changed line
    */
   IFileChanges getFileChanges();
+
+  /**
+   * checks if the IFileDiff matches the filePath, works with renames
+   *
+   * @param pFilePath given path to a file
+   * @param pFileDiff IFileDiff
+   * @return true if the new or the old path of the IFileDiff match the given path, false otherwise
+   */
+  static boolean _isSameFile(@NotNull String pFilePath, @NotNull IFileDiff pFileDiff)
+  {
+    return pFilePath.equals(pFileDiff.getFilePath(EChangeSide.NEW)) || pFilePath.equals(pFileDiff.getFilePath(EChangeSide.OLD));
+  }
+
+  /**
+   * checks if the IFileDiffs reference the same file, works with renames
+   *
+   * @param pFileDiff      first IFileDiff
+   * @param pOtherFileDiff second IFileDiff
+   * @return true if any combination of the paths of the IFileDiffs are the same, except if the matching path is the VOID_PATH. false in all other cases
+   */
+  static boolean _isSameFile(@NotNull IFileDiff pFileDiff, @NotNull IFileDiff pOtherFileDiff)
+  {
+    if (!IRepository.VOID_PATH.equals(pFileDiff.getFilePath(EChangeSide.NEW))
+        && (pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.NEW)))
+        || pFileDiff.getFilePath(EChangeSide.NEW).equals(pFileDiff.getFilePath(EChangeSide.OLD)))
+    {
+      return true;
+    }
+    else return !IRepository.VOID_PATH.equals(pFileDiff.getFilePath(EChangeSide.OLD))
+        && (pFileDiff.getFilePath(EChangeSide.OLD).equals(pOtherFileDiff.getFilePath(EChangeSide.OLD))
+        || pFileDiff.getFilePath(EChangeSide.OLD).equals(pOtherFileDiff.getFilePath(EChangeSide.NEW)));
+  }
 
 }

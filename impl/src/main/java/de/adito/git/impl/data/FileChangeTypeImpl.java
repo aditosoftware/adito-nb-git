@@ -1,9 +1,9 @@
 package de.adito.git.impl.data;
 
+import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.impl.RepositoryImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -36,7 +36,7 @@ public class FileChangeTypeImpl implements IFileChangeType
   @Override
   public File getFile()
   {
-    if (file.getPath().equals(RepositoryImpl.VOID_PATH))
+    if (file.getPath().equals(IRepository.VOID_PATH))
       return fileBefore;
     else
       return file;
