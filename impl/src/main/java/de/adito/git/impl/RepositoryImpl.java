@@ -190,7 +190,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public Map<String, EPushResult> push(boolean pIsPushTags, @Nullable String pRemoteName)
+  public Map<String, EPushResult> push(boolean pIsPushTags, @Nullable String pRemoteName) throws GitTransportFailureException
   {
     logger.log(Level.INFO, "git push {0}", pIsPushTags ? "--tags" : "");
     Map<String, EPushResult> resultMap = new HashMap<>();
@@ -213,6 +213,10 @@ public class RepositoryImpl implements IRepository
           }
         }
       }
+    }
+    catch (TransportException pE)
+    {
+      throw new GitTransportFailureException(pE);
     }
     catch (JGitInternalException | GitAPIException e)
     {

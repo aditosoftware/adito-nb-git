@@ -8,6 +8,7 @@ import de.adito.git.api.data.EPushResult;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.exception.GitTransportFailureException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.dialogs.DialogResult;
@@ -18,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * pushAction to push all commits to the actual chosen branch.
@@ -27,6 +30,9 @@ import java.util.*;
  */
 class PushAction extends AbstractAction
 {
+
+  private static final String FAILURE_HEADER = "Push failed";
+  private final Logger logger = Logger.getLogger(PushAction.class.getName());
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private Observable<Optional<IRepository>> repository;
@@ -86,6 +92,19 @@ class PushAction extends AbstractAction
         }
         notifyUtil.notify("Push", "Push was successful", true);
       }
+    }
+    catch (GitTransportFailureException pE)
+    {
+      if (pE.getCause().getMessage().endsWith("push not permitted"))
+      {
+        notifyUtil.notify(FAILURE_HEADER, "You have insufficient rights for pushing to the remote. Check the IDE log for further details", false);
+      }
+      else
+      {
+        notifyUtil.notify(FAILURE_HEADER, "An error occurred during transport, check your credentials and rights on the remote. For further details see the IDE log",
+                          false);
+      }
+      logger.log(Level.SEVERE, pE, () -> "failed to push to remote");
     }
     catch (AditoGitException pE)
     {
