@@ -27,7 +27,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
   private CommitHistoryTreeListItem latestHistoryItem = null;
   private boolean encounteredLast = false;
 
-  public CommitHistoryItemsIteratorImpl(IDAGFilterIterator<ICommit> pCommitFilterIter, List<IBranch> allBranches, List<ITag> allTags)
+  public CommitHistoryItemsIteratorImpl(@NotNull IDAGFilterIterator<ICommit> pCommitFilterIter, @NotNull List<IBranch> allBranches, @NotNull List<ITag> allTags)
   {
     commitFilterIter = pCommitFilterIter;
     this.allBranches = allBranches;
@@ -44,7 +44,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     }
     if (currentCommit != null && commitFilterIter.hasNext())
       return true;
-    else if (!encounteredLast)
+    else if (currentCommit != null && !encounteredLast)
     {
       encounteredLast = true;
       return true;
@@ -52,6 +52,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     return false;
   }
 
+  @NotNull
   @Override
   public CommitHistoryTreeListItem next()
   {
@@ -71,8 +72,9 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     return commitHistoryTreeListItem;
   }
 
+  @NotNull
   @Override
-  public @NotNull List<CommitHistoryTreeListItem> tryReadEntries(int pNumEntries)
+  public List<CommitHistoryTreeListItem> tryReadEntries(int pNumEntries)
   {
     List<CommitHistoryTreeListItem> entries = new ArrayList<>(pNumEntries);
     for (int index = 0; index < pNumEntries && hasNext(); index++)
@@ -82,6 +84,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     return entries;
   }
 
+  @NotNull
   private CommitHistoryTreeListItem _createAncestryLines(ICommit pBufferdCommit)
   {
     // signifies if any of the already processed AncestryLines had the current commit as parent/next commit
@@ -139,7 +142,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
       advancedLine = _getBranchHeads(newLines, parentLines);
     }
     // check for stillborns
-    if (parentLines.size() > 1)
+    if (advancedLine != null && parentLines.size() > 1)
     {
       _checkForStillborn(pBufferdCommit, newLines, parentLines, advancedLine);
     }
@@ -157,7 +160,8 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pParentLines list of lines that start at the current commit
    * @return the advanced line
    */
-  private AncestryLine _getBranchHeads(List<AncestryLine> pNewLines, List<AncestryLine> pParentLines)
+  @NotNull
+  private AncestryLine _getBranchHeads(@NotNull List<AncestryLine> pNewLines, @NotNull List<AncestryLine> pParentLines)
   {
     if (currentCommit.getParents().isEmpty())
     {
@@ -183,7 +187,8 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pParentLines   List of AncestryLines that "spawned" from the knot of the current commit
    * @param pAdvancedLine  the AncestryLine that lead to the knot of the current commit
    */
-  private void _checkForStillborn(ICommit pBufferdCommit, List<AncestryLine> pNewLines, List<AncestryLine> pParentLines, AncestryLine pAdvancedLine)
+  private void _checkForStillborn(@NotNull ICommit pBufferdCommit, @NotNull List<AncestryLine> pNewLines, @NotNull List<AncestryLine> pParentLines,
+                                  @NotNull AncestryLine pAdvancedLine)
   {
     // the first parentLine continues the AncestryLine and is therefore by default not stillborn -> start at index 1
     for (int parentLIndex = 1; parentLIndex < pParentLines.size(); parentLIndex++)
@@ -212,7 +217,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pNewLines     the current lines, in case the advanced line is not in the ancestryLines of the latestHistoryItem (aka a branchhead with > 1 parents)
    * @return index at which the line for the stillborn intersects the bootom of the table cell
    */
-  private double _getStillbornMeetingOffset(int pIndex, AncestryLine pAdvancedLine, List<AncestryLine> pNewLines)
+  private double _getStillbornMeetingOffset(int pIndex, @NotNull AncestryLine pAdvancedLine, @NotNull List<AncestryLine> pNewLines)
   {
     List<AncestryLine> linesToAnalyze;
     if (latestHistoryItem.getAncestryLines().indexOf(pAdvancedLine) >= 0)
@@ -230,7 +235,8 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pParentLineColor Color that the AncestryLine leading to the current commit had
    * @return AncestryLines that spawn from the current commit
    */
-  private List<AncestryLine> _getParentLines(Color pParentLineColor)
+  @NotNull
+  private List<AncestryLine> _getParentLines(@NotNull Color pParentLineColor)
   {
     ArrayList<AncestryLine> parentLines = new ArrayList<>();
     if (!currentCommit.getParents().isEmpty())
