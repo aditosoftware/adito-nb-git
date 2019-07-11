@@ -2,31 +2,32 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.ColorPicker;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IQuickSearchProvider;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.FileStatusCellRenderer;
 import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
-import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTable;
-import de.adito.git.gui.rxjava.ObservableListSelectionModel;
-import de.adito.git.gui.tablemodels.DiffTableModel;
-import de.adito.git.gui.tablemodels.StatusTableModel;
+import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTree;
+import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.tree.models.ObservingTreeModel;
+import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,14 +44,17 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private static final Dimension PANEL_PREF_SIZE = new Dimension(1600, 900);
   private static final Dimension TABLE_MIN_SIZE = new Dimension(350, 600);
   private static final Dimension TABLE_PREF_SIZE = new Dimension(150, 900);
-  private final JTable fileListTable;
-  private final ObservableListSelectionModel observableListSelectionModel;
+  private final SearchableTree fileTree;
+  private final ObservableTreeSelectionModel observableTreeSelectionModel;
   private final IEditorKitProvider editorKitProvider;
   private final IIconLoader iconLoader;
+  private final IFileSystemUtil fileSystemUtil;
+  private final IActionProvider actionProvider;
+  private final File projectDirectory;
   private final boolean acceptChange;
   private final boolean showFileTable;
   private final JTextPane notificationArea = new JTextPane();
-  private final JPanel seachPanel = new JPanel(new BorderLayout());
+  private final JPanel searchPanel = new JPanel(new BorderLayout());
   private DiffPanel diffPanel;
   private Disposable disposable;
   private List<IFileDiff> diffs;
@@ -62,40 +66,54 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
                     @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTable") boolean pShowFileTable)
   {
     iconLoader = pIconLoader;
+    fileSystemUtil = pFileSystemUtil;
+    actionProvider = pActionProvider;
+    projectDirectory = pProjectDirectory;
     acceptChange = pAcceptChange;
     showFileTable = pShowFileTable;
     diffs = pDiffs;
-    fileListTable = new SearchableTable(new DiffTableModel(diffs), seachPanel);
-    observableListSelectionModel = new ObservableListSelectionModel(fileListTable.getSelectionModel());
-    fileListTable.setSelectionModel(observableListSelectionModel);
-    pQuickSearchProvider.attach(seachPanel, BorderLayout.SOUTH, new QuickSearchCallbackImpl(fileListTable, List.of(0, 1)));
+    List<IFileChangeType> pList = new ArrayList<>(diffs);
+    fileTree = new SearchableTree();
+    StatusTreeModel statusTreeModel = new StatusTreeModel(Observable.just(pList), pProjectDirectory);
+    fileTree.setModel(statusTreeModel);
+    statusTreeModel.registerDataModelUpdatedListener(new ObservingTreeModel.IDataModelUpdateListener()
+    {
+      @Override
+      public void modelUpdated()
+      {
+        // display the first entry as default
+        if (!diffs.isEmpty())
+          actionProvider.getExpandTreeAction(fileTree).actionPerformed(null);
+        _setSelectedFile(pSelectedFile);
+        statusTreeModel.removeDataModelUpdateListener(this);
+      }
+    });
+    observableTreeSelectionModel = new ObservableTreeSelectionModel(fileTree.getSelectionModel());
+    fileTree.setSelectionModel(observableTreeSelectionModel);
+    pQuickSearchProvider.attach(searchPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(fileTree));
     editorKitProvider = pEditorKitProvider;
-    _initGui(pSelectedFile, pIconLoader);
+    _initGui(pIconLoader);
   }
 
   /**
    * sets up the GUI
    */
-  private void _initGui(@Nullable String pSelectedFile, IIconLoader pIconLoader)
+  private void _initGui(IIconLoader pIconLoader)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
     setPreferredSize(PANEL_PREF_SIZE);
 
-    // Table on which to select which IFileDiff is displayed in the DiffPanel
-    fileListTable.setDefaultRenderer(String.class, new FileStatusCellRenderer());
-    fileListTable.getColumnModel().removeColumn(fileListTable.getColumn(StatusTableModel.CHANGE_TYPE_COLUMN_NAME));
-    fileListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    JScrollPane fileListTableScrollPane = new JScrollPane(fileListTable);
-    fileListTableScrollPane.setMinimumSize(TABLE_MIN_SIZE);
-    fileListTableScrollPane.setPreferredSize(TABLE_PREF_SIZE);
-    // display the first entry as default
-    if (!diffs.isEmpty())
-      _setSelectedFile(pSelectedFile);
+    // Tree on which to select which IFileDiff is displayed in the DiffPanel
+    fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(fileSystemUtil, projectDirectory));
+    fileTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    JScrollPane fileTreeScrollPane = new JScrollPane(fileTree);
+    fileTreeScrollPane.setMinimumSize(TABLE_MIN_SIZE);
+    fileTreeScrollPane.setPreferredSize(TABLE_PREF_SIZE);
     // pSelectedRows[0] because with SINGLE_SELECTION only one row can be selected
-    Observable<Optional<IFileDiff>> fileDiffObservable = observableListSelectionModel.selectedRows().map(pSelectedRows -> {
-      if (pSelectedRows != null && pSelectedRows.length == 1)
-        return Optional.of(diffs.get(pSelectedRows[0]));
+    Observable<Optional<IFileDiff>> fileDiffObservable = observableTreeSelectionModel.getSelectedPaths().map(pSelectedPaths -> {
+      if (pSelectedPaths != null && pSelectedPaths.length == 1 && !((FileChangeTypeNode) pSelectedPaths[0].getLastPathComponent()).getInfo().getMembers().isEmpty())
+        return Optional.of(((IFileDiff) ((FileChangeTypeNode) pSelectedPaths[0].getLastPathComponent()).getInfo().getMembers().get(0)));
       else return Optional.empty();
     });
     Observable<EditorKit> editorKitObservable = fileDiffObservable
@@ -121,9 +139,14 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     });
     if (diffs.size() > 1 && showFileTable)
     {
-      seachPanel.add(fileListTableScrollPane, BorderLayout.CENTER);
+      JToolBar toolBar = new JToolBar();
+      toolBar.setFloatable(false);
+      toolBar.add(actionProvider.getExpandTreeAction(fileTree));
+      toolBar.add(actionProvider.getCollapseTreeAction(fileTree));
+      searchPanel.add(toolBar, BorderLayout.NORTH);
+      searchPanel.add(fileTreeScrollPane, BorderLayout.CENTER);
       // add table and DiffPanel to the SplitPane
-      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, seachPanel);
+      JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, searchPanel);
       diffToListSplitPane.setResizeWeight(1);
       add(diffToListSplitPane, BorderLayout.CENTER);
     }
@@ -136,16 +159,25 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 
   private void _setSelectedFile(@Nullable String pSelectedFile)
   {
-    fileListTable.getSelectionModel().setSelectionInterval(0, 0);
-    if (pSelectedFile != null)
+    FileChangeTypeNode node = (FileChangeTypeNode) fileTree.getModel().getRoot();
+    if (node != null)
     {
-      for (int index = 0; index < diffs.size(); index++)
+      TreePath treePath = new TreePath(node);
+      while (pSelectedFile != null && !node.isLeaf())
       {
-        String absoluteFilePath = diffs.get(index).getAbsoluteFilePath();
-        if ((absoluteFilePath != null && new File(absoluteFilePath).equals(new File(pSelectedFile)))
-            || new File(diffs.get(index).getFilePath()).equals(new File(pSelectedFile)))
-          fileListTable.getSelectionModel().setSelectionInterval(index, index);
+        for (int index = 0; index < node.getChildCount(); index++)
+        {
+          if (((FileChangeTypeNode) node.getChildAt(index)).getInfo().getMembers()
+              .stream()
+              .anyMatch(pChangeType -> pSelectedFile.equals(pChangeType.getFile().toString())))
+          {
+            node = (FileChangeTypeNode) node.getChildAt(index);
+            treePath = treePath.pathByAddingChild(node);
+            break;
+          }
+        }
       }
+      fileTree.getSelectionModel().setSelectionPath(treePath);
     }
   }
 

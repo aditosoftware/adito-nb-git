@@ -106,9 +106,9 @@ public interface IDiffPaneUtil
     Observable<Object> editorKitsObs = Observable.combineLatest(Observable.create(new EditorKitChangeObservable(pEditorPaneOld)),
                                                                 Observable.create(new EditorKitChangeObservable(pEditorPaneCurrent)), (o1, o2) -> o1);
     Observable<Object> editorViewChangeObs = Observable.merge(viewPortsObs, editorKitsObs);
-    Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiffOpt -> pFileDiffOpt.map(pFDiff -> pFDiff.getFileChanges()
-        .getChangeChunks()).orElseThrow());
-    Observable<IFileChangesEvent> changeEventObs = Observable.combineLatest(editorViewChangeObs, changesEventObservable,
+    Observable<Optional<IFileChangesEvent>> changesEventObservable = pFileDiffObs.switchMap(pFileDiffOpt -> pFileDiffOpt.map(pFDiff -> pFDiff.getFileChanges()
+        .getChangeChunks().map(Optional::of)).orElse(Observable.just(Optional.empty())));
+    Observable<Optional<IFileChangesEvent>> changeEventObs = Observable.combineLatest(editorViewChangeObs, changesEventObservable,
                                                                             (pObj, pChangeEvent) -> pChangeEvent);
     Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
         getHeightMappings(pEditorPaneOld, pEditorPaneCurrent, pFileDiff);

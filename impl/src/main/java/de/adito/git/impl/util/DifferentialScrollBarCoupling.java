@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -31,11 +32,13 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
 
   private DifferentialScrollBarCoupling(JScrollBar pScrollBar1, JScrollBar pScrollBar2,
                                         Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
-                                        Observable<IFileChangesEvent> pIFileChangesEventObs)
+                                        Observable<Optional<IFileChangesEvent>> pIFileChangesEventObs)
   {
     scrollBar1 = pScrollBar1;
     scrollBar2 = pScrollBar2;
-    disposable = pIFileChangesEventObs.subscribe(pChangesEvent -> SwingUtilities.invokeLater(() -> map = refreshMappings.apply(pChangesEvent)));
+    disposable = pIFileChangesEventObs.subscribe(pChangesEvent -> SwingUtilities.invokeLater(() -> map = pChangesEvent
+        .map(refreshMappings)
+        .orElse(new BiNavigateAbleMap<>())));
     scrollBar1.addAdjustmentListener(this);
     scrollBar2.addAdjustmentListener(this);
   }
@@ -49,7 +52,7 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
    */
   public static DifferentialScrollBarCoupling coupleScrollBars(JScrollBar pScrollBar1, JScrollBar pScrollBar2,
                                                                Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
-                                                               Observable<IFileChangesEvent> pIFileChangesEventObs)
+                                                               Observable<Optional<IFileChangesEvent>> pIFileChangesEventObs)
   {
     return new DifferentialScrollBarCoupling(pScrollBar1, pScrollBar2, pRefreshMappings, pIFileChangesEventObs);
   }
