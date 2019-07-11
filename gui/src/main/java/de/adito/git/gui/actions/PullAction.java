@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.api.data.IRebaseResult;
 import de.adito.git.api.exception.AditoGitException;
@@ -34,6 +35,7 @@ class PullAction extends AbstractAction
   private final Observable<Optional<IRepository>> repository;
   private final IPrefStore prefStore;
   private final IDialogProvider dialogProvider;
+  private final IActionProvider actionProvider;
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
 
@@ -43,11 +45,12 @@ class PullAction extends AbstractAction
    * @param pRepository the repository where the pull command should work
    */
   @Inject
-  PullAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
+  PullAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IActionProvider pActionProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
              @Assisted Observable<Optional<IRepository>> pRepository)
   {
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
+    actionProvider = pActionProvider;
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     putValue(Action.NAME, "Pull");
@@ -75,6 +78,7 @@ class PullAction extends AbstractAction
     boolean doAbort = false;
     try
     {
+      ICommit head = pRepo.getCommit(null);
       if (pRepo.getStatus().blockingFirst().map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(false))
       {
         notifyUtil.notify("Found conflicting files", "There are files that have the conflicting state, resolve these conflicts first before pulling", false);
@@ -95,7 +99,8 @@ class PullAction extends AbstractAction
         if (rebaseResult.isSuccess())
         {
           if (rebaseResult.getResultType() != IRebaseResult.ResultType.UP_TO_DATE)
-            notifyUtil.notify("Pull successful", "The pull --rebase was successful, files are now up-to-date", false);
+            notifyUtil.notify("Pull successful", "The pull --rebase was successful, files are now up-to-date", false,
+                              actionProvider.getDiffCommitToHeadAction(repository, Observable.just(Optional.of(List.of(head))), Observable.just(Optional.empty())));
           else
           {
             notifyUtil.notify("Pull successful", "Files are already up-to-date", false);
