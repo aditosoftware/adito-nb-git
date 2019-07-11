@@ -11,7 +11,7 @@ import java.nio.charset.Charset;
  *
  * @author m.kaspera 20.09.2018
  */
-public interface IFileDiff
+public interface IFileDiff extends IFileChangeType
 {
 
   /**

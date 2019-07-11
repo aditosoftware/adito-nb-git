@@ -45,9 +45,25 @@ public class FileDiffImpl implements IFileDiff
     return (pSide == EChangeSide.NEW ? diffEntry.getNewId() : diffEntry.getOldId()).toString();
   }
 
+  @Override
+  public @NotNull File getFile()
+  {
+    String filePath = getAbsoluteFilePath();
+    if (filePath == null)
+      filePath = getFilePath();
+    return new File(filePath);
+  }
+
+  @Override
+  public @NotNull File getFile(@NotNull EChangeSide pChangeSide)
+  {
+    return new File(getFilePath(pChangeSide));
+  }
+
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public EChangeType getChangeType()
   {
