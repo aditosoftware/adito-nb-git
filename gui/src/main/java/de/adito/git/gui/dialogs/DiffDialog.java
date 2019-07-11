@@ -52,7 +52,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final IActionProvider actionProvider;
   private final File projectDirectory;
   private final boolean acceptChange;
-  private final boolean showFileTable;
+  private final boolean showFileTree;
   private final JTextPane notificationArea = new JTextPane();
   private final JPanel searchPanel = new JPanel(new BorderLayout());
   private DiffPanel diffPanel;
@@ -63,14 +63,14 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil,
                     IActionProvider pActionProvider, @Assisted File pProjectDirectory, @Assisted List<IFileDiff> pDiffs,
                     @Assisted @javax.annotation.Nullable String pSelectedFile,
-                    @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTable") boolean pShowFileTable)
+                    @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTree") boolean pShowFileTree)
   {
     iconLoader = pIconLoader;
     fileSystemUtil = pFileSystemUtil;
     actionProvider = pActionProvider;
     projectDirectory = pProjectDirectory;
     acceptChange = pAcceptChange;
-    showFileTable = pShowFileTable;
+    showFileTree = pShowFileTree;
     diffs = pDiffs;
     List<IFileChangeType> pList = new ArrayList<>(diffs);
     fileTree = new SearchableTree();
@@ -137,7 +137,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
         notificationArea.setText("");
       }
     });
-    if (diffs.size() > 1 && showFileTable)
+    if (diffs.size() > 1 && showFileTree)
     {
       JToolBar toolBar = new JToolBar();
       toolBar.setFloatable(false);

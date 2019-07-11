@@ -48,12 +48,12 @@ public interface IDialogProvider
    * @param pFileDiffs     List with all IFileDiffs that can potentially be displayed
    * @param pSelectedFile  file whose diff should be shown when the dialog opens
    * @param pAcceptChange  true if changes can be moved from the left to the right side
-   * @param pShowFileTable true if the table with pFileDiffs should be shown. This enables the user to choose which file from pFileDiffs to display
+   * @param pShowFileTree true if the tree with pFileDiffs should be shown. This enables the user to choose which file from pFileDiffs to display
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
   DialogResult showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange,
-                              boolean pShowFileTable);
+                              boolean pShowFileTree);
 
   /**
    * Shows a dialog where the user can choose files to be commited and enter a commit message
