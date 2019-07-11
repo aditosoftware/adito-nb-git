@@ -7,13 +7,9 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTree;
-import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.StatusTreeModel;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -23,7 +19,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -41,10 +39,9 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private final IActionProvider actionProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
   private final JPanel tableViewPanel = new JPanel(new BorderLayout());
-  private final SearchableTree statusTree;
+  private final StatusTree statusTree;
   private final StatusTreeModel statusTreeModel;
   private final Action openFileAction;
-  private JPopupMenu popupMenu;
 
   @Inject
   StatusWindowContent(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
@@ -56,27 +53,15 @@ class StatusWindowContent extends JPanel implements IDiscardable
         .switchMap(pRepo -> pRepo
             .map(IRepository::getStatus)
             .orElse(Observable.just(Optional.empty())));
-    statusTree = new SearchableTree();
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
     statusTreeModel = new StatusTreeModel(status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of())),
                                           projectDirectory);
-    statusTree.init(tableViewPanel, statusTreeModel);
-    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, projectDirectory));
-    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
-    tableViewPanel.add(new JScrollPane(statusTree), BorderLayout.CENTER);
-    statusTree.addMouseListener(new _DoubleClickListener());
-    ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
-    statusTree.setSelectionModel(observableTreeSelectionModel);
-    selectionObservable = Observable.combineLatest(observableTreeSelectionModel.getSelectedPaths(), status, (pSelected, pStatus) -> {
-      if (pSelected == null)
-        return Optional.of(Collections.emptyList());
-      return Optional.of(Arrays.stream(pSelected)
-                             .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getMembers())
-                             .flatMap(Collection::stream)
-                             .collect(Collectors.toList()));
-    });
-    statusTreeModel.invokeAfterComputations(() -> TreeUtil._expandTreeInterruptible(statusTree));
+    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel,
+                                projectDirectory, tableViewPanel);
+    statusTree.getTree().addMouseListener(new _DoubleClickListener());
+    statusTreeModel.invokeAfterComputations(() -> TreeUtil._expandTreeInterruptible(statusTree.getTree()));
+    selectionObservable = statusTree.getSelectionObservable();
     openFileAction = actionProvider.getOpenFileAction(selectionObservable);
     _initGui();
   }
@@ -109,11 +94,11 @@ class StatusWindowContent extends JPanel implements IDiscardable
     toolBar.add(diffToHeadAction);
     toolBar.add(showCommitsForFileAction);
     toolBar.addSeparator();
-    toolBar.add(actionProvider.getExpandTreeAction(statusTree));
-    toolBar.add(actionProvider.getCollapseTreeAction(statusTree));
+    toolBar.add(actionProvider.getExpandTreeAction(statusTree.getTree()));
+    toolBar.add(actionProvider.getCollapseTreeAction(statusTree.getTree()));
     tableViewPanel.add(toolBar, BorderLayout.WEST);
 
-    popupMenu = new JPopupMenu();
+    JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(openFileAction);
     popupMenu.addSeparator();
     popupMenu.add(commitAction);
@@ -125,9 +110,9 @@ class StatusWindowContent extends JPanel implements IDiscardable
     popupMenu.add(showCommitsForFileAction);
     popupMenu.addSeparator();
     popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
-    statusTree.addMouseListener(new PopupMouseListener(popupMenu));
-    statusTree.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
-    statusTree.getActionMap().put(STANDARD_ACTION_STRING, openFileAction);
+    statusTree.getTree().addMouseListener(new PopupMouseListener(popupMenu));
+    statusTree.getTree().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
+    statusTree.getTree().getActionMap().put(STANDARD_ACTION_STRING, openFileAction);
   }
 
   @Override
@@ -145,7 +130,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
       {
         JTree source = (JTree) pEvent.getSource();
         TreePath sourcePath = source.getClosestPathForLocation(pEvent.getX(), pEvent.getY());
-        if (source.isPathSelected(sourcePath) && statusTree.getModel().isLeaf(sourcePath.getLastPathComponent()))
+        if (source.isPathSelected(sourcePath) && statusTree.getTree().getModel().isLeaf(sourcePath.getLastPathComponent()))
           openFileAction.actionPerformed(null);
       }
     }

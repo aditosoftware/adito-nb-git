@@ -8,14 +8,12 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.DiffTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import de.adito.git.impl.data.DiffInfoImpl;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
@@ -46,7 +44,7 @@ public class CommitDetailsPanel implements IDiscardable
   private static final String DETAILS_FORMAT_STRING = "%7.7s %s <%s> on %s";
   private static final String STANDARD_ACTION_STRING = "STANDARD_ACTION";
   private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-  private final JPanel tableViewPanel = new JPanel(new BorderLayout());
+  private final JPanel treeViewPanel = new JPanel(new BorderLayout());
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
@@ -54,7 +52,7 @@ public class CommitDetailsPanel implements IDiscardable
   private final Observable<Boolean> showAllCBObservable;
   private final ICommitFilter commitFilter;
   private final _SelectedCommitsPanel commits;
-  private final SearchableTree statusTree;
+  private final StatusTree statusTree;
   private final JScrollPane treeScrollpane = new JScrollPane();
   private final JLabel loadingLabel = new JLabel("Loading . . .");
   private Disposable onChangeExpandTreeDisposable;
@@ -74,19 +72,6 @@ public class CommitDetailsPanel implements IDiscardable
     showAllCheckbox.setSelected(pCommitFilter.getFiles().isEmpty());
     showAllCBObservable = Observable.create(new _CheckboxObservable(showAllCheckbox)).startWith(pCommitFilter.getFiles().isEmpty());
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
-    statusTree = new SearchableTree();
-    _setUpChangedFilesTreePanel(pQuickSearchProvider, pFileSystemUtil);
-    _initDetailPanel();
-  }
-
-  @NotNull
-  public JComponent getPanel()
-  {
-    return detailPanelPane;
-  }
-
-  private void _setUpChangedFilesTreePanel(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil)
-  {
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
     Observable<List<IDiffInfo>> changedFilesObs = Observable
@@ -104,25 +89,26 @@ public class CommitDetailsPanel implements IDiscardable
         .share()
         .subscribeWith(BehaviorSubject.createDefault(List.of()));
     DiffTreeModel diffTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
-    statusTree.init(tableViewPanel, diffTreeModel);
-    statusTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, projectDirectory));
-    pQuickSearchProvider.attach(tableViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(statusTree));
-    treeScrollpane.setViewportView(statusTree);
-    tableViewPanel.add(treeScrollpane, BorderLayout.CENTER);
-    tableViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
-    ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(statusTree.getSelectionModel());
-    statusTree.setSelectionModel(observableTreeSelectionModel);
+    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, projectDirectory, treeViewPanel);
+    treeViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
 
-    _initStatusTreeActions(observableTreeSelectionModel, changedFilesObs);
+    _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);
     loadingLabel.setFont(new Font(loadingLabel.getFont().getFontName(), loadingLabel.getFont().getStyle(), 16));
     loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
     onChangeExpandTreeDisposable = TreeUtil.getTreeModelChangeObservable(diffTreeModel)
         .debounce(100, TimeUnit.MILLISECONDS)
         .subscribe(pEvent -> diffTreeModel.invokeAfterComputations(() -> {
-          TreeUtil._expandTreeInterruptible(statusTree);
+          TreeUtil._expandTreeInterruptible(statusTree.getTree());
           _showTree();
         }));
+    _initDetailPanel();
+  }
+
+  @NotNull
+  public JComponent getPanel()
+  {
+    return detailPanelPane;
   }
 
   @NotNull
@@ -190,35 +176,35 @@ public class CommitDetailsPanel implements IDiscardable
     popupMenu.add(actionProvider.getOpenFileStringAction(selectedFile));
     popupMenu.addSeparator();
     popupMenu.add(diffCommitsAction);
-    statusTree.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
-    statusTree.getActionMap().put(STANDARD_ACTION_STRING, diffCommitsAction);
+    statusTree.getTree().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
+    statusTree.getTree().getActionMap().put(STANDARD_ACTION_STRING, diffCommitsAction);
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
     popupMouseListener.setDoubleClickAction(diffCommitsAction);
-    statusTree.addMouseListener(popupMouseListener);
+    statusTree.getTree().addMouseListener(popupMouseListener);
   }
 
   private void _showTree()
   {
-    tableViewPanel.remove(loadingLabel);
-    tableViewPanel.add(treeScrollpane, BorderLayout.CENTER);
-    tableViewPanel.revalidate();
-    tableViewPanel.repaint();
+    treeViewPanel.remove(loadingLabel);
+    treeViewPanel.add(treeScrollpane, BorderLayout.CENTER);
+    treeViewPanel.revalidate();
+    treeViewPanel.repaint();
   }
 
   private void _showLoading()
   {
-    tableViewPanel.remove(treeScrollpane);
-    tableViewPanel.add(loadingLabel, BorderLayout.CENTER);
-    tableViewPanel.revalidate();
-    tableViewPanel.repaint();
+    treeViewPanel.remove(treeScrollpane);
+    treeViewPanel.add(loadingLabel, BorderLayout.CENTER);
+    treeViewPanel.revalidate();
+    treeViewPanel.repaint();
   }
 
   private JToolBar _getTreeToolbar()
   {
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
-    toolBar.add(actionProvider.getExpandTreeAction(statusTree));
-    toolBar.add(actionProvider.getCollapseTreeAction(statusTree));
+    toolBar.add(actionProvider.getExpandTreeAction(statusTree.getTree()));
+    toolBar.add(actionProvider.getCollapseTreeAction(statusTree.getTree()));
     toolBar.add(showAllCheckbox);
     return toolBar;
   }
@@ -241,7 +227,7 @@ public class CommitDetailsPanel implements IDiscardable
    */
   private void _initDetailPanel()
   {
-    detailPanelPane.setLeftComponent(tableViewPanel);
+    detailPanelPane.setLeftComponent(treeViewPanel);
     detailPanelPane.setRightComponent(new JScrollPane(commits, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
     detailPanelPane.setResizeWeight(DETAIL_SPLIT_PANE_RATIO);
   }
