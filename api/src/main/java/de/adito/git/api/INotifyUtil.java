@@ -2,6 +2,8 @@ package de.adito.git.api;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.event.ActionListener;
+
 /**
  * Interface to display Messages to the user
  *
@@ -19,5 +21,15 @@ public interface INotifyUtil
    * @param pAutoDispose <tt>true</tt> if the balloon should dispose automatically after a couple of seconds
    */
   void notify(@Nullable String pTitle, @Nullable String pMessage, boolean pAutoDispose);
+
+  /**
+   * Shows a simple balloon to display a pMessage to the user. Invokes the passed action on click if the action is non-null
+   *
+   * @param pTitle          Title
+   * @param pMessage        Message
+   * @param pAutoDispose    <tt>true</tt> if the balloon should dispose automatically after a couple of seconds
+   * @param pActionListener Action to invoke if the user clicks on the notification text
+   */
+  void notify(@Nullable String pTitle, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pActionListener);
 
 }
