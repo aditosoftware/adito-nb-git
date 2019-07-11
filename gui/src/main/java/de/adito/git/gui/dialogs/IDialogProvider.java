@@ -44,6 +44,7 @@ public interface IDialogProvider
   /**
    * Shows a dialog which show which changes happened to a file, based on the IFileDiffs
    *
+   * @param pProjectDirectory TopLevel directory of the project (i.e. the parent of the .git folder)
    * @param pFileDiffs     List with all IFileDiffs that can potentially be displayed
    * @param pSelectedFile  file whose diff should be shown when the dialog opens
    * @param pAcceptChange  true if changes can be moved from the left to the right side
@@ -51,7 +52,8 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange, boolean pShowFileTable);
+  DialogResult showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange,
+                              boolean pShowFileTable);
 
   /**
    * Shows a dialog where the user can choose files to be commited and enter a commit message

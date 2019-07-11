@@ -19,6 +19,8 @@ import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 class DiffToHeadAction extends AbstractTableAction
 {
 
+  private final Logger logger = Logger.getLogger(DiffToHeadAction.class.getName());
   private final IAsyncProgressFacade progressFacade;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
@@ -49,17 +52,17 @@ class DiffToHeadAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Creating Diff", pHandle -> {
+    repository.blockingFirst().ifPresentOrElse(pRepo -> progressFacade.executeInBackground("Creating Diff", pHandle -> {
       List<File> files = selectedFilesObservable.blockingFirst()
           .orElse(Collections.emptyList())
           .stream()
           .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
           .collect(Collectors.toList());
-      List<IFileDiff> fileDiffs = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).diff(files, null);
+      List<IFileDiff> fileDiffs = pRepo.diff(files, null);
 
       //Show Dialog in EDT -> Handle gets finished
       SwingUtilities.invokeLater(() -> {
-        DialogResult dialogResult = dialogProvider.showDiffDialog(fileDiffs, null, true, false);
+        DialogResult dialogResult = dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, null, true, false);
         if (dialogResult.isPressedOk())
         {
           for (IFileDiff fileDiff : fileDiffs)
@@ -68,7 +71,7 @@ class DiffToHeadAction extends AbstractTableAction
           }
         }
       });
-    });
+    }), () -> logger.log(Level.SEVERE, () -> "Git: no valid repository found in DiffToHeadAction.actionPerformed"));
   }
 
   private void _saveFileDiffChanges(IFileDiff pFileDiff)

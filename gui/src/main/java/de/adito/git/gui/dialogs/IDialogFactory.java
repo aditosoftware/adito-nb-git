@@ -28,8 +28,8 @@ interface IDialogFactory
                                   @NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
                                   @NotNull String pMessageTemplate);
 
-  DiffDialog createDiffDialog(@NotNull List<IFileDiff> pDiffs, @Nullable String pSelectedFile, @Assisted("acceptChange") boolean pAcceptChange,
-                              @Assisted("showFileTable") boolean pShowFileTable);
+  DiffDialog createDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pDiffs, @Nullable String pSelectedFile,
+                              @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTable") boolean pShowFileTable);
 
   NewBranchDialog createNewBranchDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor, Observable<Optional<IRepository>> pRepository);
 

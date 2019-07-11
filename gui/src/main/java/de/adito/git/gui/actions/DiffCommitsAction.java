@@ -15,6 +15,8 @@ import java.awt.event.ActionEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author m.kaspera, 31.01.2019
@@ -22,6 +24,7 @@ import java.util.Optional;
 class DiffCommitsAction extends AbstractTableAction
 {
 
+  private final Logger logger = Logger.getLogger(DiffCommitsAction.class.getName());
   private final IDialogProvider dialogProvider;
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
@@ -48,25 +51,24 @@ class DiffCommitsAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Creating Diff", pHandle -> {
+    repository.blockingFirst().ifPresentOrElse(pRepo -> progressFacade.executeInBackground("Creating Diff", pHandle -> {
       List<ICommit> commitList = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
       if (!commitList.isEmpty())
       {
         ICommit selectedCommit = commitList.get(0);
         ICommit oldestSelectedCommit = commitList.get(commitList.size() - 1);
-        List<IFileDiff> fileDiffs = repository.blockingFirst().map(pRepository -> {
-          try
-          {
-            return pRepository.diff(selectedCommit, parentCommitObservable.blockingFirst().orElse(oldestSelectedCommit.getParents().get(0)));
-          }
-          catch (AditoGitException pE)
-          {
-            throw new RuntimeException(pE);
-          }
-        }).orElse(Collections.emptyList());
-        dialogProvider.showDiffDialog(fileDiffs, selectedFile.blockingFirst().orElse(null), false, false);
+        List<IFileDiff> fileDiffs;
+        try
+        {
+          fileDiffs = pRepo.diff(selectedCommit, parentCommitObservable.blockingFirst().orElse(oldestSelectedCommit.getParents().get(0)));
+        }
+        catch (AditoGitException pE)
+        {
+          throw new RuntimeException(pE);
+        }
+        dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, selectedFile.blockingFirst().orElse(null), false, false);
       }
-    });
+    }), () -> logger.log(Level.SEVERE, () -> "Git: no valid repository found in DiffCommitsAction.actionPerformed"));
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<ICommit>>> pSelectedCommitObservable,

@@ -56,7 +56,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private List<IFileDiff> diffs;
 
   @Inject
-  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, @Assisted List<IFileDiff> pDiffs,
+  public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil,
+                    IActionProvider pActionProvider, @Assisted File pProjectDirectory, @Assisted List<IFileDiff> pDiffs,
                     @Assisted @javax.annotation.Nullable String pSelectedFile,
                     @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTable") boolean pShowFileTable)
   {

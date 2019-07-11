@@ -63,7 +63,7 @@ class DialogProviderImpl implements IDialogProvider
 
   @NotNull
   @Override
-  public DialogResult showDiffDialog(@NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange,
+  public DialogResult showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange,
                                      boolean pShowFileTable)
   {
     DialogResult<DiffDialog, ?> result = null;
@@ -74,7 +74,7 @@ class DialogProviderImpl implements IDialogProvider
         title += pSelectedFile;
       else if (!pFileDiffs.isEmpty())
         title += pFileDiffs.get(0).getFilePath();
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pFileDiffs, pSelectedFile, pAcceptChange, pShowFileTable),
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pProjectDirectory, pFileDiffs, pSelectedFile, pAcceptChange, pShowFileTable),
                                           title);
       return result;
     }
