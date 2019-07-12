@@ -165,11 +165,13 @@ public class ObservingTreeModel extends DefaultTreeModel
    * Removes all "redundant" nodes that only have one child by basically aggregating all "folder with only one subfolder"
    *
    * @param pMap   Map retrieved by calling _calculateMap with the fileChanges
+   * @param pChangedFiles HashSet of all changed files, used to determine if a File is a file or directory
    * @param pStart startNode
    * @return HashMap that has the nodes with only one node as child collapsed to the parentNode
    */
   @NotNull
-  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull File pStart)
+  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull HashSet<File> pChangedFiles,
+                                                               @NotNull File pStart)
   {
     Set<File> iterableCopy = pMap.get(pStart) == null ? new HashSet<>() : new HashSet<>(pMap.get(pStart).keySet());
     for (File pChildFile : iterableCopy)
@@ -177,7 +179,7 @@ public class ObservingTreeModel extends DefaultTreeModel
       if (Thread.currentThread().isInterrupted())
         throw new InterruptedRuntimeException();
       if (pMap.containsKey(pChildFile) && pMap.get(pChildFile).keySet().size() == 1 && pChildFile.isDirectory() &&
-          !pMap.get(pChildFile).keySet().iterator().next().isFile() && !pChildFile.equals(projectDirectory))
+          !pChangedFiles.contains(pMap.get(pChildFile).keySet().iterator().next()) && !pChildFile.equals(projectDirectory))
       {
         Map.Entry<File, FileChangeTypeNodeInfo> theSingleEntry = pMap.get(pChildFile).entrySet().iterator().next();
         File firstAvailableParent = _getFirstAvailableParent(pMap, pChildFile);
@@ -191,7 +193,7 @@ public class ObservingTreeModel extends DefaultTreeModel
         pChildFile = pStart;
       }
       if (pChildFile.isDirectory() && pMap.containsKey(pChildFile))
-        pMap = _reduce(pMap, pChildFile);
+        pMap = _reduce(pMap, pChangedFiles, pChildFile);
     }
     return pMap;
   }

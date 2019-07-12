@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.tree.TreeNode;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Model for the Tree that displays the changed files
@@ -94,7 +95,8 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
     if (pList.size() == 1)
     {
       HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(pList.get(0).getChangedFiles());
-      fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
+      fileHashMap = _reduce(fileHashMap, pList.get(0).getChangedFiles().stream().map(IFileChangeType::getFile).collect(Collectors.toCollection(HashSet::new))
+          , projectDirectory.getParentFile());
       pRootNode.setAssignedCommit(pList.get(0).getParentCommit());
       treeUpdates.addAll(_updateTree(fileHashMap, pRootNode));
     }
@@ -164,7 +166,8 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(diffInfo.getChangedFiles());
-    fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
+    fileHashMap = _reduce(fileHashMap, diffInfo.getChangedFiles().stream().map(IFileChangeType::getFile).collect(Collectors.toCollection(HashSet::new)),
+                          projectDirectory.getParentFile());
     FileChangeTypeNode commitInfoNode = _getChildNode(pRootNode, _getCommitNodeDescription(diffInfo));
     if (commitInfoNode == null)
     {

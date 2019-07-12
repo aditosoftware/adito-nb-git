@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.tree.TreeNode;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Model for the Tree that displays the changed files
@@ -47,7 +48,7 @@ public class StatusTreeModel extends ObservingTreeModel implements IDiscardable
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(pList);
     if (!fileHashMap.isEmpty())
     {
-      fileHashMap = _reduce(fileHashMap, projectDirectory.getParentFile());
+      fileHashMap = _reduce(fileHashMap, pList.stream().map(IFileChangeType::getFile).collect(Collectors.toCollection(HashSet::new)), projectDirectory.getParentFile());
       if (rootNode == null)
       {
         rootNode = new FileChangeTypeNode(fileHashMap.get(projectDirectory.getParentFile()).get(projectDirectory));
