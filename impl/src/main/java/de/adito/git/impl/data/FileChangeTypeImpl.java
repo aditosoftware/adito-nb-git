@@ -1,6 +1,5 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
@@ -36,7 +35,7 @@ public class FileChangeTypeImpl implements IFileChangeType
   @Override
   public File getFile()
   {
-    if (file.getPath().equals(IRepository.VOID_PATH))
+    if (changeType == EChangeType.DELETE || changeType == EChangeType.MISSING)
       return fileBefore;
     else
       return file;
