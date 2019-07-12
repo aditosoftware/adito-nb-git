@@ -1,7 +1,7 @@
 package de.adito.git.gui.tree;
 
 import de.adito.git.api.exception.InterruptedRuntimeException;
-import de.adito.git.gui.tree.models.ObservingTreeModel;
+import de.adito.git.gui.tree.models.BaseObservingTreeModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -18,7 +18,7 @@ import java.util.function.Function;
 public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>, TreeUpdate>
 {
 
-  private final ObservingTreeModel treeModel;
+  private final BaseObservingTreeModel treeModel;
   private final Function<List<T>, List<TreeUpdate>> workFunction;
   private final List<T> param;
   private final Comparator<TreeNode> comparator;
@@ -31,7 +31,7 @@ public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>,
    * @param pComparator         comparator used to compare and sort nodes
    * @param pDoOnUpdateComplete runnable that should be executed after the update (the whole update, including the EDT part) is done (can be used for listeners and such)
    */
-  public TreeModelBackgroundUpdater(ObservingTreeModel pTreeModel, Function<List<T>, List<TreeUpdate>> pWorkFunction, List<T> pParam,
+  public TreeModelBackgroundUpdater(BaseObservingTreeModel pTreeModel, Function<List<T>, List<TreeUpdate>> pWorkFunction, List<T> pParam,
                                     Comparator<TreeNode> pComparator, Runnable pDoOnUpdateComplete)
   {
     treeModel = pTreeModel;

@@ -89,7 +89,7 @@ public class CommitDetailsPanel implements IDiscardable
         .share()
         .subscribeWith(BehaviorSubject.createDefault(List.of()));
     DiffTreeModel diffTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
-    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, projectDirectory, treeViewPanel);
+    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, false, projectDirectory, treeViewPanel);
     treeViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
 
     _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);

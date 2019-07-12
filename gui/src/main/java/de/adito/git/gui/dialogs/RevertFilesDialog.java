@@ -3,7 +3,12 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.swing.MutableIconActionButton;
+import de.adito.git.gui.tree.models.FlatStatusTreeModel;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
@@ -23,7 +28,8 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
 
 
   @Inject
-  public RevertFilesDialog(IActionProvider pActionProvider, IFileSystemUtil pFileSystemUtil, @Assisted List<IFileChangeType> pFilesToRevert, @Assisted File pProjectDir)
+  public RevertFilesDialog(IActionProvider pActionProvider, IIconLoader pIconLoader, IPrefStore pPrefStore, IFileSystemUtil pFileSystemUtil,
+                           @Assisted List<IFileChangeType> pFilesToRevert, @Assisted File pProjectDir)
   {
     if (pFilesToRevert.size() > 1)
     {
@@ -36,7 +42,9 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
       add(topLabel, BorderLayout.NORTH);
 
       // Tree and scrollPane for tree
-      JTree fileTree = new JTree(new StatusTreeModel(Observable.just(pFilesToRevert), pProjectDir));
+      Observable<List<IFileChangeType>> changedFiles = Observable.just(pFilesToRevert);
+      boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
+      JTree fileTree = new JTree(useFlatTree ? new FlatStatusTreeModel(changedFiles, pProjectDir) : new StatusTreeModel(changedFiles, pProjectDir));
       fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDir));
       JScrollPane scrollPane = new JScrollPane(fileTree);
       add(scrollPane, BorderLayout.CENTER);
@@ -46,6 +54,11 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
       toolBar.setFloatable(false);
       toolBar.add(pActionProvider.getExpandTreeAction(fileTree));
       toolBar.add(pActionProvider.getCollapseTreeAction(fileTree));
+      toolBar.add(new MutableIconActionButton(pActionProvider.getSwitchTreeViewAction(fileTree, changedFiles, pProjectDir),
+                                              () -> Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
+                                              pIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
+                                              pIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
+                      .getButton());
       add(toolBar, BorderLayout.WEST);
     }
     else if (pFilesToRevert.size() == 1)

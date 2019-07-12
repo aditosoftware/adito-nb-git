@@ -2,75 +2,25 @@ package de.adito.git.gui.tree.models;
 
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
-import de.adito.git.gui.concurrency.PriorityDroppingExecutor;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import java.io.File;
-import java.text.Collator;
 import java.util.*;
 
 /**
  * @author m.kaspera, 14.05.2019
  */
-public class ObservingTreeModel extends DefaultTreeModel
+public abstract class ObservingTreeModel extends BaseObservingTreeModel
 {
-
-  private final List<IDataModelUpdateListener> updateListeners = new ArrayList<>();
-  File projectDirectory;
-  PriorityDroppingExecutor service = new PriorityDroppingExecutor();
 
   ObservingTreeModel(@NotNull File pProjectDirectory)
   {
-    super(null);
-    projectDirectory = pProjectDirectory;
-  }
-
-  /**
-   * Queues the Task in the Single-thread executor of this class
-   *
-   * @param pRunnable Runnable to execute
-   */
-  public void invokeAfterComputations(@NotNull Runnable pRunnable)
-  {
-    service.invokeAfterComputations(pRunnable);
-  }
-
-  /**
-   * registers a listener that is notified each time the model is fully updated (i.e. the update method completed a full run-through and was not interrupted. This means
-   * the current state of the tree can be considered "valid"/up-to-date for the immideate future)
-   *
-   * @param pListener listener to be notified
-   */
-  public void registerDataModelUpdatedListener(IDataModelUpdateListener pListener)
-  {
-    updateListeners.add(pListener);
-  }
-
-  /**
-   * removes a listener such that it gets no more updates
-   *
-   * @param pListener listener to be removed
-   */
-  public void removeDataModelUpdateListener(IDataModelUpdateListener pListener)
-  {
-    updateListeners.remove(pListener);
-  }
-
-  /**
-   * notifies the listeners that the model did a full update cycle/the update function passed without it being aborted due to new data coming in
-   */
-  void fireDataModelUpdated()
-  {
-    for (int index = updateListeners.size() - 1; index >= 0; index--)
-    {
-      updateListeners.get(index).modelUpdated();
-    }
+    super(pProjectDirectory);
   }
 
   /**
@@ -164,9 +114,9 @@ public class ObservingTreeModel extends DefaultTreeModel
   /**
    * Removes all "redundant" nodes that only have one child by basically aggregating all "folder with only one subfolder"
    *
-   * @param pMap   Map retrieved by calling _calculateMap with the fileChanges
+   * @param pMap          Map retrieved by calling _calculateMap with the fileChanges
    * @param pChangedFiles HashSet of all changed files, used to determine if a File is a file or directory
-   * @param pStart startNode
+   * @param pStart        startNode
    * @return HashMap that has the nodes with only one node as child collapsed to the parentNode
    */
   @NotNull
@@ -214,26 +164,6 @@ public class ObservingTreeModel extends DefaultTreeModel
         return null;
     }
     return parent;
-  }
-
-  @NotNull
-  Comparator<TreeNode> _getDefaultComparator()
-  {
-    return Comparator.comparing(pO -> {
-      FileChangeTypeNodeInfo nodeInfo = ((FileChangeTypeNode) pO).getInfo();
-      if (nodeInfo != null)
-        return nodeInfo.getNodeDescription();
-      return "";
-    }, Collator.getInstance());
-  }
-
-  /**
-   * Defines an interface for objects interested in knowing when the dataModel was completely updated (completely because if the data changes during an update,
-   * that update is aborted and a new update started)
-   */
-  public interface IDataModelUpdateListener extends EventListener
-  {
-    void modelUpdated();
   }
 
 }

@@ -4,14 +4,15 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
-import de.adito.git.gui.tree.models.ObservingTreeModel;
-import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -42,6 +43,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final StatusTree fileTree;
   private final IEditorKitProvider editorKitProvider;
   private final IIconLoader iconLoader;
+  private final IPrefStore prefStore;
   private final IActionProvider actionProvider;
   private final boolean acceptChange;
   private final boolean showFileTree;
@@ -53,18 +55,22 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 
   @Inject
   public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil,
-                    IActionProvider pActionProvider, @Assisted File pProjectDirectory, @Assisted List<IFileDiff> pDiffs,
+                    IPrefStore pPrefStore, IActionProvider pActionProvider, @Assisted File pProjectDirectory, @Assisted List<IFileDiff> pDiffs,
                     @Assisted @javax.annotation.Nullable String pSelectedFile,
                     @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTree") boolean pShowFileTree)
   {
     iconLoader = pIconLoader;
+    prefStore = pPrefStore;
     actionProvider = pActionProvider;
     acceptChange = pAcceptChange;
     showFileTree = pShowFileTree;
     diffs = pDiffs;
     List<IFileChangeType> pList = new ArrayList<>(diffs);
-    StatusTreeModel statusTreeModel = new StatusTreeModel(Observable.just(pList), pProjectDirectory);
-    fileTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, pProjectDirectory, searchPanel);
+    Observable<List<IFileChangeType>> changedFiles = Observable.just(pList);
+    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
+    BaseObservingTreeModel statusTreeModel =
+        useFlatTree ? new FlatStatusTreeModel(Observable.just(pList), pProjectDirectory) : new StatusTreeModel(Observable.just(pList), pProjectDirectory);
+    fileTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree, pProjectDirectory, searchPanel);
     statusTreeModel.registerDataModelUpdatedListener(new ObservingTreeModel.IDataModelUpdateListener()
     {
       @Override
@@ -78,13 +84,13 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       }
     });
     editorKitProvider = pEditorKitProvider;
-    _initGui(pIconLoader);
+    _initGui(pIconLoader, changedFiles, pProjectDirectory);
   }
 
   /**
    * sets up the GUI
    */
-  private void _initGui(IIconLoader pIconLoader)
+  private void _initGui(IIconLoader pIconLoader, Observable<List<IFileChangeType>> pChangedFiles, File pProjectDirectory)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
@@ -122,6 +128,11 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       toolBar.setFloatable(false);
       toolBar.add(actionProvider.getExpandTreeAction(fileTree.getTree()));
       toolBar.add(actionProvider.getCollapseTreeAction(fileTree.getTree()));
+      toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(fileTree.getTree(), pChangedFiles, pProjectDirectory),
+                                              () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
+                                              iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
+                                              iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
+                      .getButton());
       searchPanel.add(toolBar, BorderLayout.NORTH);
       // add table and DiffPanel to the SplitPane
       JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, searchPanel);

@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -102,4 +103,6 @@ interface IActionFactory
   ExpandTreeAction createExpandTreeAction(JTree pTree);
 
   ShowTagWindowAction createShowTagWindowAction(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
+
+  SwitchTreeViewAction createSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory);
 }

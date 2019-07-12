@@ -6,8 +6,9 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
-import de.adito.git.gui.tree.models.ObservingTreeModel;
+import de.adito.git.gui.tree.models.BaseObservingTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -30,11 +31,14 @@ public class StatusTree
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
 
   public StatusTree(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil,
-                    @NotNull ObservingTreeModel pTreeModel, @NotNull File pProjectDirectory, @NotNull JPanel pTreeViewPanel)
+                    @NotNull BaseObservingTreeModel pTreeModel, boolean pUseFlatCellRenderer, @NotNull File pProjectDirectory, @NotNull JPanel pTreeViewPanel)
   {
     searchableTree = new SearchableTree();
     searchableTree.init(pTreeViewPanel, pTreeModel);
-    searchableTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDirectory));
+    if (pUseFlatCellRenderer)
+      searchableTree.setCellRenderer(new FileChangeTypeFlatTreeCellRenderer(pFileSystemUtil, pProjectDirectory));
+    else
+      searchableTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDirectory));
     pQuickSearchProvider.attach(pTreeViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(searchableTree));
     pTreeViewPanel.add(new JScrollPane(searchableTree), BorderLayout.CENTER);
     ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(searchableTree.getSelectionModel());

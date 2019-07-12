@@ -283,4 +283,14 @@ public interface IActionProvider
    * @return Action whose actionPerformed method displays an overview of the tags in the git repository
    */
   Action getShowTagWindowAction(@NotNull Consumer<ICommit> pSelectedCommitCallback, @NotNull Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * swaps the treeView from a flat view (only leaves below root) to a hierarchical view
+   *
+   * @param pTree             Tree whose view should be updated
+   * @param pChangeList       Observable with the list of changed files
+   * @param pProjectDirectory root folder of the project
+   * @return Action whose actionPerformed method swaps the treeView from a flat view (only leaves below root) to a hierarchical view
+   */
+  Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory);
 }

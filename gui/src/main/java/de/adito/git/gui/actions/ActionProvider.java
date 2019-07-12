@@ -303,4 +303,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createShowTagWindowAction(pSelectedCommitCallback, pRepository);
   }
 
+  @Override
+  public Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory)
+  {
+    return actionFactory.createSwitchTreeViewAction(pTree, pChangeList, pProjectDirectory);
+  }
+
 }
