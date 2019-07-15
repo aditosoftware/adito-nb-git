@@ -9,6 +9,7 @@ import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Adds additional info to the right of the node name in the form of the path from the root folder (included) to the file of the FileChangeTypeNode if the node is a leaf
@@ -27,9 +28,10 @@ public class FileChangeTypeFlatTreeCellRenderer extends FileChangeTypeTreeBaseCe
   @Override
   void _addAdditionalInfo(FileChangeTypeNodeInfo pNodeInfo, FileChangeTypeNode pNode, boolean pLeaf, JPanel pPanel)
   {
-    if (pLeaf && pNode.getLevel() != 0)
+    if (pLeaf && pNode.getLevel() != 0 && !pNodeInfo.getMembers().isEmpty())
     {
-      String labelText = projectDir.toPath().getParent().relativize(pNodeInfo.getNodeFile().toPath()).getParent().toString().replace("\\", " \\ ");
+      Path relativePath = projectDir.toPath().getParent().relativize(pNodeInfo.getNodeFile().toPath());
+      String labelText = relativePath.getParent() != null ? relativePath.getParent().toString().replace("\\", " \\ ") : "";
       if (pNodeInfo.getMembers().get(0).getChangeType() == EChangeType.RENAME)
       {
         labelText = labelText + " | moved from " + pNodeInfo.getMembers().get(0).getFile(EChangeSide.NEW).toPath()
