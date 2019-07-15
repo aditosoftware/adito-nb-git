@@ -5,13 +5,17 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.gui.Constants;
 import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.TreeUtil;
+import de.adito.git.gui.tree.models.BaseObservingTreeModel;
 import de.adito.git.gui.tree.models.DiffTreeModel;
+import de.adito.git.gui.tree.models.FlatDiffTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.impl.data.DiffInfoImpl;
@@ -59,7 +63,7 @@ public class CommitDetailsPanel implements IDiscardable
 
   @Inject
   public CommitDetailsPanel(IActionProvider pActionProvider, IQuickSearchProvider pQuickSearchProvider,
-                            IFileSystemUtil pFileSystemUtil,
+                            IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore,
                             @Assisted Observable<Optional<IRepository>> pRepository,
                             @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
                             @Assisted ICommitFilter pCommitFilter)
@@ -88,9 +92,10 @@ public class CommitDetailsPanel implements IDiscardable
         })
         .share()
         .subscribeWith(BehaviorSubject.createDefault(List.of()));
-    DiffTreeModel diffTreeModel = new DiffTreeModel(changedFilesObs, projectDirectory);
-    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, false, projectDirectory, treeViewPanel);
-    treeViewPanel.add(_getTreeToolbar(), BorderLayout.NORTH);
+    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
+    BaseObservingTreeModel diffTreeModel = useFlatTree ? new FlatDiffTreeModel(changedFilesObs, projectDirectory) : new DiffTreeModel(changedFilesObs, projectDirectory);
+    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel);
+    treeViewPanel.add(_getTreeToolbar(changedFilesObs, projectDirectory), BorderLayout.NORTH);
 
     _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);
     loadingLabel.setFont(new Font(loadingLabel.getFont().getFontName(), loadingLabel.getFont().getStyle(), 16));
@@ -199,12 +204,13 @@ public class CommitDetailsPanel implements IDiscardable
     treeViewPanel.repaint();
   }
 
-  private JToolBar _getTreeToolbar()
+  private JToolBar _getTreeToolbar(Observable<List<IDiffInfo>> pChangedFilesObs, File pProjectDirectory)
   {
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getExpandTreeAction(statusTree.getTree()));
     toolBar.add(actionProvider.getCollapseTreeAction(statusTree.getTree()));
+    toolBar.add(actionProvider.getSwitchDiffTreeViewAction(statusTree.getTree(), pChangedFilesObs, pProjectDirectory));
     toolBar.add(showAllCheckbox);
     return toolBar;
   }
