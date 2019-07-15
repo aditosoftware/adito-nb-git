@@ -293,4 +293,14 @@ public interface IActionProvider
    * @return Action whose actionPerformed method swaps the treeView from a flat view (only leaves below root) to a hierarchical view
    */
   Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory);
+
+  /**
+   * swaps the treeView from a flat diff view (only leaves below root/commit nodes) to a hierarchical view
+   *
+   * @param pTree             Tree whose view should be updated
+   * @param pChangeList       Observable with the list of changed files
+   * @param pProjectDirectory root folder of the project
+   * @return Action whose actionPerformed method swaps the treeView from a flat view (only leaves below root) to a hierarchical view
+   */
+  Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory);
 }

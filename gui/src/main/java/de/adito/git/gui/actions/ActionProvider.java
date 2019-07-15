@@ -309,4 +309,10 @@ class ActionProvider implements IActionProvider
     return actionFactory.createSwitchTreeViewAction(pTree, pChangeList, pProjectDirectory);
   }
 
+  @Override
+  public Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory)
+  {
+    return actionFactory.createSwitchDiffTreeViewAction(pTree, pChangeList, pProjectDirectory);
+  }
+
 }
