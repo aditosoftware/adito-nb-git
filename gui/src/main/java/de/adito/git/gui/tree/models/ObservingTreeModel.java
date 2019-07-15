@@ -2,13 +2,10 @@ package de.adito.git.gui.tree.models;
 
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
-import de.adito.git.gui.tree.TreeUpdate;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.TreeNode;
 import java.io.File;
 import java.util.*;
 
@@ -21,48 +18,6 @@ public abstract class ObservingTreeModel extends BaseObservingTreeModel
   ObservingTreeModel(@NotNull File pProjectDirectory)
   {
     super(pProjectDirectory);
-  }
-
-  /**
-   * @param pMap  Map that is an image of the tree
-   * @param pNode node to update
-   */
-  @NotNull
-  List<TreeUpdate> _updateTree(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull FileChangeTypeNode pNode)
-  {
-    List<TreeUpdate> treeUpdates = new ArrayList<>();
-    if (Thread.currentThread().isInterrupted())
-      throw new InterruptedRuntimeException();
-    HashMap<File, FileChangeTypeNodeInfo> map = pNode.getInfo() == null ? null : pMap.get(pNode.getInfo().getNodeFile());
-    if (map != null)
-    {
-      for (Map.Entry<File, FileChangeTypeNodeInfo> entry : map.entrySet())
-      {
-        FileChangeTypeNode childNode = FileChangeTypeNode.getChildNodeForFile(pNode, entry.getKey());
-        if (childNode != null && childNode.getInfo() != null)
-        {
-          childNode.getInfo().setMembers(map.get(entry.getKey()).getMembers());
-          // update assigned commit if necessary
-          if (pNode.getAssignedCommit() != null && !pNode.getAssignedCommit().equals(childNode.getAssignedCommit()))
-            childNode.setAssignedCommit(pNode.getAssignedCommit());
-        }
-        else
-        {
-          childNode = new FileChangeTypeNode(entry.getValue(), pNode.getAssignedCommit());
-          treeUpdates.add(TreeUpdate.createInsert(childNode, pNode, 0));
-        }
-        treeUpdates.addAll(_updateTree(pMap, childNode));
-      }
-      for (TreeNode treeNode : Collections.list(pNode.children()))
-      {
-        FileChangeTypeNode fileChangeTypeNode = ((FileChangeTypeNode) treeNode);
-        if (fileChangeTypeNode.getInfo() == null || !map.containsKey(fileChangeTypeNode.getInfo().getNodeFile()))
-        {
-          treeUpdates.add(TreeUpdate.createRemove((FileChangeTypeNode) treeNode));
-        }
-      }
-    }
-    return treeUpdates;
   }
 
   /**

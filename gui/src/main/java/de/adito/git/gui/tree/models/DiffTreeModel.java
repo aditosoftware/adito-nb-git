@@ -131,31 +131,6 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
   }
 
   /**
-   * removes all nodes one level below the parent that do not match any of the passed parentIds
-   *
-   * @param pList     list with the DiffInfos
-   * @param pRootNode root node of the tree
-   */
-  @NotNull
-  private List<TreeUpdate> _removeOldCommitNodes(@NotNull List<IDiffInfo> pList, @NotNull FileChangeTypeNode pRootNode)
-  {
-    List<TreeUpdate> treeUpdates = new ArrayList<>();
-    for (int index = pRootNode.getChildCount() - 1; index >= 0; index--)
-    {
-      FileChangeTypeNode child = (FileChangeTypeNode) pRootNode.getChildAt(index);
-      if (child.getInfo() == null)
-      {
-        treeUpdates.add(TreeUpdate.createRemove(child));
-        continue;
-      }
-      final String childDisplayName = child.getInfo().getNodeDescription();
-      if (pList.stream().noneMatch(pDiffInfo -> _getCommitNodeDescription(pDiffInfo).equals(childDisplayName)))
-        treeUpdates.add(TreeUpdate.createRemove(child));
-    }
-    return treeUpdates;
-  }
-
-  /**
    * creates or updates the node for the diffInfo/the parentCommit in the diffInfo
    *
    * @param pRootNode the root node of the tree
@@ -182,50 +157,5 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
     }
     treeUpdates.addAll(_updateTree(fileHashMap, commitInfoNode));
     return treeUpdates;
-  }
-
-  /**
-   * searches the parentNode for a child whose nodeDescription equals the passed name
-   *
-   * @param pNode      Node that should be searched for the child
-   * @param pChildName name of the child as String
-   * @return the child with the passed name, or null if none with that name exists
-   */
-  @Nullable
-  private FileChangeTypeNode _getChildNode(@NotNull FileChangeTypeNode pNode, @NotNull String pChildName)
-  {
-    for (int index = pNode.getChildCount() - 1; index >= 0; index--)
-    {
-      FileChangeTypeNode child = (FileChangeTypeNode) pNode.getChildAt(index);
-      if (child.getInfo() == null)
-        continue;
-      final String childDisplayName = child.getInfo().getNodeDescription();
-      if (pChildName.equals(childDisplayName))
-        return child;
-    }
-    return null;
-  }
-
-  /**
-   * @param pDiffInfo DiffInfo for which to create the nodeDescription
-   * @return formatted String used as nodeDescription in a FileChangeTypeNode
-   */
-  @NotNull
-  private String _getCommitNodeDescription(@NotNull IDiffInfo pDiffInfo)
-  {
-    return String.format("commit %8.8s", pDiffInfo.getParentCommit().getId());
-  }
-
-  /**
-   * @param pDiffInfos List of DiffInfos whose changed files should be added up
-   * @return List with all changed files, does not contain duplicates
-   */
-  private @NotNull List<IFileChangeType> _getAllChangedFiles(@NotNull List<IDiffInfo> pDiffInfos)
-  {
-    if (pDiffInfos.size() == 1)
-      return pDiffInfos.get(0).getChangedFiles();
-    Set<IFileChangeType> allChangedFiles = new HashSet<>();
-    pDiffInfos.forEach(pDiffInfo -> allChangedFiles.addAll(pDiffInfo.getChangedFiles()));
-    return new ArrayList<>(allChangedFiles);
   }
 }
