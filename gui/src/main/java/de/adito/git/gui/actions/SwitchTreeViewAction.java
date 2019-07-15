@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author m.kaspera, 12.07.2019
  */
-public class SwitchTreeViewAction extends AbstractAction
+class SwitchTreeViewAction extends AbstractAction
 {
 
   private final IFileSystemUtil fileSystemUtil;
@@ -35,8 +35,8 @@ public class SwitchTreeViewAction extends AbstractAction
   private final File projectDirectory;
 
   @Inject
-  public SwitchTreeViewAction(IIconLoader pIIconLoader, IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore, @Assisted JTree pTree,
-                              @Assisted Observable<List<IFileChangeType>> pChangeList, @Assisted File pProjectDirectory)
+  SwitchTreeViewAction(IIconLoader pIIconLoader, IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore, @Assisted JTree pTree,
+                       @Assisted Observable<List<IFileChangeType>> pChangeList, @Assisted File pProjectDirectory)
   {
     putValue(Action.SMALL_ICON, pIIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT));
     fileSystemUtil = pFileSystemUtil;
