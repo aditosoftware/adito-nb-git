@@ -10,7 +10,9 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
+import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.BaseObservingTreeModel;
@@ -50,6 +52,8 @@ public class CommitDetailsPanel implements IDiscardable
   private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
   private final JPanel treeViewPanel = new JPanel(new BorderLayout());
   private final IActionProvider actionProvider;
+  private final IPrefStore prefStore;
+  private final IIconLoader iconLoader;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final JCheckBox showAllCheckbox = new JCheckBox("Show all changed files");
@@ -63,12 +67,14 @@ public class CommitDetailsPanel implements IDiscardable
 
   @Inject
   public CommitDetailsPanel(IActionProvider pActionProvider, IQuickSearchProvider pQuickSearchProvider,
-                            IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore,
+                            IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore, IIconLoader pIconLoader,
                             @Assisted Observable<Optional<IRepository>> pRepository,
                             @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
                             @Assisted ICommitFilter pCommitFilter)
   {
     actionProvider = pActionProvider;
+    prefStore = pPrefStore;
+    iconLoader = pIconLoader;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
     commitFilter = pCommitFilter;
@@ -210,7 +216,11 @@ public class CommitDetailsPanel implements IDiscardable
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getExpandTreeAction(statusTree.getTree()));
     toolBar.add(actionProvider.getCollapseTreeAction(statusTree.getTree()));
-    toolBar.add(actionProvider.getSwitchDiffTreeViewAction(statusTree.getTree(), pChangedFilesObs, pProjectDirectory));
+    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchDiffTreeViewAction(statusTree.getTree(), pChangedFilesObs, pProjectDirectory),
+                                            () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
+                                            iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
+                                            iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
+                    .getButton());
     toolBar.add(showAllCheckbox);
     return toolBar;
   }
