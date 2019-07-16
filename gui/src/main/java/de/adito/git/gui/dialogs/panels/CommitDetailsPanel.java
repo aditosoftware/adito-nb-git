@@ -107,7 +107,7 @@ public class CommitDetailsPanel implements IDiscardable
     loadingLabel.setFont(new Font(loadingLabel.getFont().getFontName(), loadingLabel.getFont().getStyle(), 16));
     loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-    onChangeExpandTreeDisposable = TreeUtil.getTreeModelChangeObservable(diffTreeModel)
+    onChangeExpandTreeDisposable = TreeUtil.getTreeModelChangeObservable(statusTree.getTree())
         .debounce(100, TimeUnit.MILLISECONDS)
         .subscribe(pEvent -> diffTreeModel.invokeAfterComputations(() -> {
           TreeUtil._expandTreeInterruptible(statusTree.getTree());
