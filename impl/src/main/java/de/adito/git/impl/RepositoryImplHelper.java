@@ -352,11 +352,11 @@ public class RepositoryImplHelper
     List<IFileDiff> toMergeDiffList = pDiffFunction.apply(toMergeCommit, pForkCommit);
     for (IFileDiff parentDiff : parentDiffList)
     {
-      if (pConflicts.stream().anyMatch(pConflictFile -> IFileDiff._isSameFile(pConflictFile, parentDiff)))
+      if (pConflicts.stream().anyMatch(pConflictFile -> IFileDiff.isSameFile(pConflictFile, parentDiff)))
       {
         for (IFileDiff toMergeDiff : toMergeDiffList)
         {
-          if (IFileDiff._isSameFile(toMergeDiff, parentDiff))
+          if (IFileDiff.isSameFile(toMergeDiff, parentDiff))
           {
             mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
           }

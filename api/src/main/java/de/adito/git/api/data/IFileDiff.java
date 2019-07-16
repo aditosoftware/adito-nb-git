@@ -80,7 +80,7 @@ public interface IFileDiff extends IFileChangeType
    * @param pFileDiff IFileDiff
    * @return true if the new or the old path of the IFileDiff match the given path, false otherwise
    */
-  static boolean _isSameFile(@NotNull String pFilePath, @NotNull IFileDiff pFileDiff)
+  static boolean isSameFile(@NotNull String pFilePath, @NotNull IFileDiff pFileDiff)
   {
     return pFilePath.equals(pFileDiff.getFilePath(EChangeSide.NEW)) || pFilePath.equals(pFileDiff.getFilePath(EChangeSide.OLD));
   }
@@ -92,11 +92,11 @@ public interface IFileDiff extends IFileChangeType
    * @param pOtherFileDiff second IFileDiff
    * @return true if any combination of the paths of the IFileDiffs are the same, except if the matching path is the VOID_PATH. false in all other cases
    */
-  static boolean _isSameFile(@NotNull IFileDiff pFileDiff, @NotNull IFileDiff pOtherFileDiff)
+  static boolean isSameFile(@NotNull IFileDiff pFileDiff, @NotNull IFileDiff pOtherFileDiff)
   {
     if (!IRepository.VOID_PATH.equals(pFileDiff.getFilePath(EChangeSide.NEW))
         && (pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.NEW)))
-        || pFileDiff.getFilePath(EChangeSide.NEW).equals(pFileDiff.getFilePath(EChangeSide.OLD)))
+        || pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.OLD)))
     {
       return true;
     }
