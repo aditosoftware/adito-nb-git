@@ -505,13 +505,18 @@ public class RepositoryImpl implements IRepository
           FileHeader fileHeader = diffFormatter.toFileHeader(diffEntry);
           // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
           byte[] newFileBytes = null;
+          Charset encoding;
+          IFileContentInfo oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+              : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
           if (!VOID_PATH.equals(diffEntry.getNewPath()))
           {
             newFileBytes = Files.readAllBytes(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath());
+            encoding = fileSystemUtil.getEncoding(new File(getTopLevelDirectory(), diffEntry.getNewPath()));
           }
-          IFileContentInfo oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
-              : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
-          Charset encoding = fileSystemUtil.getEncoding(new File(getTopLevelDirectory(), diffEntry.getNewPath()));
+          else
+          {
+            encoding = oldFileContents.getEncoding();
+          }
           returnList.add(new FileDiffImpl(diffEntry, fileHeader, getTopLevelDirectory(),
                                           oldFileContents, newFileBytes == null ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
                                               : new FileContentInfoImpl(new String(newFileBytes, encoding), encoding)));
