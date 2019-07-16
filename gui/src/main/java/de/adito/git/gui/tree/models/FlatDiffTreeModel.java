@@ -12,7 +12,6 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.tree.MutableTreeNode;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,6 +68,7 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
       {
         treeUpdates.addAll(_handleCommitNodes(rootNode, diffInfo));
       }
+      rootNode.getInfo().setMembers(_getAllChangedFiles(pDiffInfos));
     }
     return treeUpdates;
   }
@@ -78,27 +78,8 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     List<IFileChangeType> changeTypes = pDiffInfos.get(0).getChangedFiles();
-    for (int index = 0; index < pRootNode.getChildCount(); index++)
-    {
-      if (Thread.currentThread().isInterrupted())
-        throw new InterruptedRuntimeException();
-      List<IFileChangeType> members = ((FileChangeTypeNode) pRootNode.getChildAt(index)).getInfo().getMembers();
-      if (members.isEmpty() || !changeTypes.contains(members.get(0)))
-      {
-        treeUpdates.add(TreeUpdate.createRemove((MutableTreeNode) pRootNode.getChildAt(index)));
-      }
-    }
-    for (IFileChangeType changeType : changeTypes)
-    {
-      if (Thread.currentThread().isInterrupted())
-        throw new InterruptedRuntimeException();
-      if (!pRootNode.getInfo().getMembers().contains(changeType))
-      {
-        treeUpdates.add(TreeUpdate.createInsert(new FileChangeTypeNode(
-            new FileChangeTypeNodeInfo(changeType.getFile().getName(), changeType.getFile(), List.of(changeType))), pRootNode, 0));
-      }
-    }
     pRootNode.getInfo().setMembers(changeTypes);
+    treeUpdates.addAll(_updateTree(_calculateFlatMap(changeTypes), (FileChangeTypeNode) root));
     return treeUpdates;
   }
 
@@ -106,7 +87,7 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
   private List<TreeUpdate> _handleCommitNodes(@NotNull FileChangeTypeNode pRootNode, @NotNull IDiffInfo diffInfo)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
-    HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateFlatMap(diffInfo);
+    HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateFlatMap(diffInfo.getChangedFiles());
     FileChangeTypeNode commitInfoNode = _getChildNode(pRootNode, _getCommitNodeDescription(diffInfo));
     if (commitInfoNode == null)
     {
@@ -124,10 +105,10 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
   }
 
   @NotNull
-  private HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateFlatMap(@NotNull IDiffInfo pDiffInfo)
+  private HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateFlatMap(@NotNull List<IFileChangeType> pChangedFiles)
   {
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> groups = new HashMap<>();
-    for (IFileChangeType changeType : pDiffInfo.getChangedFiles())
+    for (IFileChangeType changeType : pChangedFiles)
     {
       if (Thread.currentThread().isInterrupted())
         throw new InterruptedRuntimeException();
