@@ -3,12 +3,15 @@ package de.adito.git.nbm.util;
 import de.adito.git.api.IRepository;
 import de.adito.git.nbm.repo.RepositoryCache;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.netbeans.api.project.*;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
 
 /**
  * @author a.arnold, 20.11.2018
@@ -54,12 +57,15 @@ public class RepositoryUtility
    * @param pDataObject A {@link DataObject} from NetBeans.
    * @return A repository in which the DataObject is.
    */
+  @NotNull
   public static Observable<Optional<IRepository>> find(DataObject pDataObject)
   {
     Project project = FileOwnerQuery.getOwner(pDataObject.getPrimaryFile());
+    if (project == null)
+      pDataObject.getLookup().lookup(Project.class);
     if (project != null)
       return RepositoryCache.getInstance().findRepository(project);
-    return null;
+    return Observable.just(Optional.empty());
   }
 
 }
