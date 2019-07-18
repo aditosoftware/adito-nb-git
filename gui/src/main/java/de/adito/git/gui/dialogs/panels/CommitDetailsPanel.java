@@ -106,12 +106,13 @@ public class CommitDetailsPanel implements IDiscardable
     loadingLabel.setFont(new Font(loadingLabel.getFont().getFontName(), loadingLabel.getFont().getStyle(), 16));
     loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-    onChangeExpandTreeDisposable = TreeUtil.getTreeModelChangeObservable(statusTree.getTree())
-        .debounce(100, TimeUnit.MILLISECONDS)
-        .subscribe(pEvent -> diffTreeModel.invokeAfterComputations(() -> {
-          TreeUtil._expandTreeInterruptible(statusTree.getTree());
-          _showTree();
-        }));
+    onChangeExpandTreeDisposable = changedFilesObs
+        .subscribe(pEvent -> ((BaseObservingTreeModel) statusTree.getTree().getModel()).invokeAfterComputations(
+            // use EDT Thread because apparently expanding a tree while not in the EDT may cause Swing to get confused with the index of treeNodes
+            () -> SwingUtilities.invokeLater(() -> {
+              TreeUtil._expandTreeInterruptible(statusTree.getTree());
+              _showTree();
+            }), "expandAndShowTree"));
     _initDetailPanel();
   }
 

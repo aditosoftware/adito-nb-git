@@ -19,7 +19,6 @@ import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.LinedDecorator;
 import de.adito.git.gui.swing.MutableIconActionButton;
-import de.adito.git.gui.tree.models.ObservingTreeModel;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
@@ -88,7 +87,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                                                                                                              .map(IFileStatus::getUncommitted)
                                                                                                              .orElse(Collections.emptyList())));
     File dir = optRepo.map(IRepository::getTopLevelDirectory).orElse(null);
-    if (optRepo.isPresent())
+    if (optRepo.isPresent() && dir != null)
     {
       _initCheckBoxTree(pFileSystemUtil, pQuickSearchProvider, pFilesToCommit, filesToCommitObservable, dir);
       SwingUtilities.invokeLater(() -> {
@@ -162,21 +161,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    */
   private void _markPreselectedAndExpand(StatusTreeModel pStatusTreeModel, List<File> pPreSelectedFiles)
   {
-    // use the IDataModelUpdateListener to wait for the first time that the model is fully updated
-    // otherwise the root node might still be null or some of the files to selected might not have their nodes registered yet
-    pStatusTreeModel.registerDataModelUpdatedListener(new ObservingTreeModel.IDataModelUpdateListener()
-    {
-      @Override
-      public void modelUpdated()
-      {
-        pStatusTreeModel.invokeAfterComputations(() -> _setSelected(pPreSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(),
-                                                                    checkBoxTree.getCheckBoxTreeSelectionModel()));
-        pStatusTreeModel.invokeAfterComputations(() -> {
-          if (pStatusTreeModel.getRoot() != null)
-            checkBoxTree.expandPath(new TreePath(pStatusTreeModel.getRoot()));
-        });
-        pStatusTreeModel.removeDataModelUpdateListener(this);
-      }
+    pStatusTreeModel.invokeAfterComputations(() -> {
+      _setSelected(pPreSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(), checkBoxTree.getCheckBoxTreeSelectionModel());
+      if (pStatusTreeModel.getRoot() != null)
+        actionProvider.getExpandTreeAction(checkBoxTree).actionPerformed(null);
     });
   }
 
@@ -230,6 +218,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
   /**
    * initialise GUI elements
+   *
    * @param pFilesToCommitObservable
    * @param pDir
    */
