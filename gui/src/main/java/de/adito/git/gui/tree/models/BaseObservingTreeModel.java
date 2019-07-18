@@ -4,7 +4,7 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
-import de.adito.git.gui.concurrency.PriorityDroppingExecutor;
+import de.adito.git.gui.concurrency.ComputationCycleExecutor;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
@@ -26,7 +26,7 @@ public abstract class BaseObservingTreeModel extends DefaultTreeModel implements
 {
 
   final File projectDirectory;
-  final PriorityDroppingExecutor service = new PriorityDroppingExecutor();
+  final ComputationCycleExecutor service = new ComputationCycleExecutor();
   private final List<ObservingTreeModel.IDataModelUpdateListener> updateListeners = new ArrayList<>();
 
   BaseObservingTreeModel(File pProjectDirectory)
@@ -36,21 +36,24 @@ public abstract class BaseObservingTreeModel extends DefaultTreeModel implements
   }
 
   /**
-   * Queues the Task in the Single-thread executor of this class
+   * Queues the Task and executes it once the next computation cycle is finished
    *
    * @param pRunnable Runnable to execute
    */
   public void invokeAfterComputations(@NotNull Runnable pRunnable)
   {
-    registerDataModelUpdatedListener(new IDataModelUpdateListener()
-    {
-      @Override
-      public void modelUpdated()
-      {
-        service.invokeAfterComputations(pRunnable);
-        removeDataModelUpdateListener(this);
-      }
-    });
+    service.invokeAfterComputations(pRunnable);
+  }
+
+  /**
+   * Queues the Task and executes it once the next computation cycle is finished. This method only executes any action with the same key once per computation cycle
+   *
+   * @param pRunnable Runnable to execute
+   * @param pKey      Key that is used to determine if there already is an action of this instance
+   */
+  public void invokeAfterComputations(@NotNull Runnable pRunnable, String pKey)
+  {
+    service.invokeAfterComputations(pRunnable, pKey);
   }
 
   /**
