@@ -60,7 +60,7 @@ public class TreeUtil
    */
   public static Observable<TreeModelEvent> getTreeModelChangeObservable(JTree pTree)
   {
-    return Observable.create(new _TreeModelObservable(pTree)).switchMap(TreeUtil::getTreeModelChangeObservable);
+    return Observable.create(new _TreeModelObservable(pTree)).startWith((BaseObservingTreeModel) pTree.getModel()).switchMap(TreeUtil::getTreeModelChangeObservable);
   }
 
   /**
