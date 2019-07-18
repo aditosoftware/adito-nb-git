@@ -302,7 +302,9 @@ public interface IActionProvider
    * @param pTree             Tree whose view should be updated
    * @param pChangeList       Observable with the list of changed files
    * @param pProjectDirectory root folder of the project
+   * @param pCallerName       Name of the class/dialog/topComponent using this action. Determines the key used for checking the state of the view
    * @return Action whose actionPerformed method swaps the treeView from a flat view (only leaves below root) to a hierarchical view
    */
-  Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory);
+  Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory,
+                                     @NotNull String pCallerName);
 }

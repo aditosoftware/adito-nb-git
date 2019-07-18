@@ -31,11 +31,13 @@ class SwitchDiffTreeViewAction extends AbstractAction
   private final JTree tree;
   private final Observable<List<IDiffInfo>> changeList;
   private final File projectDirectory;
+  private final String callerName;
 
   @Inject
   SwitchDiffTreeViewAction(IIconLoader pIIconLoader, IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore, @Assisted JTree pTree,
-                           @Assisted Observable<List<IDiffInfo>> pChangeList, @Assisted File pProjectDirectory)
+                           @Assisted Observable<List<IDiffInfo>> pChangeList, @Assisted File pProjectDirectory, @Assisted String pCallerName)
   {
+    callerName = pCallerName;
     putValue(Action.SMALL_ICON, pIIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT));
     fileSystemUtil = pFileSystemUtil;
     prefStore = pPrefStore;
@@ -50,19 +52,19 @@ class SwitchDiffTreeViewAction extends AbstractAction
     Runnable expandTreeRunnable = () -> TreeUtil._expandTreeInterruptible(tree);
     if (tree.getModel() instanceof IDiscardable)
       ((IDiscardable) tree.getModel()).discard();
-    if (Constants.TREE_VIEW_FLAT.equals(prefStore.get(Constants.TREE_VIEW_TYPE_KEY)))
+    if (Constants.TREE_VIEW_FLAT.equals(prefStore.get(callerName + Constants.TREE_VIEW_TYPE_KEY)))
     {
       tree.setModel(new DiffTreeModel(changeList, projectDirectory));
       tree.setCellRenderer(new FileChangeTypeTreeCellRenderer(fileSystemUtil, projectDirectory));
       ((DiffTreeModel) tree.getModel()).invokeAfterComputations(expandTreeRunnable);
-      prefStore.put(Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_HIERARCHICAL);
+      prefStore.put(callerName + Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_HIERARCHICAL);
     }
     else
     {
       tree.setModel(new FlatDiffTreeModel(changeList, projectDirectory));
       tree.setCellRenderer(new FileChangeTypeFlatTreeCellRenderer(fileSystemUtil, projectDirectory));
       ((FlatDiffTreeModel) tree.getModel()).invokeAfterComputations(expandTreeRunnable);
-      prefStore.put(Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_FLAT);
+      prefStore.put(callerName + Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_FLAT);
     }
   }
 }

@@ -107,5 +107,6 @@ interface IActionFactory
   SwitchTreeViewAction createSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory,
                                                   @NotNull String pCallerName);
 
-  SwitchDiffTreeViewAction createSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory);
+  SwitchDiffTreeViewAction createSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory,
+                                                          @NotNull String pCallerName);
 }

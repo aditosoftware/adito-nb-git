@@ -97,7 +97,7 @@ public class CommitDetailsPanel implements IDiscardable
         })
         .share()
         .subscribeWith(BehaviorSubject.createDefault(List.of()));
-    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
+    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel diffTreeModel = useFlatTree ? new FlatDiffTreeModel(changedFilesObs, projectDirectory) : new DiffTreeModel(changedFilesObs, projectDirectory);
     statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
     treeViewPanel.add(_getTreeToolbar(changedFilesObs, projectDirectory), BorderLayout.NORTH);
@@ -216,8 +216,9 @@ public class CommitDetailsPanel implements IDiscardable
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getExpandTreeAction(statusTree.getTree()));
     toolBar.add(actionProvider.getCollapseTreeAction(statusTree.getTree()));
-    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchDiffTreeViewAction(statusTree.getTree(), pChangedFilesObs, pProjectDirectory),
-                                            () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
+    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchDiffTreeViewAction(statusTree.getTree(), pChangedFilesObs, pProjectDirectory,
+                                                                                       this.getClass().getName()),
+                                            () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY)),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
                     .getButton());
