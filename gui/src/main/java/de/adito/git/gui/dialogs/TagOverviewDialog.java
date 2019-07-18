@@ -10,7 +10,7 @@ import de.adito.git.api.data.ITag;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.concurrency.PriorityDroppingExecutor;
+import de.adito.git.gui.concurrency.ComputationCycleExecutor;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTree;
@@ -48,7 +48,7 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final Consumer<ICommit> selectedCommitCallback;
   private final Observable<Optional<IRepository>> repository;
   private final Disposable tagDisposable;
-  private final PriorityDroppingExecutor executor = new PriorityDroppingExecutor();
+  private final ComputationCycleExecutor executor = new ComputationCycleExecutor();
   private boolean expandActionDone = false;
   private ObservableTreeSelectionModel selectionModel;
   private _SelectCommitAction selectCommitAction;
@@ -73,7 +73,7 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
                                                pActionProvider.getExpandTreeAction(tree));
       else
         updater = new TagTreeBackgroundUpdater(treeModel, pTagList.stream().map(pTag -> Paths.get(pTag.getName())).collect(Collectors.toList()));
-      executor.invokePriority(updater);
+      executor.invokeComputation(updater);
     });
     Observable<Optional<ITag>> selectedTagObservable = selectionModel.getSelectedPaths().map(pSelectedPaths -> {
       if (pSelectedPaths != null && pSelectedPaths.length == 1)

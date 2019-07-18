@@ -118,7 +118,7 @@ public class DiffTreeModel extends ObservingTreeModel implements IDiscardable
   {
     try
     {
-      service.invokePriority(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pList, comparator, this::fireDataModelUpdated));
+      service.invokeComputation(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pList, comparator, this::fireDataModelUpdated, service::computationsDone));
     }
     catch (InterruptedRuntimeException pE)
     {

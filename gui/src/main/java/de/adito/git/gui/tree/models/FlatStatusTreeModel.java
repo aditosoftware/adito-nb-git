@@ -35,7 +35,8 @@ public class FlatStatusTreeModel extends BaseObservingTreeModel implements IDisc
   {
     try
     {
-      service.invokePriority(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), this::fireDataModelUpdated));
+      service.invokeComputation(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), this::fireDataModelUpdated,
+                                                                 service::computationsDone));
     }
     catch (InterruptedRuntimeException pE)
     {
@@ -67,7 +68,8 @@ public class FlatStatusTreeModel extends BaseObservingTreeModel implements IDisc
     {
       if (!rootNode.getInfo().getMembers().contains(changeType))
       {
-        treeUpdates.add(TreeUpdate.createInsert(new FileChangeTypeNode(new FileChangeTypeNodeInfo(changeType.getFile().getName(), changeType.getFile(), List.of(changeType))), rootNode, 0));
+        treeUpdates.add(TreeUpdate.createInsert(new FileChangeTypeNode(new FileChangeTypeNodeInfo(changeType.getFile().getName(), changeType.getFile(),
+                                                                                                  List.of(changeType))), rootNode, 0));
       }
     }
     rootNode.getInfo().setMembers(pChangeList);

@@ -31,11 +31,19 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
     disposable = pChangeList.subscribe(this::_treeChanged);
   }
 
+  @Override
+  public void discard()
+  {
+    disposable.dispose();
+    service.shutdown();
+  }
+
   private void _treeChanged(@NotNull List<IDiffInfo> pChangeList)
   {
     try
     {
-      service.invokePriority(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), this::fireDataModelUpdated));
+      service.invokeComputation(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), this::fireDataModelUpdated,
+                                                                 service::computationsDone));
     }
     catch (InterruptedRuntimeException pE)
     {
@@ -137,11 +145,5 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
       }
     }
     return groups;
-  }
-
-  @Override
-  public void discard()
-  {
-    disposable.dispose();
   }
 }
