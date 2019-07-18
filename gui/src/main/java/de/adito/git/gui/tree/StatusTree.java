@@ -12,6 +12,7 @@ import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -30,8 +31,8 @@ public class StatusTree
   private final SearchableTree searchableTree;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
 
-  public StatusTree(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil,
-                    @NotNull BaseObservingTreeModel pTreeModel, boolean pUseFlatCellRenderer, @NotNull File pProjectDirectory, @NotNull JPanel pTreeViewPanel)
+  public StatusTree(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil, @NotNull BaseObservingTreeModel pTreeModel,
+                    boolean pUseFlatCellRenderer, @NotNull File pProjectDirectory, @NotNull JPanel pTreeViewPanel, @Nullable JScrollPane pScrollPane)
   {
     searchableTree = new SearchableTree();
     searchableTree.init(pTreeViewPanel, pTreeModel);
@@ -40,7 +41,15 @@ public class StatusTree
     else
       searchableTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDirectory));
     pQuickSearchProvider.attach(pTreeViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(searchableTree));
-    pTreeViewPanel.add(new JScrollPane(searchableTree), BorderLayout.CENTER);
+    JScrollPane treeScrollpane;
+    if (pScrollPane == null)
+      treeScrollpane = new JScrollPane(searchableTree);
+    else
+    {
+      pScrollPane.setViewportView(searchableTree);
+      treeScrollpane = pScrollPane;
+    }
+    pTreeViewPanel.add(treeScrollpane, BorderLayout.CENTER);
     ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(searchableTree.getSelectionModel());
     searchableTree.setSelectionModel(observableTreeSelectionModel);
     selectionObservable = observableTreeSelectionModel.getSelectedPaths().map(pSelected -> {

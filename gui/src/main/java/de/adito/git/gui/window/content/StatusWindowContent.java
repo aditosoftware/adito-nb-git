@@ -69,7 +69,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
     statusTreeModel = useFlatTree ? new FlatStatusTreeModel(changedFilesObs, projectDirectory) : new StatusTreeModel(changedFilesObs, projectDirectory);
     statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree,
-                                projectDirectory, tableViewPanel);
+                                projectDirectory, tableViewPanel, null);
     statusTree.getTree().addMouseListener(new _DoubleClickListener());
     statusTreeModel.invokeAfterComputations(() -> TreeUtil._expandTreeInterruptible(statusTree.getTree()));
     selectionObservable = statusTree.getSelectionObservable();

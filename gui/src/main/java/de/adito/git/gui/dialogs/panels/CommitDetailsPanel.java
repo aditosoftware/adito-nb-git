@@ -36,7 +36,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -100,7 +99,7 @@ public class CommitDetailsPanel implements IDiscardable
         .subscribeWith(BehaviorSubject.createDefault(List.of()));
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel diffTreeModel = useFlatTree ? new FlatDiffTreeModel(changedFilesObs, projectDirectory) : new DiffTreeModel(changedFilesObs, projectDirectory);
-    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel);
+    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
     treeViewPanel.add(_getTreeToolbar(changedFilesObs, projectDirectory), BorderLayout.NORTH);
 
     _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);

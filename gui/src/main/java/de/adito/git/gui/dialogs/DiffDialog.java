@@ -70,7 +70,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel statusTreeModel =
         useFlatTree ? new FlatStatusTreeModel(Observable.just(pList), pProjectDirectory) : new StatusTreeModel(Observable.just(pList), pProjectDirectory);
-    fileTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree, pProjectDirectory, searchPanel);
+    fileTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree, pProjectDirectory, searchPanel, null);
     statusTreeModel.registerDataModelUpdatedListener(new ObservingTreeModel.IDataModelUpdateListener()
     {
       @Override
