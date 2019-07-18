@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -22,7 +23,9 @@ public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>,
   private final Function<List<T>, List<TreeUpdate>> workFunction;
   private final List<T> param;
   private final Comparator<TreeNode> comparator;
-  private final Runnable doOnUpdateComplete;
+  private final Runnable[] doOnUpdateComplete;
+  private static int factoryNumber = 0;
+  private final int modelNumber;
 
   /**
    * @param pTreeModel          TreeModel that should be updated
@@ -32,13 +35,15 @@ public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>,
    * @param pDoOnUpdateComplete runnable that should be executed after the update (the whole update, including the EDT part) is done (can be used for listeners and such)
    */
   public TreeModelBackgroundUpdater(BaseObservingTreeModel pTreeModel, Function<List<T>, List<TreeUpdate>> pWorkFunction, List<T> pParam,
-                                    Comparator<TreeNode> pComparator, Runnable pDoOnUpdateComplete)
+                                    Comparator<TreeNode> pComparator, Runnable... pDoOnUpdateComplete)
   {
     treeModel = pTreeModel;
     workFunction = pWorkFunction;
     param = pParam;
     comparator = pComparator;
     doOnUpdateComplete = pDoOnUpdateComplete;
+    factoryNumber++;
+    modelNumber = factoryNumber;
   }
 
   @Override
@@ -65,7 +70,7 @@ public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>,
       treeUpdates = get();
       for (TreeUpdate update : treeUpdates)
       {
-        if (isCancelled() || Thread.currentThread().isInterrupted())
+        if (modelNumber != factoryNumber || isCancelled() || Thread.currentThread().isInterrupted())
           return;
         if (update.getType() == TreeUpdate.TYPE.INSERT)
         {
@@ -79,12 +84,10 @@ public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>,
         }
         else if (update.getType() == TreeUpdate.TYPE.REMOVE && update.getNode().getParent() != null)
         {
-          TreeNode toReload = update.getNode().getParent();
           treeModel.removeNodeFromParent(update.getNode());
-          treeModel.reload(toReload);
         }
       }
-      doOnUpdateComplete.run();
+      Arrays.stream(doOnUpdateComplete).forEach(Runnable::run);
     }
     catch (InterruptedRuntimeException pE)
     {
