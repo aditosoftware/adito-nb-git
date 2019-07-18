@@ -8,6 +8,7 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
+import de.adito.git.gui.tree.models.BaseObservingTreeModel;
 import de.adito.git.gui.tree.models.FlatStatusTreeModel;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
@@ -43,8 +44,10 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
 
       // Tree and scrollPane for tree
       Observable<List<IFileChangeType>> changedFiles = Observable.just(pFilesToRevert);
-      boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
-      JTree fileTree = new JTree(useFlatTree ? new FlatStatusTreeModel(changedFiles, pProjectDir) : new StatusTreeModel(changedFiles, pProjectDir));
+      boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
+      BaseObservingTreeModel treeModel = useFlatTree ? new FlatStatusTreeModel(changedFiles, pProjectDir) : new StatusTreeModel(changedFiles, pProjectDir);
+      JTree fileTree = new JTree(treeModel);
+      treeModel.invokeAfterComputations(() -> pActionProvider.getExpandTreeAction(fileTree));
       fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDir));
       JScrollPane scrollPane = new JScrollPane(fileTree);
       add(scrollPane, BorderLayout.CENTER);
@@ -54,8 +57,8 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
       toolBar.setFloatable(false);
       toolBar.add(pActionProvider.getExpandTreeAction(fileTree));
       toolBar.add(pActionProvider.getCollapseTreeAction(fileTree));
-      toolBar.add(new MutableIconActionButton(pActionProvider.getSwitchTreeViewAction(fileTree, changedFiles, pProjectDir),
-                                              () -> Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
+      toolBar.add(new MutableIconActionButton(pActionProvider.getSwitchTreeViewAction(fileTree, changedFiles, pProjectDir, this.getClass().getName()),
+                                              () -> Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY)),
                                               pIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                               pIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
                       .getButton());

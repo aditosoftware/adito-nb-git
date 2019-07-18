@@ -19,9 +19,12 @@ import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.LinedDecorator;
 import de.adito.git.gui.swing.MutableIconActionButton;
+import de.adito.git.gui.tree.models.BaseObservingTreeModel;
+import de.adito.git.gui.tree.models.FlatStatusTreeModel;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
+import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
@@ -138,9 +141,12 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                                  @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @NotNull Observable<List<IFileChangeType>> pFilesToCommitObs,
                                  @NotNull File pProjectDir)
   {
-    StatusTreeModel statusTreeModel = new StatusTreeModel(pFilesToCommitObs, pProjectDir);
+    boolean useFlatTreeModel = Constants.TREE_VIEW_FLAT.equals(prefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
+    BaseObservingTreeModel statusTreeModel = useFlatTreeModel ? new FlatStatusTreeModel(pFilesToCommitObs, pProjectDir)
+        : new StatusTreeModel(pFilesToCommitObs, pProjectDir);
     checkBoxTree.init(tableSearchView, statusTreeModel);
-    checkBoxTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDir));
+    checkBoxTree.setCellRenderer(useFlatTreeModel ? new FileChangeTypeFlatTreeCellRenderer(pFileSystemUtil, pProjectDir)
+                                     : new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDir));
     List<File> preSelectedFiles = pFilesToCommit.blockingFirst()
         .map(pFileChangeTypes -> pFileChangeTypes.stream()
             .map(IFileChangeType::getFile)
@@ -159,7 +165,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * @param pStatusTreeModel  StatusTreeModel that should have the specified files selected and it's root node expanded
    * @param pPreSelectedFiles list of files that should be preselected in the tree
    */
-  private void _markPreselectedAndExpand(StatusTreeModel pStatusTreeModel, List<File> pPreSelectedFiles)
+  private void _markPreselectedAndExpand(BaseObservingTreeModel pStatusTreeModel, List<File> pPreSelectedFiles)
   {
     pStatusTreeModel.invokeAfterComputations(() -> {
       _setSelected(pPreSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(), checkBoxTree.getCheckBoxTreeSelectionModel());
@@ -242,8 +248,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getExpandTreeAction(checkBoxTree));
     toolBar.add(actionProvider.getCollapseTreeAction(checkBoxTree));
-    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(checkBoxTree, pFilesToCommitObservable, pDir),
-                                            () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
+    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(checkBoxTree, pFilesToCommitObservable, pDir, this.getClass().getName()),
+                                            () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY)),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
                     .getButton());

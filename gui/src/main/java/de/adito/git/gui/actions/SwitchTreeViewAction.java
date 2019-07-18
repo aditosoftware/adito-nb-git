@@ -7,7 +7,6 @@ import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.FlatStatusTreeModel;
 import de.adito.git.gui.tree.models.StatusTreeModel;
@@ -33,17 +32,18 @@ class SwitchTreeViewAction extends AbstractAction
   private final JTree tree;
   private final Observable<List<IFileChangeType>> changeList;
   private final File projectDirectory;
+  private final String callerName;
 
   @Inject
-  SwitchTreeViewAction(IIconLoader pIIconLoader, IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore, @Assisted JTree pTree,
-                       @Assisted Observable<List<IFileChangeType>> pChangeList, @Assisted File pProjectDirectory)
+  SwitchTreeViewAction(IFileSystemUtil pFileSystemUtil, IPrefStore pPrefStore, @Assisted JTree pTree,
+                       @Assisted Observable<List<IFileChangeType>> pChangeList, @Assisted File pProjectDirectory, @Assisted String pCallerName)
   {
-    putValue(Action.SMALL_ICON, pIIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT));
     fileSystemUtil = pFileSystemUtil;
     prefStore = pPrefStore;
     tree = pTree;
     changeList = pChangeList;
     projectDirectory = pProjectDirectory;
+    callerName = pCallerName;
   }
 
   @Override
@@ -52,19 +52,19 @@ class SwitchTreeViewAction extends AbstractAction
     Runnable expandTreeRunnable = () -> TreeUtil._expandTreeInterruptible(tree);
     if (tree.getModel() instanceof IDiscardable)
       ((IDiscardable) tree.getModel()).discard();
-    if (Constants.TREE_VIEW_FLAT.equals(prefStore.get(Constants.TREE_VIEW_TYPE_KEY)))
+    if (Constants.TREE_VIEW_FLAT.equals(prefStore.get(callerName + Constants.TREE_VIEW_TYPE_KEY)))
     {
       tree.setModel(new StatusTreeModel(changeList, projectDirectory));
       tree.setCellRenderer(new FileChangeTypeTreeCellRenderer(fileSystemUtil, projectDirectory));
       ((StatusTreeModel) tree.getModel()).invokeAfterComputations(expandTreeRunnable);
-      prefStore.put(Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_HIERARCHICAL);
+      prefStore.put(callerName + Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_HIERARCHICAL);
     }
     else
     {
       tree.setModel(new FlatStatusTreeModel(changeList, projectDirectory));
       tree.setCellRenderer(new FileChangeTypeFlatTreeCellRenderer(fileSystemUtil, projectDirectory));
       ((FlatStatusTreeModel) tree.getModel()).invokeAfterComputations(expandTreeRunnable);
-      prefStore.put(Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_FLAT);
+      prefStore.put(callerName + Constants.TREE_VIEW_TYPE_KEY, Constants.TREE_VIEW_FLAT);
     }
   }
 }

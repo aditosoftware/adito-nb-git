@@ -67,7 +67,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     diffs = pDiffs;
     List<IFileChangeType> pList = new ArrayList<>(diffs);
     Observable<List<IFileChangeType>> changedFiles = Observable.just(pList);
-    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(Constants.TREE_VIEW_TYPE_KEY));
+    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel statusTreeModel =
         useFlatTree ? new FlatStatusTreeModel(Observable.just(pList), pProjectDirectory) : new StatusTreeModel(Observable.just(pList), pProjectDirectory);
     fileTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree, pProjectDirectory, searchPanel, null);
@@ -128,8 +128,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       toolBar.setFloatable(false);
       toolBar.add(actionProvider.getExpandTreeAction(fileTree.getTree()));
       toolBar.add(actionProvider.getCollapseTreeAction(fileTree.getTree()));
-      toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(fileTree.getTree(), pChangedFiles, pProjectDirectory),
-                                              () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
+      toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(fileTree.getTree(), pChangedFiles, pProjectDirectory, this.getClass().getName()),
+                                              () -> Constants.TREE_VIEW_FLAT.equals(this.getClass().getName() + prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
                                               iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                               iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
                       .getButton());

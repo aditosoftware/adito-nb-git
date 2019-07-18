@@ -304,9 +304,10 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
-  public Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory)
+  public Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory,
+                                        @NotNull String pCallerName)
   {
-    return actionFactory.createSwitchTreeViewAction(pTree, pChangeList, pProjectDirectory);
+    return actionFactory.createSwitchTreeViewAction(pTree, pChangeList, pProjectDirectory, pCallerName);
   }
 
   @Override
