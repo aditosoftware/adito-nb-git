@@ -95,8 +95,8 @@ public interface IFileDiff extends IFileChangeType
   static boolean isSameFile(@NotNull IFileDiff pFileDiff, @NotNull IFileDiff pOtherFileDiff)
   {
     if (!IRepository.VOID_PATH.equals(pFileDiff.getFilePath(EChangeSide.NEW))
-        && (pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.NEW)))
-        || pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.OLD)))
+        && ((pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.NEW)))
+        || pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.OLD))))
     {
       return true;
     }
