@@ -80,6 +80,7 @@ class DiffToHeadAction extends AbstractTableAction
     if (path == null)
       return; // File does not exist -> no changes needed
 
+    logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path, pFileDiff.getEncoding(EChangeSide.NEW)));
     try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File(path), false), pFileDiff.getEncoding(EChangeSide.NEW)))
     {
       StringBuilder fileDiffContents = new StringBuilder();
