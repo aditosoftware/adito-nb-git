@@ -214,7 +214,7 @@ class ChunkPopupWindow extends JWindow
       else
         length = endOffset - startOffset - 1;
       content = pRepo.getFileContents(pRepo.getFileVersion(pRepo.getCommit(null).getId(),
-                                                           pRepo.getTopLevelDirectory().toURI().relativize(pFile.toURI()).getPath())).getFileContent();
+                                                           pRepo.getTopLevelDirectory().toURI().relativize(pFile.toURI()).getPath())).getFileContent().get();
     }
     catch (AditoGitException | IOException pE)
     {

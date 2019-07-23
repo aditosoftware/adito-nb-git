@@ -2,12 +2,14 @@ package de.adito.git.nbm;
 
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.exception.AditoGitException;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.actions.Openable;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.cookies.OpenCookie;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileSystem;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
@@ -17,13 +19,21 @@ import java.awt.Image;
 import java.beans.BeanInfo;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author m.kaspera, 18.12.2018
  */
 public class NBFileSystemUtilImpl implements IFileSystemUtil
 {
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final FileSystem memoryFS = FileUtil.createMemoryFileSystem();
+
   @Override
   public void openFile(String pAbsolutePath) throws AditoGitException
   {
@@ -81,6 +91,40 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     catch (IOException pE)
     {
       return FileEncodingQuery.getEncoding(FileUtil.toFileObject(pFile));
+    }
+  }
+
+  @NotNull
+  @Override
+  public Charset getEncoding(@NotNull byte[] pContent)
+  {
+    FileObject tempFo = null;
+
+    try
+    {
+      tempFo = memoryFS.getRoot().createData(UUID.randomUUID().toString());
+      try (OutputStream out = tempFo.getOutputStream())
+      {
+        IOUtils.write(pContent, out);
+      }
+      return FileEncodingQuery.getEncoding(tempFo);
+    }
+    catch (Exception e)
+    {
+      logger.log(Level.SEVERE, e, () -> "Git: Error while determining encoding for byte array");
+      return StandardCharsets.UTF_8;
+    }
+    finally
+    {
+      try
+      {
+        if (tempFo != null)
+          tempFo.delete();
+      }
+      catch (Exception e)
+      {
+        //nothing
+      }
     }
   }
 }

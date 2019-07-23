@@ -1,8 +1,12 @@
 package de.adito.git.impl.data;
 
+import com.google.common.base.Suppliers;
+import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.IFileContentInfo;
+import de.adito.git.impl.Util;
 
 import java.nio.charset.Charset;
+import java.util.function.Supplier;
 
 /**
  * Class used to store information about a String and the encoding used to transform it into a byte array
@@ -12,21 +16,28 @@ import java.nio.charset.Charset;
 public class FileContentInfoImpl implements IFileContentInfo
 {
 
-  private final String fileContent;
-  private final Charset encoding;
+  private final Supplier<String> fileContent;
+  private final Supplier<Charset> encoding;
 
-  public FileContentInfoImpl(String pFileContent, Charset pEncoding)
+  public FileContentInfoImpl(Supplier<byte[]> pBytes, IFileSystemUtil pFileSystemUtil)
+  {
+    byte[] bytes = pBytes.get();
+    encoding = Suppliers.memoize(() -> Util.getEncoding(bytes, pFileSystemUtil));
+    fileContent = Suppliers.memoize(() -> new String(bytes, encoding.get()));
+  }
+
+  public FileContentInfoImpl(Supplier<String> pFileContent, Supplier<Charset> pEncoding)
   {
     fileContent = pFileContent;
     encoding = pEncoding;
   }
 
-  public String getFileContent()
+  public Supplier<String> getFileContent()
   {
     return fileContent;
   }
 
-  public Charset getEncoding()
+  public Supplier<Charset> getEncoding()
   {
     return encoding;
   }

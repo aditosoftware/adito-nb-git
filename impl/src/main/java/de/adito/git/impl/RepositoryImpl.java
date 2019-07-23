@@ -1,5 +1,6 @@
 package de.adito.git.impl;
 
+import com.google.common.base.Suppliers;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
@@ -267,8 +268,7 @@ public class RepositoryImpl implements IRepository
         Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
         String targetName;
         String currentHeadName;
-        try (BufferedReader reader = new BufferedReader(new FileReader(
-            new File(git.getRepository().getDirectory().getAbsolutePath(), "rebase-merge/head"))))
+        try (BufferedReader reader = new BufferedReader(new FileReader(RepositoryImplHelper.getRebaseMergeHead(git))))
         {
           currentHeadName = reader.readLine();
         }
@@ -406,7 +406,8 @@ public class RepositoryImpl implements IRepository
     String headId = ObjectId.toString(git.getRepository().resolve(Constants.HEAD));
 
 
-    RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(pCompareWith, git)), pCompareWith).getFileContent().getBytes());
+    RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(pCompareWith, git)), pCompareWith)
+                                               .getFileContent().get().getBytes());
     RawText currentFileContents = new RawText(pFileContents.getBytes());
 
     EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, headFileContents, currentFileContents);
@@ -428,21 +429,23 @@ public class RepositoryImpl implements IRepository
     {
       List<IFileDiff> listDiffImpl = new ArrayList<>();
 
+      File topLevelDirectory = getTopLevelDirectory();
+      IFileContentInfo emptyContentInfo = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
       List<DiffEntry> listDiff = RepositoryImplHelper.doDiff(git, ObjectId.fromString(pOriginal.getId()), ObjectId.fromString(pCompareTo.getId()));
 
       if (listDiff != null)
       {
-        for (DiffEntry diff : listDiff)
+        try (DiffFormatter formatter = new DiffFormatter(null))
         {
-          try (DiffFormatter formatter = new DiffFormatter(null))
+          formatter.setRepository(git.getRepository());
+          for (DiffEntry diff : listDiff)
           {
-            formatter.setRepository(git.getRepository());
             FileHeader fileHeader = formatter.toFileHeader(diff);
-            IFileContentInfo oldFileContent = VOID_PATH.equals(diff.getOldPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+            IFileContentInfo oldFileContent = VOID_PATH.equals(diff.getOldPath()) ? emptyContentInfo
                 : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
-            IFileContentInfo newFileContent = VOID_PATH.equals(diff.getNewPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+            IFileContentInfo newFileContent = VOID_PATH.equals(diff.getNewPath()) ? emptyContentInfo
                 : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
-            listDiffImpl.add(new FileDiffImpl(diff, fileHeader, getTopLevelDirectory(), oldFileContent, newFileContent));
+            listDiffImpl.add(new FileDiffImpl(diff, fileHeader, topLevelDirectory, oldFileContent, newFileContent));
           }
         }
       }
@@ -502,23 +505,11 @@ public class RepositoryImpl implements IRepository
             || pFilesToDiff.stream().anyMatch(file -> getRelativePath(file, git).equals(diffEntry.getOldPath())))
         {
           FileHeader fileHeader = diffFormatter.toFileHeader(diffEntry);
-          // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
-          byte[] newFileBytes = null;
-          Charset encoding;
-          IFileContentInfo oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
+          IFileContentInfo oldFileContents = VOID_PATH.equals(diffEntry.getOldPath()) ? new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8)
               : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
-          if (!VOID_PATH.equals(diffEntry.getNewPath()))
-          {
-            newFileBytes = Files.readAllBytes(new File(getTopLevelDirectory(), diffEntry.getNewPath()).toPath());
-            encoding = fileSystemUtil.getEncoding(new File(getTopLevelDirectory(), diffEntry.getNewPath()));
-          }
-          else
-          {
-            encoding = oldFileContents.getEncoding();
-          }
-          returnList.add(new FileDiffImpl(diffEntry, fileHeader, getTopLevelDirectory(),
-                                          oldFileContents, newFileBytes == null ? new FileContentInfoImpl("", StandardCharsets.UTF_8)
-                                              : new FileContentInfoImpl(new String(newFileBytes, encoding), encoding)));
+          IFileContentInfo newFileContents = VOID_PATH.equals(diffEntry.getNewPath()) ? new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8)
+              : new FileContentInfoImpl(Suppliers.memoize(() -> _getFileContent(diffEntry.getNewPath())), fileSystemUtil);
+          returnList.add(new FileDiffImpl(diffEntry, fileHeader, getTopLevelDirectory(), oldFileContents, newFileContents));
         }
       }
       return returnList;
@@ -556,28 +547,55 @@ public class RepositoryImpl implements IRepository
   }
 
   /**
-   * {@inheritDoc}
+   * reads the content of a file as byte array from the disk
+   *
+   * @param pPath Path of the file whose contents should be stored in the returned byte array
+   * @return byte array with the content of the passed file
    */
-  @Override
-  public IFileContentInfo getFileContents(String pIdentifier, File pFile) throws IOException
+  private byte[] _getFileContent(String pPath)
   {
-    Charset encoding = fileSystemUtil.getEncoding(pFile);
-    logger.log(Level.FINE, () -> String.format("git: Encoding for file %s in version with id %s: %s", pFile.getAbsolutePath(), pIdentifier, encoding.toString()));
-    ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
-    return new FileContentInfoImpl(new String(loader.getBytes(), encoding), encoding);
+    try
+    {
+      // Can't use the ObjectLoader or anything similar provided by JGit because it wouldn't find the blob, so parse file by hand
+      return Files.readAllBytes(new File(getTopLevelDirectory(), pPath).toPath());
+    }
+    catch (IOException pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public IFileContentInfo getFileContents(String pIdentifier) throws IOException
+  public IFileContentInfo getFileContents(String pIdentifier, File pFile) throws IOException
   {
     ObjectLoader loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
-    byte[] bytes = loader.getBytes();
-    Charset encoding = Util.getEncoding(bytes, fileSystemUtil);
-    logger.log(Level.FINE, () -> String.format("git: Encoding for Object with identifier %s: %s", pIdentifier, encoding));
-    return new FileContentInfoImpl(new String(bytes, encoding), encoding);
+    return new FileContentInfoImpl(Suppliers.memoize(loader::getBytes), fileSystemUtil);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public IFileContentInfo getFileContents(String pIdentifier)
+  {
+    Supplier<byte[]> byteSup = Suppliers.memoize(() -> {
+      ObjectLoader loader;
+      try
+      {
+        loader = git.getRepository().open(ObjectId.fromString(pIdentifier));
+      }
+      catch (IOException pE)
+      {
+        logger.log(Level.SEVERE, pE, () -> "Error while retrieving byte contents for file with identifier " + pIdentifier);
+        return new byte[0];
+      }
+      return loader.getBytes();
+    });
+
+    return new FileContentInfoImpl(byteSup, fileSystemUtil);
   }
 
   /**
@@ -987,9 +1005,9 @@ public class RepositoryImpl implements IRepository
           {
             conflictingBranchId = ObjectId.toString(git.getRepository().readCherryPickHead());
           }
-          else if (new File(git.getRepository().getDirectory(), "rebase-merge/head").exists())
+          else if (RepositoryImplHelper.getRebaseMergeHead(git).exists())
           {
-            conflictingBranchId = Files.readAllLines(new File(git.getRepository().getDirectory(), "rebase-merge/head").toPath()).get(0);
+            conflictingBranchId = Files.readAllLines(RepositoryImplHelper.getRebaseMergeHead(git).toPath()).get(0);
           }
           else
             throw new TargetBranchNotFoundException("Cannot determine target branch of conflict",
@@ -1240,7 +1258,7 @@ public class RepositoryImpl implements IRepository
       {
         pBranchString = Paths.get("refs", "heads", pBranchString).toString().replace("\\", "/");
       }
-      return new BranchImpl(git.getRepository().getRefDatabase().getRef(pBranchString));
+      return new BranchImpl(git.getRepository().getRefDatabase().findRef(pBranchString));
     }
     catch (IOException pE)
     {

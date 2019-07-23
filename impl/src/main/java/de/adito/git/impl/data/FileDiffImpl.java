@@ -94,7 +94,7 @@ public class FileDiffImpl implements IFileDiff
   @Override
   public Charset getEncoding(@NotNull EChangeSide pSide)
   {
-    return pSide == EChangeSide.NEW ? newFileContent.getEncoding() : originalFileContent.getEncoding();
+    return pSide == EChangeSide.NEW ? newFileContent.getEncoding().get() : originalFileContent.getEncoding().get();
   }
 
   @Override

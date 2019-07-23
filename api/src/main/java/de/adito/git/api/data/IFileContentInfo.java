@@ -1,6 +1,7 @@
 package de.adito.git.api.data;
 
 import java.nio.charset.Charset;
+import java.util.function.Supplier;
 
 /**
  * Stores information about a String and its encoding
@@ -11,13 +12,13 @@ public interface IFileContentInfo
 {
 
   /**
-   * @return String with the contents of a file
+   * @return Supplier of a String with the contents of a file
    */
-  String getFileContent();
+  Supplier<String> getFileContent();
 
   /**
-   * @return Charset used to create the String from a byte array and vice versa
+   * @return Supplier of the charset used to create the String from a byte array and vice versa
    */
-  Charset getEncoding();
+  Supplier<Charset> getEncoding();
 
 }

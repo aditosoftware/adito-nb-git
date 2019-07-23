@@ -208,9 +208,8 @@ public interface IRepository
   /**
    * @param pIdentifier String identifying the specific version of the file
    * @return the contents of the requested file as IFileContentInfo, with the content as String and the used encoding
-   * @throws IOException if an error occurs during transport/reading of the file
    */
-  IFileContentInfo getFileContents(String pIdentifier) throws IOException;
+  IFileContentInfo getFileContents(String pIdentifier);
 
   /**
    * @param pFile the File to check the status
