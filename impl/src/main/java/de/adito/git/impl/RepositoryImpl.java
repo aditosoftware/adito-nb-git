@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -1057,13 +1056,17 @@ public class RepositoryImpl implements IRepository
                                                       status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet()),
                                                       this::diff);
       }
-      try
+      // only checkout the parent branch if the current branch is some other branch
+      if (!getRepositoryState().blockingFirst(Optional.empty()).map(pRepoState -> pRepoState.getCurrentBranch().equals(pParentBranch)).orElse(false))
       {
-        checkout(pParentBranch);
-      }
-      catch (Exception e)
-      {
-        throw new AditoGitException("Unable to checkout the parentBranch: " + parentID + " at the merge command", e);
+        try
+        {
+          checkout(pParentBranch);
+        }
+        catch (Exception e)
+        {
+          throw new AditoGitException("Unable to checkout the parentBranch: " + parentID + " at the merge command", e);
+        }
       }
       ObjectId mergeBase;
       try
