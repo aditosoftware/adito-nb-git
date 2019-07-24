@@ -1,8 +1,10 @@
 package de.adito.git.gui;
 
 import javax.swing.text.*;
-import java.awt.*;
-import java.util.List;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.*;
 
 /**
@@ -37,12 +39,19 @@ public class LineHighlighter extends DefaultHighlighter
   @Override
   public void paint(Graphics pG)
   {
+    // determine visible area
+    Rectangle visRect = component.getVisibleRect();
+    int startOffset = component.viewToModel2D(new Point2D.Float(visRect.x, visRect.y));
+    int endOffset = component.viewToModel2D(new Point2D.Float(visRect.x + visRect.width, visRect.y + visRect.height));
+
     final Highlighter.Highlight[] highlights = getHighlights();
     final int len = highlights.length;
     for (int i = 0; i < len; i++)
     {
       Highlighter.Highlight info = highlights[i];
-      if (info.getClass().getName().contains("LayeredHighlightInfo"))
+      if (info.getClass().getName().contains("LayeredHighlightInfo") &&
+          // only draw/calculate visible highlights
+          info.getStartOffset() <= endOffset && info.getEndOffset() >= startOffset)
       {
         // Avoid allocing unless we need it.
         final Rectangle a = this.component.getBounds();
@@ -53,7 +62,8 @@ public class LineHighlighter extends DefaultHighlighter
         for (; i < len; i++)
         {
           info = highlights[i];
-          if (info.getClass().getName().contains("LayeredHighlightInfo"))
+          if (info.getClass().getName().contains("LayeredHighlightInfo")
+              && info.getStartOffset() <= endOffset && info.getEndOffset() >= startOffset)
           {
             final Highlighter.HighlightPainter p = info
                 .getPainter();
