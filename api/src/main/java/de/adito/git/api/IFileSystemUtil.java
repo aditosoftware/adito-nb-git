@@ -52,4 +52,13 @@ public interface IFileSystemUtil
   @NotNull
   Charset getEncoding(@NotNull File pFile);
 
+  /**
+   * tries to get the correct encoding for the given byte array
+   *
+   * @param pContent byte array representing a String with an unknown encoding
+   * @return Encoding that was most likely used to create the byte array
+   */
+  @NotNull
+  Charset getEncoding(@NotNull byte[] pContent);
+
 }

@@ -74,7 +74,7 @@ public class DifferentialScrollBarCoupling implements AdjustmentListener, IDisca
   @Override
   public void adjustmentValueChanged(AdjustmentEvent pEvent)
   {
-    if (isEnabled && map.size() > 1)
+    if (isEnabled && !map.isEmpty())
     {
       isEnabled = false;
       if (System.identityHashCode(pEvent.getSource()) == System.identityHashCode(scrollBar1))

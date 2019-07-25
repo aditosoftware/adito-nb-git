@@ -40,17 +40,24 @@ public class FileChangeChunkImpl implements IFileChangeChunk
     oldString = pOldString;
     newString = pNewString;
     changeType = pChangeType;
-    if (oldString.contains("\r") || newString.contains("\r"))
-      isStandardNewlines = false;
-    if (!isStandardNewlines)
+    boolean doStandardisedNewString = newString.contains("\r");
+    boolean doStandardisedOldString = oldString.contains("\r");
+    if (doStandardisedOldString || doStandardisedNewString)
     {
-      standardisedNewString = newString.replace("\n", "").replace("\r", "\n");
-      standardisedOldString = oldString.replace("\n", "").replace("\r", "\n");
+      isStandardNewlines = false;
+      if (doStandardisedNewString)
+        standardisedNewString = newString.replace("\n", "").replace("\r", "\n");
+      else
+        standardisedNewString = newString;
+      if (doStandardisedOldString)
+        standardisedOldString = oldString.replace("\n", "").replace("\r", "\n");
+      else
+        standardisedOldString = oldString;
     }
     else
     {
-      standardisedNewString = null;
       standardisedOldString = null;
+      standardisedNewString = null;
     }
   }
 

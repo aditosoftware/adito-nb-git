@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * Interface defining the actions that the Repository can perform
+ *
  * @author m.kaspera 20.09.2018
  */
 public interface IRepository
@@ -90,12 +92,16 @@ public interface IRepository
   Observable<Optional<IRepositoryState>> getRepositoryState();
 
   /**
+   * adds all given files to the git staging
+   *
    * @param pAddList List of files to add to staging
    * @throws AditoGitException if an error occurs
    */
   void add(List<File> pAddList) throws AditoGitException;
 
   /**
+   * performs a commit of the staged files, with the passed message as commit message. Message should not be empty
+   *
    * @param pMessage String with the commit message entered by the user
    * @return the ID of the commit as String
    * @throws AditoGitException if an error occurs
@@ -103,6 +109,8 @@ public interface IRepository
   String commit(@NotNull String pMessage) throws AditoGitException;
 
   /**
+   * performs a commit of all staged files as well as the passed files.
+   *
    * @param pMessage  String with the commit message entered by the user
    * @param pFileList List of files that should be committed (and none else)
    * @param pIsAmend  If this commit should be amended to the previous commit
@@ -137,6 +145,7 @@ public interface IRepository
    *
    * @param pCommitList List of commits that should be cherry picked on top of the current HEAD
    * @return ICherryPickResult that describes the outcome of the operation. If the result is CONFLICT, the conflicting files can be found in getConflicts
+   * @throws AditoGitException if any error occurs during the cherry pick operation
    */
   ICherryPickResult cherryPick(List<ICommit> pCommitList) throws AditoGitException;
 
@@ -198,6 +207,8 @@ public interface IRepository
   @NotNull List<IFileDiff> diff(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith) throws AditoGitException;
 
   /**
+   * Retrieve the encoding and contents of the specified file/version combination
+   *
    * @param pIdentifier String identifying the specific version of the file
    * @param pFile the file whose contents should be retrieved
    * @return the contents of the requested file as IFileContentInfo, with the content as String and the used encoding
@@ -206,19 +217,24 @@ public interface IRepository
   IFileContentInfo getFileContents(String pIdentifier, File pFile) throws IOException;
 
   /**
+   * Retrieve the encoding and contents of the specified file/version combination
+   *
    * @param pIdentifier String identifying the specific version of the file
    * @return the contents of the requested file as IFileContentInfo, with the content as String and the used encoding
-   * @throws IOException if an error occurs during transport/reading of the file
    */
-  IFileContentInfo getFileContents(String pIdentifier) throws IOException;
+  IFileContentInfo getFileContents(String pIdentifier);
 
   /**
+   * retrieve the status of a single file. Should be faster than asking for the status of the whole repo and filtering for a single file
+   *
    * @param pFile the File to check the status
    * @return returns the {@link IFileChangeType} of the file
    */
   IFileChangeType getStatusOfSingleFile(@NotNull File pFile);
 
   /**
+   * retrieves the id for the object representing the specified file at the time of the specified commit
+   *
    * @param pCommitId the ID of the commit for the version of the file
    * @param pFilename the name of the file to be retrieved
    * @return identifying String for the specific version of the file
@@ -227,6 +243,8 @@ public interface IRepository
   String getFileVersion(String pCommitId, String pFilename) throws IOException;
 
   /**
+   * clones the repository located at the given url to the pDest directory
+   *
    * @param pUrl  the url from which to pull from, as String
    * @param pDest the location on the local disk
    * @return {@code true} if the operation was successful, {@code false} otherwise
@@ -235,11 +253,15 @@ public interface IRepository
   boolean clone(@NotNull String pUrl, @NotNull File pDest) throws IOException;
 
   /**
+   * Represents the status of the observable
+   *
    * @return List of IFileStatus that describe the different staging states of the local files
    */
   @NotNull Observable<Optional<IFileStatus>> getStatus();
 
   /**
+   * Ignores a given file
+   *
    * @param pFiles List of files that should be added to the .gitignore
    * @throws IOException if an error occurs during transport/reading of the file
    */
@@ -254,18 +276,25 @@ public interface IRepository
   void exclude(@NotNull List<File> pFiles) throws IOException;
 
   /**
+   * reverts all files passed in the list to the state they have in HEAD
+   *
    * @param pFiles List of files which should be reverted to the state in HEAD
    * @throws AditoGitException if an error occurs
    */
   void revertWorkDir(@NotNull List<File> pFiles) throws AditoGitException;
 
   /**
+   * resets all given files (basically the opposite of "git add")
+   *
    * @param pFiles List of files that should be reset. Can also be null, in which case all changes are reset
    * @throws AditoGitException if an error occurs
    */
   void reset(@NotNull List<File> pFiles) throws AditoGitException;
 
   /**
+   * Resets HEAD/the current branch to the given ID. The exact nature of the reset depends on the passed EResetType, check that Enum for more information about the
+   * available types
+   *
    * @param pIdentifier ID for the branch/commit to reset to
    * @param pResetType  resetType which type of reset should be conducted
    * @throws AditoGitException if an error occurs
@@ -273,6 +302,8 @@ public interface IRepository
   void reset(@NotNull String pIdentifier, @NotNull EResetType pResetType) throws AditoGitException;
 
   /**
+   * creates a new branch
+   *
    * @param pBranchName String with the name of the branch
    * @param pStartPoint ICommit that is the base/source of the branch to create. pass null if it should be HEAD
    * @param pCheckout   {@code true} if the branch should be automatically checked out after it was created
@@ -318,14 +349,19 @@ public interface IRepository
   void checkoutFileVersion(@NotNull String pId, List<String> pPaths) throws AditoGitException;
 
   /**
+   * check out a branch
+   *
    * @param pBranch branch to checkout
    * @throws AditoGitException if an error occurs
    */
   void checkout(@NotNull IBranch pBranch) throws AditoGitException;
 
   /**
+   * checks out a remote branch and creates a new local branch (named pLocalName) that is tracking the remote branch
+   *
    * @param pBranch    remote Branch to checkout
    * @param pLocalName how the local branch that tracks the remote branch should be named
+   * @throws AditoGitException if the remote branch may not be checked out
    */
   void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException;
 
@@ -337,6 +373,8 @@ public interface IRepository
   List<IMergeDiff> getConflicts() throws AditoGitException;
 
   /**
+   * retrieves a list with all conflicting changes caused by the passed stash commit
+   *
    * @param pStashedCommitId sha-1 id of the stashed commit that caused the conflicts
    * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
    * @throws AditoGitException if an error occurs
@@ -344,6 +382,8 @@ public interface IRepository
   List<IMergeDiff> getStashConflicts(String pStashedCommitId) throws AditoGitException;
 
   /**
+   * merges two branches
+   *
    * @param pSourceBranch The source branch
    * @param pTargetBranch The target branch
    * @return List of IMergeDiffs, the list is empty if no merge conflict happened, else the list of IMergeDiffs describe the merge conflicts
@@ -352,6 +392,9 @@ public interface IRepository
   List<IMergeDiff> merge(@NotNull IBranch pSourceBranch, @NotNull IBranch pTargetBranch) throws AditoGitException;
 
   /**
+   * retrieves all files that were committed in the passed commit. One IDiffInfo represents the change to one parent commit, if the commit is a merge commit
+   * several parent commits can exists and thus several IDiffInfos are returned
+   *
    * @param pCommitId Id of the commit for which the changed files should be retrieved
    * @return {@code List<IDiffInfo>} detailing the changed files in the commit
    * @throws AditoGitException if JGit encountered an error condition
@@ -361,6 +404,8 @@ public interface IRepository
   List<IDiffInfo> getCommittedFiles(String pCommitId) throws AditoGitException;
 
   /**
+   * retrieves the commit with the specified sha-1 id
+   *
    * @param pIdentifier String with identifier of the commit, or NULL for HEAD
    * @return ICommit describing the commit
    * @throws AditoGitException if an error occurs
@@ -368,6 +413,8 @@ public interface IRepository
   ICommit getCommit(@Nullable String pIdentifier) throws AditoGitException;
 
   /**
+   * creates an iterator that can iterate over the commit history. The iterator filters out commits based on the passed commitFilter
+   *
    * @param pCommitFilter Filter responsible for filtering all commits. Can contain things such as branch, files, number of commits etc.
    * @return List with all ICommits matching the filter
    * @throws AditoGitException if an error occurs

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.Image;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author w.glanzer, 07.02.2019
@@ -36,5 +37,12 @@ public class SimpleFileSystemUtil implements IFileSystemUtil
   public Charset getEncoding(@NotNull File pFile)
   {
     return Charset.defaultCharset();
+  }
+
+  @NotNull
+  @Override
+  public Charset getEncoding(@NotNull byte[] pContent)
+  {
+    return StandardCharsets.UTF_8;
   }
 }

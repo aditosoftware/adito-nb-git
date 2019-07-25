@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Object that stores the information about which changes happened to a file
@@ -26,11 +27,11 @@ public class FileChangesImpl implements IFileChanges
   private final String[] originalLines;
   private final String[] newLines;
 
-  FileChangesImpl(EditList pEditList, String pOriginalFileContents, String pNewFileContents)
+  FileChangesImpl(EditList pEditList, Supplier<String> pOriginalFileContents, Supplier<String> pNewFileContents)
   {
     changeChunks = new ArrayList<>();
-    originalLines = _getLines(pOriginalFileContents);
-    newLines = _getLines(pNewFileContents);
+    originalLines = _getLines(pOriginalFileContents.get());
+    newLines = _getLines(pNewFileContents.get());
     // combine the lineChanges with the information from editList and build chunks
     if (!pEditList.isEmpty())
     {
@@ -55,10 +56,10 @@ public class FileChangesImpl implements IFileChanges
     else
     {
       Edit edit = new Edit(0, originalLines.length, 0, newLines.length);
-      changeChunks.add(new FileChangeChunkImpl(edit, pNewFileContents, pNewFileContents, EChangeType.SAME));
+      changeChunks.add(new FileChangeChunkImpl(edit, pNewFileContents.get(), pNewFileContents.get(), EChangeType.SAME));
     }
-    EditorChangeImpl aSideEditorChange = new EditorChangeImpl(0, -1, pOriginalFileContents);
-    EditorChangeImpl bSideEditorChange = new EditorChangeImpl(0, -1, pNewFileContents);
+    EditorChangeImpl aSideEditorChange = new EditorChangeImpl(0, -1, pOriginalFileContents.get());
+    EditorChangeImpl bSideEditorChange = new EditorChangeImpl(0, -1, pNewFileContents.get());
     changeEventObservable = ReplaySubject.create();
     changeEventObservable.onNext(new FileChangesEventImpl(true, changeChunks,
                                                           new EditorChangeEventImpl(aSideEditorChange, bSideEditorChange)));

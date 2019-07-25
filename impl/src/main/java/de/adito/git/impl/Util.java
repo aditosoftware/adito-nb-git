@@ -5,16 +5,12 @@ import org.eclipse.jgit.api.Git;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * @author a.arnold
  */
-class Util
+public class Util
 {
   private Util()
   {
@@ -58,25 +54,10 @@ class Util
    * @param pContents       the byte array
    * @param pFileSystemUtil IFileSystemUtil used to determine the encoding
    * @return the most likely encoding used to represent the byte array as String
-   * @throws IOException if the temporary file used to store the byte array for the FileSystemUtil cannot be created/accessed or anything the like
    */
   @NotNull
-  static Charset getEncoding(@NotNull byte[] pContents, @NotNull IFileSystemUtil pFileSystemUtil) throws IOException
+  public static Charset getEncoding(@NotNull byte[] pContents, @NotNull IFileSystemUtil pFileSystemUtil)
   {
-    Path tempFile = null;
-    try
-    {
-      tempFile = Files.createTempFile("encodingTestSample", ".tmp");
-      try (FileOutputStream out = new FileOutputStream(tempFile.toFile()))
-      {
-        out.write(pContents);
-      }
-      return pFileSystemUtil.getEncoding(tempFile.toFile());
-    }
-    finally
-    {
-      if (tempFile != null)
-        Files.delete(tempFile);
-    }
+    return pFileSystemUtil.getEncoding(pContents);
   }
 }

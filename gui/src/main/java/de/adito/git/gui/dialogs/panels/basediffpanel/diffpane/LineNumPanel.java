@@ -18,6 +18,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Panel that contains the line numbers of a given JTextPane. Arranges the numbers such that they fit the lines in the TextPane even if the font is
@@ -69,7 +70,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
               repaint();
             }));
     areaDisposable = Observable.combineLatest(
-        pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new)
+        pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new).throttleLatest(16, TimeUnit.MILLISECONDS, true)
         .subscribe(
             pPair -> SwingUtilities.invokeLater(() -> {
               if (lineNumImage == null)

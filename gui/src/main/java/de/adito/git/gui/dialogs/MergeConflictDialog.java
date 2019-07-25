@@ -20,6 +20,8 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +36,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private IDialogDisplayer.IDescriptor isValidDescriptor;
   private IRepository repository;
   private final Subject<List<IMergeDiff>> mergeConflictDiffs;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final JTable mergeConflictTable = new JTable();
   private final JButton manualMergeButton = new JButton("Manual Merge");
   private final JButton acceptYoursButton = new JButton("Accept Yours");
@@ -143,6 +146,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
             // BLines is always the "new" version of the file, in comparison to the fork point
             fileContents.append(changeChunk.getLines(EChangeSide.NEW));
           }
+          logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path,
+                                                     selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW)));
           _writeToFile(fileContents.toString(), selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, selectedFile);
         }
       }
@@ -165,6 +170,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         // use "OLD" side here since the fork-point is the final result in the manual version
         fileContents.append(changeChunk.getLines(EChangeSide.OLD));
       }
+      logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path,
+                                                 pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getEncoding(EChangeSide.NEW)));
       _writeToFile(fileContents.toString(), pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getEncoding(EChangeSide.OLD), pMergeDiff, selectedFile);
     }
   }

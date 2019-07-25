@@ -136,7 +136,7 @@ public class RepositoryImplHelper
       if (remoteTrackingBranchName != null)
         remoteTrackingBranch = new BranchImpl(pGit.getRepository().resolve(remoteTrackingBranchName));
       List<String> remoteNames = new ArrayList<>(pGit.getRepository().getRemoteNames());
-      if (pGit.getRepository().getRefDatabase().getRef(branch) == null)
+      if (pGit.getRepository().getRefDatabase().findRef(branch) == null)
       {
         return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch)), remoteTrackingBranch,
                                                    EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState()), remoteNames));
@@ -490,5 +490,10 @@ public class RepositoryImplHelper
       return pGit.getRepository().getRemoteName(remoteTrackingBranch);
     }
     return null;
+  }
+
+  static File getRebaseMergeHead(@NotNull Git pGit)
+  {
+    return new File(pGit.getRepository().getDirectory().getAbsolutePath(), "rebase-merge/head");
   }
 }
