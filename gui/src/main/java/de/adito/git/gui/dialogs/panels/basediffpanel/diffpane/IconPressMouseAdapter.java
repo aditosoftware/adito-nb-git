@@ -2,6 +2,8 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.data.IFileChangeChunk;
 
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -22,16 +24,18 @@ class IconPressMouseAdapter extends MouseAdapter
   private final Consumer<IFileChangeChunk> doOnDiscard;
   private final Consumer<IFileChangeChunk> doOnAccept;
   private final Supplier<List<IconInfo>> iconInfoListSupplier;
+  private final Supplier<Rectangle> viewArea;
   private final boolean isWestOrientation;
 
   IconPressMouseAdapter(int pIconWidth, Consumer<IFileChangeChunk> pDoOnAccept, Consumer<IFileChangeChunk> pDoOnDiscard,
-                        Supplier<List<IconInfo>> pIconInfoListSupplier, boolean pIsWestOrientation)
+                        Supplier<List<IconInfo>> pIconInfoListSupplier, Supplier<Rectangle> pViewArea, boolean pIsWestOrientation)
   {
 
     iconWidth = pIconWidth;
     doOnDiscard = pDoOnDiscard;
     doOnAccept = pDoOnAccept;
     iconInfoListSupplier = pIconInfoListSupplier;
+    viewArea = pViewArea;
     isWestOrientation = pIsWestOrientation;
   }
 
@@ -40,9 +44,11 @@ class IconPressMouseAdapter extends MouseAdapter
   {
     if (pEvent.getButton() == MouseEvent.BUTTON1)
     {
+      int viewYPos = viewArea.get().y;
+      Point iconSpavePoint = new Point(pEvent.getPoint().x, pEvent.getPoint().y + viewYPos);
       for (IconInfo iconInfo : iconInfoListSupplier.get())
       {
-        if (iconInfo.getIconCoordinates().contains(pEvent.getPoint()))
+        if (iconInfo.getIconCoordinates().contains(iconSpavePoint))
         {
           // check if the discard or accept button was pressed, done via x coordinate of the click
           if (doOnDiscard != null && ((pEvent.getX() > iconWidth && isWestOrientation) || (pEvent.getX() < iconWidth && !isWestOrientation)))
