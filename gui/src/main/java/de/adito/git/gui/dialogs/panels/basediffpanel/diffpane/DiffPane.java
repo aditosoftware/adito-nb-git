@@ -6,6 +6,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortPositionObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ public class DiffPane extends JPanel implements IDiscardable
   {
     editorPane = pEditorPane;
     viewPortPositionObservable = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport()))
+        .observeOn(Schedulers.computation())
         .share()
         .subscribeWith(BehaviorSubject.create())
         .distinctUntilChanged();
