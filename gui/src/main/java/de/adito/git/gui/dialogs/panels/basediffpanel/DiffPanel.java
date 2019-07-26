@@ -9,7 +9,6 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorMo
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.data.FileChangesEventImpl;
-import de.adito.git.impl.util.DifferentialScrollBarCoupling;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +31,7 @@ public class DiffPanel extends JPanel implements IDiscardable
 
   private final DiffPaneWrapper currentVersionDiffPane;
   private final DiffPaneWrapper oldVersionDiffPane;
-  private DifferentialScrollBarCoupling differentialScrollBarCoupling;
+  private IDiffPaneUtil.ScrollBarCoupling differentialScrollBarCoupling;
 
   /**
    * @param pIconLoader          IIconLoader for loading Icons

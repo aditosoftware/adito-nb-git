@@ -1,12 +1,13 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import com.google.common.collect.Collections2;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.rxjava.EditorKitChangeObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.gui.swing.IEditorUtils;
+import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
 import de.adito.git.impl.util.BiNavigateAbleMap;
-import de.adito.git.impl.util.DifferentialScrollBarCoupling;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -97,8 +98,8 @@ public interface IDiffPaneUtil
    * @param pEditorPaneCurrent editorPane that is contained in the second scrollPane
    * @param pFileDiffObs       Observable that has the current FileDiff
    */
-  static DifferentialScrollBarCoupling synchronize(JScrollPane pScrollPaneOld, JScrollPane pScrollPaneCurrent, JEditorPane pEditorPaneOld,
-                                                   JEditorPane pEditorPaneCurrent, Observable<Optional<IFileDiff>> pFileDiffObs)
+  static ScrollBarCoupling synchronize(JScrollPane pScrollPaneOld, JScrollPane pScrollPaneCurrent, JEditorPane pEditorPaneOld,
+                                       JEditorPane pEditorPaneCurrent, Observable<Optional<IFileDiff>> pFileDiffObs)
   {
     Observable<Dimension> viewPort1SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneOld.getViewport()));
     Observable<Dimension> viewPort2SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneCurrent.getViewport()));
@@ -112,8 +113,12 @@ public interface IDiffPaneUtil
                                                                             (pObj, pChangeEvent) -> pChangeEvent);
     Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
         getHeightMappings(pEditorPaneOld, pEditorPaneCurrent, pFileDiff);
-    return DifferentialScrollBarCoupling.coupleScrollBars(pScrollPaneOld.getVerticalScrollBar(), pScrollPaneCurrent.getVerticalScrollBar(),
-                                                          refreshFunction, changeEventObs);
+    SynchronizedBoundedRangeModel scrollBarOldModel = new SynchronizedBoundedRangeModel(pScrollPaneCurrent.getVerticalScrollBar(), refreshFunction, changeEventObs,
+                                                                                        false);
+    SynchronizedBoundedRangeModel scrollBarCurrentModel = new SynchronizedBoundedRangeModel(pScrollPaneOld.getVerticalScrollBar(), refreshFunction, changeEventObs, true);
+    pScrollPaneOld.getVerticalScrollBar().setModel(scrollBarOldModel);
+    pScrollPaneCurrent.getVerticalScrollBar().setModel(scrollBarCurrentModel);
+    return new ScrollBarCoupling(scrollBarOldModel, scrollBarCurrentModel);
   }
 
   /**
@@ -180,6 +185,28 @@ public interface IDiffPaneUtil
         // from the "leftmost point" and set it on the other model
         pUpwardsModels.forEach(pModel -> pModel.setValue(model.getMaximum() - (model.getValue() + model.getExtent())));
       });
+    }
+  }
+
+  /**
+   * Class that may discard the two saved SynchronizedBoundedRangeModel, but nothing else
+   */
+  class ScrollBarCoupling implements IDiscardable
+  {
+    private final SynchronizedBoundedRangeModel model1;
+    private final SynchronizedBoundedRangeModel model2;
+
+    ScrollBarCoupling(SynchronizedBoundedRangeModel pModel1, SynchronizedBoundedRangeModel pModel2)
+    {
+      model1 = pModel1;
+      model2 = pModel2;
+    }
+
+    @Override
+    public void discard()
+    {
+      model1.discard();
+      model2.discard();
     }
   }
 }

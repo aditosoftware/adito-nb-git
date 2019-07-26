@@ -9,7 +9,6 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorMo
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
-import de.adito.git.impl.util.DifferentialScrollBarCoupling;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,8 +36,8 @@ public class MergePanel extends JPanel implements IDiscardable
   private final ImageIcon acceptTheirsIcon;
   private final ImageIcon discardIcon;
   private final Observable<EditorKit> editorKitObservable;
-  private DifferentialScrollBarCoupling yoursCoupling;
-  private DifferentialScrollBarCoupling theirsCoupling;
+  private IDiffPaneUtil.ScrollBarCoupling yoursCoupling;
+  private IDiffPaneUtil.ScrollBarCoupling theirsCoupling;
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
