@@ -32,6 +32,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   private final ImageIcon discardIcon;
   private final ImageIcon acceptIcon;
   private final LineNumbersColorModel[] lineNumbersColorModels;
+  private final String orientation;
   private final int acceptChangeIconXVal;
   private final int discardChangeIconXVal;
   private final Disposable areaDisposable;
@@ -62,6 +63,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
     discardIcon = pDiscardIcon;
     acceptIcon = pAcceptIcon;
     lineNumbersColorModels = pLineNumColorModels;
+    orientation = pOrientation;
     int acceptIconWidth = pAcceptIcon != null ? pAcceptIcon.getIconWidth() : 16;
     setPreferredSize(new Dimension(_getSuggestedWidth(), 1));
     setBackground(ColorPicker.DIFF_BACKGROUND);
@@ -217,10 +219,20 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
     if (pModelNumber == 0)
     {
       leftLineNumberColors = pNewValue;
+      if (orientation.equals(BorderLayout.WEST))
+      {
+        changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(cachedViewRectangle, leftLineNumberColors, rightLineNumberColors);
+        repaint();
+      }
     }
     else
     {
       rightLineNumberColors = pNewValue;
+      if (!orientation.equals(BorderLayout.WEST))
+      {
+        changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(cachedViewRectangle, leftLineNumberColors, rightLineNumberColors);
+        repaint();
+      }
     }
   }
 
