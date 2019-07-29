@@ -9,6 +9,7 @@ import de.adito.git.gui.swing.IEditorUtils;
 import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
 import de.adito.git.impl.util.BiNavigateAbleMap;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -110,15 +111,35 @@ public interface IDiffPaneUtil
     Observable<Optional<IFileChangesEvent>> changesEventObservable = pFileDiffObs.switchMap(pFileDiffOpt -> pFileDiffOpt.map(pFDiff -> pFDiff.getFileChanges()
         .getChangeChunks().map(Optional::of)).orElse(Observable.just(Optional.empty())));
     Observable<Optional<IFileChangesEvent>> changeEventObs = Observable.combineLatest(editorViewChangeObs, changesEventObservable,
-                                                                            (pObj, pChangeEvent) -> pChangeEvent);
+                                                                                      (pObj, pChangeEvent) -> pChangeEvent)
+        .share()
+        .subscribeWith(BehaviorSubject.create());
     Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
         getHeightMappings(pEditorPaneOld, pEditorPaneCurrent, pFileDiff);
-    SynchronizedBoundedRangeModel scrollBarOldModel = new SynchronizedBoundedRangeModel(pScrollPaneCurrent.getVerticalScrollBar(), refreshFunction, changeEventObs,
-                                                                                        false);
-    SynchronizedBoundedRangeModel scrollBarCurrentModel = new SynchronizedBoundedRangeModel(pScrollPaneOld.getVerticalScrollBar(), refreshFunction, changeEventObs, true);
-    pScrollPaneOld.getVerticalScrollBar().setModel(scrollBarOldModel);
-    pScrollPaneCurrent.getVerticalScrollBar().setModel(scrollBarCurrentModel);
-    return new ScrollBarCoupling(scrollBarOldModel, scrollBarCurrentModel);
+    if (pScrollPaneOld.getVerticalScrollBar().getModel() instanceof SynchronizedBoundedRangeModel)
+    {
+      ((SynchronizedBoundedRangeModel) pScrollPaneOld.getVerticalScrollBar().getModel()).addCoupledScrollbar(pScrollPaneCurrent.getVerticalScrollBar(), refreshFunction,
+                                                                                                             changeEventObs, false);
+    }
+    else
+    {
+      SynchronizedBoundedRangeModel scrollBarOldModel = new SynchronizedBoundedRangeModel(pScrollPaneCurrent.getVerticalScrollBar(), refreshFunction, changeEventObs,
+                                                                                          false);
+      pScrollPaneOld.getVerticalScrollBar().setModel(scrollBarOldModel);
+    }
+    if (pScrollPaneCurrent.getVerticalScrollBar().getModel() instanceof SynchronizedBoundedRangeModel)
+    {
+      ((SynchronizedBoundedRangeModel) pScrollPaneCurrent.getVerticalScrollBar().getModel()).addCoupledScrollbar(pScrollPaneOld.getVerticalScrollBar(), refreshFunction,
+                                                                                                                 changeEventObs, false);
+    }
+    else
+    {
+      SynchronizedBoundedRangeModel scrollBarCurrentModel = new SynchronizedBoundedRangeModel(pScrollPaneOld.getVerticalScrollBar(), refreshFunction, changeEventObs,
+                                                                                              true);
+      pScrollPaneCurrent.getVerticalScrollBar().setModel(scrollBarCurrentModel);
+    }
+    return new ScrollBarCoupling((SynchronizedBoundedRangeModel) pScrollPaneOld.getVerticalScrollBar().getModel(),
+                                 (SynchronizedBoundedRangeModel) pScrollPaneCurrent.getVerticalScrollBar().getModel());
   }
 
   /**
