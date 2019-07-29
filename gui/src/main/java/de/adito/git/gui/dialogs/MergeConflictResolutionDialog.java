@@ -2,6 +2,7 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IMergeDiff;
@@ -29,7 +30,7 @@ import static de.adito.git.gui.Constants.DISCARD_CHANGE_ICON;
  *
  * @author m.kaspera 22.10.2018
  */
-class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
+class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
   private final IMergeDiff mergeDiff;
@@ -94,6 +95,12 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object>
   public Object getInformation()
   {
     return null;
+  }
+
+  @Override
+  public void discard()
+  {
+    mergePanel.discard();
   }
 
   /**

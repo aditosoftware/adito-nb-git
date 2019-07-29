@@ -56,9 +56,19 @@ class DialogProviderImpl implements IDialogProvider
   @Override
   public DialogResult showMergeConflictResolutionDialog(@NotNull IMergeDiff pMergeDiff)
   {
-    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
-                                      "Conflict resolution for file "
-                                          + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
+    DialogResult<MergeConflictResolutionDialog, ?> result = null;
+    try
+    {
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
+                                          "Conflict resolution for file "
+                                              + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
+      return result;
+    }
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
   }
 
   @NotNull
