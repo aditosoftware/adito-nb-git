@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IFileStatus;
@@ -29,6 +30,7 @@ class CheckoutAction extends AbstractTableAction
   private final IDialogProvider dialogProvider;
   private final IAsyncProgressFacade progressFactory;
   private Observable<Optional<IRepository>> repositoryObservable;
+  private final ISaveUtil saveUtil;
   private Observable<Optional<IBranch>> branchObservable;
 
   /**
@@ -36,13 +38,14 @@ class CheckoutAction extends AbstractTableAction
    * @param pBranch     the branch list of selected branches
    */
   @Inject
-  CheckoutAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFactory,
+  CheckoutAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFactory, ISaveUtil pSaveUtil,
                  @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
   {
     super("Checkout", _getIsEnabledObservable());
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     progressFactory = pProgressFactory;
+    saveUtil = pSaveUtil;
     branchObservable = pBranch;
     putValue(Action.NAME, "Checkout");
     putValue(Action.SHORT_DESCRIPTION, "Command to change the branch to another one");
@@ -52,6 +55,7 @@ class CheckoutAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
+    saveUtil.saveUnsavedFiles();
     IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
     Optional<IBranch> branchOpt = branchObservable.blockingFirst();
     if (branchOpt.isPresent())

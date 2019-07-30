@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
@@ -33,18 +34,20 @@ class CommitAction extends AbstractTableAction
 
   private final IAsyncProgressFacade progressFacade;
   private final IPrefStore prefStore;
+  private final ISaveUtil saveUtil;
   private String messageTemplate;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
-  CommitAction(IPrefStore pPrefStore, IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+  CommitAction(IPrefStore pPrefStore, IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil,
                @Assisted Observable<Optional<IRepository>> pRepository,
                @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @Assisted String pMessageTemplate)
   {
     super("Commit");
     prefStore = pPrefStore;
+    saveUtil = pSaveUtil;
     messageTemplate = pMessageTemplate;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.COMMIT_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Commit selected changed files");
@@ -57,6 +60,7 @@ class CommitAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
+    saveUtil.saveUnsavedFiles();
     Optional<IRepository> currentRepoOpt = repository.blockingFirst();
     String prefStoreInstanceKey = COMMIT_MESSAGE_BASE_STORAGE_KEY + currentRepoOpt.map(pRepo -> pRepo.getTopLevelDirectory().getAbsolutePath()).orElse("");
     boolean doAbort = !currentRepoOpt.map(this::_coverAutoCRLF).orElse(true);

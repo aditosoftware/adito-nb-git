@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
@@ -35,13 +36,15 @@ class CherryPickAction extends AbstractTableAction
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommits;
+  private final ISaveUtil saveUtil;
 
   @Inject
-  CherryPickAction(IPrefStore pPrefStore, INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
+  CherryPickAction(IPrefStore pPrefStore, INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, ISaveUtil pSaveUtil,
                    IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                    @Assisted Observable<Optional<List<ICommit>>> pSelectedCommits)
   {
     super(ACTION_NAME, _getIsEnabledObservable(pSelectedCommits));
+    saveUtil = pSaveUtil;
     putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(Constants.CHERRY_PICK)));
     putValue(Action.SHORT_DESCRIPTION, "Cherry pick");
     prefStore = pPrefStore;
@@ -56,6 +59,7 @@ class CherryPickAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
+    saveUtil.saveUnsavedFiles();
     IRepository repo = repository.blockingFirst().orElse(null);
     List<ICommit> commitsToPick = selectedCommits.blockingFirst().orElse(Collections.emptyList());
     if (repo != null && !commitsToPick.isEmpty())

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.api.data.IRebaseResult;
@@ -38,6 +39,7 @@ class PullAction extends AbstractAction
   private final IActionProvider actionProvider;
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
+  private final ISaveUtil saveUtil;
 
   /**
    * The PullAction is an action to pull all commits from one branch. If no branch is chosen take an empty string for the master branch.
@@ -46,13 +48,14 @@ class PullAction extends AbstractAction
    */
   @Inject
   PullAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IActionProvider pActionProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
-             @Assisted Observable<Optional<IRepository>> pRepository)
+             ISaveUtil pSaveUtil, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     actionProvider = pActionProvider;
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
+    saveUtil = pSaveUtil;
     putValue(Action.NAME, "Pull");
     putValue(Action.SHORT_DESCRIPTION, "Pull all changes from the remote Branch");
     repository = pRepository;
@@ -73,6 +76,7 @@ class PullAction extends AbstractAction
    */
   private void _doRebase(@NotNull IProgressHandle pProgressHandle)
   {
+    saveUtil.saveUnsavedFiles();
     pProgressHandle.setDescription("Retrieving Repository");
     IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
     boolean doAbort = false;

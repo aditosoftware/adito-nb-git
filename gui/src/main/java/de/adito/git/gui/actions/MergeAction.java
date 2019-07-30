@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
@@ -24,6 +25,7 @@ class MergeAction extends AbstractTableAction
 {
 
   private static final String STASH_ID_KEY = "merge::stashCommitId";
+  private final ISaveUtil saveUtil;
   private final Observable<Optional<IRepository>> repositoryObservable;
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade progressFacade;
@@ -31,13 +33,14 @@ class MergeAction extends AbstractTableAction
   private Observable<Optional<IBranch>> targetBranch;
 
   @Inject
-  MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+  MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil,
               @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pTargetBranch)
   {
     super("Merge into Current", _getIsEnabledObservable(pTargetBranch));
     prefStore = pPrefStore;
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
+    saveUtil = pSaveUtil;
     repositoryObservable = pRepository;
     targetBranch = pTargetBranch;
   }
@@ -57,6 +60,7 @@ class MergeAction extends AbstractTableAction
 
   private void _doMerge(IProgressHandle pProgressHandle, IBranch pSelectedBranch) throws AditoGitException
   {
+    saveUtil.saveUnsavedFiles();
     IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
     try
     {
