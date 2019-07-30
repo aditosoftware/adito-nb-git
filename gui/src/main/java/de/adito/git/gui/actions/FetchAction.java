@@ -6,6 +6,7 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.impl.util.Util;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -42,7 +43,13 @@ class FetchAction extends AbstractTableAction
         }
         catch (AditoGitException pE)
         {
-          throw new RuntimeException(pE);
+          Throwable rootCause = Util.getRootCause(pE);
+          if (rootCause != null && rootCause.getMessage().startsWith("invalid privatekey"))
+          {
+            notifyUtil.notify("Invalid privatekey", "Privatekey is invalid, check if it really is a ssh key", false);
+          }
+          else
+            throw new RuntimeException(pE);
         }
       });
     });

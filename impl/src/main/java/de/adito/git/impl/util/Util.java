@@ -1,5 +1,8 @@
 package de.adito.git.impl.util;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Comparator;
 import java.util.List;
 
@@ -13,6 +16,17 @@ public class Util
 
   private Util()
   {
+  }
+
+  @Nullable
+  public static Throwable getRootCause(@NotNull Exception pE)
+  {
+    Throwable cause = pE.getCause();
+    while (cause != null && cause.getCause() != null)
+    {
+      cause = cause.getCause();
+    }
+    return cause;
   }
 
   /**
