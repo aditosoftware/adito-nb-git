@@ -238,6 +238,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
 
   private int _getSuggestedWidth()
   {
-    return acceptIcon.getIconWidth() + (discardIcon != null ? discardIcon.getIconWidth() : 0);
+    int discardIconWidth = discardIcon != null ? discardIcon.getIconWidth() : 0;
+    return acceptIcon == null ? 16 : acceptIcon.getIconWidth() + discardIconWidth;
   }
 }
