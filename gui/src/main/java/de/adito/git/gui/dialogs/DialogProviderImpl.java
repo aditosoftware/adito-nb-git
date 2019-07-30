@@ -214,8 +214,18 @@ class DialogProviderImpl implements IDialogProvider
   public DialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(@NotNull Observable<Optional<IRepository>> pRepository)
   {
     String repoName = pRepository.blockingFirst().map(pRepo -> pRepo.getTopLevelDirectory().getName()).orElse("unknown repository");
-    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createGitConfigDialog(pRepository),
-                                      "Setting for project: " + repoName);
+    DialogResult<GitConfigDialog, Multimap<String, Object>> result = null;
+    try
+    {
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createGitConfigDialog(pRepository),
+                                          "Setting for project: " + repoName);
+      return result;
+    }
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
   }
 
   @NotNull
