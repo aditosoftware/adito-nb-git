@@ -13,7 +13,9 @@ import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,11 +74,15 @@ public class RepositoryImplHelper
    * @return List<DiffEntry> with the DiffEntrys that make the difference between the two commits/branches/files
    * @throws AditoGitException if JGit encountered an error condition
    */
-  static List<DiffEntry> doDiff(@NotNull Git pGit, ObjectId pCurrentId, ObjectId pCompareToId) throws AditoGitException
+  static List<DiffEntry> doDiff(@NotNull Git pGit, @NotNull ObjectId pCurrentId, @Nullable ObjectId pCompareToId) throws AditoGitException
   {
     try
     {
-      CanonicalTreeParser oldTreeIter = prepareTreeParser(pGit.getRepository(), pCompareToId);
+      AbstractTreeIterator oldTreeIter;
+      if (pCompareToId == null)
+        oldTreeIter = new EmptyTreeIterator();
+      else
+        oldTreeIter = prepareTreeParser(pGit.getRepository(), pCompareToId);
       CanonicalTreeParser newTreeIter = prepareTreeParser(pGit.getRepository(), pCurrentId);
       DiffFormatter df = new DiffFormatter(NullOutputStream.INSTANCE);
       df.setRepository(pGit.getRepository());

@@ -432,7 +432,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @NotNull ICommit pCompareTo)
+  public @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo)
   {
     try
     {
@@ -440,7 +440,8 @@ public class RepositoryImpl implements IRepository
 
       File topLevelDirectory = getTopLevelDirectory();
       IFileContentInfo emptyContentInfo = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
-      List<DiffEntry> listDiff = RepositoryImplHelper.doDiff(git, ObjectId.fromString(pOriginal.getId()), ObjectId.fromString(pCompareTo.getId()));
+      List<DiffEntry> listDiff = RepositoryImplHelper.doDiff(git, ObjectId.fromString(pOriginal.getId()), pCompareTo == null ? null
+          : ObjectId.fromString(pCompareTo.getId()));
 
       if (listDiff != null)
       {

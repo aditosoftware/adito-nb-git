@@ -194,7 +194,7 @@ public interface IRepository
    * @return IFileDiff that contains the differences between the two files
    * @throws AditoGitException if an error occurs
    */
-  @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @NotNull ICommit pCompareTo) throws AditoGitException;
+  @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo) throws AditoGitException;
 
   /**
    * performs a diff of the working copy of the provided files with their version as it is in compareWith
