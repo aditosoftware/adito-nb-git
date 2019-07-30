@@ -8,6 +8,7 @@ import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.tree.models.BaseObservingTreeModel;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
@@ -56,8 +57,11 @@ public class StatusTree
       if (pSelected == null)
         return Optional.of(Collections.emptyList());
       return Optional.of(Arrays.stream(pSelected)
-                             .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo().getMembers())
+                             .map(pTreePath -> ((FileChangeTypeNode) pTreePath.getLastPathComponent()).getInfo())
+                             .filter(Objects::nonNull)
+                             .map(FileChangeTypeNodeInfo::getMembers)
                              .flatMap(Collection::stream)
+                             .distinct()
                              .collect(Collectors.toList()));
     });
   }
