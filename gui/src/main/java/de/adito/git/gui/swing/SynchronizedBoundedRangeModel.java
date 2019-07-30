@@ -14,7 +14,6 @@ import javax.swing.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -70,28 +69,32 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
    *
    * @param n new value for the model
    */
-  private void setValueWithoutFeedback(int n, BoundedRangeModel pSetter)
+  private boolean setValueWithoutFeedback(int n, BoundedRangeModel pSetter)
   {
     if (coupledScrollbarInfos.size() > 1)
     {
-      _valueChanged(n, subListCache
+      return _valueChanged(n, subListCache
           .computeIfAbsent(pSetter, pKey -> coupledScrollbarInfos
               .stream()
               .filter(pCoupledScrollbarInfo -> !pCoupledScrollbarInfo.getToCouple().getModel().equals(pKey))
               .collect(Collectors.toList())));
     }
-    super.setValue(n);
+    else
+    {
+      SwingUtilities.invokeLater(() -> super.setValue(n));
+      return true;
+    }
   }
 
   /**
    * @param pNewValue       New Value of the scrollPane
    * @param pScrollbarInfos list of coupled Scrollbars with their informations
    */
-  private void _valueChanged(int pNewValue, @NotNull List<_CoupledScrollbarInfo> pScrollbarInfos)
+  private boolean _valueChanged(int pNewValue, @NotNull List<_CoupledScrollbarInfo> pScrollbarInfos)
   {
     int scrollAmount = pNewValue - getValue();
     if (scrollAmount == 0)
-      return;
+      return false;
     double changedMidVisibleValue = getValue() + scrollAmount + getExtent() * SYNCHRONIZE_ON_HEIGHT;
     boolean isScrollPane = true;
     for (_CoupledScrollbarInfo scrollbarInfo : pScrollbarInfos)
@@ -116,6 +119,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
     }
     if (isScrollPane)
       SwingUtilities.invokeLater(() -> super.setValue(getValue() + scrollAmount));
+    return isScrollPane;
   }
 
   /**
@@ -134,7 +138,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
       double distanceFromDesired = pRemainedMidVisibleValue - pDesiredValue;
       if (Math.abs(pScrollAmount) >= Math.abs(distanceFromDesired))
       {
-        pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+        isScrollPane = pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
       }
       else
       {
@@ -150,7 +154,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
         {
           // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
           // specifies the middle of the visible area
-          pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+          isScrollPane = pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
         }
       }
     }
@@ -175,7 +179,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
       double distanceFromDesired = pRemainedMidVisibleValue - pDesiredValue;
       if (Math.abs(pScrollAmount) >= Math.abs(distanceFromDesired))
       {
-        pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+        isScrollPane = pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
       }
       else
       {
@@ -191,7 +195,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
         {
           // half the visible amount is subtracted because the position set is the top of the visible area, while pDesiredValue
           // specifies the middle of the visible area
-          pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
+          isScrollPane = pScrollbarInfo.setValue((int) (pDesiredValue - pScrollbarInfo.getToCouple().getVisibleAmount() * SYNCHRONIZE_ON_HEIGHT));
         }
       }
     }
@@ -220,7 +224,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
     private final Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshMappings;
     private final boolean useInverseMap;
     private BiNavigateAbleMap<Integer, Integer> map = new BiNavigateAbleMap<>();
-    private Consumer<Integer> setOtherScrollBarValueFunction;
+    private Function<Integer, Boolean> setOtherScrollBarValueFunction;
 
     _CoupledScrollbarInfo(@NotNull JScrollBar pToCouple, @NotNull Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
                           @NotNull Observable<Optional<IFileChangesEvent>> pFileChangesEventObs, boolean pUseInverseMap)
@@ -271,9 +275,9 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
         map = new BiNavigateAbleMap<>();
     }
 
-    void setValue(int pNumber)
+    boolean setValue(int pNumber)
     {
-      setOtherScrollBarValueFunction.accept(pNumber);
+      return setOtherScrollBarValueFunction.apply(pNumber);
     }
 
     @Override
@@ -283,13 +287,16 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
       disposable.dispose();
     }
 
-    private Consumer<Integer> _getSetOtherScrollbarFunction(@Nullable Object pOtherScrollbar, @NotNull JScrollBar pToCouple)
+    private Function<Integer, Boolean> _getSetOtherScrollbarFunction(@Nullable Object pOtherScrollbar, @NotNull JScrollBar pToCouple)
     {
       if (pOtherScrollbar instanceof SynchronizedBoundedRangeModel)
-        return pInteger -> SwingUtilities.invokeLater(() -> ((SynchronizedBoundedRangeModel) pOtherScrollbar)
-            .setValueWithoutFeedback(pInteger, SynchronizedBoundedRangeModel.this));
+        return pInteger -> ((SynchronizedBoundedRangeModel) pOtherScrollbar)
+            .setValueWithoutFeedback(pInteger, SynchronizedBoundedRangeModel.this);
       else
-        return pInteger -> SwingUtilities.invokeLater(() -> pToCouple.setValue(pInteger));
+        return pInteger -> {
+          SwingUtilities.invokeLater(() -> pToCouple.setValue(pInteger));
+          return true;
+        };
     }
   }
 }
