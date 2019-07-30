@@ -376,7 +376,16 @@ public class RepositoryImpl implements IRepository
     logger.log(Level.INFO, "git fetch (with prune = {0})", pPrune);
     try
     {
-      git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
+      Set<String> remoteNames = getRemoteNames();
+      if (remoteNames.size() <= 1)
+        git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
+      else
+      {
+        for (String remoteName : remoteNames)
+        {
+          git.fetch().setRemote(remoteName).setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
+        }
+      }
     }
     catch (GitAPIException pE)
     {
