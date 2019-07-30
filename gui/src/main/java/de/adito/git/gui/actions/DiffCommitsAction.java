@@ -60,7 +60,12 @@ class DiffCommitsAction extends AbstractTableAction
         List<IFileDiff> fileDiffs;
         try
         {
-          fileDiffs = pRepo.diff(selectedCommit, parentCommitObservable.blockingFirst().orElse(oldestSelectedCommit.getParents().get(0)));
+          ICommit parentCommit;
+          if (oldestSelectedCommit.getParents().isEmpty())
+            parentCommit = null;
+          else
+            parentCommit = oldestSelectedCommit.getParents().get(0);
+          fileDiffs = pRepo.diff(selectedCommit, parentCommitObservable.blockingFirst().orElse(parentCommit));
         }
         catch (AditoGitException pE)
         {
