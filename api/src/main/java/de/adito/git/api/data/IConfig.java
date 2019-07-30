@@ -151,4 +151,13 @@ public interface IConfig
    */
   void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName);
 
+  /**
+   * add a new remote
+   *
+   * @param pRemoteName name that the new remote should be called
+   * @param pRemoteUrl  url of the remote
+   * @return true if the new remote could be written to the config file, false otherwise
+   */
+  boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl);
+
 }

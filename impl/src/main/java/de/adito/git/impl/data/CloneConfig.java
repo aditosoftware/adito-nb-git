@@ -105,4 +105,11 @@ public class CloneConfig implements IConfig
   {
     // no implemented
   }
+
+  @Override
+  public boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl)
+  {
+    // not implemented
+    return false;
+  }
 }

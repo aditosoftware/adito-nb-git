@@ -258,4 +258,21 @@ public class ConfigImpl implements IConfig
     }
   }
 
+  @Override
+  public boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl)
+  {
+    StoredConfig config = git.getRepository().getConfig();
+    config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemoteName, "url", pRemoteUrl);
+    config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemoteName, "fetch", "+refs/heads/*:refs/remotes/" + pRemoteName + "/*");
+    try
+    {
+      config.save();
+    }
+    catch (IOException pE)
+    {
+      return false;
+    }
+    return true;
+  }
+
 }
