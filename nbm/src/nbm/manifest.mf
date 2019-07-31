@@ -4,5 +4,41 @@ OpenIDE-Module-Install: de/adito/git/nbm/GitModuleInstall.class
 OpenIDE-Module-Layer: de/adito/git/nbm/layer.xml
 OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
-OpenIDE-Module-Long-Description: Git Support for NetBeans IDE. <br>Complete rewrite of the old NB-Git-Plugin developed by ADITO<br> For versions and changelogs see <a href=https://github.com/aditosoftware/adito-nb-git/releases>here</a>
+OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
+  <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.0</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>Lots of performance improvements that make both the creation and display of diff and merge dialogs a lot faster/smoother:
+      <ul>
+        <li>The loading and detection of the content and encoding for a diff of a file is now done in a lazy way. This increases the loading time by a magnitude or more when diff'ing a large amount of files</li>
+        <li>In the diff and merge views only visible highlights are drawn and calculated. This makes those views a lot more fluent</li>
+        <li>All computations regarding the position of the viewPort and calculations dependent on it are done in a RXJava Thread instead of the EDT. This makes scrolling in the diff and merge views smoother</li>
+        <li>The Model responsible for scrolling the diff and merge views now only sends a maximum of 60 events a second to avoid unnecessary processing power when scrolling fast. No scroll events coming from the mouse are discarded, instead they are aggregated over the timespan of 1/60th of a second</li>
+      </ul>
+    </li>
+    <li>Additional Remote Repositories can now be added in the Git Settings Dialog. Fetch now fetches from all Remote Repositories in the Git Config.</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The plugin now automatically saves all unsaved files before actions such as Commit or Pull</li>
+    <li>The way two panels are coupled in the diff or merge views now works in a different way that is more resource-friendly</li>
+    <li>The panel responsible for drawing the lineNumbers has the number of times it may be repainted capped at 60 times a second. This makes it still seem fluent, but doesn't unnecessarily draw processing power</li>
+    <li>Logging the detected encoding of a file is now only done when writing the file to disk</li>
+    <li>Pulled JGit Version up to 5.4.0.201906121030-r</li>
+    <li>Pulled Guava version up to 28.0-jre</li>
+    <li>Brought the maven plugins up to a more recent version</li>
+    <li>Each tree now has its view changed independently from one another</li>
+    <li>If the user is already on the parent branch of a merge, that branch is not checked out again</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: Diff'ing a missing or deleted file throws IllegalArgumentException</li>
+    <li>Fix: EditorColorizer throwing an Exception if a file without assigned project is opened</li>
+    <li>Fix: IFileDiff.isSameFile sometimes returned true for some IFileDiffs that shouldn't be considered equal</li>
+    <li>Fix: If the two sides of a diff have different line endings, accepting a chunk could lead to too many/few characters removed</li>
+    <li>Fix: Selecting all files including the root node when doing an action such as Revert, the selected files contained multiple instances of one file</li>
+    <li>Fix: It is now possible to get the changes of the first commit of a file/the first commit in general</li>
+    <li>Fix: NullPointerException if diff'ing a file where no changes can be accepted</li>
+  </ul>
 OpenIDE-Module-Short-Description: Git Support for NetBeans IDE
