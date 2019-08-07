@@ -6,10 +6,10 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
-import de.adito.git.gui.icon.IIconLoader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -44,23 +44,23 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
     ImageIcon discardIcon = pIconLoader.getIcon(DISCARD_CHANGE_ICON);
     mergePanel = new MergePanel(pIconLoader, mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
-    _initGui();
+    _initGui(pIconLoader);
   }
 
-  private void _initGui()
+  private void _initGui(IIconLoader pIconLoader)
   {
     // create a panel in a scrollPane for each of the textPanes
     setLayout(new BorderLayout());
 
     JPanel diffPanel = new JPanel(new BorderLayout());
     diffPanel.add(mergePanel, BorderLayout.CENTER);
-    diffPanel.add(_initToolbar(), BorderLayout.NORTH);
+    diffPanel.add(_initToolbar(pIconLoader), BorderLayout.NORTH);
     diffPanel.setPreferredSize(new Dimension(1600, 900));
     add(diffPanel, BorderLayout.CENTER);
   }
 
   @NotNull
-  private JToolBar _initToolbar()
+  private JToolBar _initToolbar(IIconLoader pIconLoader)
   {
     JToolBar toolbar = new JToolBar();
     toolbar.setFloatable(false);
@@ -79,7 +79,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
 
     // Our Actions
     toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.YOURS)));
-    toolbar.add(new JButton(new _AcceptNonConflictingChangesAction()));
+    toolbar.add(new JButton(new _AcceptNonConflictingChangesAction(pIconLoader)));
     toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.THEIRS)));
 
     return toolbar;
@@ -137,9 +137,9 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   private class _AcceptNonConflictingChangesAction extends AbstractAction
   {
 
-    _AcceptNonConflictingChangesAction()
+    _AcceptNonConflictingChangesAction(IIconLoader pIconLoader)
     {
-      super("", new ImageIcon(_AcceptNonConflictingChangesAction.class.getResource(Constants.ACCEPT_ALL_NON_CONFLICTING)));
+      super("", pIconLoader.getIcon(Constants.ACCEPT_ALL_NON_CONFLICTING));
       putValue(SHORT_DESCRIPTION, "accept remaining non-conflicting changes");
     }
 

@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
@@ -39,13 +40,13 @@ class CherryPickAction extends AbstractTableAction
   private final ISaveUtil saveUtil;
 
   @Inject
-  CherryPickAction(IPrefStore pPrefStore, INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, ISaveUtil pSaveUtil,
+  CherryPickAction(IPrefStore pPrefStore, IIconLoader pIconLoader, INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, ISaveUtil pSaveUtil,
                    IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                    @Assisted Observable<Optional<List<ICommit>>> pSelectedCommits)
   {
     super(ACTION_NAME, _getIsEnabledObservable(pSelectedCommits));
     saveUtil = pSaveUtil;
-    putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(Constants.CHERRY_PICK)));
+    putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.CHERRY_PICK));
     putValue(Action.SHORT_DESCRIPTION, "Cherry pick");
     prefStore = pPrefStore;
     notifyUtil = pNotifyUtil;

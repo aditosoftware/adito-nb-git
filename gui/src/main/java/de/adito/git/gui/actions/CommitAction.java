@@ -6,13 +6,13 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
-import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 import org.apache.commons.lang3.SystemUtils;
 
