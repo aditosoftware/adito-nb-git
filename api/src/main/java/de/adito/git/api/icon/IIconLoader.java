@@ -18,14 +18,6 @@ public interface IIconLoader
    * @param pIconBase the IconBase
    * @return the Icon
    */
+  @Nullable
   ImageIcon getIcon(@NotNull String pIconBase);
-
-  /**
-   * Returns the IconResource.
-   * If the Dark Theme is enabled, the Resource of the Icon with the dark-Suffix is returned.
-   *
-   * @param pIconBase the IconBase
-   * @return the IconResource depending on the Theme.
-   */
-  String getIconResourceForTheme(@NotNull String pIconBase);
 }

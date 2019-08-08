@@ -1,6 +1,6 @@
 package de.adito.git.nbm.icon;
 
-import de.adito.git.gui.icon.AbstractIconLoader;
+import de.adito.git.api.icon.IIconLoader;
 import org.jetbrains.annotations.*;
 import org.openide.util.ImageUtilities;
 
@@ -12,9 +12,9 @@ import java.util.HashMap;
  *
  * @author m.haertel, 06.08.2019
  */
-public class NBIconLoader extends AbstractIconLoader
+public class NBIconLoader implements IIconLoader
 {
-  private static HashMap<String, ImageIcon> iconCache = new HashMap<>();
+  private final static HashMap<String, ImageIcon> iconCache = new HashMap<>();
 
   /**
    * {@inheritDoc}
@@ -22,9 +22,12 @@ public class NBIconLoader extends AbstractIconLoader
   @Override
   public @Nullable ImageIcon getIcon(@NotNull String pIconBase)
   {
-    if (iconCache.containsKey(pIconBase)) {
+    if (iconCache.containsKey(pIconBase))
+    {
       return iconCache.get(pIconBase);
-    } else {
+    }
+    else
+    {
       ImageIcon icon = ImageUtilities.loadImageIcon(pIconBase, true);
       iconCache.put(pIconBase, icon);
       return icon;

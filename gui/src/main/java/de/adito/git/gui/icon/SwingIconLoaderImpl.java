@@ -1,29 +1,22 @@
 package de.adito.git.gui.icon;
 
+import de.adito.git.api.icon.IIconLoader;
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import java.util.HashMap;
+
 
 /**
  * @author m.kaspera 25.10.2018
  */
-public class SwingIconLoaderImpl extends AbstractIconLoader
+public class SwingIconLoaderImpl implements IIconLoader
 {
-    private static HashMap<String, ImageIcon> iconCache = new HashMap<>();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @Nullable ImageIcon getIcon(@NotNull String pIconBase)
-    {
-        if (iconCache.containsKey(pIconBase)) {
-            return iconCache.get(pIconBase);
-        } else {
-            ImageIcon icon = new ImageIcon(getClass().getResource(getIconResourceForTheme(pIconBase)));
-            iconCache.put(pIconBase, icon);
-            return icon;
-        }
-    }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ImageIcon getIcon(@NotNull String pIconBase)
+  {
+    return new ImageIcon(getClass().getResource(pIconBase));
+  }
 }
