@@ -1,17 +1,23 @@
 package de.adito.git.gui.icon;
 
+import org.jetbrains.annotations.*;
+
 import javax.swing.*;
 
 /**
- * @author m.kaspera 25.10.2018
+ * Interface to load Icons depending on the Theme.
+ *
+ * @author m.haertel, 06.08.2019
  */
-public interface IIconLoader {
-
-    /**
-     *
-     * @param iconPath Path to the file that contains the icon as string. Do not use \\ as separator
-     * @return ImageIcon for the passed file
-     */
-    ImageIcon getIcon(String iconPath);
-
+public interface IIconLoader
+{
+  /**
+   * Returns an Icon for a given IconBase.
+   * Depending on the current Theme a dark or bright Icon is provided.
+   *
+   * @param pIconBase the IconBase
+   * @return the Icon
+   */
+  @Nullable
+  ImageIcon getIcon(@NotNull String pIconBase);
 }

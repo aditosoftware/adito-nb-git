@@ -7,13 +7,13 @@ import com.jidesoft.swing.CheckBoxTreeSelectionModel;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
@@ -72,9 +72,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final Disposable disposable;
 
   @Inject
-  public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, IIconLoader pIconLoader,
-                      IPrefStore pPrefStore, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor, @Assisted Observable<Optional<IRepository>> pRepository,
-                      @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @Assisted String pMessageTemplate, IEditorKitProvider pEditorKitProvider)
+  public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
+                      IIconLoader pIconLoader, IPrefStore pPrefStore, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                      @Assisted String pMessageTemplate, IEditorKitProvider pEditorKitProvider)
   {
     actionProvider = pActionProvider;
     iconLoader = pIconLoader;

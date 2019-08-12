@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
@@ -86,7 +87,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
    */
   @Inject
   CommitHistoryWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, IMenuProvider pMenuProvider,
-                             CommitDetailsPanel.IPanelFactory pPanelFactory,
+                             CommitDetailsPanel.IPanelFactory pPanelFactory, IIconLoader pIconLoader,
                              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted TableModel pTableModel,
                              @Assisted Runnable pLoadMoreCallback, @Assisted Consumer<ICommitFilter> pRefreshContentCallBack, @Assisted ICommitFilter pStartFilter)
   {
@@ -135,7 +136,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
         .subscribeWith(BehaviorSubject.create());
     statusObservable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())));
     commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable, pStartFilter);
-    _initGUI(pLoadMoreCallback, pRefreshContentCallBack);
+    _initGUI(pLoadMoreCallback, pRefreshContentCallBack, pIconLoader);
   }
 
   /**
@@ -164,10 +165,10 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     popupDiscardables.forEach(IDiscardable::discard);
   }
 
-  private void _initGUI(Runnable pLoadMoreCallback, Consumer<ICommitFilter> pRefreshContentCallBack)
+  private void _initGUI(Runnable pLoadMoreCallback, Consumer<ICommitFilter> pRefreshContentCallBack, IIconLoader pIconLoader)
   {
     setLayout(new BorderLayout());
-    _setUpCommitTable();
+    _setUpCommitTable(pIconLoader);
     _setUpToolbar(pRefreshContentCallBack);
 
     JScrollPane commitScrollPane = new JScrollPane(commitTable, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
@@ -244,9 +245,9 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     }
   }
 
-  private void _setUpCommitTable()
+  private void _setUpCommitTable(IIconLoader pIconLoader)
   {
-    commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer());
+    commitTable.setDefaultRenderer(CommitHistoryTreeListItem.class, new CommitHistoryTreeListItemRenderer(pIconLoader));
     commitTable.setRowHeight(21);
     _buildPopupMenu();
 
