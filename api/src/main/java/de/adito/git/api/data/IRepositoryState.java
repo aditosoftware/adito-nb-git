@@ -39,6 +39,34 @@ public interface IRepositoryState
   IRepository.State getState();
 
   /**
+   * Checks if the current State of the repository allows the user to do a commit
+   *
+   * @return true if the user can do a commit
+   */
+  boolean canCommit();
+
+  /**
+   * Checks if the current State of the repository allows the user to reset the HEAD
+   *
+   * @return true if the user can reset the HEAD
+   */
+  boolean canResetHead();
+
+  /**
+   * Checks if the current State of the repository allows the user to do an amended commit
+   *
+   * @return true if the user can do an amended commit
+   */
+  boolean canAmend();
+
+  /**
+   * Checks if the current State of the repository allows the user to check out another commit
+   *
+   * @return true if the user can check out another commit
+   */
+  boolean canCheckout();
+
+  /**
    * retrieve the names of the configured remotes for this repository
    *
    * @return names of the remotes stored in the config
