@@ -6,15 +6,17 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 import org.apache.commons.lang3.SystemUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -45,7 +47,7 @@ class CommitAction extends AbstractTableAction
                @Assisted Observable<Optional<IRepository>> pRepository,
                @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @Assisted String pMessageTemplate)
   {
-    super("Commit");
+    super("Commit", _getIsEnabledObservable(pRepository, pSelectedFilesObservable));
     prefStore = pPrefStore;
     saveUtil = pSaveUtil;
     messageTemplate = pMessageTemplate;
@@ -63,8 +65,7 @@ class CommitAction extends AbstractTableAction
     saveUtil.saveUnsavedFiles();
     Optional<IRepository> currentRepoOpt = repository.blockingFirst();
     String prefStoreInstanceKey = COMMIT_MESSAGE_BASE_STORAGE_KEY + currentRepoOpt.map(pRepo -> pRepo.getTopLevelDirectory().getAbsolutePath()).orElse("");
-    boolean doAbort = !currentRepoOpt.map(this::_coverAutoCRLF).orElse(true);
-    if (doAbort)
+    if (!currentRepoOpt.map(this::_coverAutoCRLF).orElse(true))
       return;
     Observable<Optional<IRepository>> repo = Observable.just(currentRepoOpt);
     if (messageTemplate == null || messageTemplate.isEmpty())
@@ -90,7 +91,7 @@ class CommitAction extends AbstractTableAction
     }
   }
 
-  private boolean _coverAutoCRLF(IRepository pRepository)
+  private boolean _coverAutoCRLF(@NotNull IRepository pRepository)
   {
     if (SystemUtils.IS_OS_WINDOWS && pRepository.getConfig().getAutoCRLF() == IConfig.AUTO_CRLF.FALSE)
     {
@@ -104,6 +105,15 @@ class CommitAction extends AbstractTableAction
       return dialogResult.isPressedOk();
     }
     return true;
+  }
+
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                       @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  {
+    Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
+        .orElse(Observable.just(Optional.empty())));
+    return Observable.combineLatest(repoState, pSelectedFilesObservable, (pStateOpt, pStatusOpt)
+        -> Optional.of(pStatusOpt.map(pStatus -> !pStatus.isEmpty()).orElse(false) && pStateOpt.map(IRepositoryState::canCommit).orElse(false)));
   }
 
 }

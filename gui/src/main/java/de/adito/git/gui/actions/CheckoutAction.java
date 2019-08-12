@@ -4,9 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
-import de.adito.git.api.data.EBranchType;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.actions.commands.StashCommand;
@@ -41,7 +39,7 @@ class CheckoutAction extends AbstractTableAction
   CheckoutAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFactory, ISaveUtil pSaveUtil,
                  @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
   {
-    super("Checkout", _getIsEnabledObservable());
+    super("Checkout", _getIsEnabledObservable(pRepository));
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     progressFactory = pProgressFactory;
@@ -106,12 +104,16 @@ class CheckoutAction extends AbstractTableAction
   }
 
   /**
-   * check the selection of columns in branch list
+   * return an observable that contains information about whether the checkout action can be executed in the current repository state
    *
-   * @return return true if the selected list has one element, else false
+   * @param pRepository Observable of the RepositoryObject of the current Project
+   * @return Observable that signals if the user may do a checkout in the current repository state
    */
-  private static Observable<Optional<Boolean>> _getIsEnabledObservable()
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IRepository>> pRepository)
   {
-    return Observable.just(Optional.of(true));
+    return pRepository.switchMap(pRepoOpt -> pRepoOpt
+        .map(IRepository::getRepositoryState)
+        .orElse(Observable.just(Optional.empty())))
+        .map(pRepoStateOpt -> pRepoStateOpt.map(IRepositoryState::canCheckout));
   }
 }

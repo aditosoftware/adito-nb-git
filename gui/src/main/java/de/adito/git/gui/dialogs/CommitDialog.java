@@ -7,13 +7,14 @@ import com.jidesoft.swing.CheckBoxTreeSelectionModel;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
@@ -104,6 +105,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree)).startWith(List.<File>of()).share().subscribeWith(BehaviorSubject.create());
       disposable = Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
           .subscribe(pIsValidDescriptor::setValid);
+      _initGui(filesToCommitObservable, dir);
     }
     else
     {
@@ -111,6 +113,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       selectedFiles = Observable.just(List.of());
       disposable = selectedFiles.subscribe();
     }
+    Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
+        .orElse(Observable.just(Optional.empty())));
+    if (repoState.blockingFirst(Optional.empty()).map(pIRepositoryState -> !pIRepositoryState.canAmend()).orElse(true))
+      amendCheckBox.setEnabled(false);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
@@ -126,7 +132,6 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
         }).orElse("could not retrieve message of last commit"));
       }
     });
-    _initGui(filesToCommitObservable, dir);
   }
 
   /**
@@ -226,10 +231,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   /**
    * initialise GUI elements
    *
-   * @param pFilesToCommitObservable
-   * @param pDir
+   * @param pFilesToCommitObservable Observable with a list of files that should be pre-selected for the commit
+   * @param pDir project directory
    */
-  private void _initGui(Observable<List<IFileChangeType>> pFilesToCommitObservable, File pDir)
+  private void _initGui(@NotNull Observable<List<IFileChangeType>> pFilesToCommitObservable, @NotNull File pDir)
   {
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);

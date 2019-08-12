@@ -6,10 +6,12 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
 import java.util.Collections;
@@ -33,7 +35,7 @@ class ResetAction extends AbstractTableAction
   ResetAction(INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
               @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
-    super("Reset current Branch to here", _getIsEnabledObservable(pSelectedCommitObservable));
+    super("Reset current Branch to here", _getIsEnabledObservable(pSelectedCommitObservable, pRepository));
     notifyUtil = pNotifyUtil;
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
@@ -58,9 +60,13 @@ class ResetAction extends AbstractTableAction
     }
   }
 
-  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                                                       @NotNull Observable<Optional<IRepository>> pRepository)
   {
-    return pSelectedCommitObservable.map(selectedCommits -> Optional.of(selectedCommits.orElse(Collections.emptyList()).size() == 1));
+    Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
+        .orElse(Observable.just(Optional.empty())));
+    return Observable.combineLatest(pSelectedCommitObservable, repoState, (pSelectedCommitOpt, pRepoStateOpt)
+        -> Optional.of(pSelectedCommitOpt.orElse(Collections.emptyList()).size() == 1 && pRepoStateOpt.map(IRepositoryState::canResetHead).orElse(false)));
   }
 
 }

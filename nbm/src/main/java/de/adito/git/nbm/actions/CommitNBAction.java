@@ -2,6 +2,7 @@ package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
@@ -70,9 +71,8 @@ public class CommitNBAction extends NBAction
     {
       Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
       return repository.blockingFirst()
-          .map(pRepo -> !pRepo.getStatus().blockingFirst()
-              .map(pStatus -> pStatus.getUncommitted().isEmpty())
-              .orElse(true))
+          .map(pRepo -> !pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true) &&
+              pRepo.getRepositoryState().blockingFirst().map(IRepositoryState::canCommit).orElse(false))
           .orElse(false);
     }
     return false;
