@@ -77,7 +77,8 @@ public class FileChangesImpl implements IFileChanges
    * @param pFileContents the String that should be split up into lines
    * @return String array with each field representing one line
    */
-  private String[] _getLines(String pFileContents)
+  @NotNull
+  private String[] _getLines(@NotNull String pFileContents)
   {
     String pPreppedFileContents = pFileContents.endsWith("\n") ? pFileContents.substring(0, pFileContents.length() - 1) : pFileContents;
     String[] lines = pPreppedFileContents.isEmpty() ? new String[0] : pPreppedFileContents.split("\n", -1);
@@ -86,7 +87,7 @@ public class FileChangesImpl implements IFileChanges
     {
       lines[index] = lines[index] + "\n";
     }
-    if (pFileContents.endsWith("\n"))
+    if (pFileContents.endsWith("\n") && lines.length > 0)
       lines[lines.length - 1] = lines[lines.length - 1] + "\n";
     return lines;
   }
