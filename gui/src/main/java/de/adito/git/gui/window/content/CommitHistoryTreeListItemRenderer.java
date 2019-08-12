@@ -5,6 +5,7 @@ import de.adito.git.api.HistoryGraphElement;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ITag;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 
 import javax.swing.*;
@@ -27,13 +28,13 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
   private final ImageIcon headIcon;
   private final ImageIcon originBranchIcon;
 
-  CommitHistoryTreeListItemRenderer()
+  CommitHistoryTreeListItemRenderer(IIconLoader pIconLoader)
   {
-    tagIcon = new ImageIcon(getClass().getResource(Constants.TAG_ICON));
-    localBranchIcon = new ImageIcon(getClass().getResource(Constants.BRANCH_ICON_LOCAL));
-    headIcon = new ImageIcon(getClass().getResource(Constants.BRANCH_ICON_HEAD));
-    originBranchIcon = new ImageIcon(getClass().getResource(Constants.BRANCH_ICON_ORIGIN));
-    stashIcon = new ImageIcon(getClass().getResource(Constants.STASH_COMMIT_ICON));
+    tagIcon = pIconLoader.getIcon(Constants.TAG_ICON);
+    localBranchIcon = pIconLoader.getIcon(Constants.BRANCH_ICON_LOCAL);
+    headIcon = pIconLoader.getIcon(Constants.BRANCH_ICON_HEAD);
+    originBranchIcon = pIconLoader.getIcon(Constants.BRANCH_ICON_ORIGIN);
+    stashIcon = pIconLoader.getIcon(Constants.STASH_COMMIT_ICON);
   }
 
   @Override

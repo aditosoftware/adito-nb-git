@@ -1,7 +1,7 @@
 package de.adito.git.gui.tree.renderer;
 
-import de.adito.git.gui.Constants;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.Constants;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
