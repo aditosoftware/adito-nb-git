@@ -99,20 +99,27 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
   private JLabel _createNewBranch()
   {
     JLabel label = new JLabel("+ New Branch...");
-    label.addMouseMotionListener(new _HoverMouseListener());
-    label.addMouseListener(new _HoverMouseListener());
-    label.addMouseListener(new MouseAdapter()
+    if (observableOptRepo.blockingFirst(Optional.empty()).isPresent())
     {
-      @Override
-      public void mouseReleased(MouseEvent pE)
+      label.addMouseMotionListener(new _HoverMouseListener());
+      label.addMouseListener(new _HoverMouseListener());
+      label.addMouseListener(new MouseAdapter()
       {
-        Action newBranchAction = actionProvider.getNewBranchAction(observableOptRepo);
-        newBranchAction.actionPerformed(new ActionEvent(pE.getSource(), ActionEvent.ACTION_PERFORMED, ""));
-        JWindow parent = (JWindow) getClientProperty("parent");
-        if (parent != null)
-          parent.dispose();
-      }
-    });
+        @Override
+        public void mouseReleased(MouseEvent pE)
+        {
+          Action newBranchAction = actionProvider.getNewBranchAction(observableOptRepo);
+          newBranchAction.actionPerformed(new ActionEvent(pE.getSource(), ActionEvent.ACTION_PERFORMED, ""));
+          JWindow parent = (JWindow) getClientProperty("parent");
+          if (parent != null)
+            parent.dispose();
+        }
+      });
+    }
+    else
+    {
+      label.setEnabled(false);
+    }
     return label;
   }
 
