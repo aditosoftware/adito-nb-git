@@ -18,5 +18,6 @@ public interface IIconLoader
    * @param pIconBase the IconBase
    * @return the Icon
    */
-  ImageIcon getIcon(String pIconBase);
+  @Nullable
+  ImageIcon getIcon(@NotNull String pIconBase);
 }

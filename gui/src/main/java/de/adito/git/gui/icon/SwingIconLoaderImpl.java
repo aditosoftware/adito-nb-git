@@ -14,7 +14,7 @@ public class SwingIconLoaderImpl implements IIconLoader
    * {@inheritDoc}
    */
   @Override
-  public ImageIcon getIcon(String pIconBase)
+  public @Nullable ImageIcon getIcon(@NotNull String pIconBase)
   {
     return new ImageIcon(getClass().getResource(pIconBase));
   }

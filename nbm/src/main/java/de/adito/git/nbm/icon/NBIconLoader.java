@@ -20,7 +20,7 @@ public class NBIconLoader implements IIconLoader
    * {@inheritDoc}
    */
   @Override
-  public ImageIcon getIcon(String pIconBase)
+  public @Nullable ImageIcon getIcon(@NotNull String pIconBase)
   {
     if (iconCache.containsKey(pIconBase))
     {
