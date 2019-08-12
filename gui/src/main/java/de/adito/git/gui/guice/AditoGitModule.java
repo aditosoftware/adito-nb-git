@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
 import de.adito.git.api.*;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.IEditorKitProvider;

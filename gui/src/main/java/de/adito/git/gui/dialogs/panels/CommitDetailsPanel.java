@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.DateTimeRenderer;

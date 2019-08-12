@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.DialogResult;

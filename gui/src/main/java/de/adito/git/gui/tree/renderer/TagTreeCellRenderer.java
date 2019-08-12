@@ -1,6 +1,6 @@
 package de.adito.git.gui.tree.renderer;
 
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 
 import javax.swing.*;

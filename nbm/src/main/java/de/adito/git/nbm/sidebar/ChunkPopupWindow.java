@@ -3,7 +3,7 @@ package de.adito.git.nbm.sidebar;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
 import de.adito.git.nbm.IGitConstants;

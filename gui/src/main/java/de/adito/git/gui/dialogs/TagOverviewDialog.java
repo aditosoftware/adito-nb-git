@@ -8,7 +8,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.ITag;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.concurrency.ComputationCycleExecutor;

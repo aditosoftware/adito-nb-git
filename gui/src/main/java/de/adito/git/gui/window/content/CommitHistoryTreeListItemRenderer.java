@@ -5,7 +5,7 @@ import de.adito.git.api.HistoryGraphElement;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ITag;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 
 import javax.swing.*;

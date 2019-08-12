@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.PopupMouseListener;

@@ -4,7 +4,7 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.api.data.IFileDiff;
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;

@@ -1,6 +1,6 @@
 package de.adito.git.nbm.icon;
 
-import de.adito.git.api.icon.IIconLoader;
+import de.adito.git.gui.icon.IIconLoader;
 import org.jetbrains.annotations.*;
 import org.openide.util.ImageUtilities;
 
@@ -20,7 +20,7 @@ public class NBIconLoader implements IIconLoader
    * {@inheritDoc}
    */
   @Override
-  public @Nullable ImageIcon getIcon(@NotNull String pIconBase)
+  public ImageIcon getIcon(String pIconBase)
   {
     if (iconCache.containsKey(pIconBase))
     {

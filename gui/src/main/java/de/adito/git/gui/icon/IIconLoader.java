@@ -1,4 +1,4 @@
-package de.adito.git.api.icon;
+package de.adito.git.gui.icon;
 
 import org.jetbrains.annotations.*;
 
@@ -18,6 +18,5 @@ public interface IIconLoader
    * @param pIconBase the IconBase
    * @return the Icon
    */
-  @Nullable
-  ImageIcon getIcon(@NotNull String pIconBase);
+  ImageIcon getIcon(String pIconBase);
 }
