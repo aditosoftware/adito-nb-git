@@ -1,6 +1,7 @@
 package de.adito.git.gui.icon;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -16,6 +17,8 @@ public class SwingIconLoaderImpl implements IIconLoader
   @Override
   public @Nullable ImageIcon getIcon(@NotNull String pIconBase)
   {
+    if (!pIconBase.startsWith("/"))
+      pIconBase = "/" + pIconBase;
     return new ImageIcon(getClass().getResource(pIconBase));
   }
 }
