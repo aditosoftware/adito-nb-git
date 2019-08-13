@@ -2,9 +2,10 @@ package de.adito.git.nbm;
 
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.gui.icon.MissingIcon;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.actions.Openable;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.cookies.OpenCookie;
@@ -13,6 +14,7 @@ import org.openide.filesystems.FileSystem;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 
 import java.awt.Image;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,8 +34,11 @@ import java.util.logging.Logger;
  */
 public class NBFileSystemUtilImpl implements IFileSystemUtil
 {
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final FileSystem memoryFS = FileUtil.createMemoryFileSystem();
+  private final HashMap<String, Image> artificialIconMap = new HashMap<>();
+  private Image defaultMissingIconImage = ImageUtilities.icon2Image(MissingIcon.get16x16());
 
   @Override
   public void openFile(String pAbsolutePath) throws AditoGitException
@@ -61,23 +67,27 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     }
   }
 
-  @Nullable
+  @NotNull
   @Override
   public Image getIcon(@NotNull File pFile, boolean pIsOpened)
   {
+    Image image = null;
     try
     {
       FileObject fileObject = FileUtil.toFileObject(pFile);
       if (fileObject == null)
-        return null;
+        return artificialIconMap.computeIfAbsent(FilenameUtils.getExtension(pFile.getName()), this::_createArtificialIcon);
       DataObject dataObject = DataObject.find(fileObject);
-      return pIsOpened ? dataObject.getNodeDelegate().getOpenedIcon(BeanInfo.ICON_COLOR_16x16)
+      image = pIsOpened ? dataObject.getNodeDelegate().getOpenedIcon(BeanInfo.ICON_COLOR_16x16)
           : dataObject.getNodeDelegate().getIcon(BeanInfo.ICON_COLOR_16x16);
     }
     catch (Exception pE)
     {
-      return null;
+      // do nothing, image will be null and the Missing/NotFoundIcon will be returned
     }
+    if (image != null)
+      return image;
+    return defaultMissingIconImage;
   }
 
   @NotNull
@@ -126,5 +136,41 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
         //nothing
       }
     }
+  }
+
+  /**
+   * @param pFileExtension extension of the file, used to determine the icon/image
+   * @return Image representing the type of file
+   */
+  @NotNull
+  private Image _createArtificialIcon(@NotNull String pFileExtension)
+  {
+    FileObject tempFo = null;
+    Image image = null;
+    try
+    {
+      tempFo = memoryFS.getRoot().createData(UUID.randomUUID().toString(), pFileExtension);
+      DataObject dataObject = DataObject.find(tempFo);
+      image = dataObject.getNodeDelegate().getIcon(BeanInfo.ICON_COLOR_16x16);
+    }
+    catch (IOException pE)
+    {
+      logger.log(Level.SEVERE, pE, () -> "Git: Error while trying to find a matching icon for a file with extension " + pFileExtension);
+    }
+    finally
+    {
+      try
+      {
+        if (tempFo != null)
+          tempFo.delete();
+      }
+      catch (Exception e)
+      {
+        //nothing
+      }
+    }
+    if (image != null)
+      return image;
+    return defaultMissingIconImage;
   }
 }
