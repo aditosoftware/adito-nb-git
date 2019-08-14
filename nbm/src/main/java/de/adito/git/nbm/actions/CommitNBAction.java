@@ -8,12 +8,15 @@ import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
+import org.apache.commons.lang3.StringUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import javax.swing.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,20 +70,44 @@ public class CommitNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
+    boolean containsUncommittedFiles = false;
+    Boolean canCommit = false;
     if (pActivatedNodes != null)
     {
       Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
-      return repository.blockingFirst()
-          .map(pRepo -> !pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true) &&
-              pRepo.getRepositoryState().blockingFirst().map(IRepositoryState::canCommit).orElse(false))
-          .orElse(false);
+      Optional<IRepository> repositoryOpt = repository.blockingFirst();
+      if (repositoryOpt.isPresent())
+      {
+        containsUncommittedFiles = !repositoryOpt.get().getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true);
+        canCommit = repositoryOpt.get().getRepositoryState().blockingFirst().map(IRepositoryState::canCommit).orElse(false);
+      }
     }
-    return false;
+    _updateTooltip(canCommit, containsUncommittedFiles);
+    return canCommit && containsUncommittedFiles;
   }
 
   @Override
   public String getName()
   {
     return NbBundle.getMessage(CommitNBAction.class, "LBL_CommitNBAction_Name");
+  }
+
+  /**
+   * update the current Tooltip, to give the user additional clues why the action is currently disabled if that is the case
+   *
+   * @param pCanCommit                if the current repository state allows committing
+   * @param pContainsUncommittedFiles if there are uncommited files in the repository
+   */
+  private void _updateTooltip(Boolean pCanCommit, boolean pContainsUncommittedFiles)
+  {
+    List<String> tooltipInfos = new ArrayList<>();
+    if (!pContainsUncommittedFiles)
+      tooltipInfos.add(NbBundle.getMessage(CommitNBAction.class, "Commit_NoUnCommittedFiles"));
+    if (!pCanCommit)
+      tooltipInfos.add(NbBundle.getMessage(CommitNBAction.class, "Commit_CannotCommit"));
+    if (tooltipInfos.isEmpty())
+      tooltipInfos.add(getName());
+    putValue(Action.SHORT_DESCRIPTION, "<html>" + StringUtils.join(tooltipInfos, "<br>") + "</html>");
+
   }
 }
