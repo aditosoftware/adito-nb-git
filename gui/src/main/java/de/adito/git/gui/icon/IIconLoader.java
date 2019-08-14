@@ -1,6 +1,6 @@
 package de.adito.git.gui.icon;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -18,6 +18,6 @@ public interface IIconLoader
    * @param pIconBase the IconBase
    * @return the Icon
    */
-  @Nullable
+  @NotNull
   ImageIcon getIcon(@NotNull String pIconBase);
 }
