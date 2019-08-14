@@ -5,11 +5,11 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.TreeUtil;
@@ -25,9 +25,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +48,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private final StatusTree statusTree;
   private final BaseObservingTreeModel statusTreeModel;
   private final Action openFileAction;
+  private final List<IDiscardable> discardableActions = new ArrayList<>();
 
   @Inject
   StatusWindowContent(IIconLoader pIconLoader, IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
@@ -95,6 +94,8 @@ class StatusWindowContent extends JPanel implements IDiscardable
                 .collect(Collectors.toList()))
             .orElse(Collections.emptyList())));
     Action revertWorkDirAction = actionProvider.getRevertWorkDirAction(repository, selectionObservable);
+    Action ignoreAction = actionProvider.getIgnoreAction(repository, selectionObservable);
+    Action excludeAction = actionProvider.getExcludeAction(repository, selectionObservable);
     JToolBar toolBar = new JToolBar(SwingConstants.VERTICAL);
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getRefreshStatusAction(repository, statusTreeModel::reload));
@@ -118,8 +119,8 @@ class StatusWindowContent extends JPanel implements IDiscardable
     popupMenu.add(openFileAction);
     popupMenu.addSeparator();
     popupMenu.add(commitAction);
-    popupMenu.add(actionProvider.getIgnoreAction(repository, selectionObservable));
-    popupMenu.add(actionProvider.getExcludeAction(repository, selectionObservable));
+    popupMenu.add(ignoreAction);
+    popupMenu.add(excludeAction);
     popupMenu.add(revertWorkDirAction);
     popupMenu.addSeparator();
     popupMenu.add(diffToHeadAction);
@@ -129,12 +130,21 @@ class StatusWindowContent extends JPanel implements IDiscardable
     statusTree.getTree().addMouseListener(new PopupMouseListener(popupMenu));
     statusTree.getTree().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
     statusTree.getTree().getActionMap().put(STANDARD_ACTION_STRING, openFileAction);
+
+    discardableActions.add((IDiscardable) commitAction);
+    discardableActions.add((IDiscardable) revertWorkDirAction);
+    discardableActions.add((IDiscardable) diffToHeadAction);
+    discardableActions.add((IDiscardable) showCommitsForFileAction);
+    discardableActions.add((IDiscardable) ignoreAction);
+    discardableActions.add((IDiscardable) excludeAction);
+    discardableActions.add((IDiscardable) openFileAction);
   }
 
   @Override
   public void discard()
   {
     statusTreeModel.discard();
+    discardableActions.forEach(IDiscardable::discard);
   }
 
   private class _DoubleClickListener extends MouseAdapter
