@@ -116,7 +116,16 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
         .orElse(Observable.just(Optional.empty())));
     if (repoState.blockingFirst(Optional.empty()).map(pIRepositoryState -> !pIRepositoryState.canAmend()).orElse(true))
+    {
       amendCheckBox.setEnabled(false);
+      amendCheckBox.setToolTipText("<html>The current repository state does not allow amending a commit.<br>" +
+                                       "This is because the merge/cherry pick/revert you are doing is still in progress.<br>" +
+                                       "Finish that process by resolving all conflicts and doing a normal commit, or abort the process.</html>");
+    }
+    else
+    {
+      amendCheckBox.setToolTipText("");
+    }
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
@@ -232,7 +241,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * initialise GUI elements
    *
    * @param pFilesToCommitObservable Observable with a list of files that should be pre-selected for the commit
-   * @param pDir project directory
+   * @param pDir                     project directory
    */
   private void _initGui(@NotNull Observable<List<IFileChangeType>> pFilesToCommitObservable, @NotNull File pDir)
   {
