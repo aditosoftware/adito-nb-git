@@ -1,5 +1,6 @@
 package de.adito.git.api;
 
+import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -7,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.Image;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * Interface for a class that opens a given File in an Editor
@@ -22,7 +24,7 @@ public interface IFileSystemUtil
    * @param pAbsolutePath absolute path of the file to be opened in an Editor
    * @throws AditoGitException if the fileObject corresponding to the passed parameter can not be found
    */
-  void openFile(String pAbsolutePath) throws AditoGitException;
+  void openFile(@NotNull String pAbsolutePath) throws AditoGitException;
 
   /**
    * tells netbeans to open the specified file in an editor
@@ -30,7 +32,14 @@ public interface IFileSystemUtil
    * @param pFile File to be opened in an Editor
    * @throws AditoGitException if the fileObject corresponding to the passed parameter can not be found
    */
-  void openFile(File pFile) throws AditoGitException;
+  void openFile(@NotNull File pFile) throws AditoGitException;
+
+  /**
+   * Pre-loads and stores the icons for the given files in a cache
+   *
+   * @param pFiles List of files for which to pre-load the icons
+   */
+  void preLoadIcons(@NotNull List<IFileChangeType> pFiles);
 
   /**
    * find an icon representing the passed file
