@@ -49,7 +49,7 @@ class SwitchTreeViewAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    Runnable expandTreeRunnable = () -> TreeUtil._expandTreeInterruptible(tree);
+    Runnable expandTreeRunnable = () -> TreeUtil.expandTreeInterruptible(tree);
     if (tree.getModel() instanceof IDiscardable)
       ((IDiscardable) tree.getModel()).discard();
     if (Constants.TREE_VIEW_FLAT.equals(prefStore.get(callerName + Constants.TREE_VIEW_TYPE_KEY)))

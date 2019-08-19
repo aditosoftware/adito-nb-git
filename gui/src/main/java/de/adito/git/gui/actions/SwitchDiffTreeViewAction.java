@@ -5,9 +5,9 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.IDiffInfo;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.DiffTreeModel;
 import de.adito.git.gui.tree.models.FlatDiffTreeModel;
@@ -49,7 +49,7 @@ class SwitchDiffTreeViewAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    Runnable expandTreeRunnable = () -> TreeUtil._expandTreeInterruptible(tree);
+    Runnable expandTreeRunnable = () -> TreeUtil.expandTreeInterruptible(tree);
     if (tree.getModel() instanceof IDiscardable)
       ((IDiscardable) tree.getModel()).discard();
     if (Constants.TREE_VIEW_FLAT.equals(prefStore.get(callerName + Constants.TREE_VIEW_TYPE_KEY)))

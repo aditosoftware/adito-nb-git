@@ -8,10 +8,10 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.ITag;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.concurrency.ComputationCycleExecutor;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
@@ -77,7 +77,7 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
     });
     Observable<Optional<ITag>> selectedTagObservable = selectionModel.getSelectedPaths().map(pSelectedPaths -> {
       if (pSelectedPaths != null && pSelectedPaths.length == 1)
-        return Optional.of(pathToTagMapping.get(TreeUtil._pathFromTreePath(pSelectedPaths[0])));
+        return Optional.of(pathToTagMapping.get(TreeUtil.pathFromTreePath(pSelectedPaths[0])));
       else return Optional.empty();
     });
     PopupMouseListener popupMouseListener = _getPopupMouseListener(pActionProvider, pRepository, selectionModel, selectedTagObservable);
@@ -168,7 +168,7 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
         {
           TreePath[] selectedPaths = observableSelectionModel.getSelectionPaths();
           if (selectedPaths != null && selectedPaths.length == 1)
-            return pRepo.getCommit(pathToTagMapping.get(TreeUtil._pathFromTreePath(selectedPaths[0])).getId());
+            return pRepo.getCommit(pathToTagMapping.get(TreeUtil.pathFromTreePath(selectedPaths[0])).getId());
           return null;
         }
         catch (AditoGitException pE)

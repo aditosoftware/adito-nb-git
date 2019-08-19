@@ -87,7 +87,7 @@ public class TagTreeBackgroundUpdater extends SwingWorker<List<TreeUpdate>, Tree
       List<Path> childPaths = new ArrayList<>();
       for (int childIndex = pParent.getChildCount() - 1; childIndex >= 0; childIndex--)
       {
-        Path childPath = TreeUtil._pathFromTreePath(new TreePath(pTreeModel.getPathToRoot(pParent.getChildAt(childIndex))));
+        Path childPath = TreeUtil.pathFromTreePath(new TreePath(pTreeModel.getPathToRoot(pParent.getChildAt(childIndex))));
         if (pMembers.stream().noneMatch(pMemPath -> pMemPath.startsWith(childPath)))
         {
           updates.add(TreeUpdate.createRemove((MutableTreeNode) pParent.getChildAt(childIndex)));

@@ -28,7 +28,7 @@ public class TreeUtil
    *
    * @param pTree JTree to be expanded
    */
-  public static void _expandTreeInterruptible(JTree pTree)
+  public static void expandTreeInterruptible(JTree pTree)
   {
     for (int i = 0; i < pTree.getRowCount(); i++)
     {
@@ -151,7 +151,7 @@ public class TreeUtil
    * @return full name of the tag of the selected node
    */
   @NotNull
-  public static Path _pathFromTreePath(@NotNull TreePath pTreePath)
+  public static Path pathFromTreePath(@NotNull TreePath pTreePath)
   {
     // PathCount == 1: only root, the root label does not factor into the tag path
     if (pTreePath.getPathCount() > 1)

@@ -110,7 +110,7 @@ public class CommitDetailsPanel implements IDiscardable
         .subscribe(pEvent -> ((BaseObservingTreeModel) statusTree.getTree().getModel()).invokeAfterComputations(
             // use EDT Thread because apparently expanding a tree while not in the EDT may cause Swing to get confused with the index of treeNodes
             () -> SwingUtilities.invokeLater(() -> {
-              TreeUtil._expandTreeInterruptible(statusTree.getTree());
+              TreeUtil.expandTreeInterruptible(statusTree.getTree());
               _showTree();
             }), "expandAndShowTree"));
     _initDetailPanel();
