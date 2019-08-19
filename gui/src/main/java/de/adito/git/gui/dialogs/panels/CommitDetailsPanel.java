@@ -5,12 +5,12 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.DateTimeRenderer;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
@@ -42,14 +42,13 @@ import java.util.stream.Collectors;
 /**
  * @author m.kaspera 13.12.2018
  */
-public class CommitDetailsPanel implements IDiscardable
+public class CommitDetailsPanel extends ObservableTreePanel implements IDiscardable
 {
 
   private static final double DETAIL_SPLIT_PANE_RATIO = 0.5;
   private static final String DETAILS_FORMAT_STRING = "%7.7s %s <%s> on %s";
   private static final String STANDARD_ACTION_STRING = "STANDARD_ACTION";
   private final JSplitPane detailPanelPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-  private final JPanel treeViewPanel = new JPanel(new BorderLayout());
   private final IActionProvider actionProvider;
   private final IPrefStore prefStore;
   private final IIconLoader iconLoader;
@@ -60,8 +59,6 @@ public class CommitDetailsPanel implements IDiscardable
   private final ICommitFilter commitFilter;
   private final _SelectedCommitsPanel commits;
   private final StatusTree statusTree;
-  private final JScrollPane treeScrollpane = new JScrollPane();
-  private final JLabel loadingLabel = new JLabel("Loading . . .");
   private Disposable onChangeExpandTreeDisposable;
 
   @Inject
@@ -71,6 +68,7 @@ public class CommitDetailsPanel implements IDiscardable
                             @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
                             @Assisted ICommitFilter pCommitFilter)
   {
+    super();
     actionProvider = pActionProvider;
     prefStore = pPrefStore;
     iconLoader = pIconLoader;
@@ -103,8 +101,6 @@ public class CommitDetailsPanel implements IDiscardable
     treeViewPanel.add(_getTreeToolbar(changedFilesObs, projectDirectory), BorderLayout.NORTH);
 
     _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);
-    loadingLabel.setFont(new Font(loadingLabel.getFont().getFontName(), loadingLabel.getFont().getStyle(), 16));
-    loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
     onChangeExpandTreeDisposable = changedFilesObs
         .subscribe(pEvent -> ((BaseObservingTreeModel) statusTree.getTree().getModel()).invokeAfterComputations(
@@ -192,22 +188,6 @@ public class CommitDetailsPanel implements IDiscardable
     PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
     popupMouseListener.setDoubleClickAction(diffCommitsAction);
     statusTree.getTree().addMouseListener(popupMouseListener);
-  }
-
-  private void _showTree()
-  {
-    treeViewPanel.remove(loadingLabel);
-    treeViewPanel.add(treeScrollpane, BorderLayout.CENTER);
-    treeViewPanel.revalidate();
-    treeViewPanel.repaint();
-  }
-
-  private void _showLoading()
-  {
-    treeViewPanel.remove(treeScrollpane);
-    treeViewPanel.add(loadingLabel, BorderLayout.CENTER);
-    treeViewPanel.revalidate();
-    treeViewPanel.repaint();
   }
 
   private JToolBar _getTreeToolbar(Observable<List<IDiffInfo>> pChangedFilesObs, File pProjectDirectory)

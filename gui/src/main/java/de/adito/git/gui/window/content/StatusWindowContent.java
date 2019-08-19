@@ -9,6 +9,7 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.dialogs.panels.ObservableTreePanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
@@ -17,6 +18,7 @@ import de.adito.git.gui.tree.models.BaseObservingTreeModel;
 import de.adito.git.gui.tree.models.FlatStatusTreeModel;
 import de.adito.git.gui.tree.models.StatusTreeModel;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
  *
  * @author m.kaspera 27.09.2018
  */
-class StatusWindowContent extends JPanel implements IDiscardable
+class StatusWindowContent extends ObservableTreePanel implements IDiscardable
 {
 
   private static final String STANDARD_ACTION_STRING = "STANDARD_ACTION";
@@ -44,16 +46,17 @@ class StatusWindowContent extends JPanel implements IDiscardable
   private final Observable<Optional<IRepository>> repository;
   private final IActionProvider actionProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
-  private final JPanel tableViewPanel = new JPanel(new BorderLayout());
   private final StatusTree statusTree;
   private final BaseObservingTreeModel statusTreeModel;
   private final Action openFileAction;
   private final List<IDiscardable> discardableActions = new ArrayList<>();
+  private final Disposable disposable;
 
   @Inject
   StatusWindowContent(IIconLoader pIconLoader, IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
                       IPrefStore pPrefStore, @Assisted Observable<Optional<IRepository>> pRepository)
   {
+    super();
     iconLoader = pIconLoader;
     prefStore = pPrefStore;
     repository = pRepository;
@@ -68,9 +71,16 @@ class StatusWindowContent extends JPanel implements IDiscardable
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
     statusTreeModel = useFlatTree ? new FlatStatusTreeModel(changedFilesObs, projectDirectory) : new StatusTreeModel(changedFilesObs, projectDirectory);
     statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree,
-                                projectDirectory, tableViewPanel, null);
+                                projectDirectory, treeViewPanel, treeScrollpane);
+    disposable = changedFilesObs.subscribe(pChangedFiles -> {
+      _showLoading();
+      statusTreeModel.invokeAfterComputations(() -> {
+        pFileSystemUtil.preLoadIcons(pChangedFiles);
+        TreeUtil.expandTreeInterruptible(statusTree.getTree());
+        _showTree();
+      });
+    });
     statusTree.getTree().addMouseListener(new _DoubleClickListener());
-    statusTreeModel.invokeAfterComputations(() -> TreeUtil._expandTreeInterruptible(statusTree.getTree()));
     selectionObservable = statusTree.getSelectionObservable();
     openFileAction = actionProvider.getOpenFileAction(selectionObservable);
     _initGui(changedFilesObs, projectDirectory);
@@ -80,7 +90,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
   {
     setLayout(new BorderLayout());
     _initActions(pChangedFilesObs, pProjectDirectory);
-    add(tableViewPanel, BorderLayout.CENTER);
+    add(treeViewPanel, BorderLayout.CENTER);
   }
 
   private void _initActions(Observable<List<IFileChangeType>> pChangedFilesObs, File pProjectDirectory)
@@ -113,7 +123,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
                     .getButton());
-    tableViewPanel.add(toolBar, BorderLayout.WEST);
+    treeViewPanel.add(toolBar, BorderLayout.WEST);
 
     JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(openFileAction);
@@ -145,6 +155,7 @@ class StatusWindowContent extends JPanel implements IDiscardable
   {
     statusTreeModel.discard();
     discardableActions.forEach(IDiscardable::discard);
+    disposable.dispose();
   }
 
   private class _DoubleClickListener extends MouseAdapter
