@@ -25,6 +25,7 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   private List<_ChangeHolder> changeList = new ArrayList<>();
   private Observable<List<_ChangeHolder>> rectanglesObs;
   private BufferedImage cachedImage;
+  private _ChunkPopupMouseListener chunkPopupMouseListener;
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -66,23 +68,32 @@ class EditorColorizer extends JPanel implements IDiscardable
     setPreferredSize(new Dimension(COLORIZER_WIDTH, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
-    addPropertyChangeListener(evt -> {
-      if ("ancestor".equals(evt.getPropertyName()))
+    addPropertyChangeListener(evt -> _ancestorChanged(pRepository, evt));
+    file = new File(pDataObject.getPrimaryFile().toURI());
+  }
+
+  private void _ancestorChanged(Observable<Optional<IRepository>> pRepository, PropertyChangeEvent evt)
+  {
+    if ("ancestor".equals(evt.getPropertyName()))
+    {
+      if (evt.getNewValue() == null)
       {
-        if (evt.getNewValue() == null)
+        discard();
+        targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, null);
+        if (chunkPopupMouseListener != null)
+          removeMouseListener(chunkPopupMouseListener);
+      }
+      else if (evt.getOldValue() == null)
+      {
+        _buildObservables();
+        targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, rectanglesObs);
+        if (chunkPopupMouseListener == null)
         {
-          discard();
-          targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, null);
-        }
-        else if (evt.getOldValue() == null)
-        {
-          _buildObservables();
-          targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, rectanglesObs);
+          chunkPopupMouseListener = new _ChunkPopupMouseListener(pRepository, targetEditor);
+          addMouseListener(chunkPopupMouseListener);
         }
       }
-    });
-    file = new File(pDataObject.getPrimaryFile().toURI());
-    addMouseListener(new _ChunkPopupMouseListener(pRepository, targetEditor));
+    }
   }
 
   private void _buildObservables()
@@ -261,7 +272,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     return (JScrollPane) parent;
   }
 
-  class _ChangeHolder
+  static class _ChangeHolder
   {
     final Rectangle rectangle;
     final Color color;
