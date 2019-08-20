@@ -15,6 +15,7 @@ import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
@@ -905,19 +906,23 @@ public class RepositoryImpl implements IRepository
       }
     }
   }
-
   @NotNull
-  public Observable<Optional<IBlame>> getBlame(@NotNull File pFile)
+  public Optional<IBlame> getBlame(@NotNull File pFile)
   {
-
-    // TODO: 25.01.2019 Map of observables? -> actualy for each getBlame new observable
-    return Observable.create(emitter -> {
-      BlameCommand blameCommand = git
-          .blame()
-          .setFilePath(getRelativePath(pFile, git))
-          .setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-      emitter.onNext(Optional.of(new BlameImpl(blameCommand.call())));
-    });
+    BlameCommand blameCommand = git
+        .blame()
+        .setFilePath(getRelativePath(pFile, git))
+        .setTextComparator(RawTextComparator.WS_IGNORE_ALL);
+    try
+    {
+      BlameResult blameResult = blameCommand.call();
+      return Optional.of(new BlameImpl(blameResult));
+    }
+    catch (GitAPIException pE)
+    {
+      logger.log(Level.SEVERE, pE, () -> "Git error during blame call");
+    }
+    return Optional.empty();
   }
 
   /**

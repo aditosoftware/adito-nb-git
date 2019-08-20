@@ -329,7 +329,7 @@ public interface IRepository
    * @return an IBlame object
    */
   @NotNull
-  Observable<Optional<IBlame>> getBlame(@NotNull File pFile);
+  Optional<IBlame> getBlame(@NotNull File pFile);
 
   /**
    * Checks out the commit with id pId
