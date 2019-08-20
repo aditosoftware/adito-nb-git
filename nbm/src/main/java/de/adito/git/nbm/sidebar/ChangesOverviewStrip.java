@@ -76,7 +76,7 @@ public class ChangesOverviewStrip extends JPanel implements IDiscardable
   private void _buildObservable()
   {
     Observable<List<EditorColorizer._ChangeHolder>> changeObservable = Observable
-        .create(new PropertyChangeObservable(targetComponent, IGitConstants.CHANGES_LOCATIONS_OBSERVABLE))
+        .create(new PropertyChangeObservable<>(targetComponent, IGitConstants.CHANGES_LOCATIONS_OBSERVABLE))
         .switchMap(pValue -> {
           if (pValue.isPresent())
             return (Observable<List<EditorColorizer._ChangeHolder>>) pValue.orElse(Observable.just(Optional.empty()));

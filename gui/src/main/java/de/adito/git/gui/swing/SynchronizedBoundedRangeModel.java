@@ -232,7 +232,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
       toCouple = pToCouple;
       this.refreshMappings = refreshMappings;
       useInverseMap = pUseInverseMap;
-      propertyChangeDisposable = Observable.create(new PropertyChangeObservable(pToCouple, "model")).startWith(Optional.of(pToCouple.getModel()))
+      propertyChangeDisposable = Observable.create(new PropertyChangeObservable<>(pToCouple, "model")).startWith(Optional.of(pToCouple.getModel()))
           .subscribe(pObj -> setOtherScrollBarValueFunction = _getSetOtherScrollbarFunction(pObj.orElse(null), pToCouple));
       disposable = pFileChangesEventObs
           .subscribe(pFileChangesEvent -> refreshMappings(pFileChangesEvent.orElse(null)));
