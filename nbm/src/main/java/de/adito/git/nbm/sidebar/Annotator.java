@@ -4,14 +4,15 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.rxjava.ScrollBarExtentObservable;
+import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;
-import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.editor.settings.FontColorNames;
 import org.netbeans.editor.BaseTextUI;
 import org.netbeans.editor.Coloring;
@@ -21,8 +22,9 @@ import org.openide.loaders.DataObject;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.text.DateFormat;
@@ -30,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -42,6 +45,7 @@ public class Annotator extends JPanel implements IDiscardable
 {
   private static final String NOT_COMMITTED_YET = "Not Committed Yet";
   private static final int FREE_SPACE = 6; // have to be modulo 2
+  private static final int DEBOUNCE_DURATION = 100;
   private DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
   private final JTextComponent target;
   private final CompositeDisposable disposables = new CompositeDisposable();
@@ -50,6 +54,7 @@ public class Annotator extends JPanel implements IDiscardable
   private Color backgroundColor;
   private Font nbFont;
   private boolean isActiveFlag = false;
+  private MouseListener popupMouseListener;
 
   /**
    * @param pRepository Observable of the current Repository that also contains the File currently open in the editor
@@ -65,10 +70,34 @@ public class Annotator extends JPanel implements IDiscardable
     backgroundColor = pTarget.getBackground();
     nbFont = pTarget.getFont();
     File file = new File(pDataObject.getPrimaryFile().toURI());
-    _buildObservableChain(pRepository, pTarget, file);
     JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(new ShowAnnotationNBAction(target));
-    addMouseListener(new PopupMouseListener(popupMenu));
+    PropertyChangeListener listener = evt -> _ancestorChanged(pRepository, pTarget, file, popupMenu, evt);
+    addPropertyChangeListener(listener);
+  }
+
+  private void _ancestorChanged(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget, File pFile, JPopupMenu pPopupMenu, PropertyChangeEvent evt)
+  {
+    if ("ancestor".equals(evt.getPropertyName()))
+    {
+      if (evt.getNewValue() == null)
+      {
+        discard();
+        if (popupMouseListener != null)
+        {
+          removeMouseListener(popupMouseListener);
+        }
+      }
+      else if (evt.getOldValue() == null)
+      {
+        _buildObservableChain(pRepository, pTarget, pFile);
+        if (popupMouseListener == null)
+        {
+          popupMouseListener = new PopupMouseListener(pPopupMenu);
+          addMouseListener(popupMouseListener);
+        }
+      }
+    }
   }
 
   /**
@@ -89,7 +118,7 @@ public class Annotator extends JPanel implements IDiscardable
   public void discard()
   {
     if (!disposables.isDisposed())
-      disposables.dispose();
+      disposables.clear();
   }
 
   @Override
@@ -107,12 +136,21 @@ public class Annotator extends JPanel implements IDiscardable
    */
   private void _buildObservableChain(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget, File pFile)
   {
-    Observable<String> actualText = DocumentObservable.create(target.getDocument());
+    // Observable that fires each time the user changes the text in the textComponent
+    Observable<String> textObservable = DocumentObservable.create(target.getDocument())
+        .debounce(DEBOUNCE_DURATION, TimeUnit.MILLISECONDS);
+    // Observable that fires if the size of the horizontal scrollbar changes
+    Observable<Integer> scrollBarExtentObs = Observable.create(new ScrollBarExtentObservable(_getJScrollPane(target)))
+        .debounce(DEBOUNCE_DURATION, TimeUnit.MILLISECONDS);
+    // Observable that observes the Active flag for the Annotator that is stored in the client settings of the target textComponent
+    Observable<Optional<Boolean>> isActive = BehaviorSubject.create(new PropertyChangeObservable<Boolean>(pTarget, IGitConstants.ANNOTATOR_ACTIVF_FLAG))
+        .startWith(Optional.of(Boolean.FALSE));
 
     // Observable to check the File changes between the latest version of the file on disk and the actual content of the file
     Observable<List<IFileChangeChunk>> chunkObservable = Observable
-        .combineLatest(pRepository, actualText, (pRepoOpt, pText) -> {
-          if (pRepoOpt.isPresent())
+        .combineLatest(pRepository, textObservable, isActive, (pRepoOpt, pText, pIsActive) -> {
+          // only run the diff if the repo is present and the active flag is given
+          if (pRepoOpt.isPresent() && pIsActive.orElse(false))
           {
             IRepository repo = pRepoOpt.get();
             // No check for new or deleted file (not in index in that case) since we just catch all Exceptions and if anything doesnt work we just do not show anything
@@ -128,59 +166,77 @@ public class Annotator extends JPanel implements IDiscardable
           return List.of();
         });
 
-    Observable<Boolean> isActive = BehaviorSubject.create(new _ActiveObservable(pTarget)).startWith(false);
-    Observable<Boolean> triggerUpdate = Observable.combineLatest(Observable.create(new _ScrollObservable(_getJScrollPane(target))), isActive,
-                                                                 (pRect, pIsActive) -> {
-                                                                   isActiveFlag = pIsActive;
-                                                                   return pIsActive;
-                                                                 }).filter(pVal -> pVal);
-    Observable<Optional<IBlame>> blameObservable = pRepository
-        .switchMap(optRepo -> optRepo.map(pRepo -> pRepo.getBlame(pFile)).orElse(Observable.just(Optional.<IBlame>empty())));
-    disposables.add(Observable.combineLatest(blameObservable, chunkObservable, isActive, triggerUpdate,
-                                             (pBlame, pChunks, pIsActive, pTriggerUpdate) -> {
-                                               if (!pBlame.isPresent() || target.getHeight() <= 0)
-                                                 return Optional.<BufferedImage>empty();
-                                               else
-                                                 return _calculateImage(pIsActive, pBlame.get(), pChunks);
-                                             })
-                        .subscribe(pBufferedImageOpt -> {
-                          if (pBufferedImageOpt.isPresent())
-                          {
-                            blameImage = pBufferedImageOpt.get();
-                            setSize(new Dimension(100, 100));
-                          }
-                          else
-                          {
-                            blameImage = null;
-                            setSize(new Dimension(0, 0));
-                            setPreferredSize(new Dimension(0, 0));
-                          }
-                          SwingUtilities.invokeLater(() -> {
-                            pTarget.revalidate();
-                            repaint();
-                          });
-                        }));
+    // Observable that singals that the bufferedImage has to be updated. This is the case if the active flag is set and the maximum size of the scrollBar changes
+    Observable<Boolean> triggerUpdate = Observable
+        .combineLatest(scrollBarExtentObs, isActive, (pRect, pIsActive) -> {
+          isActiveFlag = pIsActive.orElse(false);
+          return pIsActive.orElse(false);
+        })
+        .filter(pVal -> pVal);
+
+    // combine Observables to create an Observable of the BufferedImage, then subscribe and draw it each time it changes
+    disposables.add(Observable.combineLatest(pRepository, chunkObservable, isActive, triggerUpdate, (pRepoOpt, pChunks, pIsActive, pTriggerUpdate)
+        -> pRepoOpt.flatMap(pRepo -> _getBlameImage(pFile, pRepo, pChunks, pIsActive.orElse(false))))
+                        .subscribe(pBufferedImageOpt -> _showImage(pTarget, pBufferedImageOpt.orElse(null))));
   }
 
   /**
-   * @param pIsActive if the annotations should be shown
-   * @param pBlame    IBlame object containing the information about the authors of lines
-   * @param pChunks   List of IFileChangeChunks describing the changes of the last saved version of the file to the version in the editor
+   * Draws the image if the image if not null
+   *
+   * @param pTarget        textComponent for whose opened file the Annotator should do the git blame
+   * @param pBufferedImage bufferedImage with the git blame lines
+   */
+  private void _showImage(JTextComponent pTarget, @Nullable BufferedImage pBufferedImage)
+  {
+    if (pBufferedImage != null)
+    {
+      blameImage = pBufferedImage;
+      setSize(new Dimension(100, 100));
+    }
+    else
+    {
+      blameImage = null;
+      setSize(new Dimension(0, 0));
+      setPreferredSize(new Dimension(0, 0));
+    }
+    SwingUtilities.invokeLater(() -> {
+      pTarget.revalidate();
+      repaint();
+    });
+  }
+
+  /**
+   * @param pFile     file of the editor, get the git blame for this
+   * @param pRepo     repository used to retrieve the git blame
+   * @param pChunks   List with changed and unchanged chunks of the contents of the file
+   * @param pIsActive whether or not the Annotator is active
+   * @return Optional with a BufferedImage of the git blame, or an empty Optional if the target height is 0 or the Annotator is inactive
+   */
+  private Optional<BufferedImage> _getBlameImage(File pFile, IRepository pRepo, List<IFileChangeChunk> pChunks, Boolean pIsActive)
+  {
+    // no need to calculate the Image if the Annotator is inactive or the height is 0 (aka Annotator is not shown)
+    if (target.getHeight() <= 0 || !pIsActive)
+      return Optional.empty();
+    else
+    {
+      return pRepo.getBlame(pFile).map(pIBlame -> _calculateImage(pIBlame, pChunks));
+    }
+  }
+
+  /**
+   * @param pBlame  IBlame object containing the information about the authors of lines
+   * @param pChunks List of IFileChangeChunks describing the changes of the last saved version of the file to the version in the editor
    * @return Optional of a BufferedImage, empty if not active, BufferedImage with the names of the authors and commit dates otherwise
    */
-  private Optional<BufferedImage> _calculateImage(boolean pIsActive, IBlame pBlame, List<IFileChangeChunk> pChunks)
+  private BufferedImage _calculateImage(IBlame pBlame, List<IFileChangeChunk> pChunks)
   {
-    if (pIsActive)
-    {
-      List<String> annotatedLines = _calculateStringList(pBlame, pChunks);
-      View view = target.getUI().getRootView(target);
-      BufferedImage rawBlameImage = new BufferedImage(getPreferredSize().width, target.getHeight(), BufferedImage.TYPE_INT_ARGB);
-      _updateColorsAndFont(target);
-      setBackground(backgroundColor);
-      _drawImage(rawBlameImage.getGraphics(), annotatedLines, view);
-      return Optional.of(rawBlameImage);
-    }
-    return Optional.empty();
+    List<String> annotatedLines = _calculateStringList(pBlame, pChunks);
+    View view = target.getUI().getRootView(target);
+    BufferedImage rawBlameImage = new BufferedImage(getPreferredSize().width, target.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    _updateColorsAndFont(target);
+    setBackground(backgroundColor);
+    _drawImage(rawBlameImage.getGraphics(), annotatedLines, view);
+    return rawBlameImage;
   }
 
   /**
@@ -379,78 +435,6 @@ public class Annotator extends JPanel implements IDiscardable
         lineFont = new Font("Monospaced", Font.PLAIN, lineFont.getSize() - 1); //NOI18N
       }
       nbFont = lineFont;
-    }
-  }
-
-  /*
-   * An observable to check the values on the ScrollPane.
-   * this is important for the rectangles inside the editor bar.
-   * The rectangles will only be rendered if the clipping is shown.
-   */
-  private class _ScrollObservable extends AbstractListenerObservable<AdjustmentListener, JScrollPane, Integer>
-  {
-    private final JScrollPane target;
-    private int lastMaxValue = 0;
-
-    _ScrollObservable(JScrollPane pTarget)
-    {
-      super(pTarget);
-      target = pTarget;
-    }
-
-    @NotNull
-    @Override
-    protected AdjustmentListener registerListener(@NotNull JScrollPane pTarget, @NotNull IFireable<Integer> pFireable)
-    {
-      AdjustmentListener adjustmentListener = e -> {
-        if (lastMaxValue != pTarget.getVerticalScrollBar().getMaximum())
-        {
-          lastMaxValue = pTarget.getVerticalScrollBar().getMaximum();
-          pFireable.fireValueChanged(pTarget.getVerticalScrollBar().getMaximum());
-        }
-      };
-      target.getVerticalScrollBar().addAdjustmentListener(adjustmentListener);
-      return adjustmentListener;
-    }
-
-    @Override
-    protected void removeListener(@NotNull JScrollPane pListenableValue, @NotNull AdjustmentListener pAdjustmentListener)
-    {
-      target.getVerticalScrollBar().removeAdjustmentListener(pAdjustmentListener);
-    }
-  }
-
-  /**
-   * Observable that keeps track of the clientProperty with key IGitConstants
-   */
-  private class _ActiveObservable extends AbstractListenerObservable<PropertyChangeListener, JTextComponent, Boolean>
-  {
-    private final JTextComponent target;
-
-    _ActiveObservable(JTextComponent pTarget)
-    {
-      super(pTarget);
-      target = pTarget;
-    }
-
-    @NotNull
-    @Override
-    protected PropertyChangeListener registerListener(@NotNull JTextComponent pTarget, @NotNull IFireable<Boolean> pFireable)
-    {
-      PropertyChangeListener propertyChangeListener = e -> {
-        if (e.getPropertyName().equals(IGitConstants.ANNOTATOR_ACTIVF_FLAG) && e.getNewValue() instanceof Boolean)
-        {
-          pFireable.fireValueChanged(e.getNewValue() == null || (Boolean) e.getNewValue());
-        }
-      };
-      target.addPropertyChangeListener(propertyChangeListener);
-      return propertyChangeListener;
-    }
-
-    @Override
-    protected void removeListener(@NotNull JTextComponent pListenableValue, @NotNull PropertyChangeListener pPropertyChangeListener)
-    {
-      target.removePropertyChangeListener(pPropertyChangeListener);
     }
   }
 }
