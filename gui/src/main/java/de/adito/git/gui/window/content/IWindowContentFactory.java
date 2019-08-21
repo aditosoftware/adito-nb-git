@@ -17,8 +17,6 @@ interface IWindowContentFactory
 
   StatusWindowContent createStatusWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
 
-  BranchListWindowContent createBranchListWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
-
   CommitHistoryWindowContent createCommitHistoryWindowContent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
                                                               @NotNull Runnable pLoadMoreCallback,
                                                               @NotNull Consumer<ICommitFilter> pRefreshContentCallBack,

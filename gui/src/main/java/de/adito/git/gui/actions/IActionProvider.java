@@ -95,12 +95,6 @@ public interface IActionProvider
 
   /**
    * @param pRepository Observable with the current Repository
-   * @return Action whose actionPerformed method opens a window with all branches found for the passed repository
-   */
-  Action getShowAllBranchesAction(@NotNull Observable<Optional<IRepository>> pRepository);
-
-  /**
-   * @param pRepository Observable with the current Repository
    * @param pBranches   the branch/es for whom to display the commits in a window
    * @return Action whose actionPerformed method opens a window with a list of all commits that belong to the selected branch/es
    */

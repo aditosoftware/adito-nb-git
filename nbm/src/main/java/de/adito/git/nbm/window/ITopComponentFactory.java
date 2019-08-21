@@ -19,8 +19,6 @@ import java.util.function.Consumer;
 interface ITopComponentFactory
 {
 
-  AllBranchTopComponent createAllBranchTopComponent(@NotNull Observable<Optional<IRepository>> pRepository);
-
   CommitHistoryTopComponent createCommitHistoryTopComponent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
                                                             @NotNull @Assisted Runnable pLoadMoreCallback,
                                                             @NotNull @Assisted Consumer<ICommitFilter> pRefreshContentCallBack,

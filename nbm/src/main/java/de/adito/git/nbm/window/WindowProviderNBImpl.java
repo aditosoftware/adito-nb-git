@@ -40,13 +40,6 @@ class WindowProviderNBImpl implements IWindowProvider
   }
 
   @Override
-  public void showBranchListWindow(@NotNull Observable<Optional<IRepository>> pRepository)
-  {
-    _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showBranchListWindow");
-    _openTCinEDT(identifier, () -> topComponentFactory.createAllBranchTopComponent(pRepository));
-  }
-
-  @Override
   public void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter)
   {
     try

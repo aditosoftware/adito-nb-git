@@ -43,8 +43,6 @@ interface IActionFactory
 
   PushAction createPushAction(Observable<Optional<IRepository>> pRepository);
 
-  ShowAllBranchesAction createShowAllBranchesAction(Observable<Optional<IRepository>> pRepository);
-
   ShowCommitsForBranchesAction createShowAllCommitsForBranchAction(Observable<Optional<IRepository>> pRepository,
                                                                    Observable<Optional<List<IBranch>>> pBranches);
 

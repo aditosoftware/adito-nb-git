@@ -15,8 +15,6 @@ import java.util.Optional;
 public interface IWindowProvider
 {
 
-  void showBranchListWindow(@NotNull Observable<Optional<IRepository>> pRepository);
-
   void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter);
 
   void showStatusWindow(@NotNull Observable<Optional<IRepository>> pRepository);

@@ -32,12 +32,6 @@ public class WindowContentProviderImpl implements IWindowContentProvider
   }
 
   @Override
-  public JComponent createBranchListWindowContent(@NotNull Observable<Optional<IRepository>> pRepository)
-  {
-    return windowContentFactory.createBranchListWindowContent(pRepository);
-  }
-
-  @Override
   public JComponent createCommitHistoryWindowContent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
                                                      @NotNull Runnable pLoadMoreCallback, @NotNull Consumer<ICommitFilter> pFilterChangedCallback,
                                                      @NotNull ICommitFilter pStartFilter)

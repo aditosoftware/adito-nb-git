@@ -30,12 +30,6 @@ class WindowProviderImpl implements IWindowProvider
   }
 
   @Override
-  public void showBranchListWindow(@NotNull Observable<Optional<IRepository>> pRepository)
-  {
-    _showInFrame(factory.createBranchListWindowContent(pRepository));
-  }
-
-  @Override
   public void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter)
   {
     try
