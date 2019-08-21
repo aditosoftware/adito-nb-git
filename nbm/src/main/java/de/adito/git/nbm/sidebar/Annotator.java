@@ -55,6 +55,7 @@ public class Annotator extends JPanel implements IDiscardable
   private Font nbFont;
   private boolean isActiveFlag = false;
   private MouseListener popupMouseListener;
+  private IBlame blame = null;
 
   /**
    * @param pRepository Observable of the current Repository that also contains the File currently open in the editor
@@ -219,7 +220,9 @@ public class Annotator extends JPanel implements IDiscardable
       return Optional.empty();
     else
     {
-      return pRepo.getBlame(pFile).map(pIBlame -> _calculateImage(pIBlame, pChunks));
+      if (blame == null)
+        pRepo.getBlame(pFile).ifPresent(pIBlame -> blame = pIBlame);
+      return blame == null ? Optional.empty() : Optional.of(_calculateImage(blame, pChunks));
     }
   }
 
