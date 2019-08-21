@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -46,7 +48,8 @@ public class Annotator extends JPanel implements IDiscardable
   private static final String NOT_COMMITTED_YET = "Not Committed Yet";
   private static final int FREE_SPACE = 6; // have to be modulo 2
   private static final int DEBOUNCE_DURATION = 100;
-  private DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+  private final Logger logger = Logger.getLogger(Annotator.class.getName());
+  private final DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
   private final JTextComponent target;
   private final CompositeDisposable disposables = new CompositeDisposable();
   private BufferedImage blameImage;
@@ -173,6 +176,7 @@ public class Annotator extends JPanel implements IDiscardable
           isActiveFlag = pIsActive.orElse(false);
           return pIsActive.orElse(false);
         })
+        // no distinctUntilChanged here since we want the Observable to fire each time the scrollBar extent changes (provided isActive is true, hence the filter)
         .filter(pVal -> pVal);
 
     // combine Observables to create an Observable of the BufferedImage, then subscribe and draw it each time it changes
@@ -258,8 +262,9 @@ public class Annotator extends JPanel implements IDiscardable
     {
       for (int lineIndex = 0; lineIndex < pLines.size(); lineIndex++)
       {
+        int highestElement = target.getDocument().getDefaultRootElement().getElementCount() - 1;
         // get the offset to set the annotation at the right height and width
-        Element lineElement = target.getDocument().getDefaultRootElement().getElement(lineIndex);
+        Element lineElement = target.getDocument().getDefaultRootElement().getElement(Math.min(highestElement, lineIndex));
         int startOffset = lineElement.getStartOffset();
         int endOffset;
         if (lineIndex + 1 == pLines.size())
@@ -268,23 +273,32 @@ public class Annotator extends JPanel implements IDiscardable
         }
         else
         {
-          endOffset = target.getDocument().getDefaultRootElement().getElement(lineIndex + 1).getStartOffset();
+          endOffset = target.getDocument().getDefaultRootElement().getElement(Math.min(highestElement, lineIndex + 1)).getStartOffset();
         }
-
-        Rectangle changeRectangle;
-        try
-        {
-          changeRectangle = pView.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
-          changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
-          int x = changeRectangle.x;
-          int y = changeRectangle.y + fontHeight + Math.round((changeRectangle.height - getFontMetrics(nbFont).getHeight()) / 2f);
-          pImageGraphics.drawString(pLines.get(lineIndex), x, y);
-        }
-        catch (BadLocationException pE)
-        {
-          throw new RuntimeException(pE);
-        }
+        _drawString(pImageGraphics, pLines, pView, fontHeight, startOffset, endOffset, lineIndex);
       }
+    }
+  }
+
+  private void _drawString(Graphics pImageGraphics, List<String> pLines, View pView, int pFontHeight, int pStartOffset, int pEndOffset, int pFinalLineIndex)
+  {
+    try
+    {
+      Rectangle changeRectangle = pView.modelToView(pStartOffset, Position.Bias.Forward, pEndOffset, Position.Bias.Backward, new Rectangle()).getBounds();
+      changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
+      int x = changeRectangle.x;
+      int y = changeRectangle.y + pFontHeight + Math.round((changeRectangle.height - getFontMetrics(nbFont).getHeight()) / 2f);
+      pImageGraphics.drawString(pLines.get(pFinalLineIndex), x, y);
+    }
+    catch (BadLocationException pE)
+    {
+      logger.log(Level.SEVERE, pE, () -> "Git: error while calculating the location of the Annotation Strings");
+    }
+    catch (Error pE)
+    {
+      if (pE.getMessage().contains("Interrupted mutex acquiring"))
+        logger.log(Level.WARNING, pE, () -> "Git: error while trying to access the document to determine the location of a line, skipping evaluation of that line");
+      else throw new Error(pE);
     }
   }
 
