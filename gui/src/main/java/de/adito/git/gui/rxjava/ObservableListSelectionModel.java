@@ -1,9 +1,10 @@
 package de.adito.git.gui.rxjava;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -12,19 +13,20 @@ import javax.swing.event.ListSelectionListener;
 /**
  * @author a.arnold, 14.11.2018
  */
-public class ObservableListSelectionModel implements ListSelectionModel
+public class ObservableListSelectionModel implements ListSelectionModel, IDiscardable
 {
 
   private final Observable<Integer[]> selectedRowsObservable;
   private final ListSelectionModel delegate;
+  private final CompositeDisposable disposables = new CompositeDisposable();
 
   public ObservableListSelectionModel(@NotNull ListSelectionModel pDelegate)
   {
     delegate = pDelegate;
     selectedRowsObservable = Observable.create(new _SelectedRowsObservable(this))
         .startWith(new Integer[0])
-        .share()
-        .subscribeWith(BehaviorSubject.create());
+        .replay(1)
+        .autoConnect(0, disposables::add);
   }
 
   @Override
@@ -151,6 +153,12 @@ public class ObservableListSelectionModel implements ListSelectionModel
   {
     return selectedRowsObservable
         .observeOn(Schedulers.computation());
+  }
+
+  @Override
+  public void discard()
+  {
+    disposables.clear();
   }
 
   private static class _SelectedRowsObservable extends AbstractListenerObservable<ListSelectionListener, ListSelectionModel, Integer[]>

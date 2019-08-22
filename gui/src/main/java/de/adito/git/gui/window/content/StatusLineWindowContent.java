@@ -33,6 +33,7 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
   private final IActionProvider actionProvider;
   private final Observable<Optional<IRepository>> observableOptRepo;
   private final Observable<Optional<List<IBranch>>> observableBranches;
+  private ObservableListSelectionModel observableListSelectionModel;
   private List<JList<IBranch>> branchLists = new ArrayList<>();
   private Disposable disposable;
 
@@ -133,7 +134,8 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
   {
     _HoverMouseListener hoverMouseListener = new _HoverMouseListener();
     JList<IBranch> branchList = new JList<>();
-    branchList.setSelectionModel(new ObservableListSelectionModel(branchList.getSelectionModel()));
+    observableListSelectionModel = new ObservableListSelectionModel(branchList.getSelectionModel());
+    branchList.setSelectionModel(observableListSelectionModel);
     branchList.setCellRenderer(new BranchCellRenderer());
     branchList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     branchList.addMouseListener(new _BranchMouseListener());
@@ -154,6 +156,7 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
   {
     if (disposable != null)
       disposable.dispose();
+    observableListSelectionModel.discard();
   }
 
   /**

@@ -5,10 +5,10 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.CommitListTableModel;
 import de.adito.git.impl.data.CommitFilterImpl;
@@ -39,6 +39,7 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
   private final Action deleteStashCommitAction;
   private final Disposable disposable;
   private final BehaviorSubject<Optional<String>> selectedCommit = BehaviorSubject.createDefault(Optional.empty());
+  private final ObservableListSelectionModel observableListSelectionModel;
   private String selectedCommitId = "";
 
   @Inject
@@ -49,7 +50,7 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
     isValidDescriptor = pIsValidDescriptor;
     stashedCommits = pStashedCommits;
     deleteButton = new JButton(pIconLoader.getIcon(Constants.DELETE_ICON));
-    ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(commitListTable.getSelectionModel());
+    observableListSelectionModel = new ObservableListSelectionModel(commitListTable.getSelectionModel());
     Observable<Optional<List<ICommit>>> selectedCommitObservable = observableListSelectionModel.selectedRows().map(pSelectedRows -> {
       if (pSelectedRows.length != 1 || pSelectedRows[0] >= stashedCommits.size())
         return Optional.empty();
@@ -109,5 +110,6 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
   {
     disposable.dispose();
     commitDetailsPanel.discard();
+    observableListSelectionModel.discard();
   }
 }

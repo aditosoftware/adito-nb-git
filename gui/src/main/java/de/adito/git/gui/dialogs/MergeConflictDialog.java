@@ -45,6 +45,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final MergeDiffStatusModel mergeDiffStatusModel;
   private final Disposable disposable;
   private final Disposable selectionDisposable;
+  private final ObservableListSelectionModel observableListSelectionModel;
 
   @Inject
   MergeConflictDialog(IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
@@ -53,7 +54,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     dialogProvider = pDialogProvider;
     isValidDescriptor = pIsValidDescriptor;
     repository = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG));
-    ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
+    observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
     mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
     Observable<Optional<IFileStatus>> obs = repository.getStatus();
@@ -211,6 +212,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     disposable.dispose();
     selectionDisposable.dispose();
     mergeDiffStatusModel.discard();
+    observableListSelectionModel.discard();
   }
 
   @Override

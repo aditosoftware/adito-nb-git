@@ -6,8 +6,8 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortPositionObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,18 +35,20 @@ public class DiffPane extends JPanel implements IDiscardable
   private final JScrollPane scrollPane = new JScrollPane();
   private final JEditorPane editorPane;
   private final List<IDiscardable> discardables = new ArrayList<>();
+  private final CompositeDisposable disposables = new CompositeDisposable();
 
   public DiffPane(JEditorPane pEditorPane)
   {
     editorPane = pEditorPane;
     viewPortPositionObservable = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport()))
         .observeOn(Schedulers.computation())
-        .share()
-        .subscribeWith(BehaviorSubject.create())
+        .replay(1)
+        .autoConnect(0, disposables::add)
         .distinctUntilChanged();
     viewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport()))
-        .share()
-        .subscribeWith(BehaviorSubject.create()).throttleLatest(250, TimeUnit.MILLISECONDS);
+        .replay(1)
+        .autoConnect(0, disposables::add)
+        .throttleLatest(250, TimeUnit.MILLISECONDS);
     setLayout(new OnionColumnLayout());
     scrollPane.setViewportView(editorPane);
     scrollPane.setBorder(null);
@@ -96,6 +98,7 @@ public class DiffPane extends JPanel implements IDiscardable
   public void discard()
   {
     discardables.forEach(IDiscardable::discard);
+    disposables.dispose();
   }
 
 }

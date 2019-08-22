@@ -89,5 +89,6 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
       disposable.dispose();
       disposable = null;
     }
+    ActivatedNodesObservable.dispose();
   }
 }

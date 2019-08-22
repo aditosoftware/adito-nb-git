@@ -141,6 +141,8 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
     selectCommitAction.discard();
     tagDisposable.dispose();
     executor.shutdown();
+    selectionModel.discard();
+    tree.discard();
   }
 
   /**

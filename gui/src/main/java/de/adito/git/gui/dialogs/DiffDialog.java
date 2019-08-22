@@ -4,12 +4,12 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.models.*;
@@ -196,6 +196,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   {
     disposable.dispose();
     diffPanel.discard();
+    fileTree.discard();
   }
 
   @Override

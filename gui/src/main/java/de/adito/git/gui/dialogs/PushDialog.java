@@ -26,12 +26,13 @@ class PushDialog extends AditoBaseDialog<Boolean> implements IDiscardable
   private final CommitDetailsPanel commitDetailsPanel;
   private final JLabel headerLabel = new JLabel("Commits to be pushed:");
   private final JCheckBox isPushTags = new JCheckBox("Push tags");
+  private final ObservableListSelectionModel observableListSelectionModel;
 
   @Inject
   public PushDialog(CommitDetailsPanel.IPanelFactory pPanelFactory, @Assisted Observable<Optional<IRepository>> pRepository,
                     @Assisted List<ICommit> pCommitList)
   {
-    ObservableListSelectionModel observableListSelectionModel = new ObservableListSelectionModel(commitListTable.getSelectionModel());
+    observableListSelectionModel = new ObservableListSelectionModel(commitListTable.getSelectionModel());
     commitListTable.setSelectionModel(observableListSelectionModel);
     commitListTable.setModel(new CommitListTableModel(pCommitList));
     commitListTable.getColumnModel().removeColumn(commitListTable.getColumnModel()
@@ -73,5 +74,6 @@ class PushDialog extends AditoBaseDialog<Boolean> implements IDiscardable
   public void discard()
   {
     commitDetailsPanel.discard();
+    observableListSelectionModel.discard();
   }
 }

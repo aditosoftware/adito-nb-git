@@ -30,8 +30,7 @@ import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +69,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final Observable<Optional<IRepository>> repository;
   private final SearchableCheckboxTree checkBoxTree;
   private final Observable<List<File>> selectedFiles;
-  private final Disposable disposable;
+  private final CompositeDisposable disposables = new CompositeDisposable();
+  private ObservableTreeSelectionModel observableTreeSelectionModel;
 
   @Inject
   public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
@@ -102,16 +102,19 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       Observable<Boolean> nonEmptyTextObservable = Observable.create(new DocumentChangeObservable(messagePane))
           .switchMap(pDocument -> Observable.create(new _NonEmptyTextObservable(pDocument)))
           .startWith(messagePane.getDocument().getLength() > 0);
-      selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree)).startWith(List.<File>of()).share().subscribeWith(BehaviorSubject.create());
-      disposable = Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
-          .subscribe(pIsValidDescriptor::setValid);
+      selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree))
+          .startWith(List.<File>of())
+          .replay(1)
+          .autoConnect(0, disposables::add);
+      disposables.add(Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
+                          .subscribe(pIsValidDescriptor::setValid));
       _initGui(filesToCommitObservable, dir);
     }
     else
     {
       // in case the repository was not present: Everything is empty, but no exception/crash
       selectedFiles = Observable.just(List.of());
-      disposable = selectedFiles.subscribe();
+      disposables.add(selectedFiles.subscribe());
     }
     Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
         .orElse(Observable.just(Optional.empty())));
@@ -221,7 +224,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    */
   private void _attachPopupMenu(@NotNull CheckBoxTree pCheckBoxTree)
   {
-    ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(pCheckBoxTree.getSelectionModel());
+    observableTreeSelectionModel = new ObservableTreeSelectionModel(pCheckBoxTree.getSelectionModel());
     pCheckBoxTree.setSelectionModel(observableTreeSelectionModel);
     Observable<Optional<List<IFileChangeType>>> selectionObservable = observableTreeSelectionModel.getSelectedPaths().map(pSelected -> {
       if (pSelected == null)
@@ -323,7 +326,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   @Override
   public void discard()
   {
-    disposable.dispose();
+    disposables.clear();
+    observableTreeSelectionModel.discard();
   }
 
   /**

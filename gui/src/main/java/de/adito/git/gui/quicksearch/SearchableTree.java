@@ -1,5 +1,7 @@
 package de.adito.git.gui.quicksearch;
 
+import de.adito.git.api.IDiscardable;
+
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
 import java.awt.event.KeyAdapter;
@@ -8,7 +10,7 @@ import java.awt.event.KeyEvent;
 /**
  * @author m.kaspera, 19.02.2019
  */
-public class SearchableTree extends JTree
+public class SearchableTree extends JTree implements IDiscardable
 {
 
   private _KeyForwardAdapter keyForwardAdapter = null;
@@ -26,6 +28,12 @@ public class SearchableTree extends JTree
       removeKeyListener(keyForwardAdapter);
     keyForwardAdapter = new _KeyForwardAdapter(pView);
     addKeyListener(keyForwardAdapter);
+  }
+
+  @Override
+  public void discard()
+  {
+    removeKeyListener(keyForwardAdapter);
   }
 
   /**

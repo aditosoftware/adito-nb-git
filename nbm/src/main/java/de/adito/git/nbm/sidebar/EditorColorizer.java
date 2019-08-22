@@ -12,9 +12,8 @@ import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.loaders.DataObject;
@@ -45,7 +44,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   private final JTextComponent targetEditor;
   private Observable<List<IFileChangeChunk>> chunkObservable;
   private final JViewport editorViewPort;
-  private Disposable disposable;
+  private CompositeDisposable disposable = new CompositeDisposable();
   private File file;
   private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList<>();
@@ -79,9 +78,6 @@ class EditorColorizer extends JPanel implements IDiscardable
       if (evt.getNewValue() == null)
       {
         discard();
-        targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, null);
-        if (chunkPopupMouseListener != null)
-          removeMouseListener(chunkPopupMouseListener);
       }
       else if (evt.getOldValue() == null)
       {
@@ -124,22 +120,20 @@ class EditorColorizer extends JPanel implements IDiscardable
           }
           return new ArrayList<IFileChangeChunk>();
         })
-        .share()
-        .subscribeWith(BehaviorSubject.create())
+        .replay(1)
+        .autoConnect(0, disposable::add)
         .distinctUntilChanged()
         .observeOn(Schedulers.computation());
 
     rectanglesObs = Observable.combineLatest(chunkObservable, viewPortSizeObs, (pChunks, pScroll) -> pChunks)
-        .map(chunkList -> _calculateRectangles(targetEditor, chunkList))
-        .share()
-        .subscribeWith(BehaviorSubject.create());
+        .map(chunkList -> _calculateRectangles(targetEditor, chunkList));
 
-    disposable = rectanglesObs
+    disposable.add(rectanglesObs
         .subscribe(pChangeList -> {
           changeList = pChangeList;
           cachedImage = _createBufferedImage(changeList, targetEditor.getHeight());
           repaint();
-        });
+        }));
   }
 
   /**
@@ -309,11 +303,10 @@ class EditorColorizer extends JPanel implements IDiscardable
   @Override
   public void discard()
   {
-    if (disposable != null && !disposable.isDisposed())
-    {
-      disposable.dispose();
-      disposable = null;
-    }
+    disposable.clear();
+    targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, null);
+    if (chunkPopupMouseListener != null)
+      removeMouseListener(chunkPopupMouseListener);
   }
 
   /**

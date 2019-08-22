@@ -154,6 +154,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
   public void discard()
   {
     statusTreeModel.discard();
+    statusTree.discard();
     discardableActions.forEach(IDiscardable::discard);
     disposable.dispose();
   }

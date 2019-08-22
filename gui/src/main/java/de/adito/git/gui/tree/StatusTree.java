@@ -1,5 +1,6 @@
 package de.adito.git.gui.tree;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.data.IFileChangeType;
@@ -26,11 +27,12 @@ import java.util.stream.Collectors;
  *
  * @author m.kaspera, 11.07.2019
  */
-public class StatusTree
+public class StatusTree implements IDiscardable
 {
 
   private final SearchableTree searchableTree;
   private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
+  private final ObservableTreeSelectionModel observableTreeSelectionModel;
 
   public StatusTree(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil, @NotNull BaseObservingTreeModel pTreeModel,
                     boolean pUseFlatCellRenderer, @NotNull File pProjectDirectory, @NotNull JPanel pTreeViewPanel, @Nullable JScrollPane pScrollPane)
@@ -51,7 +53,7 @@ public class StatusTree
       treeScrollpane = pScrollPane;
     }
     pTreeViewPanel.add(treeScrollpane, BorderLayout.CENTER);
-    ObservableTreeSelectionModel observableTreeSelectionModel = new ObservableTreeSelectionModel(searchableTree.getSelectionModel());
+    observableTreeSelectionModel = new ObservableTreeSelectionModel(searchableTree.getSelectionModel());
     searchableTree.setSelectionModel(observableTreeSelectionModel);
     selectionObservable = observableTreeSelectionModel.getSelectedPaths().map(pSelected -> {
       if (pSelected == null)
@@ -84,4 +86,10 @@ public class StatusTree
     return selectionObservable;
   }
 
+  @Override
+  public void discard()
+  {
+    observableTreeSelectionModel.discard();
+    searchableTree.discard();
+  }
 }

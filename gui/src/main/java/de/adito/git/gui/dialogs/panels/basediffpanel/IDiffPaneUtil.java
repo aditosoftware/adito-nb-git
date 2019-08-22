@@ -9,7 +9,7 @@ import de.adito.git.gui.swing.IEditorUtils;
 import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
 import de.adito.git.impl.util.BiNavigateAbleMap;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -102,6 +102,7 @@ public interface IDiffPaneUtil
   static ScrollBarCoupling synchronize(JScrollPane pScrollPaneOld, JScrollPane pScrollPaneCurrent, JEditorPane pEditorPaneOld,
                                        JEditorPane pEditorPaneCurrent, Observable<Optional<IFileDiff>> pFileDiffObs)
   {
+    CompositeDisposable disposables = new CompositeDisposable();
     Observable<Dimension> viewPort1SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneOld.getViewport()));
     Observable<Dimension> viewPort2SizeObs = Observable.create(new ViewPortSizeObservable(pScrollPaneCurrent.getViewport()));
     Observable<Object> viewPortsObs = Observable.zip(viewPort1SizeObs, viewPort2SizeObs, (pSize1, pSize2) -> new Object());
@@ -112,8 +113,8 @@ public interface IDiffPaneUtil
         .getChangeChunks().map(Optional::of)).orElse(Observable.just(Optional.empty())));
     Observable<Optional<IFileChangesEvent>> changeEventObs = Observable.combineLatest(editorViewChangeObs, changesEventObservable,
                                                                                       (pObj, pChangeEvent) -> pChangeEvent)
-        .share()
-        .subscribeWith(BehaviorSubject.create());
+        .replay(1)
+        .autoConnect(0, disposables::add);
     Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
         getHeightMappings(pEditorPaneOld, pEditorPaneCurrent, pFileDiff);
     if (pScrollPaneOld.getVerticalScrollBar().getModel() instanceof SynchronizedBoundedRangeModel)
@@ -139,7 +140,7 @@ public interface IDiffPaneUtil
       pScrollPaneCurrent.getVerticalScrollBar().setModel(scrollBarCurrentModel);
     }
     return new ScrollBarCoupling((SynchronizedBoundedRangeModel) pScrollPaneOld.getVerticalScrollBar().getModel(),
-                                 (SynchronizedBoundedRangeModel) pScrollPaneCurrent.getVerticalScrollBar().getModel());
+                                 (SynchronizedBoundedRangeModel) pScrollPaneCurrent.getVerticalScrollBar().getModel(), disposables);
   }
 
   /**
@@ -216,11 +217,13 @@ public interface IDiffPaneUtil
   {
     private final SynchronizedBoundedRangeModel model1;
     private final SynchronizedBoundedRangeModel model2;
+    private final CompositeDisposable disposables;
 
-    ScrollBarCoupling(SynchronizedBoundedRangeModel pModel1, SynchronizedBoundedRangeModel pModel2)
+    ScrollBarCoupling(SynchronizedBoundedRangeModel pModel1, SynchronizedBoundedRangeModel pModel2, CompositeDisposable pDisposables)
     {
       model1 = pModel1;
       model2 = pModel2;
+      disposables = pDisposables;
     }
 
     @Override
@@ -228,6 +231,7 @@ public interface IDiffPaneUtil
     {
       model1.discard();
       model2.discard();
+      disposables.clear();
     }
   }
 }

@@ -1,8 +1,9 @@
 package de.adito.git.gui.rxjava;
 
+import de.adito.git.api.IDiscardable;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TreeSelectionListener;
@@ -14,10 +15,11 @@ import java.beans.PropertyChangeListener;
 /**
  * @author m.kaspera, 20.02.2019
  */
-public class ObservableTreeSelectionModel implements TreeSelectionModel
+public class ObservableTreeSelectionModel implements TreeSelectionModel, IDiscardable
 {
 
   private final Observable<TreePath[]> selectedPaths;
+  private final CompositeDisposable disposables = new CompositeDisposable();
   private TreeSelectionModel delegate;
 
 
@@ -26,8 +28,8 @@ public class ObservableTreeSelectionModel implements TreeSelectionModel
     delegate = pDelegate;
     selectedPaths = Observable.create(new _TreeSelectionObservable(this))
         .startWith(pDelegate.getSelectionPaths())
-        .share()
-        .subscribeWith(BehaviorSubject.create());
+        .replay(1)
+        .autoConnect(0, disposables::add);
   }
 
 
@@ -197,6 +199,12 @@ public class ObservableTreeSelectionModel implements TreeSelectionModel
   public void removeTreeSelectionListener(TreeSelectionListener pX)
   {
     delegate.removeTreeSelectionListener(pX);
+  }
+
+  @Override
+  public void discard()
+  {
+    disposables.dispose();
   }
 
   private static class _TreeSelectionObservable extends AbstractListenerObservable<TreeSelectionListener, TreeSelectionModel, TreePath[]>

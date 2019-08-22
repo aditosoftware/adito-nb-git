@@ -11,8 +11,8 @@ import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.BehaviorSubject;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.blame.BlameResult;
@@ -65,6 +65,7 @@ public class RepositoryImpl implements IRepository
   private final Observable<Optional<IRepositoryState>> currentStateObservable;
   private final IFileSystemUtil fileSystemUtil;
   private final IFileSystemObserver fileSystemObserver;
+  private final CompositeDisposable disposables = new CompositeDisposable();
 
   @Inject
   public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider,
@@ -79,20 +80,25 @@ public class RepositoryImpl implements IRepository
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
+        .startWith(Optional.of(RepositoryImplHelper.status(git)))
         .throttleLatest(500, TimeUnit.MILLISECONDS)
-        .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.status(git))))
+        .replay(1)
+        .autoConnect(0, disposables::add)
         .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())));
 
     branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git)))
-        .share()
-        .subscribeWith(BehaviorSubject.createDefault(Optional.of(RepositoryImplHelper.branchList((git)))));
+        .startWith(Optional.of(RepositoryImplHelper.branchList((git))))
+        .replay(1)
+        .autoConnect(0, disposables::add);
     currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch))
-        .share()
-        .subscribeWith(BehaviorSubject.createDefault(RepositoryImplHelper.currentState(git, this::getBranch)));
+        .startWith(RepositoryImplHelper.currentState(git, this::getBranch))
+        .replay(1)
+        .autoConnect(0, disposables::add);
     tagList = status.map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
         .distinctUntilChanged()
-        .share()
-        .subscribeWith(BehaviorSubject.createDefault(List.of()));
+        .startWith(List.<ITag>of())
+        .replay(1)
+        .autoConnect(0, disposables::add);
   }
 
   @Override
@@ -452,7 +458,7 @@ public class RepositoryImpl implements IRepository
           for (DiffEntry diff : listDiff)
           {
             FileHeader fileHeader = formatter.toFileHeader(diff);
-            IFileContentInfo oldFileContent = VOID_PATH.equals(diff.getOldPath()) ? emptyContentInfo
+            IFileContentInfo oldFileContent = VOID_PATH.equals(diff.getOldPath()) || pCompareTo == null ? emptyContentInfo
                 : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
             IFileContentInfo newFileContent = VOID_PATH.equals(diff.getNewPath()) ? emptyContentInfo
                 : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
@@ -1483,6 +1489,12 @@ public class RepositoryImpl implements IRepository
   public @NotNull Set<String> getRemoteNames()
   {
     return git.getRepository().getRemoteNames();
+  }
+
+  @Override
+  public void discard()
+  {
+    disposables.clear();
   }
 
 

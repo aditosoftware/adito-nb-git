@@ -16,7 +16,7 @@ import java.util.*;
  *
  * @author m.kaspera 20.09.2018
  */
-public interface IRepository
+public interface IRepository extends IDiscardable
 {
 
   String VOID_PATH = "/dev/null";

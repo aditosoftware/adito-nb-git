@@ -24,8 +24,8 @@ import de.adito.git.impl.data.DiffInfoImpl;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -59,6 +59,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   private final ICommitFilter commitFilter;
   private final _SelectedCommitsPanel commits;
   private final StatusTree statusTree;
+  private final CompositeDisposable disposables = new CompositeDisposable();
   private Disposable onChangeExpandTreeDisposable;
 
   @Inject
@@ -93,8 +94,9 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
             return Collections.<IDiffInfo>emptyList();
           }
         })
-        .share()
-        .subscribeWith(BehaviorSubject.createDefault(List.of()));
+        .startWith(List.<IDiffInfo>of())
+        .replay(1)
+        .autoConnect(0, disposables::add);
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel diffTreeModel = useFlatTree ? new FlatDiffTreeModel(changedFilesObs, projectDirectory) : new DiffTreeModel(changedFilesObs, projectDirectory);
     statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
@@ -250,7 +252,9 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   @Override
   public void discard()
   {
+    disposables.clear();
     commits.discard();
+    statusTree.discard();
     if (onChangeExpandTreeDisposable != null)
       onChangeExpandTreeDisposable.dispose();
   }
