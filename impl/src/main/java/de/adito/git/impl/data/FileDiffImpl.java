@@ -4,7 +4,6 @@ import de.adito.git.api.data.*;
 import de.adito.git.impl.EnumMappings;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.EditList;
-import org.eclipse.jgit.patch.FileHeader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,18 +18,31 @@ import java.nio.charset.Charset;
 public class FileDiffImpl implements IFileDiff
 {
 
-  private final DiffEntry diffEntry;
-  private final FileHeader fileHeader;
+  private final EditList editList;
   private FileChangesImpl fileChanges;
   private final File topLevelDirectory;
   private final IFileContentInfo originalFileContent;
   private final IFileContentInfo newFileContent;
+  private final String oldId;
+  private final String newId;
+  private final EChangeType changeType;
+  private final EFileType oldFileType;
+  private final EFileType newFileType;
+  private final String oldFilePath;
+  private final String newFilePath;
 
-  public FileDiffImpl(DiffEntry pDiffEntry, FileHeader pFileHeader, @Nullable File pTopLevelDirectory,
-                      IFileContentInfo pOriginalFileContent, IFileContentInfo pNewFileContent)
+
+  public FileDiffImpl(@NotNull DiffEntry pDiffEntry, @NotNull EditList pEditList, @Nullable File pTopLevelDirectory,
+                      @NotNull IFileContentInfo pOriginalFileContent, @NotNull IFileContentInfo pNewFileContent)
   {
-    diffEntry = pDiffEntry;
-    fileHeader = pFileHeader;
+    oldId = pDiffEntry.getOldId().toString();
+    newId = pDiffEntry.getNewId().toString();
+    changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
+    oldFileType = EnumMappings.toEFileType(pDiffEntry.getOldMode());
+    newFileType = EnumMappings.toEFileType(pDiffEntry.getNewMode());
+    oldFilePath = pDiffEntry.getOldPath();
+    newFilePath = pDiffEntry.getNewPath();
+    editList = pEditList;
     topLevelDirectory = pTopLevelDirectory;
     originalFileContent = pOriginalFileContent;
     newFileContent = pNewFileContent;
@@ -42,11 +54,12 @@ public class FileDiffImpl implements IFileDiff
   @Override
   public String getId(@NotNull EChangeSide pSide)
   {
-    return (pSide == EChangeSide.NEW ? diffEntry.getNewId() : diffEntry.getOldId()).toString();
+    return pSide == EChangeSide.NEW ? newId : oldId;
   }
 
+  @NotNull
   @Override
-  public @NotNull File getFile()
+  public File getFile()
   {
     String filePath = getAbsoluteFilePath();
     if (filePath == null)
@@ -54,8 +67,9 @@ public class FileDiffImpl implements IFileDiff
     return new File(filePath);
   }
 
+  @NotNull
   @Override
-  public @NotNull File getFile(@NotNull EChangeSide pChangeSide)
+  public File getFile(@NotNull EChangeSide pChangeSide)
   {
     return new File(getFilePath(pChangeSide));
   }
@@ -67,44 +81,49 @@ public class FileDiffImpl implements IFileDiff
   @Override
   public EChangeType getChangeType()
   {
-    return EnumMappings.toEChangeType(diffEntry.getChangeType());
+    return changeType;
   }
 
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public EFileType getFileType(@NotNull EChangeSide pSide)
   {
-    return EnumMappings.toEFileType(pSide == EChangeSide.NEW ? diffEntry.getMode(DiffEntry.Side.NEW) : diffEntry.getMode(DiffEntry.Side.OLD));
+    return pSide == EChangeSide.NEW ? newFileType : oldFileType;
   }
 
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public String getFilePath(@NotNull EChangeSide pSide)
   {
-    return pSide == EChangeSide.NEW ? diffEntry.getNewPath() : diffEntry.getOldPath();
+    return pSide == EChangeSide.NEW ? newFilePath : oldFilePath;
   }
 
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public Charset getEncoding(@NotNull EChangeSide pSide)
   {
     return pSide == EChangeSide.NEW ? newFileContent.getEncoding().get() : originalFileContent.getEncoding().get();
   }
 
+  @NotNull
   @Override
   public String getFilePath()
   {
-    if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE)
+    if (changeType == EChangeType.DELETE)
       return getFilePath(EChangeSide.OLD);
     return getFilePath(EChangeSide.NEW);
   }
 
+  @Nullable
   @Override
   public String getAbsoluteFilePath()
   {
@@ -112,22 +131,19 @@ public class FileDiffImpl implements IFileDiff
       return null;
 
     String path = getFilePath();
-    if (path == null)
-      return null;
-
     return new File(topLevelDirectory, path).toPath().toAbsolutePath().toString();
   }
 
   /**
    * {@inheritDoc}
    */
+  @NotNull
   @Override
   public FileChangesImpl getFileChanges()
   {
     if (fileChanges == null)
     {
-      EditList edits = fileHeader.getHunks().get(0).toEditList();
-      fileChanges = new FileChangesImpl(edits, originalFileContent.getFileContent(), newFileContent.getFileContent());
+      fileChanges = new FileChangesImpl(editList, originalFileContent.getFileContent(), newFileContent.getFileContent());
     }
     return fileChanges;
   }
