@@ -67,6 +67,7 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
     }
     if (pDiffInfos.size() == 1)
     {
+      rootNode.setAssignedCommit(pDiffInfos.get(0).getParentCommit());
       treeUpdates.addAll(_handleSingleCommit(pDiffInfos, rootNode));
     }
     else
