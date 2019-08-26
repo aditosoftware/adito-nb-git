@@ -5,6 +5,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.rxjava.ScrollBarExtentObservable;
+import de.adito.git.impl.data.FileChangesEventImpl;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
@@ -160,7 +161,8 @@ public class Annotator extends JPanel implements IDiscardable
             // No check for new or deleted file (not in index in that case) since we just catch all Exceptions and if anything doesnt work we just do not show anything
             try
             {
-              return repo.diffOffline(pText, pFile);
+              // TODO: try and get rid of the blockingfirst, possibly do switchMap
+              return repo.diffOffline(pText, pFile).getFileChanges().getChangeChunks().blockingFirst(new FileChangesEventImpl(false, List.of(), null)).getNewValue();
             }
             catch (Exception pE)
             {

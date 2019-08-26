@@ -137,7 +137,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     {
       for (IMergeDiff selectedMergeDiff : mergeDiffOptional.get())
       {
-        String path = selectedMergeDiff.getDiff(pConflictSide).getAbsoluteFilePath();
+        String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
         if (path != null)
         {
           File selectedFile = new File(path);
@@ -160,10 +160,10 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
    */
   private void _acceptManualVersion(IMergeDiff pMergeDiff)
   {
-    String path = pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getAbsoluteFilePath();
+    String path = pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getAbsoluteFilePath();
     if (path != null)
     {
-      File selectedFile = new File(repository.getTopLevelDirectory(), pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
+      File selectedFile = new File(repository.getTopLevelDirectory(), pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath());
       StringBuilder fileContents = new StringBuilder();
       for (IFileChangeChunk changeChunk : pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges()
           .getChangeChunks().blockingFirst().getNewValue())

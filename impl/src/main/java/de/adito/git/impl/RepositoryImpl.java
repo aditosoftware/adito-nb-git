@@ -58,6 +58,7 @@ public class RepositoryImpl implements IRepository
   private final ISshProvider sshProvider;
   private final IDataFactory dataFactory;
   private final Logger logger = Logger.getLogger(RepositoryImpl.class.getName());
+  private final IStandAloneDiffProvider standAloneDiffProvider;
   private final Git git;
   private final Observable<Optional<List<IBranch>>> branchList;
   private final Observable<List<ITag>> tagList;
@@ -69,12 +70,13 @@ public class RepositoryImpl implements IRepository
 
   @Inject
   public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider,
-                        IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory,
+                        IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory, IStandAloneDiffProvider pStandAloneDiffProvider,
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
     fileSystemUtil = pIFileSystemUtil;
     sshProvider = pSshProvider;
     dataFactory = pDataFactory;
+    standAloneDiffProvider = pStandAloneDiffProvider;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
 
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
@@ -401,18 +403,9 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public List<IFileChangeChunk> diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException
+  public IFileDiff diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException
   {
-    RawText fileContents = new RawText(Files.readAllBytes(pFile.toPath()));
-    RawText currentFileContents = new RawText(pString.getBytes());
-
-    EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, fileContents, currentFileContents);
-    List<IFileChangeChunk> changeChunks = new ArrayList<>();
-    for (Edit edit : linesChanged)
-    {
-      changeChunks.add(new FileChangeChunkImpl(edit, "", "", EnumMappings.toEChangeType(edit.getType())));
-    }
-    return changeChunks;
+    return standAloneDiffProvider.diffOffline(pString.getBytes(), Files.readAllBytes(pFile.toPath()));
   }
 
   @Override
@@ -445,7 +438,7 @@ public class RepositoryImpl implements IRepository
     {
       List<IFileDiff> listDiffImpl = new ArrayList<>();
 
-      File topLevelDirectory = getTopLevelDirectory();
+      File tld = getTopLevelDirectory();
       IFileContentInfo emptyContentInfo = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
       List<DiffEntry> listDiff = RepositoryImplHelper.doDiff(git, ObjectId.fromString(pOriginal.getId()), pCompareTo == null ? null
           : ObjectId.fromString(pCompareTo.getId()));
@@ -462,7 +455,7 @@ public class RepositoryImpl implements IRepository
                 : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
             IFileContentInfo newFileContent = VOID_PATH.equals(diff.getNewPath()) ? emptyContentInfo
                 : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
-            listDiffImpl.add(new FileDiffImpl(diff, fileHeader, topLevelDirectory, oldFileContent, newFileContent));
+            listDiffImpl.add(new FileDiffImpl(new FileDiffHeaderImpl(diff, tld), fileHeader.getHunks().get(0).toEditList(), oldFileContent, newFileContent));
           }
         }
       }
@@ -526,7 +519,8 @@ public class RepositoryImpl implements IRepository
               : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
           IFileContentInfo newFileContents = VOID_PATH.equals(diffEntry.getNewPath()) ? new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8)
               : new FileContentInfoImpl(Suppliers.memoize(() -> _getFileContent(diffEntry.getNewPath())), fileSystemUtil);
-          returnList.add(new FileDiffImpl(diffEntry, fileHeader, getTopLevelDirectory(), oldFileContents, newFileContents));
+          returnList.add(new FileDiffImpl(new FileDiffHeaderImpl(diffEntry, getTopLevelDirectory()), fileHeader.getHunks().get(0).toEditList(),
+                                          oldFileContents, newFileContents));
         }
       }
       return returnList;

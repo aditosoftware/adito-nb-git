@@ -167,14 +167,14 @@ public interface IRepository extends IDiscardable
   void fetch(boolean pPrune) throws AditoGitException;
 
   /**
-   * Diff two strings
+   * Diff two strings, one coming from a file
    *
    * @param pString String to be compared with pFile
    * @param pFile   File whose current contents on the disk should be compared to pString
    * @return List of IFileChangeChunks containing the changed lines between the two versions
    * @throws IOException if an error during file read occurs
    */
-  List<IFileChangeChunk> diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException;
+  IFileDiff diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException;
 
   /**
    * get the changed lines between a string and the contents of a file
@@ -210,7 +210,7 @@ public interface IRepository extends IDiscardable
    * Retrieve the encoding and contents of the specified file/version combination
    *
    * @param pIdentifier String identifying the specific version of the file
-   * @param pFile the file whose contents should be retrieved
+   * @param pFile       the file whose contents should be retrieved
    * @return the contents of the requested file as IFileContentInfo, with the content as String and the used encoding
    * @throws IOException if an error occurs during transport/reading of the file
    */

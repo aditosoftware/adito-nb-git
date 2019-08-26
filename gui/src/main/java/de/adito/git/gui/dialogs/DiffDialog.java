@@ -103,7 +103,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
         .map(pSelectedPaths -> pSelectedPaths.map(pChangeTypes -> pChangeTypes.isEmpty() ? null : (IFileDiff) pChangeTypes.get(0)));
     Observable<EditorKit> editorKitObservable = fileDiffObservable
         .map(pFileDiff -> pFileDiff
-            .map(IFileDiff::getAbsoluteFilePath)
+            .map(pFDiff -> pFDiff.getFileHeader().getAbsoluteFilePath())
             .map(editorKitProvider::getEditorKit)
             .orElseGet(() -> editorKitProvider.getEditorKitForContentType("text/plain")));
 

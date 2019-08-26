@@ -61,7 +61,7 @@ class DialogProviderImpl implements IDialogProvider
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
                                           "Conflict resolution for file "
-                                              + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath());
+                                              + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath());
       return result;
     }
     finally
@@ -83,7 +83,7 @@ class DialogProviderImpl implements IDialogProvider
       if (pSelectedFile != null)
         title += pSelectedFile;
       else if (!pFileDiffs.isEmpty())
-        title += pFileDiffs.get(0).getFilePath();
+        title += pFileDiffs.get(0).getFileHeader().getFilePath();
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pProjectDirectory, pFileDiffs, pSelectedFile, pAcceptChange, pShowFileTree),
                                           title);
       return result;

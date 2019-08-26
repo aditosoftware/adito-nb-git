@@ -56,7 +56,7 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   @Override
   public Object getValueAt(int pRowIndex, int pColumnIndex)
   {
-    String path = mergeDiffs.get(pRowIndex).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath();
+    String path = mergeDiffs.get(pRowIndex).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath();
     if (pColumnIndex == 0)
     {
       String[] pathFolders = path.split("/");
@@ -88,8 +88,8 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
     {
       for (int index = 0; index < pList1.size(); index++)
       {
-        if (!pList1.get(index).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath()
-            .equals(pList2.get(index).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFilePath()))
+        if (!pList1.get(index).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath()
+            .equals(pList2.get(index).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath()))
           return false;
       }
       return true;

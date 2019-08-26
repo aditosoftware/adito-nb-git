@@ -240,11 +240,11 @@ public class RepositoryImplHelper
     for (IFileDiff parentDiff : parentDiffList)
     {
       // may be empty, because JGit unstash doesn't apply changes if a conflict arises during unstashing. Ignore conflicting file status then
-      if (pConflicts.isEmpty() || pConflicts.contains(parentDiff.getFilePath()))
+      if (pConflicts.isEmpty() || pConflicts.contains(parentDiff.getFileHeader().getFilePath()))
       {
         for (IFileDiff toMergeDiff : toMergeDiffList)
         {
-          if (toMergeDiff.getFilePath().equals(parentDiff.getFilePath()))
+          if (toMergeDiff.getFileHeader().getFilePath().equals(parentDiff.getFileHeader().getFilePath()))
           {
             mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
           }

@@ -2,7 +2,6 @@ package de.adito.git.api.data;
 
 import de.adito.git.api.IRepository;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 
@@ -15,33 +14,12 @@ public interface IFileDiff extends IFileChangeType
 {
 
   /**
-   * returns the Id for the given side of this IFileDiff
+   * return an IFileDiffHeader containing information about the id/path/... of the old and new Version of the File as well as the type of change
    *
-   * @param pSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
-   * @return the identifier for the file/object on the specified side of the tree
+   * @return IFileDiffHeader of this IFileDiff
    */
-  String getId(@NotNull EChangeSide pSide);
-
-  /**
-   * @return {@link EChangeType} that tells which kind of change happened (add/remove...)
-   */
-  EChangeType getChangeType();
-
-  /**
-   * returns the type of file for this IFileDiff
-   *
-   * @param pSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
-   * @return {@link EFileType} which kind of file
-   */
-  EFileType getFileType(@NotNull EChangeSide pSide);
-
-  /**
-   * returns filePath for the given side
-   *
-   * @param pChangeSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
-   * @return the path from root to the file
-   */
-  String getFilePath(@NotNull EChangeSide pChangeSide);
+  @NotNull
+  IFileDiffHeader getFileHeader();
 
   /**
    * returns the encoding used to convert the fileContents, as String, to a byte array or vice versa
@@ -50,23 +28,6 @@ public interface IFileDiff extends IFileChangeType
    * @return the encoding used to represent the fileContents as byte array
    */
   Charset getEncoding(@NotNull EChangeSide pChangeSide);
-
-  /**
-   * returns the same as getFilePath(EChangeSide.NEW) if file is not deleted,
-   * otherwise getFilePath(EChangeSide.OLD) is returned
-   *
-   * @return path from the root to the file
-   */
-  String getFilePath();
-
-  /**
-   * returns the absolute path of getFilePath(EChangeSide.NEW) if file is not deleted,
-   * otherwise the absolute path of getFilePath(EChangeSide.OLD) is returned
-   *
-   * @return absolute path of the file, or <tt>null</tt> if it can't be determined
-   */
-  @Nullable
-  String getAbsoluteFilePath();
 
   /**
    * @return {@link IFileChanges} that contains a list detailing the changes in each changed line
@@ -82,7 +43,7 @@ public interface IFileDiff extends IFileChangeType
    */
   static boolean isSameFile(@NotNull String pFilePath, @NotNull IFileDiff pFileDiff)
   {
-    return pFilePath.equals(pFileDiff.getFilePath(EChangeSide.NEW)) || pFilePath.equals(pFileDiff.getFilePath(EChangeSide.OLD));
+    return pFilePath.equals(pFileDiff.getFileHeader().getFilePath(EChangeSide.NEW)) || pFilePath.equals(pFileDiff.getFileHeader().getFilePath(EChangeSide.OLD));
   }
 
   /**
@@ -94,15 +55,15 @@ public interface IFileDiff extends IFileChangeType
    */
   static boolean isSameFile(@NotNull IFileDiff pFileDiff, @NotNull IFileDiff pOtherFileDiff)
   {
-    if (!IRepository.VOID_PATH.equals(pFileDiff.getFilePath(EChangeSide.NEW))
-        && ((pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.NEW)))
-        || pFileDiff.getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFilePath(EChangeSide.OLD))))
+    if (!IRepository.VOID_PATH.equals(pFileDiff.getFileHeader().getFilePath(EChangeSide.NEW))
+        && ((pFileDiff.getFileHeader().getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFileHeader().getFilePath(EChangeSide.NEW)))
+        || pFileDiff.getFileHeader().getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFileHeader().getFilePath(EChangeSide.OLD))))
     {
       return true;
     }
-    else return !IRepository.VOID_PATH.equals(pFileDiff.getFilePath(EChangeSide.OLD))
-        && (pFileDiff.getFilePath(EChangeSide.OLD).equals(pOtherFileDiff.getFilePath(EChangeSide.OLD))
-        || pFileDiff.getFilePath(EChangeSide.OLD).equals(pOtherFileDiff.getFilePath(EChangeSide.NEW)));
+    else return !IRepository.VOID_PATH.equals(pFileDiff.getFileHeader().getFilePath(EChangeSide.OLD))
+        && (pFileDiff.getFileHeader().getFilePath(EChangeSide.OLD).equals(pOtherFileDiff.getFileHeader().getFilePath(EChangeSide.OLD))
+        || pFileDiff.getFileHeader().getFilePath(EChangeSide.OLD).equals(pOtherFileDiff.getFileHeader().getFilePath(EChangeSide.NEW)));
   }
 
 }
