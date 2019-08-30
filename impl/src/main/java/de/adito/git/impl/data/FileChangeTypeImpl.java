@@ -70,6 +70,6 @@ public class FileChangeTypeImpl implements IFileChangeType
   @Override
   public int hashCode()
   {
-    return Objects.hash(file, changeType);
+    return Objects.hash(file, fileBefore, changeType);
   }
 }
