@@ -85,11 +85,15 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscar
   @NotNull
   private List<TreeUpdate> _handleSingleCommit(@NotNull List<IDiffInfo> pDiffInfos, @NotNull FileChangeTypeNode pRootNode)
   {
-    List<TreeUpdate> treeUpdates = new ArrayList<>();
     List<IFileChangeType> changeTypes = pDiffInfos.get(0).getChangedFiles();
     pRootNode.getInfo().setMembers(changeTypes);
-    treeUpdates.addAll(_updateTree(_calculateFlatMap(changeTypes), (FileChangeTypeNode) root));
-    return treeUpdates;
+    if (changeTypes.isEmpty())
+    {
+      List<TreeUpdate> removeAllList = new ArrayList<>();
+      pRootNode.children().asIterator().forEachRemaining(pNode -> removeAllList.add(TreeUpdate.createRemove((FileChangeTypeNode) pNode)));
+      return removeAllList;
+    }
+    return new ArrayList<>(_updateTree(_calculateFlatMap(changeTypes), (FileChangeTypeNode) root));
   }
 
   @NotNull
