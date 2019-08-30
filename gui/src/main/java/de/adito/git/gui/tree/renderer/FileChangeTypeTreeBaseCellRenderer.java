@@ -46,10 +46,14 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
       JPanel panel = new JPanel(new BorderLayout(PANEL_HGAP, 0));
       // icon for the file/folder
       JLabel iconLabel = new JLabel();
-      Image icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
-      if (icon == null && !pLeaf)
+      Image icon;
+      if (!pLeaf)
       {
         icon = fileSystemUtil.getIcon(projectDir, pExpanded);
+      }
+      else
+      {
+        icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
       }
       if (icon != null)
       {
