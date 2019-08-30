@@ -192,7 +192,17 @@ class DialogProviderImpl implements IDialogProvider
   @Override
   public DialogResult showRevertDialog(@NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
   {
-    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pFilesToRevert, pProjectDirectory), "Confirm revert of files");
+    DialogResult<RevertFilesDialog, ?> result = null;
+    try
+    {
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pFilesToRevert, pProjectDirectory), "Confirm revert of files");
+      return result;
+    }
+    finally
+    {
+      if (result != null)
+        result.getSource().discard();
+    }
   }
 
   @NotNull

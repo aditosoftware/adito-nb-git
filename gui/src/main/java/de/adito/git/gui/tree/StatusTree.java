@@ -44,15 +44,8 @@ public class StatusTree implements IDiscardable
     else
       searchableTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDirectory));
     pQuickSearchProvider.attach(pTreeViewPanel, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(searchableTree));
-    JScrollPane treeScrollpane;
-    if (pScrollPane == null)
-      treeScrollpane = new JScrollPane(searchableTree);
-    else
-    {
+    if (pScrollPane != null)
       pScrollPane.setViewportView(searchableTree);
-      treeScrollpane = pScrollPane;
-    }
-    pTreeViewPanel.add(treeScrollpane, BorderLayout.CENTER);
     observableTreeSelectionModel = new ObservableTreeSelectionModel(searchableTree.getSelectionModel());
     searchableTree.setSelectionModel(observableTreeSelectionModel);
     selectionObservable = observableTreeSelectionModel.getSelectedPaths().map(pSelected -> {

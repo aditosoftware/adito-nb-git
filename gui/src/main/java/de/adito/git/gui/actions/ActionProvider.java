@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.tree.models.ObservableTreeUpdater;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -295,17 +296,17 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
-  public Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory,
-                                        @NotNull String pCallerName)
+  public Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull File pProjectDirectory, @NotNull String pCallerName,
+                                        @NotNull ObservableTreeUpdater<IFileChangeType> pObservableTreeUpdater)
   {
-    return actionFactory.createSwitchTreeViewAction(pTree, pChangeList, pProjectDirectory, pCallerName);
+    return actionFactory.createSwitchTreeViewAction(pTree, pProjectDirectory, pCallerName, pObservableTreeUpdater);
   }
 
   @Override
-  public Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory,
+  public Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater, @NotNull File pProjectDirectory,
                                             @NotNull String pCallerName)
   {
-    return actionFactory.createSwitchDiffTreeViewAction(pTree, pChangeList, pProjectDirectory, pCallerName);
+    return actionFactory.createSwitchDiffTreeViewAction(pTree, pObservableTreeUpdater, pProjectDirectory, pCallerName);
   }
 
 }

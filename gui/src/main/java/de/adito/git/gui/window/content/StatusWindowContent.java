@@ -6,6 +6,7 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
@@ -13,12 +14,8 @@ import de.adito.git.gui.dialogs.panels.ObservableTreePanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
-import de.adito.git.gui.tree.TreeUtil;
-import de.adito.git.gui.tree.models.BaseObservingTreeModel;
-import de.adito.git.gui.tree.models.FlatStatusTreeModel;
-import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.models.*;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -45,55 +42,53 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
   private final IPrefStore prefStore;
   private final Observable<Optional<IRepository>> repository;
   private final IActionProvider actionProvider;
-  private final Observable<Optional<List<IFileChangeType>>> selectionObservable;
-  private final StatusTree statusTree;
-  private final BaseObservingTreeModel statusTreeModel;
-  private final Action openFileAction;
-  private final List<IDiscardable> discardableActions = new ArrayList<>();
-  private final Disposable disposable;
+  private Observable<Optional<List<IFileChangeType>>> selectionObservable;
+  private StatusTree statusTree;
+  private BaseObservingTreeModel<IFileChangeType> statusTreeModel;
+  private Action openFileAction;
+  private List<IDiscardable> discardableActions = new ArrayList<>();
+  private ObservableTreeUpdater<IFileChangeType> treeUpdater;
 
   @Inject
   StatusWindowContent(IIconLoader pIconLoader, IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
-                      IPrefStore pPrefStore, @Assisted Observable<Optional<IRepository>> pRepository)
+                      IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     super();
     iconLoader = pIconLoader;
     prefStore = pPrefStore;
     repository = pRepository;
     actionProvider = pActionProvider;
-    Observable<Optional<IFileStatus>> status = repository
-        .switchMap(pRepo -> pRepo
-            .map(IRepository::getStatus)
-            .orElse(Observable.just(Optional.empty())));
-    File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
-        .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
-    Observable<List<IFileChangeType>> changedFilesObs = status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of()));
-    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
-    statusTreeModel = useFlatTree ? new FlatStatusTreeModel(changedFilesObs, projectDirectory) : new StatusTreeModel(changedFilesObs, projectDirectory);
-    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree,
-                                projectDirectory, treeViewPanel, treeScrollpane);
-    disposable = changedFilesObs.subscribe(pChangedFiles -> {
-      _showLoading();
-      statusTreeModel.invokeAfterComputations(() -> {
-        pFileSystemUtil.preLoadIcons(pChangedFiles);
-        TreeUtil.expandTreeInterruptible(statusTree.getTree());
-        _showTree();
-      });
+    treeViewPanel.add(loadingLabel, BorderLayout.CENTER);
+    pProgressFacade.executeInBackground("Preparing status window", pHandle -> {
+      Observable<Optional<IFileStatus>> status = repository
+          .switchMap(pRepo -> pRepo
+              .map(IRepository::getStatus)
+              .orElse(Observable.just(Optional.empty())));
+      File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
+          .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
+      Observable<List<IFileChangeType>> changedFilesObs = status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of()));
+      boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
+      statusTreeModel = useFlatTree ? new FlatStatusTreeModel(projectDirectory) : new StatusTreeModel(projectDirectory);
+      statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree,
+                                  projectDirectory, treeViewPanel, treeScrollpane);
+      Runnable[] doAfterJobs = {this::showTree};
+      treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, statusTreeModel, pFileSystemUtil, doAfterJobs, this::showLoading);
+
+      selectionObservable = statusTree.getSelectionObservable();
+      openFileAction = actionProvider.getOpenFileAction(selectionObservable);
+      statusTree.getTree().addMouseListener(new _DoubleClickListener());
+      _initGui(projectDirectory);
     });
-    statusTree.getTree().addMouseListener(new _DoubleClickListener());
-    selectionObservable = statusTree.getSelectionObservable();
-    openFileAction = actionProvider.getOpenFileAction(selectionObservable);
-    _initGui(changedFilesObs, projectDirectory);
   }
 
-  private void _initGui(Observable<List<IFileChangeType>> pChangedFilesObs, File pProjectDirectory)
+  private void _initGui(File pProjectDirectory)
   {
     setLayout(new BorderLayout());
-    _initActions(pChangedFilesObs, pProjectDirectory);
+    _initActions(pProjectDirectory);
     add(treeViewPanel, BorderLayout.CENTER);
   }
 
-  private void _initActions(Observable<List<IFileChangeType>> pChangedFilesObs, File pProjectDirectory)
+  private void _initActions(File pProjectDirectory)
   {
     Action commitAction = actionProvider.getCommitAction(repository, selectionObservable, "");
     Action diffToHeadAction = actionProvider.getDiffToHeadAction(repository, selectionObservable);
@@ -118,7 +113,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     toolBar.addSeparator();
     toolBar.add(actionProvider.getExpandTreeAction(statusTree.getTree()));
     toolBar.add(actionProvider.getCollapseTreeAction(statusTree.getTree()));
-    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(statusTree.getTree(), pChangedFilesObs, pProjectDirectory, this.getClass().getName()),
+    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(statusTree.getTree(), pProjectDirectory, this.getClass().getName(), treeUpdater),
                                             () -> Constants.TREE_VIEW_FLAT.equals(this.getClass().getName() + prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
@@ -156,7 +151,13 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     statusTreeModel.discard();
     statusTree.discard();
     discardableActions.forEach(IDiscardable::discard);
-    disposable.dispose();
+    treeUpdater.discard();
+  }
+
+  @Override
+  protected JTree getTree()
+  {
+    return statusTree.getTree();
   }
 
   private class _DoubleClickListener extends MouseAdapter

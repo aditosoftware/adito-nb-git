@@ -7,8 +7,6 @@ import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.MutableTreeNode;
@@ -21,22 +19,20 @@ import java.util.List;
  *
  * @author m.kaspera, 12.07.2019
  */
-public class FlatStatusTreeModel extends BaseObservingTreeModel implements IDiscardable
+public class FlatStatusTreeModel extends BaseObservingTreeModel<IFileChangeType> implements IDiscardable
 {
-  private final Disposable disposable;
 
-  public FlatStatusTreeModel(@NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory)
+  public FlatStatusTreeModel(@NotNull File pProjectDirectory)
   {
     super(pProjectDirectory);
-    disposable = pChangeList.subscribe(this::_treeChanged);
   }
 
-  private void _treeChanged(@NotNull List<IFileChangeType> pChangeList)
+  @Override
+  void _treeChanged(@NotNull List<IFileChangeType> pChangeList, Runnable... pDoAfterJobs)
   {
     try
     {
-      service.invokeComputation(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), this::fireDataModelUpdated,
-                                                                 service::computationsDone));
+      service.submit(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), pDoAfterJobs));
     }
     catch (InterruptedRuntimeException pE)
     {
@@ -79,6 +75,6 @@ public class FlatStatusTreeModel extends BaseObservingTreeModel implements IDisc
   @Override
   public void discard()
   {
-    disposable.dispose();
+    service.shutdown();
   }
 }

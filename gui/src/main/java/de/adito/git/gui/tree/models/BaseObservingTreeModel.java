@@ -4,7 +4,6 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
-import de.adito.git.gui.concurrency.ComputationCycleExecutor;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
@@ -16,76 +15,24 @@ import javax.swing.tree.TreeNode;
 import java.io.File;
 import java.text.Collator;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Offers a serviceExecutor and IDataModelUpdateListeners
  *
  * @author m.kaspera, 12.07.2019
  */
-public abstract class BaseObservingTreeModel extends DefaultTreeModel implements IDiscardable
+public abstract class BaseObservingTreeModel<T> extends DefaultTreeModel implements IDiscardable
 {
 
   final File projectDirectory;
-  final ComputationCycleExecutor service = new ComputationCycleExecutor();
-  private final List<ObservingTreeModel.IDataModelUpdateListener> updateListeners = new ArrayList<>();
+  final ExecutorService service = Executors.newSingleThreadExecutor();
 
   BaseObservingTreeModel(File pProjectDirectory)
   {
     super(null);
     projectDirectory = pProjectDirectory;
-  }
-
-  /**
-   * Queues the Task and executes it once the next computation cycle is finished
-   *
-   * @param pRunnable Runnable to execute
-   */
-  public void invokeAfterComputations(@NotNull Runnable pRunnable)
-  {
-    service.invokeAfterComputations(pRunnable);
-  }
-
-  /**
-   * Queues the Task and executes it once the next computation cycle is finished. This method only executes any action with the same key once per computation cycle
-   *
-   * @param pRunnable Runnable to execute
-   * @param pKey      Key that is used to determine if there already is an action of this instance
-   */
-  public void invokeAfterComputations(@NotNull Runnable pRunnable, String pKey)
-  {
-    service.invokeAfterComputations(pRunnable, pKey);
-  }
-
-  /**
-   * registers a listener that is notified each time the model is fully updated (i.e. the update method completed a full run-through and was not interrupted. This means
-   * the current state of the tree can be considered "valid"/up-to-date for the immideate future)
-   *
-   * @param pListener listener to be notified
-   */
-  public void registerDataModelUpdatedListener(ObservingTreeModel.IDataModelUpdateListener pListener)
-  {
-    updateListeners.add(pListener);
-  }
-
-  /**
-   * removes a listener such that it gets no more updates
-   *
-   * @param pListener listener to be removed
-   */
-  public void removeDataModelUpdateListener(ObservingTreeModel.IDataModelUpdateListener pListener)
-  {
-    updateListeners.remove(pListener);
-  }
-
-  /**
-   * notifies the listeners that the model did a full update cycle/the update function passed without it being aborted due to new data coming in
-   */
-  void fireDataModelUpdated()
-  {
-    for (int index = updateListeners.size() - 1; index >= 0; index--)
-    {
-      updateListeners.get(index).modelUpdated();
-    }
   }
 
   /**
@@ -101,6 +48,8 @@ public abstract class BaseObservingTreeModel extends DefaultTreeModel implements
       return "";
     }, Collator.getInstance());
   }
+
+  abstract void _treeChanged(List<T> pNewElements, Runnable... pDoAfter);
 
   /**
    * searches the parentNode for a child whose nodeDescription equals the passed name
@@ -214,14 +163,4 @@ public abstract class BaseObservingTreeModel extends DefaultTreeModel implements
     }
     return treeUpdates;
   }
-
-  /**
-   * Defines an interface for objects interested in knowing when the dataModel was completely updated (completely because if the data changes during an update,
-   * that update is aborted and a new update started)
-   */
-  public interface IDataModelUpdateListener extends EventListener
-  {
-    void modelUpdated();
-  }
-
 }

@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.tree.models.ObservableTreeUpdater;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -281,24 +282,24 @@ public interface IActionProvider
   /**
    * swaps the treeView from a flat view (only leaves below root) to a hierarchical view
    *
-   * @param pTree             Tree whose view should be updated
-   * @param pChangeList       Observable with the list of changed files
-   * @param pProjectDirectory root folder of the project
-   * @param pCallerName       Name of the class/dialog/topComponent using this action. Determines the key used for checking the state of the view
+   * @param pTree                  Tree whose view should be updated
+   * @param pObservableTreeUpdater Updater responsible for asking the treeModel to update itself once the observable changes
+   * @param pProjectDirectory      root folder of the project
+   * @param pCallerName            Name of the class/dialog/topComponent using this action. Determines the key used for checking the state of the view
    * @return Action whose actionPerformed method swaps the treeView from a flat view (only leaves below root) to a hierarchical view
    */
-  Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory,
-                                 @NotNull String pCallerName);
+  Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull File pProjectDirectory, @NotNull String pCallerName,
+                                 @NotNull ObservableTreeUpdater<IFileChangeType> pObservableTreeUpdater);
 
   /**
    * swaps the treeView from a flat diff view (only leaves below root/commit nodes) to a hierarchical view
    *
-   * @param pTree             Tree whose view should be updated
-   * @param pChangeList       Observable with the list of changed files
-   * @param pProjectDirectory root folder of the project
-   * @param pCallerName       Name of the class/dialog/topComponent using this action. Determines the key used for checking the state of the view
+   * @param pTree                  Tree whose view should be updated
+   * @param pObservableTreeUpdater Updater responsible for asking the treeModel to update itself once the observable changes
+   * @param pProjectDirectory      root folder of the project
+   * @param pCallerName            Name of the class/dialog/topComponent using this action. Determines the key used for checking the state of the view
    * @return Action whose actionPerformed method swaps the treeView from a flat view (only leaves below root) to a hierarchical view
    */
-  Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory,
+  Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater, @NotNull File pProjectDirectory,
                                      @NotNull String pCallerName);
 }

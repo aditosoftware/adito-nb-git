@@ -12,6 +12,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
+import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import io.reactivex.Observable;
@@ -49,6 +50,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final boolean showFileTree;
   private final JTextPane notificationArea = new JTextPane();
   private final JPanel searchPanel = new JPanel(new BorderLayout());
+  private final ObservableTreeUpdater<IFileChangeType> treeUpdater;
   private DiffPanel diffPanel;
   private Disposable disposable;
   private List<IFileDiff> diffs;
@@ -68,29 +70,21 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     List<IFileChangeType> pList = new ArrayList<>(diffs);
     Observable<List<IFileChangeType>> changedFiles = Observable.just(pList);
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
-    BaseObservingTreeModel statusTreeModel =
-        useFlatTree ? new FlatStatusTreeModel(Observable.just(pList), pProjectDirectory) : new StatusTreeModel(Observable.just(pList), pProjectDirectory);
+    BaseObservingTreeModel<IFileChangeType> statusTreeModel =
+        useFlatTree ? new FlatStatusTreeModel(pProjectDirectory) : new StatusTreeModel(pProjectDirectory);
     fileTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree, pProjectDirectory, searchPanel, null);
-    statusTreeModel.registerDataModelUpdatedListener(new ObservingTreeModel.IDataModelUpdateListener()
-    {
-      @Override
-      public void modelUpdated()
-      {
-        // display the first entry as default
-        if (!diffs.isEmpty())
-          actionProvider.getExpandTreeAction(fileTree.getTree()).actionPerformed(null);
-        _setSelectedFile(pSelectedFile);
-        statusTreeModel.removeDataModelUpdateListener(this);
-      }
-    });
+    Runnable[] doAfterJobs = new Runnable[2];
+    doAfterJobs[0] = () -> TreeUtil.expandTreeInterruptible(fileTree.getTree());
+    doAfterJobs[1] = () -> _setSelectedFile(pSelectedFile);
+    treeUpdater = new ObservableTreeUpdater<>(changedFiles, statusTreeModel, pFileSystemUtil, doAfterJobs);
     editorKitProvider = pEditorKitProvider;
-    _initGui(pIconLoader, changedFiles, pProjectDirectory);
+    _initGui(pIconLoader, pProjectDirectory);
   }
 
   /**
    * sets up the GUI
    */
-  private void _initGui(IIconLoader pIconLoader, Observable<List<IFileChangeType>> pChangedFiles, File pProjectDirectory)
+  private void _initGui(IIconLoader pIconLoader, File pProjectDirectory)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
@@ -128,7 +122,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       toolBar.setFloatable(false);
       toolBar.add(actionProvider.getExpandTreeAction(fileTree.getTree()));
       toolBar.add(actionProvider.getCollapseTreeAction(fileTree.getTree()));
-      toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(fileTree.getTree(), pChangedFiles, pProjectDirectory, this.getClass().getName()),
+      toolBar.add(new MutableIconActionButton(actionProvider.getSwitchTreeViewAction(fileTree.getTree(), pProjectDirectory, this.getClass().getName(), treeUpdater),
                                               () -> Constants.TREE_VIEW_FLAT.equals(this.getClass().getName() + prefStore.get(Constants.TREE_VIEW_TYPE_KEY)),
                                               iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                               iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
@@ -197,6 +191,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     disposable.dispose();
     diffPanel.discard();
     fileTree.discard();
+    treeUpdater.discard();
   }
 
   @Override

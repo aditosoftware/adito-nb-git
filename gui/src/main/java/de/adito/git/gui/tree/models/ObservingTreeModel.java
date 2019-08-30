@@ -12,7 +12,7 @@ import java.util.*;
 /**
  * @author m.kaspera, 14.05.2019
  */
-public abstract class ObservingTreeModel extends BaseObservingTreeModel
+abstract class ObservingTreeModel<T> extends BaseObservingTreeModel<T>
 {
 
   ObservingTreeModel(@NotNull File pProjectDirectory)

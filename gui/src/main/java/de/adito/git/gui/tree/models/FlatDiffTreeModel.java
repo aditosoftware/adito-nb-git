@@ -8,8 +8,6 @@ import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -20,30 +18,27 @@ import java.util.List;
 /**
  * @author m.kaspera, 12.07.2019
  */
-public class FlatDiffTreeModel extends BaseObservingTreeModel implements IDiscardable
+public class FlatDiffTreeModel extends BaseObservingTreeModel<IDiffInfo> implements IDiscardable
 {
 
-  private final Disposable disposable;
 
-  public FlatDiffTreeModel(@NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory)
+  public FlatDiffTreeModel(@NotNull File pProjectDirectory)
   {
     super(pProjectDirectory);
-    disposable = pChangeList.subscribe(this::_treeChanged);
   }
 
   @Override
   public void discard()
   {
-    disposable.dispose();
     service.shutdown();
   }
 
-  private void _treeChanged(@NotNull List<IDiffInfo> pChangeList)
+  @Override
+  void _treeChanged(@NotNull List<IDiffInfo> pChangeList, Runnable... pDoAfterJobs)
   {
     try
     {
-      service.invokeComputation(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), this::fireDataModelUpdated,
-                                                                 service::computationsDone));
+      service.submit(new TreeModelBackgroundUpdater<>(this, this::_calculateTree, pChangeList, _getDefaultComparator(), pDoAfterJobs));
     }
     catch (InterruptedRuntimeException pE)
     {

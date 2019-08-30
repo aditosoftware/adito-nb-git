@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.tree.models.ObservableTreeUpdater;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -102,9 +103,9 @@ interface IActionFactory
 
   ShowTagWindowAction createShowTagWindowAction(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
 
-  SwitchTreeViewAction createSwitchTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IFileChangeType>> pChangeList, @NotNull File pProjectDirectory,
-                                                  @NotNull String pCallerName);
+  SwitchTreeViewAction createSwitchTreeViewAction(@NotNull JTree pTree, @NotNull File pProjectDirectory, @NotNull String pCallerName,
+                                                  @NotNull ObservableTreeUpdater<IFileChangeType> pObservableTreeUpdater);
 
-  SwitchDiffTreeViewAction createSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull Observable<List<IDiffInfo>> pChangeList, @NotNull File pProjectDirectory,
-                                                          @NotNull String pCallerName);
+  SwitchDiffTreeViewAction createSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater,
+                                                          @NotNull File pProjectDirectory, @NotNull String pCallerName);
 }

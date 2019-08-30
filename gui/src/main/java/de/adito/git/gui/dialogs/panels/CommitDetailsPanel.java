@@ -14,10 +14,7 @@ import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
-import de.adito.git.gui.tree.TreeUtil;
-import de.adito.git.gui.tree.models.BaseObservingTreeModel;
-import de.adito.git.gui.tree.models.DiffTreeModel;
-import de.adito.git.gui.tree.models.FlatDiffTreeModel;
+import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.impl.data.DiffInfoImpl;
@@ -60,7 +57,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   private final _SelectedCommitsPanel commits;
   private final StatusTree statusTree;
   private final CompositeDisposable disposables = new CompositeDisposable();
-  private Disposable onChangeExpandTreeDisposable;
+  private final ObservableTreeUpdater<IDiffInfo> treeUpdater;
 
   @Inject
   public CommitDetailsPanel(IActionProvider pActionProvider, IQuickSearchProvider pQuickSearchProvider,
@@ -82,12 +79,26 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
-    Observable<List<IDiffInfo>> changedFilesObs = Observable
+    Observable<List<IDiffInfo>> changedFilesObs = _buildChangedFilesObs(projectDirectory);
+    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
+    BaseObservingTreeModel<IDiffInfo> diffTreeModel = useFlatTree ? new FlatDiffTreeModel(projectDirectory) : new DiffTreeModel(projectDirectory);
+    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
+    Runnable[] doAfterJobs = {this::showTree};
+    treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, diffTreeModel, null, doAfterJobs, this::showLoading);
+    treeViewPanel.add(_getTreeToolbar(projectDirectory), BorderLayout.NORTH);
+
+    _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);
+    _initDetailPanel();
+  }
+
+  private Observable<@NotNull List<IDiffInfo>> _buildChangedFilesObs(File pProjectDirectory)
+  {
+    return Observable
         .combineLatest(selectedCommitObservable, repository, showAllCBObservable, (pSelectedCommitsOpt, currentRepo, pShowAll) -> {
-          _showLoading();
+          showLoading();
           if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
           {
-            return _getChangedFiles(projectDirectory, pSelectedCommitsOpt.get(), currentRepo.get(), pShowAll);
+            return _getChangedFiles(pProjectDirectory, pSelectedCommitsOpt.get(), currentRepo.get(), pShowAll);
           }
           else
           {
@@ -97,21 +108,6 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
         .startWith(List.<IDiffInfo>of())
         .replay(1)
         .autoConnect(0, disposables::add);
-    boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
-    BaseObservingTreeModel diffTreeModel = useFlatTree ? new FlatDiffTreeModel(changedFilesObs, projectDirectory) : new DiffTreeModel(changedFilesObs, projectDirectory);
-    statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
-    treeViewPanel.add(_getTreeToolbar(changedFilesObs, projectDirectory), BorderLayout.NORTH);
-
-    _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);
-
-    onChangeExpandTreeDisposable = changedFilesObs
-        .subscribe(pEvent -> ((BaseObservingTreeModel) statusTree.getTree().getModel()).invokeAfterComputations(
-            // use EDT Thread because apparently expanding a tree while not in the EDT may cause Swing to get confused with the index of treeNodes
-            () -> SwingUtilities.invokeLater(() -> {
-              TreeUtil.expandTreeInterruptible(statusTree.getTree());
-              _showTree();
-            }), "expandAndShowTree"));
-    _initDetailPanel();
   }
 
   @NotNull
@@ -192,13 +188,13 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     statusTree.getTree().addMouseListener(popupMouseListener);
   }
 
-  private JToolBar _getTreeToolbar(Observable<List<IDiffInfo>> pChangedFilesObs, File pProjectDirectory)
+  private JToolBar _getTreeToolbar(File pProjectDirectory)
   {
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getExpandTreeAction(statusTree.getTree()));
     toolBar.add(actionProvider.getCollapseTreeAction(statusTree.getTree()));
-    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchDiffTreeViewAction(statusTree.getTree(), pChangedFilesObs, pProjectDirectory,
+    toolBar.add(new MutableIconActionButton(actionProvider.getSwitchDiffTreeViewAction(statusTree.getTree(), treeUpdater, pProjectDirectory,
                                                                                        this.getClass().getName()),
                                             () -> Constants.TREE_VIEW_FLAT.equals(prefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY)),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
@@ -255,8 +251,14 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     disposables.clear();
     commits.discard();
     statusTree.discard();
-    if (onChangeExpandTreeDisposable != null)
-      onChangeExpandTreeDisposable.dispose();
+    treeUpdater.discard();
+    treeUpdater.discard();
+  }
+
+  @Override
+  protected JTree getTree()
+  {
+    return statusTree.getTree();
   }
 
   public interface IPanelFactory

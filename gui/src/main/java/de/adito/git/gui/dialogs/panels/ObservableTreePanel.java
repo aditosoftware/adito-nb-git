@@ -1,5 +1,7 @@
 package de.adito.git.gui.dialogs.panels;
 
+import de.adito.git.gui.tree.TreeUtil;
+
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -9,9 +11,9 @@ import java.awt.Font;
  *
  * @author m.kaspera, 19.08.2019
  */
-public class ObservableTreePanel extends JPanel
+public abstract class ObservableTreePanel extends JPanel
 {
-  private final JLabel loadingLabel = new JLabel("Loading . . .");
+  protected final JLabel loadingLabel = new JLabel("Loading . . .");
   protected final JScrollPane treeScrollpane = new JScrollPane();
   protected final JPanel treeViewPanel = new JPanel(new BorderLayout());
 
@@ -21,19 +23,28 @@ public class ObservableTreePanel extends JPanel
     loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
   }
 
-  protected void _showTree()
+  /**
+   * remove the loading label and show the tree
+   */
+  protected void showTree()
   {
+    TreeUtil.expandTreeInterruptible(getTree());
     treeViewPanel.remove(loadingLabel);
     treeViewPanel.add(treeScrollpane, BorderLayout.CENTER);
     treeViewPanel.revalidate();
     treeViewPanel.repaint();
   }
 
-  protected void _showLoading()
+  /**
+   * show the loading label and hide the tree
+   */
+  protected void showLoading()
   {
     treeViewPanel.remove(treeScrollpane);
     treeViewPanel.add(loadingLabel, BorderLayout.CENTER);
     treeViewPanel.revalidate();
     treeViewPanel.repaint();
   }
+
+  protected abstract JTree getTree();
 }

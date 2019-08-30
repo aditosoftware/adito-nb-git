@@ -1,16 +1,16 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
-import de.adito.git.gui.tree.models.BaseObservingTreeModel;
-import de.adito.git.gui.tree.models.FlatStatusTreeModel;
-import de.adito.git.gui.tree.models.StatusTreeModel;
+import de.adito.git.gui.tree.TreeUtil;
+import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import io.reactivex.Observable;
 
@@ -24,9 +24,10 @@ import java.util.List;
 /**
  * @author m.kaspera, 15.04.2019
  */
-class RevertFilesDialog extends AditoBaseDialog<Object>
+class RevertFilesDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
+  private ObservableTreeUpdater<IFileChangeType> treeUpdater;
 
   @Inject
   public RevertFilesDialog(IActionProvider pActionProvider, IIconLoader pIconLoader, IPrefStore pPrefStore, IFileSystemUtil pFileSystemUtil,
@@ -45,9 +46,11 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
       // Tree and scrollPane for tree
       Observable<List<IFileChangeType>> changedFiles = Observable.just(pFilesToRevert);
       boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
-      BaseObservingTreeModel treeModel = useFlatTree ? new FlatStatusTreeModel(changedFiles, pProjectDir) : new StatusTreeModel(changedFiles, pProjectDir);
+      BaseObservingTreeModel<IFileChangeType> treeModel = useFlatTree ? new FlatStatusTreeModel(pProjectDir) : new StatusTreeModel(pProjectDir);
       JTree fileTree = new JTree(treeModel);
-      treeModel.invokeAfterComputations(() -> pActionProvider.getExpandTreeAction(fileTree));
+      Runnable[] doAfterJobs = new Runnable[1];
+      doAfterJobs[0] = () -> TreeUtil.expandTreeInterruptible(fileTree);
+      treeUpdater = new ObservableTreeUpdater<>(changedFiles, treeModel, pFileSystemUtil, doAfterJobs);
       fileTree.setCellRenderer(new FileChangeTypeTreeCellRenderer(pFileSystemUtil, pProjectDir));
       JScrollPane scrollPane = new JScrollPane(fileTree);
       add(scrollPane, BorderLayout.CENTER);
@@ -57,7 +60,7 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
       toolBar.setFloatable(false);
       toolBar.add(pActionProvider.getExpandTreeAction(fileTree));
       toolBar.add(pActionProvider.getCollapseTreeAction(fileTree));
-      toolBar.add(new MutableIconActionButton(pActionProvider.getSwitchTreeViewAction(fileTree, changedFiles, pProjectDir, this.getClass().getName()),
+      toolBar.add(new MutableIconActionButton(pActionProvider.getSwitchTreeViewAction(fileTree, pProjectDir, this.getClass().getName(), treeUpdater),
                                               () -> Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY)),
                                               pIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                               pIconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
@@ -80,5 +83,12 @@ class RevertFilesDialog extends AditoBaseDialog<Object>
   public Object getInformation()
   {
     return null;
+  }
+
+  @Override
+  public void discard()
+  {
+    if (treeUpdater != null)
+      treeUpdater.discard();
   }
 }
