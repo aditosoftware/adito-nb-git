@@ -39,7 +39,7 @@ public class SearchableTree extends JTree implements IDiscardable
   /**
    * KeyAdapter that forwards all KeyEvents to the Component that the QuickSearch is attached to
    */
-  private class _KeyForwardAdapter extends KeyAdapter
+  private static class _KeyForwardAdapter extends KeyAdapter
   {
 
     private JPanel receiver;
