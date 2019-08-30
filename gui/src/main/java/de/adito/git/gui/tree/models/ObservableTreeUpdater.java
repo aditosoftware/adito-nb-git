@@ -28,6 +28,13 @@ public class ObservableTreeUpdater<T> implements IDiscardable
   private Disposable disposable;
   private BaseObservingTreeModel<T> treeModel;
 
+  /**
+   * @param pChangeList     Observable on whose data the treeModel is based on
+   * @param pTreeModel      TreeModel whose data should be in sync with the Observable
+   * @param pFileSystemUtil IFileSystemUtil to load the icons
+   * @param pDoAfterJobs    Jobs/Actions that should be executed after the model finished updating. NOTE: Will be executed in the EDT
+   * @param pDoBeforeJobs   Jobs/Actions that should be executed before the model starts updating. NOTE: Will be executed in an RXJava computation thread
+   */
   public ObservableTreeUpdater(@NotNull Observable<List<T>> pChangeList, @NotNull BaseObservingTreeModel<T> pTreeModel,
                                IFileSystemUtil pFileSystemUtil, Runnable[] pDoAfterJobs, Runnable... pDoBeforeJobs)
   {
