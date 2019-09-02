@@ -66,7 +66,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
               .orElse(Observable.just(Optional.empty())));
       File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
           .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
-      Observable<List<IFileChangeType>> changedFilesObs = status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of()));
+      Observable<List<IFileChangeType>> changedFilesObs = status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of())).distinctUntilChanged();
       boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
       statusTreeModel = useFlatTree ? new FlatStatusTreeModel(projectDirectory) : new StatusTreeModel(projectDirectory);
       statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, statusTreeModel, useFlatTree,
