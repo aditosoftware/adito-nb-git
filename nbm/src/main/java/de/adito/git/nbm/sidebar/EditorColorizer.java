@@ -2,9 +2,7 @@ package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.*;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.impl.observables.DocumentChangeObservable;
@@ -100,8 +98,12 @@ class EditorColorizer extends JPanel implements IDiscardable
     // An observable that only triggers if the viewPort changes its size (not if it moves)
     Observable<Dimension> viewPortSizeObs = Observable.create(new ViewPortSizeObservable(editorViewPort));
 
+    Observable<Optional<IRepositoryState>> repoState = repository
+        .switchMap(pOptRepo -> pOptRepo.map(IRepository::getRepositoryState).orElse(Observable.just(Optional.empty())));
+    // pass the repositoryState here because otherwise the Observable does not notice commits (the contents of the file do not change, but the chunks have to be updated
+    // nevertheless)
     chunkObservable = Observable
-        .combineLatest(repository, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pText) -> {
+        .combineLatest(repository, repoState, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pRepoState, pText) -> {
           if (pRepoOpt.isPresent())
           {
             try
