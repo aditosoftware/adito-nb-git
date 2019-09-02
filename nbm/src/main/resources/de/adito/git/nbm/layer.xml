@@ -9,10 +9,10 @@
       <file name="de-adito-git-nbm-sidebar-ChangesOverviewBarFactory.instance">
         <attr name="scrollable" boolvalue="false"/>
         <attr name="location" stringvalue="East"/>
-        <attr name="position" intvalue="6000"/>
+        <attr name="position" intvalue="6050"/>
       </file>
       <file name="de-adito-git-nbm-sidebar-AnnotatorFactory.instance">
-        <attr name="position" intvalue="1400"/>
+        <attr name="position" intvalue="1450"/>
       </file>
 
     </folder>
