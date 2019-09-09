@@ -73,6 +73,14 @@ public class RepositoryImpl implements IRepository
                         IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory, IStandAloneDiffProvider pStandAloneDiffProvider,
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
+    final Properties properties = new Properties();
+    try (InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("project.properties"))
+    {
+      if (resourceAsStream != null)
+        properties.load(resourceAsStream);
+      logger.log(Level.INFO, () -> String.format("Initializing Repository for Git Plugin v. %s with .git file located in %s", properties.getProperty("version"),
+                                                 pRepositoryDescription.getPath() + File.separator + ".git"));
+    }
     fileSystemUtil = pIFileSystemUtil;
     sshProvider = pSshProvider;
     dataFactory = pDataFactory;
@@ -657,7 +665,6 @@ public class RepositoryImpl implements IRepository
     {
       throw new RuntimeException("Can't check Status of file: " + pFile, pE);
     }
-    //return new FileChangeTypeImpl(pFile, EChangeType.SAME);
   }
 
   /**
@@ -906,6 +913,7 @@ public class RepositoryImpl implements IRepository
       }
     }
   }
+
   @NotNull
   public Optional<IBlame> getBlame(@NotNull File pFile)
   {
