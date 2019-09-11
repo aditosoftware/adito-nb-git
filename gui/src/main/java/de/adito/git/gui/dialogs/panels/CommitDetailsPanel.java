@@ -91,7 +91,8 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     _initDetailPanel();
   }
 
-  private Observable<@NotNull List<IDiffInfo>> _buildChangedFilesObs(File pProjectDirectory)
+  @NotNull
+  private Observable<List<IDiffInfo>> _buildChangedFilesObs(File pProjectDirectory)
   {
     return Observable
         .combineLatest(selectedCommitObservable, repository, showAllCBObservable, (pSelectedCommitsOpt, currentRepo, pShowAll) -> {
