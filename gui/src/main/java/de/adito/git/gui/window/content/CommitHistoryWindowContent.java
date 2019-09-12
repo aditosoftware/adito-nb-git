@@ -270,6 +270,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private void _buildPopupMenu()
   {
     Action diffCommitToHeadAction = actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, Observable.just(Optional.empty()));
+    Action checkoutCommitAction = actionProvider.getCheckoutCommitAction(repository, selectedCommitObservable);
     Action resetAction = actionProvider.getResetAction(repository, selectedCommitObservable);
     Action addTagAction = actionProvider.getAddTagAction(repository, selectedCommitObservable);
     JMenu deleteTagsMenu = menuProvider.getDeleteTagsMenu("Delete Tag", repository, selectedCommitHistoryItems);
@@ -281,11 +282,13 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     popupDiscardables.add((IDiscardable) deleteTagsMenu);
     popupDiscardables.add((IDiscardable) cherryPickAction);
     popupDiscardables.add((IDiscardable) newBranchAction);
+    popupDiscardables.add((IDiscardable) checkoutCommitAction);
     commitListPopupMenu.add(diffCommitToHeadAction);
     commitListPopupMenu.addSeparator();
     commitListPopupMenu.add(addTagAction);
     commitListPopupMenu.add(deleteTagsMenu);
     commitListPopupMenu.addSeparator();
+    commitListPopupMenu.add(checkoutCommitAction);
     commitListPopupMenu.add(resetAction);
     commitListPopupMenu.add(cherryPickAction);
     commitListPopupMenu.add(newBranchAction);

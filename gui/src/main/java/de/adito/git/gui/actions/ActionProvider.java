@@ -87,6 +87,12 @@ class ActionProvider implements IActionProvider
     return actionFactory.createCheckoutAction(pRepository, pBranch);
   }
 
+  @Override
+  public Action getCheckoutCommitAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  {
+    return actionFactory.createCheckoutCommitAction(pRepository, pSelectedCommitObservable);
+  }
+
   /**
    * {@inheritDoc}
    */

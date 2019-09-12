@@ -34,6 +34,8 @@ interface IActionFactory
 
   CheckoutAction createCheckoutAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pBranch);
 
+  CheckoutCommitAction createCheckoutCommitAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+
   NewBranchAction createNewBranchAction(Observable<Optional<IRepository>> pRepository);
 
   NewBranchFromCommitAction createNewBranchAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pStartingPoint);

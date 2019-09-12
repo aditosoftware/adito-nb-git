@@ -63,6 +63,13 @@ public interface IActionProvider
   Action getCheckoutAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pBranch);
 
   /**
+   * @param pRepository               Observable with the current Repository
+   * @param pSelectedCommitObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @return Action whose ActionPerformed method checks out a commit without moving the branch, leaving the repository in a HEADless state
+   */
+  Action getCheckoutCommitAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable);
+
+  /**
    * @param pRepository Observable with the current Repository
    * @return Action whose actionPerformed method creates a new branch (only locally, still have to push it for it to be visible on origin/remotes)
    */
