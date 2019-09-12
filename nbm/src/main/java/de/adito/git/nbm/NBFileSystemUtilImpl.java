@@ -48,7 +48,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
 
   public NBFileSystemUtilImpl()
   {
-    iconCache = CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(5, TimeUnit.SECONDS).build(new CacheLoader<>()
+    iconCache = CacheBuilder.newBuilder().maximumSize(5000).expireAfterAccess(30, TimeUnit.SECONDS).build(new CacheLoader<>()
     {
       @Override
       public Image load(@NotNull _IconKey pIconKey)
