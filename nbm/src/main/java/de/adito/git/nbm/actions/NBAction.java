@@ -3,12 +3,9 @@ package de.adito.git.nbm.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.nbm.repo.RepositoryCache;
-import de.adito.git.nbm.util.ProjectUtility;
+import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
-import org.netbeans.api.project.Project;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
@@ -79,32 +76,15 @@ abstract class NBAction extends NodeAction
   }
 
   /**
-   * if the {@code pNode} is another repository than the last git command, return the repository of the {@code pNode}
+   * get the repository of the project that contains the currently active file/node/topComponent
    *
    * @param pActivatedNodes The nodes to check the repository
    * @return The repository of the node
    */
   @NotNull
-  static Observable<Optional<IRepository>> findOneRepositoryFromNode(@NotNull Node[] pActivatedNodes)
+  static Observable<Optional<IRepository>> getCurrentRepository(@NotNull Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository;
-    Project project = null;
-    for (Node node : pActivatedNodes)
-    {
-      Project currProject = ProjectUtility.findProject(node);
-      if (project != null && currProject != null && !(currProject.equals(project)))
-        return BehaviorSubject.createDefault(Optional.empty());
-      else
-        project = currProject;
-    }
-
-    if (project == null)
-    {
-      return BehaviorSubject.createDefault(Optional.empty());
-    }
-
-    repository = RepositoryCache.getInstance().findRepository(project);
-    return repository;
+    return Observable.just(RepositoryUtility.getRepositoryObservable().blockingFirst(Optional.empty()));
   }
 
   @Override

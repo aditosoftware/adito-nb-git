@@ -25,7 +25,7 @@ public class FetchNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     try
@@ -41,7 +41,7 @@ public class FetchNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
-    return findOneRepositoryFromNode(pActivatedNodes).blockingFirst().isPresent();
+    return getCurrentRepository(pActivatedNodes).blockingFirst().isPresent();
   }
 
   @Override

@@ -35,7 +35,7 @@ public class ExcludeNBAction extends IgnoreNBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IRepository currentRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(
         NbBundle.getMessage(ExcludeNBAction.class, "Invalid.RepositoryNotValid")));
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);

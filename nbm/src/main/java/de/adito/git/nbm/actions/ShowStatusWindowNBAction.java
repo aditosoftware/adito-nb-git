@@ -26,7 +26,7 @@ public class ShowStatusWindowNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActiveNodes)
   {
-    Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActiveNodes);
+    Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActiveNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
     actionProvider.getShowStatusWindowAction(repository).actionPerformed(null);
   }
@@ -40,7 +40,7 @@ public class ShowStatusWindowNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActiveNodes)
   {
-    return NBAction.findOneRepositoryFromNode(pActiveNodes).blockingFirst().isPresent();
+    return NBAction.getCurrentRepository(pActiveNodes).blockingFirst().isPresent();
   }
 
   @Override

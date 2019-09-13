@@ -20,7 +20,7 @@ public class GitConfigNBAction extends NBAction
   @Override
   protected void performAction(Node[] pNodes)
   {
-    IGitConstants.INJECTOR.getInstance(IActionProvider.class).getGitConfigAction(findOneRepositoryFromNode(pNodes)).actionPerformed(null);
+    IGitConstants.INJECTOR.getInstance(IActionProvider.class).getGitConfigAction(getCurrentRepository(pNodes)).actionPerformed(null);
   }
 
   @Override
@@ -32,7 +32,7 @@ public class GitConfigNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pNodes)
   {
-    return findOneRepositoryFromNode(pNodes).blockingFirst().isPresent();
+    return getCurrentRepository(pNodes).blockingFirst().isPresent();
   }
 
   @Override

@@ -35,7 +35,7 @@ public class DiffLocalChangesNBAction extends NBAction
   {
     if (pActivatedNodes != null && pActivatedNodes.length == 1)
     {
-      Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+      Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
       IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
       IFileChangeType changeType = _getIFileChangeType(pActivatedNodes, repository);
       if (changeType != null)
@@ -48,7 +48,7 @@ public class DiffLocalChangesNBAction extends NBAction
   {
     if (pActivatedNodes != null && pActivatedNodes.length == 1)
     {
-      Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
+      Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
       if (repository.blockingFirst().isPresent())
       {
         IFileChangeType changeType = _getIFileChangeType(pActivatedNodes, repository);

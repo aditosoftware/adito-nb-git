@@ -33,7 +33,7 @@ public class ResolveConflictsNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
     Optional<List<IFileChangeType>> fileChangeTypeList;
     fileChangeTypeList = Optional.of(repository.blockingFirst().orElseThrow()
@@ -47,7 +47,7 @@ public class ResolveConflictsNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     File projectDir = repository.blockingFirst().map(IRepository::getTopLevelDirectory).orElse(null);
     if (projectDir == null)
       return false;

@@ -1,16 +1,14 @@
 package de.adito.git.nbm.util;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.nbm.observables.ActiveProjectObservable;
 import de.adito.git.nbm.repo.RepositoryCache;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.openide.loaders.DataObject;
-import org.openide.nodes.Node;
 
-import java.util.HashSet;
 import java.util.Optional;
 
 /**
@@ -18,37 +16,26 @@ import java.util.Optional;
  */
 public class RepositoryUtility
 {
+
+  private static Observable<Optional<IRepository>> repositoryObservable = null;
+
   private RepositoryUtility()
   {
   }
 
   /**
-   * if the {@code pNode} is another repository than the last git command used , return the repository of the {@code pNode}
+   * get an observable with the repository of the project that contains the currently active file/node/topComponent
    *
-   * @param pActivatedNodes The nodes to check the repository
-   * @return The repository of the node
+   * @return observable with the repository of the project that contains the currently active file/node/topComponent
    */
-  @Nullable
-  public static Observable<Optional<IRepository>> findOneRepositoryFromNode(Node[] pActivatedNodes)
+  public static Observable<Optional<IRepository>> getRepositoryObservable()
   {
-    HashSet<Observable<Optional<IRepository>>> repositorySet = new HashSet<>();
-    if (pActivatedNodes == null)
+    if (repositoryObservable == null)
     {
-      return Observable.just(Optional.empty());
+      repositoryObservable = ActiveProjectObservable.create()
+          .switchMap(pOptProj -> pOptProj.map(pProject -> RepositoryCache.getInstance().findRepository(pProject)).orElseGet(() -> Observable.just(Optional.empty())));
     }
-    for (Node node : pActivatedNodes)
-    {
-      Project currProject = ProjectUtility.findProject(node);
-      if (currProject != null)
-      {
-        repositorySet.add(RepositoryCache.getInstance().findRepository(currProject));
-      }
-    }
-    if (repositorySet.size() != 1)
-    {
-      return Observable.just(Optional.empty());
-    }
-    return repositorySet.iterator().next();
+    return repositoryObservable;
   }
 
   /**

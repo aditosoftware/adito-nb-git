@@ -33,7 +33,7 @@ public class RevertNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     selectedFiles.onNext(getUncommittedFilesOfNodes(pActivatedNodes, repository));
@@ -51,7 +51,7 @@ public class RevertNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
-    return !getUncommittedFilesOfNodes(pActivatedNodes, findOneRepositoryFromNode(pActivatedNodes)).orElse(Collections.emptyList()).isEmpty();
+    return !getUncommittedFilesOfNodes(pActivatedNodes, getCurrentRepository(pActivatedNodes)).orElse(Collections.emptyList()).isEmpty();
   }
 
   @Override

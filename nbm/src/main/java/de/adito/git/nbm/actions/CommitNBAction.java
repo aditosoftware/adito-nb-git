@@ -42,7 +42,7 @@ public class CommitNBAction extends NBAction
   {
 
 
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
     Subject<Optional<List<IFileChangeType>>> listNodes;
 
@@ -74,7 +74,7 @@ public class CommitNBAction extends NBAction
     Boolean canCommit = false;
     if (pActivatedNodes != null)
     {
-      Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
+      Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
       Optional<IRepository> repositoryOpt = repository.blockingFirst();
       if (repositoryOpt.isPresent())
       {

@@ -5,7 +5,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.window.content.IWindowContentProvider;
-import de.adito.git.nbm.observables.ActivatedNodesObservable;
+import de.adito.git.nbm.observables.ActiveProjectObservable;
 import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -55,22 +55,16 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
   private void _setStatusLineName()
   {
     //noinspection StatusLineElement only exists once
-    disposable = _observeRepository()
+    disposable = RepositoryUtility.getRepositoryObservable()
         .switchMap(pRepo -> pRepo.isPresent() ? pRepo.get().getRepositoryState() : Observable.just(Optional.<IRepositoryState>empty()))
         .subscribe(pRepoState -> label.setText(pRepoState.map(pState -> pState.getCurrentBranch().getSimpleName()
             + (pState.getState() != IRepository.State.SAFE ? " | " + pState.getState() : ""))
                                                    .orElse("<no branch>")));
   }
 
-  private Observable<Optional<IRepository>> _observeRepository()
-  {
-    return ActivatedNodesObservable.create()
-        .switchMap(RepositoryUtility::findOneRepositoryFromNode);
-  }
-
   private void _initPopup()
   {
-    JComponent statusLineWindowContent = windowContentProvider.createStatusLineWindowContent(_observeRepository());
+    JComponent statusLineWindowContent = windowContentProvider.createStatusLineWindowContent(RepositoryUtility.getRepositoryObservable());
     popupWindow = new PopupWindow(WindowManager.getDefault().getMainWindow(), "Git Branches", statusLineWindowContent);
     statusLineWindowContent.putClientProperty("parent", popupWindow);
   }
@@ -89,6 +83,6 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
       disposable.dispose();
       disposable = null;
     }
-    ActivatedNodesObservable.dispose();
+    ActiveProjectObservable.dispose();
   }
 }

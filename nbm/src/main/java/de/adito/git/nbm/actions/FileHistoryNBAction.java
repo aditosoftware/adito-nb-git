@@ -30,7 +30,7 @@ public class FileHistoryNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     actionProvider.getShowCommitsForFileAction(repository, Observable.just(getAllFilesOfNodes(pActivatedNodes))).actionPerformed(null);
@@ -39,7 +39,7 @@ public class FileHistoryNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     List<File> filesOfNodes = getAllFilesOfNodes(pActivatedNodes);
     return filesOfNodes.size() == 1 && repository.blockingFirst().map(pRepo -> !pRepo.getTopLevelDirectory().equals(filesOfNodes.get(0))).orElse(false);
   }

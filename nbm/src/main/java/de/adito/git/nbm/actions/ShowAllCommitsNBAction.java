@@ -4,7 +4,9 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
-import org.openide.awt.*;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
@@ -25,7 +27,7 @@ public class ShowAllCommitsNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     actionProvider.getShowAllCommitsAction(repository).actionPerformed(null);
@@ -40,7 +42,7 @@ public class ShowAllCommitsNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
-    return findOneRepositoryFromNode(pActivatedNodes).blockingFirst().isPresent();
+    return getCurrentRepository(pActivatedNodes).blockingFirst().isPresent();
   }
 
   @Override

@@ -44,7 +44,7 @@ public class IgnoreNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IRepository currentRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(
         NbBundle.getMessage(IgnoreNBAction.class, "Invalid.RepositoryNotValid")));
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
@@ -60,7 +60,7 @@ public class IgnoreNBAction extends NBAction
   @Override
   protected boolean enable(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = NBAction.findOneRepositoryFromNode(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
     IRepository currentRepo = repository.blockingFirst().orElse(null);
     if (currentRepo == null)
       return false;
