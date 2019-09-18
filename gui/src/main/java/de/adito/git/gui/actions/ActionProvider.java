@@ -167,6 +167,12 @@ class ActionProvider implements IActionProvider
     return actionFactory.createRevertWorkDirAction(pRepository, pSelectedFilesObservable);
   }
 
+  @Override
+  public Action getRevertCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitsObservable)
+  {
+    return actionFactory.createRevertCommitsAction(pRepository, pSelectedCommitsObservable);
+  }
+
   /**
    * {@inheritDoc}
    */

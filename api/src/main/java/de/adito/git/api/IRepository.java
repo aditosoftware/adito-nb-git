@@ -284,6 +284,14 @@ public interface IRepository extends IDiscardable
   void revertWorkDir(@NotNull List<File> pFiles) throws AditoGitException;
 
   /**
+   * Reverts a list of commits (meaning you apply an "anti-patch" that negates the changes done)
+   *
+   * @param pCommitsToRevert List of commits that should be reverted
+   * @throws AditoGitException if an error occurs
+   */
+  void revertCommis(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException;
+
+  /**
    * resets all given files (basically the opposite of "git add")
    *
    * @param pFiles List of files that should be reset. Can also be null, in which case all changes are reset

@@ -276,6 +276,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     JMenu deleteTagsMenu = menuProvider.getDeleteTagsMenu("Delete Tag", repository, selectedCommitHistoryItems);
     Action cherryPickAction = actionProvider.getCherryPickAction(repository, selectedCommitObservable);
     Action newBranchAction = actionProvider.getNewBranchAction(repository, selectedCommitObservable);
+    Action revertCommitsAction = actionProvider.getRevertCommitsAction(repository, selectedCommitObservable);
     popupDiscardables.add((IDiscardable) diffCommitToHeadAction);
     popupDiscardables.add((IDiscardable) resetAction);
     popupDiscardables.add((IDiscardable) addTagAction);
@@ -283,6 +284,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     popupDiscardables.add((IDiscardable) cherryPickAction);
     popupDiscardables.add((IDiscardable) newBranchAction);
     popupDiscardables.add((IDiscardable) checkoutCommitAction);
+    popupDiscardables.add((IDiscardable) revertCommitsAction);
     commitListPopupMenu.add(diffCommitToHeadAction);
     commitListPopupMenu.addSeparator();
     commitListPopupMenu.add(addTagAction);
@@ -292,6 +294,8 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitListPopupMenu.add(resetAction);
     commitListPopupMenu.add(cherryPickAction);
     commitListPopupMenu.add(newBranchAction);
+    commitListPopupMenu.add(resetAction);
+    commitListPopupMenu.add(revertCommitsAction);
     commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
   }
 

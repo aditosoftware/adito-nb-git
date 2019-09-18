@@ -54,6 +54,10 @@ interface IActionFactory
   RevertWorkDirAction createRevertWorkDirAction(Observable<Optional<IRepository>> pRepository,
                                                 Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
+
+  RevertCommitsAction createRevertCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
+
   ResetAction createResetAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
   ShowStatusWindowAction createShowStatusWindowAction(Observable<Optional<IRepository>> pRepository);

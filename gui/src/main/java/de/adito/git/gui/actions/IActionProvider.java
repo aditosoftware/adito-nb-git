@@ -130,6 +130,13 @@ public interface IActionProvider
 
   /**
    * @param pRepository                Observable with the current Repository
+   * @param pSelectedCommitsObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @return Action whose actionPerformed method reverts the changes done in the selected commits (without rewriting history)
+   */
+  Action getRevertCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
+
+  /**
+   * @param pRepository                Observable with the current Repository
    * @param pCommitedCommitsObservable Observable with the list of selected ICommits. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
    * @return Action whose actionPerformed method resets the Index/Index + Head/Index + Head + working directory to the selected commit
    */
