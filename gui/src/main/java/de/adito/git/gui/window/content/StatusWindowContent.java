@@ -25,6 +25,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +64,8 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
       Observable<Optional<IFileStatus>> status = repository
           .switchMap(pRepo -> pRepo
               .map(IRepository::getStatus)
-              .orElse(Observable.just(Optional.empty())));
+              .orElse(Observable.just(Optional.empty())))
+          .debounce(500, TimeUnit.MILLISECONDS);
       File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
           .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
       Observable<List<IFileChangeType>> changedFilesObs = status.map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted).orElse(List.of())).distinctUntilChanged();

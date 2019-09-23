@@ -135,7 +135,8 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
             .setFileList(chosenFiles))
         .replay(1)
         .autoConnect(0, disposables::add);
-    statusObservable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())));
+    statusObservable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
+        .debounce(500, TimeUnit.MILLISECONDS);
     commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable, pStartFilter);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack, pIconLoader);
   }
