@@ -6,10 +6,10 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
+import de.adito.git.gui.icon.IIconLoader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -78,9 +78,9 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     toolbar.addSeparator();
 
     // Our Actions
-    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.YOURS)));
+    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.YOURS, pIconLoader)));
     toolbar.add(new JButton(new _AcceptNonConflictingChangesAction(pIconLoader)));
-    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.THEIRS)));
+    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.THEIRS, pIconLoader)));
 
     return toolbar;
   }
@@ -110,10 +110,9 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   {
     private final IMergeDiff.CONFLICT_SIDE conflictSide;
 
-    _AcceptAllActionImpl(@NotNull IMergeDiff.CONFLICT_SIDE pConflictSide)
+    _AcceptAllActionImpl(@NotNull IMergeDiff.CONFLICT_SIDE pConflictSide, IIconLoader pIconLoader)
     {
-      super("", new ImageIcon(_AcceptAllActionImpl.class.getResource(pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ?
-                                                                         Constants.ACCEPT_ALL_LEFT : Constants.ACCEPT_ALL_RIGHT)));
+      super("", pIconLoader.getIcon(pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ? Constants.ACCEPT_ALL_LEFT : Constants.ACCEPT_ALL_RIGHT));
       putValue(SHORT_DESCRIPTION, "accept remaining " + pConflictSide.name() + " changes");
       conflictSide = pConflictSide;
     }
