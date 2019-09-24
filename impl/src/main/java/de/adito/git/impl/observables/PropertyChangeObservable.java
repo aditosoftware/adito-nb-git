@@ -12,7 +12,7 @@ import java.util.Optional;
  *
  * @author m.kaspera, 24.06.2019
  */
-public class PropertyChangeObservable<T> extends AbstractListenerObservable<PropertyChangeListener, JComponent, Optional<T>>
+public class PropertyChangeObservable<RESULTTYPE> extends AbstractListenerObservable<PropertyChangeListener, JComponent, Optional<RESULTTYPE>>
 {
   private final String propertyName;
 
@@ -24,9 +24,9 @@ public class PropertyChangeObservable<T> extends AbstractListenerObservable<Prop
 
   @NotNull
   @Override
-  protected PropertyChangeListener registerListener(@NotNull JComponent pJComponent, @NotNull IFireable<Optional<T>> pIFireable)
+  protected PropertyChangeListener registerListener(@NotNull JComponent pJComponent, @NotNull IFireable<Optional<RESULTTYPE>> pIFireable)
   {
-    PropertyChangeListener listener = evt -> pIFireable.fireValueChanged(Optional.of((T) evt.getNewValue()));
+    PropertyChangeListener listener = evt -> pIFireable.fireValueChanged(Optional.of((RESULTTYPE) evt.getNewValue()));
     pJComponent.addPropertyChangeListener(propertyName, listener);
     return listener;
   }
