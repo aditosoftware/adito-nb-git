@@ -1,12 +1,14 @@
 package de.adito.git.nbm.vcs;
 
 import de.adito.git.api.data.EChangeType;
-import org.netbeans.modules.versioning.spi.*;
+import org.netbeans.modules.versioning.spi.VCSAnnotator;
+import org.netbeans.modules.versioning.spi.VCSContext;
 import org.openide.util.Utilities;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.io.File;
+import java.util.Iterator;
 import java.util.function.Function;
 
 /**
@@ -27,15 +29,19 @@ class GitAnnotator extends VCSAnnotator
   @Override
   public String annotateName(String pName, VCSContext pContext)
   {
-    File contextFile = pContext.getFiles().iterator().next();
-    EChangeType change = changeTypeProvider.apply(contextFile);
-    if (change != null)
+    Iterator<File> fileIterator = pContext.getFiles().iterator();
+    if (fileIterator.hasNext())
     {
-      Color fileChangeColor = change.getStatusColor();
-      if (fileChangeColor != null)
+      File contextFile = fileIterator.next();
+      EChangeType change = changeTypeProvider.apply(contextFile);
+      if (change != null)
       {
-        String contextColor = Integer.toHexString(fileChangeColor.getRGB()).substring(2);
-        return "<font color=\"#" + contextColor + "\">" + pName + "</font>";
+        Color fileChangeColor = change.getStatusColor();
+        if (fileChangeColor != null)
+        {
+          String contextColor = Integer.toHexString(fileChangeColor.getRGB()).substring(2);
+          return "<font color=\"#" + contextColor + "\">" + pName + "</font>";
+        }
       }
     }
     return pName;
