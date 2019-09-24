@@ -84,7 +84,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     BaseObservingTreeModel<IDiffInfo> diffTreeModel = useFlatTree ? new FlatDiffTreeModel(projectDirectory) : new DiffTreeModel(projectDirectory);
     statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
     Runnable[] doAfterJobs = {this::showTree};
-    treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, diffTreeModel, null, doAfterJobs, this::showLoading);
+    treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, diffTreeModel, pFileSystemUtil, doAfterJobs, this::showLoading);
     treeViewPanel.add(_getTreeToolbar(projectDirectory), BorderLayout.NORTH);
 
     _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);

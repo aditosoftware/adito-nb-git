@@ -2,6 +2,7 @@ package de.adito.git.gui.tree.models;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
+import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.IFileChangeType;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -62,9 +63,16 @@ public class ObservableTreeUpdater<T> implements IDiscardable
   private void _changeHappened(List<T> pCurrentElements)
   {
     // assume that the whole list is of type IFileChangeType if the first elemtent is of that type, preLoad the icons if of type IFileChangeType
-    if (!pCurrentElements.isEmpty() && pCurrentElements.get(0) instanceof IFileChangeType)
+    if (!pCurrentElements.isEmpty() && fileSystemUtil != null)
     {
-      fileSystemUtil.preLoadIcons((List<IFileChangeType>) pCurrentElements);
+      if (pCurrentElements.get(0) instanceof IFileChangeType)
+      {
+        fileSystemUtil.preLoadIcons((List<IFileChangeType>) pCurrentElements);
+      }
+      else if (pCurrentElements.get(0) instanceof IDiffInfo)
+      {
+        pCurrentElements.forEach(pDiffInfo -> fileSystemUtil.preLoadIcons(((IDiffInfo) pDiffInfo).getChangedFiles()));
+      }
     }
     for (Runnable doBeforeJob : doBeforeJobs)
     {
