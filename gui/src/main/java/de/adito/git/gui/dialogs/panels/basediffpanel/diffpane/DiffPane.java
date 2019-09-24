@@ -5,6 +5,7 @@ import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortPositionObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
+import de.adito.git.impl.observables.PropertyChangeObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
@@ -17,6 +18,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -40,12 +42,17 @@ public class DiffPane extends JPanel implements IDiscardable
   public DiffPane(JEditorPane pEditorPane)
   {
     editorPane = pEditorPane;
-    viewPortPositionObservable = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport()))
+    Observable<Optional<Integer>> zoomObservable = Observable.create(new PropertyChangeObservable<Integer>(editorPane, "text-zoom"))
+        .startWith(Optional.empty())
+        .replay(1)
+        .autoConnect(0, disposables::add);
+    Observable<Rectangle> basicViewportPositionObs = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport())).distinctUntilChanged();
+    viewPortPositionObservable = Observable.combineLatest(zoomObservable, basicViewportPositionObs, (pZoom, pViewportArea) -> pViewportArea)
         .observeOn(Schedulers.computation())
         .replay(1)
-        .autoConnect(0, disposables::add)
-        .distinctUntilChanged();
-    viewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport()))
+        .autoConnect(0, disposables::add);
+    Observable<Dimension> basicViewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport()));
+    viewPortSizeObservable = Observable.combineLatest(zoomObservable, basicViewPortSizeObservable, (pZoom, pViewportSize) -> pViewportSize)
         .replay(1)
         .autoConnect(0, disposables::add)
         .throttleLatest(250, TimeUnit.MILLISECONDS);
