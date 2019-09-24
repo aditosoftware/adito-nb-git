@@ -182,31 +182,14 @@ public interface IDiffPaneUtil
    * The lists can be empty
    *
    * @param pUpwardsModels BoundedModels in their normal form
-   * @param pInverseModels BoundedModels that have their scrolling reversed (e.g. by setting ComponentOrientation.RIGHT_TO_LEFT)
    */
-  static void bridge(@NotNull List<BoundedRangeModel> pUpwardsModels, @NotNull List<BoundedRangeModel> pInverseModels)
+  static void bridge(@NotNull List<BoundedRangeModel> pUpwardsModels)
   {
     for (BoundedRangeModel model : pUpwardsModels)
     {
-      model.addChangeListener(pE -> {
-        Collections2
-            .filter(pUpwardsModels, pModel -> pModel != null && !pModel.equals(model))
-            .forEach(pModel -> pModel.setValue(model.getValue()));
-        // the value for "to the very left" of an inverse boundedModel is its maximum minus its extent (which equals 0 on a normal model). For every point up
-        // on the normal model the inverse model has its value reduced by one - thus we subtract the value from the "leftmost point"
-        pInverseModels.forEach(pModel -> pModel.setValue((pModel.getMaximum() - pModel.getExtent()) - model.getValue()));
-      });
-    }
-    for (BoundedRangeModel model : pInverseModels)
-    {
-      model.addChangeListener(pE -> {
-        Collections2
-            .filter(pInverseModels, pModel -> pModel != null && !pModel.equals(model))
-            .forEach(pModel -> pModel.setValue(model.getValue()));
-        // way easier to convert this way, since the starting point of the normal boundedModel is plain 0 so just calculate the distance of this inverse boundedModel
-        // from the "leftmost point" and set it on the other model
-        pUpwardsModels.forEach(pModel -> pModel.setValue(model.getMaximum() - (model.getValue() + model.getExtent())));
-      });
+      model.addChangeListener(pE -> Collections2
+          .filter(pUpwardsModels, pModel -> pModel != null && !pModel.equals(model))
+          .forEach(pModel -> pModel.setValue(model.getValue())));
     }
   }
 

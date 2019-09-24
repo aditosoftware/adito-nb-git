@@ -4,10 +4,11 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.api.data.IFileDiff;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.data.FileChangesEventImpl;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.EditorKit;
 import java.awt.BorderLayout;
-import java.awt.ComponentOrientation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +63,7 @@ public class DiffPanel extends JPanel implements IDiscardable
                                                       BorderLayout.EAST);
     JScrollPane oldVersionScrollPane = oldVersionDiffPane.getScrollPane();
     oldVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
-    oldVersionScrollPane.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    oldVersionScrollPane.setLayout(new LeftSideVSBScrollPaneLayout());
     setLayout(new BorderLayout());
     JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, oldVersionDiffPane.getPane(), currentVersionDiffPane.getPane());
     mainSplitPane.setResizeWeight(0.5);
@@ -71,7 +71,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     add(mainSplitPane, BorderLayout.CENTER);
     add(_initToolBar(pIconLoader), BorderLayout.NORTH);
     // couple horizontal scrollbars
-    IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel()), List.of(oldVersionScrollPane.getHorizontalScrollBar().getModel()));
+    IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
     differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionScrollPane, currentVersionScrollPane,
                                                               oldVersionDiffPane.getEditorPane(),
                                                               currentVersionDiffPane.getEditorPane(),

@@ -5,6 +5,7 @@ import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
@@ -16,7 +17,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
 import java.awt.BorderLayout;
-import java.awt.ComponentOrientation;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
@@ -86,8 +86,9 @@ public class MergePanel extends JPanel implements IDiscardable
     yoursTheirsPanel.add(new JLabel("Their changes"), BorderLayout.EAST);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(theirsPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel(),
-                                 forkPointPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel()),
-                         List.of(yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel()));
+                                 forkPointPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel(),
+                                 yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel())
+    );
     add(yoursTheirsPanel, BorderLayout.NORTH);
   }
 
@@ -100,7 +101,7 @@ public class MergePanel extends JPanel implements IDiscardable
         .setDoOnDiscard(pChangeChunk -> mergeDiff.discardChange(pChangeChunk, IMergeDiff.CONFLICT_SIDE.YOURS));
     yoursPaneWrapper = new DiffPaneWrapper(yoursModel, editorKitObservable);
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
-    yoursPaneWrapper.getScrollPane().setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    yoursPaneWrapper.getScrollPane().setLayout(new LeftSideVSBScrollPaneLayout());
     // index 0 because the lineNumPanel is of the left-most panel, and thus to the left to the ChoiceButtonPanel
     lineNumColorModels[0] = yoursPaneWrapper.getPane().addLineNumPanel(yoursModel, BorderLayout.EAST, 0);
     lineNumColorModels[1] = leftForkPointLineNumColorModel;
