@@ -26,18 +26,13 @@ public class DiffPaneUtilTest
     BoundedRangeModel intialMovedModel = new DefaultBoundedRangeModel(startValInitialMoved, 0, 0, 100);
     BoundedRangeModel resultingMovedModel = new DefaultBoundedRangeModel(startValResultingMoved, 0, 0, 100);
     IDiffPaneUtil.bridge(List.of(intialMovedModel, resultingMovedModel));
-    assertEquals(startValInitialMoved, intialMovedModel.getValue());
-    assertEquals(startValResultingMoved, resultingMovedModel.getValue());
+    _assertValues(startValInitialMoved, startValResultingMoved, intialMovedModel, resultingMovedModel);
 
     // Test moving the first model
-    intialMovedModel.setValue(targetValue);
-    assertEquals(targetValue, intialMovedModel.getValue());
-    assertEquals(targetValue, resultingMovedModel.getValue());
+    _setAndTest(intialMovedModel, resultingMovedModel, targetValue, targetValue, targetValue);
 
     // Test moving the second model
-    resultingMovedModel.setValue(secondTargetValue);
-    assertEquals(secondTargetValue, intialMovedModel.getValue());
-    assertEquals(secondTargetValue, resultingMovedModel.getValue());
+    _setAndTest(resultingMovedModel, intialMovedModel, secondTargetValue, secondTargetValue, secondTargetValue);
   }
 
   /**
@@ -52,12 +47,9 @@ public class DiffPaneUtilTest
     BoundedRangeModel intialMovedModel = new DefaultBoundedRangeModel(startValInitialMoved, 50, 0, 100);
     BoundedRangeModel resultingMovedModel = new DefaultBoundedRangeModel(startValResultingMoved, 80, 0, 100);
     IDiffPaneUtil.bridge(List.of(intialMovedModel, resultingMovedModel));
-    assertEquals(startValInitialMoved, intialMovedModel.getValue());
-    assertEquals(startValResultingMoved, resultingMovedModel.getValue());
+    _assertValues(startValInitialMoved, startValResultingMoved, intialMovedModel, resultingMovedModel);
     intialMovedModel.setValue(targetValue);
-    intialMovedModel.setValue(targetValue);
-    assertEquals(targetValue, intialMovedModel.getValue());
-    assertEquals(20, resultingMovedModel.getValue());
+    _setAndTest(intialMovedModel, resultingMovedModel, targetValue, targetValue, 20);
   }
 
   /**
@@ -72,11 +64,70 @@ public class DiffPaneUtilTest
     BoundedRangeModel intialMovedModel = new DefaultBoundedRangeModel(startValInitialMoved, 50, 0, 100);
     BoundedRangeModel resultingMovedModel = new DefaultBoundedRangeModel(startValResultingMoved, 80, 0, 100);
     IDiffPaneUtil.bridge(List.of(intialMovedModel, resultingMovedModel));
-    assertEquals(startValInitialMoved, intialMovedModel.getValue());
-    assertEquals(startValResultingMoved, resultingMovedModel.getValue());
+    _assertValues(startValInitialMoved, startValResultingMoved, intialMovedModel, resultingMovedModel);
+    _setAndTest(intialMovedModel, resultingMovedModel, targetValue, targetValue, startValResultingMoved);
+  }
+
+  /**
+   * Test two different maximum sizes where the first is set to a value bigger than the maximum of the second
+   */
+  @Test
+  public void testBridgeBigger()
+  {
+    int startValInitialMoved = 40;
+    int startValResultingMoved = 40;
+    int targetValue = 150;
+    BoundedRangeModel intialMovedModel = new DefaultBoundedRangeModel(startValInitialMoved, 50, 0, 200);
+    BoundedRangeModel resultingMovedModel = new DefaultBoundedRangeModel(startValResultingMoved, 50, 0, 100);
+    IDiffPaneUtil.bridge(List.of(intialMovedModel, resultingMovedModel));
+    _assertValues(startValInitialMoved, startValResultingMoved, intialMovedModel, resultingMovedModel);
     intialMovedModel.setValue(targetValue);
-    assertEquals(targetValue, intialMovedModel.getValue());
-    assertEquals(startValResultingMoved, resultingMovedModel.getValue());
+    _setAndTest(intialMovedModel, resultingMovedModel, targetValue, targetValue, 50);
+  }
+
+  /**
+   * Test two different maximum sizes where the first is decreased to a value still bigger than the maximum of the second, the second should not move back in that case
+   */
+  @Test
+  public void testBridgeBiggerBackwards()
+  {
+    int startValInitialMoved = 150;
+    int startValResultingMoved = 50;
+    int targetValue = 100;
+    BoundedRangeModel intialMovedModel = new DefaultBoundedRangeModel(startValInitialMoved, 50, 0, 200);
+    BoundedRangeModel resultingMovedModel = new DefaultBoundedRangeModel(startValResultingMoved, 50, 0, 100);
+    IDiffPaneUtil.bridge(List.of(intialMovedModel, resultingMovedModel));
+    _assertValues(startValInitialMoved, startValResultingMoved, intialMovedModel, resultingMovedModel);
+    _setAndTest(intialMovedModel, resultingMovedModel, targetValue, targetValue, 50);
+  }
+
+  /**
+   * Assert that the given values are the ones that the models do have
+   *
+   * @param pValFirstModel       value for the first model
+   * @param pValSecondModel      value for the second model
+   * @param pFirstModel          first model
+   * @param pResultingMovedModel second model
+   */
+  private void _assertValues(int pValFirstModel, int pValSecondModel, BoundedRangeModel pFirstModel, BoundedRangeModel pResultingMovedModel)
+  {
+    assertEquals(pValFirstModel, pFirstModel.getValue());
+    assertEquals(pValSecondModel, pResultingMovedModel.getValue());
+  }
+
+  /**
+   * sets pModelToSet to the given targetValue and then checks if both models have the passed expected values
+   *
+   * @param pModelToSet     model whose value gets set
+   * @param pSecondModel    model whose value will be set by the listener of the _bridge
+   * @param pTargetValue    value pModelToSet is set to
+   * @param pExpectedFirst  expected outcome for pModelToSet
+   * @param pExpectedSecond expected outcome for pSecondModel
+   */
+  private void _setAndTest(BoundedRangeModel pModelToSet, BoundedRangeModel pSecondModel, int pTargetValue, int pExpectedFirst, int pExpectedSecond)
+  {
+    pModelToSet.setValue(pTargetValue);
+    _assertValues(pExpectedFirst, pExpectedSecond, pModelToSet, pSecondModel);
   }
 
 }
