@@ -13,14 +13,20 @@ import java.awt.Font;
  */
 public abstract class ObservableTreePanel extends JPanel
 {
-  protected final JLabel loadingLabel = new JLabel("Loading . . .");
+  private final JPanel loadingLabelPanel = new JPanel();
   protected final JScrollPane treeScrollpane = new JScrollPane();
-  protected final JPanel treeViewPanel = new JPanel(new BorderLayout());
+  protected final JLayeredPane treeViewPanel = new JLayeredPane();
 
   public ObservableTreePanel()
   {
+    JLabel loadingLabel = new JLabel("Loading . . .");
     loadingLabel.setFont(new Font(loadingLabel.getFont().getFontName(), loadingLabel.getFont().getStyle(), 16));
     loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    loadingLabelPanel.setLayout(new BorderLayout());
+    loadingLabelPanel.add(loadingLabel);
+    treeViewPanel.setLayout(new LayeredBorderLayout());
+    treeViewPanel.add(treeScrollpane, BorderLayout.CENTER, 1);
+    treeViewPanel.add(loadingLabelPanel, BorderLayout.CENTER, 0);
   }
 
   /**
@@ -29,8 +35,7 @@ public abstract class ObservableTreePanel extends JPanel
   protected void showTree()
   {
     TreeUtil.expandTreeInterruptible(getTree());
-    treeViewPanel.remove(loadingLabel);
-    treeViewPanel.add(treeScrollpane, BorderLayout.CENTER);
+    loadingLabelPanel.setVisible(false);
     treeViewPanel.revalidate();
     treeViewPanel.repaint();
   }
@@ -40,8 +45,7 @@ public abstract class ObservableTreePanel extends JPanel
    */
   protected void showLoading()
   {
-    treeViewPanel.remove(treeScrollpane);
-    treeViewPanel.add(loadingLabel, BorderLayout.CENTER);
+    loadingLabelPanel.setVisible(true);
     treeViewPanel.revalidate();
     treeViewPanel.repaint();
   }

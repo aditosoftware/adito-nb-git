@@ -85,7 +85,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
     Runnable[] doAfterJobs = {this::showTree};
     treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, diffTreeModel, pFileSystemUtil, doAfterJobs, this::showLoading);
-    treeViewPanel.add(_getTreeToolbar(projectDirectory), BorderLayout.NORTH);
+    treeViewPanel.add(_getTreeToolbar(projectDirectory), BorderLayout.NORTH, 0);
 
     _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);
     _initDetailPanel();
@@ -96,7 +96,6 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   {
     return Observable
         .combineLatest(selectedCommitObservable, repository, showAllCBObservable, (pSelectedCommitsOpt, currentRepo, pShowAll) -> {
-          showLoading();
           if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
           {
             return _getChangedFiles(pProjectDirectory, pSelectedCommitsOpt.get(), currentRepo.get(), pShowAll);

@@ -21,7 +21,7 @@ public class SearchableTree extends JTree implements IDiscardable
    * @param pView  Panel that serves as the view for the tree and should get all key events from the tree
    * @param pModel TreeModel to set for this tree
    */
-  public void init(JPanel pView, TreeModel pModel)
+  public void init(JComponent pView, TreeModel pModel)
   {
     setModel(pModel);
     if (keyForwardAdapter != null)
@@ -42,9 +42,9 @@ public class SearchableTree extends JTree implements IDiscardable
   private static class _KeyForwardAdapter extends KeyAdapter
   {
 
-    private JPanel receiver;
+    private JComponent receiver;
 
-    _KeyForwardAdapter(JPanel pReceiver)
+    _KeyForwardAdapter(JComponent pReceiver)
     {
       receiver = pReceiver;
     }

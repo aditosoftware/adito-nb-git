@@ -35,7 +35,7 @@ public class StatusTree implements IDiscardable
   private final ObservableTreeSelectionModel observableTreeSelectionModel;
 
   public StatusTree(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil, @NotNull BaseObservingTreeModel pTreeModel,
-                    boolean pUseFlatCellRenderer, @NotNull File pProjectDirectory, @NotNull JPanel pTreeViewPanel, @Nullable JScrollPane pScrollPane)
+                    boolean pUseFlatCellRenderer, @NotNull File pProjectDirectory, @NotNull JComponent pTreeViewPanel, @Nullable JScrollPane pScrollPane)
   {
     searchableTree = new SearchableTree();
     searchableTree.init(pTreeViewPanel, pTreeModel);

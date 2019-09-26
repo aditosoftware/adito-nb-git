@@ -59,7 +59,6 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     prefStore = pPrefStore;
     repository = pRepository;
     actionProvider = pActionProvider;
-    treeViewPanel.add(loadingLabel, BorderLayout.CENTER);
     pProgressFacade.executeInBackground("Preparing status window", pHandle -> {
       Observable<Optional<IFileStatus>> status = repository
           .switchMap(pRepo -> pRepo
@@ -120,7 +119,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_HIERARCHICAL),
                                             iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
                     .getButton());
-    treeViewPanel.add(toolBar, BorderLayout.WEST);
+    treeViewPanel.add(toolBar, BorderLayout.WEST, 0);
 
     JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(openFileAction);
