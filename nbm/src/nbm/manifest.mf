@@ -6,6 +6,38 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.2</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>Updating the Status of a Tree now works differently:
+    <ul>
+      <li>The Tree is only updated if the list of files changed</li>
+      <li>The display and removal of the Loading label is much closer bound to the model update, which should fix the Loading label being stuck</li>
+      <li>Instead of removing and re-attaching the tree while the loading label is shown, the underlying panel is now a LayeredPane with the label on the upper level. If the tree should be shown, the label is simply set to invisible. This shortens the duration the tree needs to update</li>
+    </ul>
+  </li>
+  <li>Single commits may be checked out via the Log. This will leave you in a detached HEAD state, be sure to understand what this entails before working with it</li>
+  <li>It is now possible to do revert-commits</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The Chunks in the EditorColorizer to the left of the editor now properly vanish when the file is committed</li>
+  <li>Added a log message indicating the plugin version and the discovered repository folders on startup, should make finding the causes for bugs easier in the future</li>
+  <li>Changed the order of entries in the popup menu of the Log, entries are now more thematically ordered</li>
+  <li>The Plugin tracks the repository of the currently active TopComponent or node more reliably</li>
+  <li>The config file may now be opened from the Git settings menu. Same goes for the gitignore file</li>
+  <li>The Status and the Log no longer update eagerly but in a more lazy fashion. This should be okay for the user and may save lots of processing in several cases.<br>Eagerly in this case meant as soon as any file was changed, and every 500ms if any FileChangeEvent occurred during those 500ms. Now only updates 500ms after the last FileChangeEvent occurred</li>
+  <li>If a file that belongs to a node in the project tree is changed, that node is now always marked as changed as well (e.g. only maildbrige.js is changed -> maildbrige.aod was not marked)</li>
+  <li>Zooming in the editor now also triggers a recalculation of the Chunks marking the changed parts of a file in a diff/merge</li>
+  <li>Horizontal Scrolling in a diff or merge works properly now, no sudden jumps happen any longer and the scroll direction is the same in both/all three panes</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: Only one deleted file is displayed if several exist (Result of their hashCode being the same)</li>
+    <li>Fix: An update with no nodes leaves the Tree as-is and does not remove the existing nodes</li>
+    <li>Fix: Deleted Folders are displayed as white file Icons</li>
+  <li>Fix: Loading some Icons of the manual conflict resolution dialog failed</li>
+  </ul>
   <p style="font-weight: bold;">v.1.3.1</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
