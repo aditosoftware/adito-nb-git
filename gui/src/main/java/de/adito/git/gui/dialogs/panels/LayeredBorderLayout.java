@@ -285,7 +285,7 @@ public class LayeredBorderLayout implements LayoutManager2
 
       int width = _getMaxSize(eastComponents, Component::getWidth);
       d = _getMaxDimension(eastComponents, Component::getPreferredSize);
-      for (Component component : southComponents)
+      for (Component component : eastComponents)
       {
         component.setSize(width, bottom - top);
         component.setBounds(right - d.width, top, d.width, bottom - top);
@@ -294,7 +294,7 @@ public class LayeredBorderLayout implements LayoutManager2
 
       width = _getMaxSize(westComponents, Component::getWidth);
       d = _getMaxDimension(westComponents, Component::getPreferredSize);
-      for (Component component : southComponents)
+      for (Component component : westComponents)
       {
         component.setSize(width, bottom - top);
         component.setBounds(left, top, d.width, bottom - top);
