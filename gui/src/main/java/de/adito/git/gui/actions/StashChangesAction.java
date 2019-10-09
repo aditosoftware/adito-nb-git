@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
@@ -22,14 +23,16 @@ class StashChangesAction extends AbstractAction
 
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
+  private final INotifyUtil notifyUtil;
   private final Observable<Optional<IRepository>> repository;
 
   @Inject
-  StashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+  StashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil,
                      @Assisted Observable<Optional<IRepository>> pRepository)
   {
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
+    notifyUtil = pNotifyUtil;
     repository = pRepository;
   }
 
@@ -49,6 +52,7 @@ class StashChangesAction extends AbstractAction
           }
           catch (AditoGitException pE)
           {
+            notifyUtil.notify("Error during stash", "An error occurred during the stash process, see the IDE log for further details", false);
             throw new RuntimeException(pE);
           }
         });
