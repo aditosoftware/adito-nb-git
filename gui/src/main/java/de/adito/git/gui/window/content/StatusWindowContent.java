@@ -102,6 +102,8 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     Action revertWorkDirAction = actionProvider.getRevertWorkDirAction(repository, selectionObservable);
     Action ignoreAction = actionProvider.getIgnoreAction(repository, selectionObservable);
     Action excludeAction = actionProvider.getExcludeAction(repository, selectionObservable);
+    Action createPatchAction = actionProvider.getCreatePatchAction(repository, selectionObservable);
+    Action applyPatchAction = actionProvider.getApplyPatchAction(repository);
     JToolBar toolBar = new JToolBar(SwingConstants.VERTICAL);
     toolBar.setFloatable(false);
     toolBar.add(actionProvider.getRefreshStatusAction(repository, statusTreeModel::reload));
@@ -132,6 +134,9 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     popupMenu.add(diffToHeadAction);
     popupMenu.add(showCommitsForFileAction);
     popupMenu.addSeparator();
+    popupMenu.add(createPatchAction);
+    popupMenu.add(applyPatchAction);
+    popupMenu.addSeparator();
     popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
     statusTree.getTree().addMouseListener(new PopupMouseListener(popupMenu));
     statusTree.getTree().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
@@ -144,6 +149,8 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     discardableActions.add((IDiscardable) ignoreAction);
     discardableActions.add((IDiscardable) excludeAction);
     discardableActions.add((IDiscardable) openFileAction);
+    discardableActions.add((IDiscardable) createPatchAction);
+    discardableActions.add((IDiscardable) applyPatchAction);
   }
 
   @Override

@@ -6,12 +6,14 @@ import com.google.inject.Singleton;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.dialogs.results.StashChangesResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.filechooser.FileFilter;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
@@ -214,9 +216,10 @@ class DialogProviderImpl implements IDialogProvider
 
   @NotNull
   @Override
-  public DialogResult showFileSelectionDialog(String pMessage)
+  public DialogResult showFileSelectionDialog(@NotNull String pMessage, @NotNull String pLabel, @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
+                                              @Nullable FileFilter pFileFilter)
   {
-    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createFileSelectionDialog(), pMessage);
+    return dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createFileSelectionDialog(pLabel, pFileSelectionMode, pFileFilter), pMessage);
   }
 
   @NotNull

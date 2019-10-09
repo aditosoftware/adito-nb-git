@@ -31,6 +31,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.*;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -411,12 +412,42 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
+  public void applyPatch(@NotNull File pPatchFile)
+  {
+    logger.log(Level.INFO, "git apply {0}", pPatchFile.getAbsolutePath());
+    try (InputStream inputStream = Files.newInputStream(pPatchFile.toPath()))
+    {
+      git.apply().setPatch(inputStream).call();
+    }
+    catch (IOException | GitAPIException pE)
+    {
+      throw new RuntimeException(pE);
+    }
+    logger.log(Level.INFO, "git apply {0} success", pPatchFile.getAbsolutePath());
+  }
+
+  @Override
+  public void createPatch(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith, @NotNull OutputStream pWriteTo)
+  {
+    logger.log(Level.INFO, () -> String.format("git creating patch for diff of %s %s", pCompareWith == null ? "" : pCompareWith.getId(), pFilesToDiff));
+    diff(pFilesToDiff, pCompareWith, pWriteTo);
+  }
+
+  @Override
+  public void createPatch(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo, @NotNull OutputStream pWriteTo)
+  {
+    logger.log(Level.INFO, () -> String.format("git creating patch for diff of %s %s", pCompareTo == null ? "" : pCompareTo.getId(), pOriginal));
+    diff(pOriginal, pCompareTo, pWriteTo);
+  }
+
+  @Override
   public IFileDiff diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException
   {
     return standAloneDiffProvider.diffOffline(pString.getBytes(), Files.readAllBytes(pFile.toPath()));
   }
 
   @Override
+  @NotNull
   public List<IFileChangeChunk> diff(@NotNull String pFileContents, File pCompareWith) throws IOException
   {
 
@@ -440,7 +471,25 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo)
+  @NotNull
+  public List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo)
+  {
+    return diff(pOriginal, pCompareTo, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @NotNull
+  public List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith)
+  {
+    logger.log(Level.INFO, () -> String.format("git diff %s %s", pCompareWith == null ? "" : pCompareWith.getId(), pFilesToDiff));
+    return diff(pFilesToDiff, pCompareWith, null);
+  }
+
+  @NotNull
+  private List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo, @Nullable OutputStream pWriteTo)
   {
     try
     {
@@ -453,7 +502,7 @@ public class RepositoryImpl implements IRepository
 
       if (listDiff != null)
       {
-        try (DiffFormatter formatter = new DiffFormatter(null))
+        try (DiffFormatter formatter = new DiffFormatter(pWriteTo == null ? DisabledOutputStream.INSTANCE : pWriteTo))
         {
           formatter.setRepository(git.getRepository());
           for (DiffEntry diff : listDiff)
@@ -465,6 +514,10 @@ public class RepositoryImpl implements IRepository
                 : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
             listDiffImpl.add(new FileDiffImpl(new FileDiffHeaderImpl(diff, tld), fileHeader.getHunks().get(0).toEditList(), oldFileContent, newFileContent));
           }
+          if (pWriteTo != null)
+          {
+            formatter.format(listDiff);
+          }
         }
       }
       return listDiffImpl;
@@ -475,13 +528,9 @@ public class RepositoryImpl implements IRepository
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NotNull List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith)
+  @NotNull
+  private List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith, @Nullable OutputStream pWriteTo)
   {
-    logger.log(Level.INFO, () -> String.format("git diff %s %s", pCompareWith == null ? "" : pCompareWith.getId(), pFilesToDiff));
     try
     {
       List<IFileDiff> returnList = new ArrayList<>();
@@ -494,9 +543,8 @@ public class RepositoryImpl implements IRepository
       CanonicalTreeParser treeParser = RepositoryImplHelper.prepareTreeParser(git.getRepository(), compareWithId);
 
       // Use the DiffFormatter to retrieve a list of changes
-      DiffFormatter diffFormatter = new DiffFormatter(null);
+      DiffFormatter diffFormatter = new DiffFormatter(pWriteTo == null ? DisabledOutputStream.INSTANCE : pWriteTo);
       diffFormatter.setRepository(git.getRepository());
-      diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_TRAILING);
       List<TreeFilter> pathFilters = new ArrayList<>();
       if (pFilesToDiff != null)
       {
@@ -514,6 +562,8 @@ public class RepositoryImpl implements IRepository
         }
       }
       List<DiffEntry> diffList = diffFormatter.scan(treeParser, fileTreeIterator);
+      if (pWriteTo != null)
+        diffFormatter.format(diffList);
 
       for (DiffEntry diffEntry : diffList)
       {
@@ -1025,6 +1075,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
+  @Override
   @NotNull
   public List<IMergeDiff> getConflicts() throws AditoGitException
   {
