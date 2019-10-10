@@ -41,6 +41,8 @@ public class GitAttributesChecker
     if (pProjectDirectory == null)
       return;
     File gitAttributesFile = new File(pProjectDirectory, ".gitattributes");
+    if (_containsDoNotAskAgainFlag(gitAttributesFile))
+      return;
     if (configNodes == null || configNodes.getRules() == null)
     {
       DialogResult dialogResult = pDialogProvider.showCheckboxPrompt("<html>No attributes set, use suggested attributes?<br><br>Gitattributes can be used to customize " +
@@ -57,8 +59,6 @@ public class GitAttributesChecker
     }
     else
     {
-      if (_containsDoNotAskAgainFlag(gitAttributesFile))
-        return;
       List<AttributesRule> missingOrChangedAttributes = _getMissingOrChangedRules(defaultNodes, configNodes);
       if (!missingOrChangedAttributes.isEmpty())
       {
