@@ -1,19 +1,6 @@
 ### Set the default behavior for text files (lineendings will be converted by git)
 *             text=auto
 
-### Explicitly declare text files you want to always be normalized and converted to native line endings on checkout.
-*.js          text
-*.aod         text
-*.xml         text
-*.svg         text
-*.version     text
-*.properties  text
-*.jrxml       text
-*.json        text
-*.adoc        text
-*.txt         text
-
-
 ### Declare files that will always have CRLF line endings on checkout (Example: windows bat file)
 *.bat         text eol=crlf
 
