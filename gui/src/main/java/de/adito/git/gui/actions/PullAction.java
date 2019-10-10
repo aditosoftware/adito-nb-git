@@ -132,6 +132,7 @@ class PullAction extends AbstractAction
     }
     catch (Exception e)
     {
+      notifyUtil.notify("Pull failed due to an exception", "See the IDE log for further details", false);
       throw new RuntimeException(e);
     }
     finally
@@ -176,7 +177,11 @@ class PullAction extends AbstractAction
     IRebaseResult abortedRebaseResult =
         pRepo.pull(true);
     if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
-      throw new RuntimeException("The abort of the rebase failed with state: " + abortedRebaseResult.getResultType());
+    {
+      String errorMessage = "The abort of the rebase failed with state: " + abortedRebaseResult.getResultType();
+      notifyUtil.notify("Abort of the rebase failed", errorMessage, false);
+      throw new RuntimeException(errorMessage);
+    }
     // abort was successful -> notify user
     notifyUtil.notify("Aborted rebase", "Rebase abort was successful, all local content restored to state before rebase", true);
   }

@@ -32,6 +32,7 @@ class PushAction extends AbstractAction
 {
 
   private static final String FAILURE_HEADER = "Push failed";
+  private static final String CHECK_IDE_LOG_MESSAGE = "Check the IDE log for further details";
   private final Logger logger = Logger.getLogger(PushAction.class.getName());
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
@@ -97,18 +98,20 @@ class PushAction extends AbstractAction
     {
       if (pE.getCause().getMessage().endsWith("push not permitted"))
       {
-        notifyUtil.notify(FAILURE_HEADER, "You have insufficient rights for pushing to the remote. Check the IDE log for further details", false);
+        notifyUtil.notify(FAILURE_HEADER, "You have insufficient rights for pushing to the remote. " + CHECK_IDE_LOG_MESSAGE, false);
       }
       else
       {
-        notifyUtil.notify(FAILURE_HEADER, "An error occurred during transport, check your credentials and rights on the remote. For further details see the IDE log",
+        notifyUtil.notify(FAILURE_HEADER, "An error occurred during transport, check your credentials and rights on the remote. " + CHECK_IDE_LOG_MESSAGE,
                           false);
       }
       logger.log(Level.SEVERE, pE, () -> "failed to push to remote");
     }
     catch (AditoGitException pE)
     {
-      throw new RuntimeException("Error while finding un-pushed commits", pE);
+      String errorMessage = "Error while finding un-pushed commits";
+      notifyUtil.notify(errorMessage, errorMessage + ". " + CHECK_IDE_LOG_MESSAGE, false);
+      throw new RuntimeException(errorMessage, pE);
     }
   }
 
@@ -133,7 +136,9 @@ class PushAction extends AbstractAction
           infoText.append(failedResult.getValue());
         }
       }
-      throw new RuntimeException(infoText.toString());
+      String infoString = infoText.toString();
+      notifyUtil.notify("Push failed", infoString, false);
+      throw new RuntimeException(infoString);
     }
   }
 }
