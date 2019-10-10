@@ -6,6 +6,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.*;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
@@ -15,6 +16,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.attributes.AttributesNode;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
@@ -67,12 +69,14 @@ public class RepositoryImpl implements IRepository
   private final IFileSystemUtil fileSystemUtil;
   private final IFileSystemObserver fileSystemObserver;
   private final CompositeDisposable disposables = new CompositeDisposable();
+  private final IDialogProvider dialogProvider;
 
   @Inject
-  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider,
+  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, IDialogProvider pDialogProvider,
                         IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory, IStandAloneDiffProvider pStandAloneDiffProvider,
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
+    dialogProvider = pDialogProvider;
     final Properties properties = new Properties();
     try (InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("project.properties"))
     {
@@ -109,6 +113,28 @@ public class RepositoryImpl implements IRepository
         .startWith(List.<ITag>of())
         .replay(1)
         .autoConnect(0, disposables::add);
+
+    _validateGitAttributes();
+  }
+
+  /**
+   * Check if a .gitattributes file exists and if the default rulesets given by the example_gitattributes are contained in the gitattributes.
+   * If either is not the case, the user is asked if the .gitattributes file should be created/fixed/expanded
+   */
+  private void _validateGitAttributes()
+  {
+    AttributesNode attributesNode = new AttributesNode();
+    try
+    {
+      attributesNode.parse(RepositoryImpl.class.getResourceAsStream("example_gitattributes"));
+      GitAttributesChecker.compareToDefault(dialogProvider, attributesNode, git.getRepository().createAttributesNodeProvider().getGlobalAttributesNode(),
+                                            getTopLevelDirectory());
+    }
+    catch (IOException pE)
+    {
+      logger.log(Level.WARNING, String.format("Error while parsing/validating the .gitattributes file in repository %s", getTopLevelDirectory()), pE);
+      throw new RuntimeException(pE);
+    }
   }
 
   @Override
