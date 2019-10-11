@@ -37,7 +37,7 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>5.4.4-SNAPSHOT</version>
+      <version>5.6.0.ADITO-SNAPSHOT</version>
     </dependency>
 
     <!-- guice dependencies -->
