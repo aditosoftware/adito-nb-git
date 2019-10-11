@@ -7,14 +7,16 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -66,39 +68,58 @@ class CherryPickAction extends AbstractTableAction
     if (repo != null && !commitsToPick.isEmpty())
     {
       progressFacade.executeInBackground("Cherry picking " + commitsToPick.size() + " commit(s)", pHandle -> {
-        try
-        {
-          Optional<IFileStatus> status = repo.getStatus().blockingFirst();
-          if (status.map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(true))
-          {
-            notifyUtil.notify(ACTION_NAME, "Aborting cherry pick, please make sure the working tree is clean before cherry picking", false);
-            return;
-          }
-          if (status.map(pStatus -> !pStatus.getUncommitted().isEmpty()).orElse(false))
-          {
-            if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
-              return;
-            pHandle.setDescription("Stashing existing changes");
-            prefStore.put(STASH_ID_KEY, repo.stashChanges(null, true));
-          }
-          pHandle.setDescription("Cherry picking " + commitsToPick.size() + " commit(s)");
-          _doCherryPick(repo, commitsToPick);
-        }
-        catch (AditoGitException pE)
-        {
-          throw new RuntimeException(pE);
-        }
-        finally
-        {
-          String stashedCommitId = prefStore.get(STASH_ID_KEY);
-          if (stashedCommitId != null)
-          {
-            pHandle.setDescription("Un-stashing changes");
-            StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
-            prefStore.put(STASH_ID_KEY, null);
-          }
-        }
+        _performCherryPick(repo, commitsToPick, pHandle);
       });
+    }
+  }
+
+  /**
+   * Performs the entirety of the cherry pick, including the stashing and unstashing
+   *
+   * @param pRepo          repository
+   * @param pCommitsToPick List of commits that should be cherry picked
+   * @param pHandle        ProgressHandle to display the current progress/step
+   * @throws AditoGitException thrown if an error occurrs during cherry picking
+   */
+  private void _performCherryPick(IRepository pRepo, List<ICommit> pCommitsToPick, @NotNull IProgressHandle pHandle) throws AditoGitException
+  {
+    try
+    {
+      Optional<IFileStatus> status = pRepo.getStatus().blockingFirst();
+      if (status.map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(true))
+      {
+        notifyUtil.notify(ACTION_NAME, "Aborting cherry pick, please make sure the working tree is clean before cherry picking", false);
+        return;
+      }
+      if (status.map(pStatus -> !pStatus.getUncommitted().isEmpty()).orElse(false))
+      {
+        if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
+          return;
+        pHandle.setDescription("Stashing existing changes");
+        prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, true));
+      }
+      pHandle.setDescription("Cherry picking " + pCommitsToPick.size() + " commit(s)");
+      _doCherryPick(pRepo, pCommitsToPick);
+    }
+    finally
+    {
+      _performUnstash(pHandle);
+    }
+  }
+
+  /**
+   * Performs the unstash operation
+   *
+   * @param pHandle ProgressHandle to display the current progress/step
+   */
+  private void _performUnstash(@NotNull IProgressHandle pHandle)
+  {
+    String stashedCommitId = prefStore.get(STASH_ID_KEY);
+    if (stashedCommitId != null)
+    {
+      pHandle.setDescription("Un-stashing changes");
+      StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
+      prefStore.put(STASH_ID_KEY, null);
     }
   }
 
@@ -130,6 +151,7 @@ class CherryPickAction extends AbstractTableAction
     }
     catch (AditoGitException pE)
     {
+      notifyUtil.notify("Cherry Pick failed", "Error during Cherry Pick, consult the IDE log for further details", false);
       throw new RuntimeException(pE);
     }
   }

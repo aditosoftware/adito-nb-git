@@ -152,6 +152,7 @@ public interface IRepository extends IDiscardable
   /**
    * Fetches the current state of the remote and stores it internally. Does not affect the working directory.
    * See also the "git fetch" command
+   * If there are several remotes, fetches from all remotes
    *
    * @throws AditoGitException if an error occurs
    */

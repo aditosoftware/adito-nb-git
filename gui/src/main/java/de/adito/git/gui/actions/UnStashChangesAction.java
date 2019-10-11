@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.api.exception.AditoGitException;
@@ -23,14 +24,16 @@ class UnStashChangesAction extends AbstractAction
 
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
+  private final INotifyUtil notifyUtil;
   private final Observable<Optional<IRepository>> repository;
 
   @Inject
-  UnStashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+  UnStashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil,
                        @Assisted Observable<Optional<IRepository>> pRepository)
   {
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
+    notifyUtil = pNotifyUtil;
     repository = pRepository;
   }
 
@@ -59,6 +62,7 @@ class UnStashChangesAction extends AbstractAction
       }
       catch (AditoGitException pE)
       {
+        notifyUtil.notify("Unstash failed", "An error occurred while trying to unstash, consult the IDE log for further details", false);
         throw new RuntimeException(pE);
       }
     }

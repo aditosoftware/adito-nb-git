@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IFileSystemUtil;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
 
@@ -20,6 +21,7 @@ class OpenFileStringAction extends AbstractTableAction
 {
 
   private final IFileSystemUtil fileOpener;
+  private final INotifyUtil notifyUtil;
   private final Observable<Optional<String>> selectedFileObservable;
 
   /**
@@ -27,10 +29,11 @@ class OpenFileStringAction extends AbstractTableAction
    * @param pSelectedFileObservable Observable Optional of the absolute path of the file to be opened
    */
   @Inject
-  OpenFileStringAction(IFileSystemUtil pFileOpener, @Assisted Observable<Optional<String>> pSelectedFileObservable)
+  OpenFileStringAction(IFileSystemUtil pFileOpener, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<String>> pSelectedFileObservable)
   {
     super("Open", _getIsEnabledObservable(pSelectedFileObservable));
     fileOpener = pFileOpener;
+    notifyUtil = pNotifyUtil;
     selectedFileObservable = pSelectedFileObservable;
   }
 
@@ -44,6 +47,7 @@ class OpenFileStringAction extends AbstractTableAction
       }
       catch (AditoGitException pE)
       {
+        notifyUtil.notify("Couldn't open file", "An error occurred while trying to open the file, consult the IDE log for further details", false);
         throw new RuntimeException(pE);
       }
     });

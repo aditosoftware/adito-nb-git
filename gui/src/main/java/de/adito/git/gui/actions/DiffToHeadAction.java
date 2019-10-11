@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeType;
@@ -31,16 +32,18 @@ class DiffToHeadAction extends AbstractTableAction
 
   private final Logger logger = Logger.getLogger(DiffToHeadAction.class.getName());
   private final IAsyncProgressFacade progressFacade;
+  private final INotifyUtil notifyUtil;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
   private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
-  DiffToHeadAction(IIconLoader pIconLoader, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
+  DiffToHeadAction(IIconLoader pIconLoader, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil,
                    @Assisted Observable<Optional<IRepository>> pRepository,
                    @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Show Changes", _getIsEnabledObservable(pSelectedFilesObservable));
+    notifyUtil = pNotifyUtil;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.DIFF_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Diff to HEAD");
     progressFacade = pProgressFacade;
@@ -90,6 +93,7 @@ class DiffToHeadAction extends AbstractTableAction
     }
     catch (IOException pE)
     {
+      notifyUtil.notify("Diff failed", "An error occurred while creating the diff, consult the IDE log for further details", false);
       throw new RuntimeException(pE);
     }
   }

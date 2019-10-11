@@ -94,6 +94,7 @@ class DeleteBranchAction extends AbstractTableAction
       }
       else
       {
+        notifyUtil.notify("Delete failed", "An error occurred while deleting the branch, consult the IDE log for further details", false);
         throw new RuntimeException(pE);
       }
     }

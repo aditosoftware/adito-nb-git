@@ -46,6 +46,7 @@ class OpenFileAction extends AbstractTableAction
         }
         catch (AditoGitException pE)
         {
+          notifyUtil.notify("Couldn't open file", "An error occurred while trying to open the file, consult the IDE log for further details", false);
           throw new RuntimeException(pE);
         }
       }
