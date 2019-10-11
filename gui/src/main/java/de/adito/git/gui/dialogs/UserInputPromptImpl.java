@@ -3,6 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IUserInputPrompt;
+import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +83,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptFile(String pMessage)
   {
-    DialogResult result = dialogProvider.showFileSelectionDialog(pMessage);
+    DialogResult result = dialogProvider.showFileSelectionDialog(pMessage, "", FileChooserProvider.FileSelectionMode.FILES_ONLY, null);
     return new PromptResult(result.isPressedOk(), result.getMessage());
   }
 }

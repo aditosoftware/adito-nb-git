@@ -321,4 +321,16 @@ class ActionProvider implements IActionProvider
     return actionFactory.createSwitchDiffTreeViewAction(pTree, pObservableTreeUpdater, pProjectDirectory, pCallerName);
   }
 
+  @Override
+  public Action getCreatePatchAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  {
+    return actionFactory.createPatchAction(pRepository, pSelectedFilesObservable);
+  }
+
+  @Override
+  public Action getApplyPatchAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  {
+    return actionFactory.createApplyPatchAction(pRepository);
+  }
+
 }

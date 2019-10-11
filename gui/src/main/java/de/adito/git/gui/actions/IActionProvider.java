@@ -316,4 +316,21 @@ public interface IActionProvider
    */
   Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater, @NotNull File pProjectDirectory,
                                      @NotNull String pCallerName);
+
+  /**
+   * Action that lets the user select a file in which the patch describing the differences of the selected files and the HEAD is written
+   *
+   * @param pRepository              Observable with the current Repository
+   * @param pSelectedFilesObservable Observable with the files the user has selected at the moment
+   * @return Action whose actionPerformed method lets the user select a file in which a patch detailing the changes to the selected files is written
+   */
+  Action getCreatePatchAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+
+  /**
+   * Action that lets the user choose a patch file and then applies that patch
+   *
+   * @param pRepository Observable with the current Repository
+   * @return Action whose actionPerformed method displays a dialog with a fileChooser and then applies the patch found in the selected file
+   */
+  Action getApplyPatchAction(@NotNull Observable<Optional<IRepository>> pRepository);
 }

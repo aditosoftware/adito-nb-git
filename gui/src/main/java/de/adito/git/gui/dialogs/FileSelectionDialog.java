@@ -1,11 +1,12 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
-import de.adito.git.gui.TableLayoutUtil;
-import info.clearthought.layout.TableLayout;
+import com.google.inject.assistedinject.Assisted;
+import de.adito.git.gui.dialogs.filechooser.FileChooserPanel;
+import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
+import javax.annotation.Nullable;
+import javax.swing.filechooser.FileFilter;
 
 /**
  * Dialog with one textField for manually entering a file and a button that opens a fileChooser, if selection of the fileChooser is accepted
@@ -16,46 +17,22 @@ import javax.swing.filechooser.FileSystemView;
 class FileSelectionDialog extends AditoBaseDialog<Object>
 {
 
-  private static final int PATH_NUM_CHARS = 60;
-  private final JTextField textField;
+  private final FileChooserPanel fileChooserPanel;
 
   @Inject
-  FileSelectionDialog()
+  FileSelectionDialog(@Assisted String pLabel, @Assisted FileChooserProvider.FileSelectionMode pFileSelectionMode, @Assisted @Nullable FileFilter pFileFilter)
   {
-    textField = new JTextField(PATH_NUM_CHARS);
-    _initGui();
-  }
-
-  private void _initGui()
-  {
-    double fill = TableLayout.FILL;
-    double pref = TableLayout.PREFERRED;
-    final double gap = 15;
-    double[] cols = {gap, fill, gap, pref, gap};
-    double[] rows = {gap,
-                     pref,
-                     gap};
-    setLayout(new TableLayout(cols, rows));
-    TableLayoutUtil tlu = new TableLayoutUtil(this);
-    JButton chooseFileButton = new JButton("Browse");
-    chooseFileButton.addActionListener(e -> {
-      JFileChooser fc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      int returnValue = fc.showSaveDialog(null);
-      if (returnValue == JFileChooser.APPROVE_OPTION)
-
-      {
-        textField.setText(fc.getSelectedFile().getAbsolutePath());
-      }
-    });
-    tlu.add(1, 1, textField);
-    tlu.add(3, 1, chooseFileButton);
+    if (pFileFilter == null)
+      fileChooserPanel = FileChooserProvider.createFileChooserPanel(pLabel, pFileSelectionMode);
+    else
+      fileChooserPanel = FileChooserProvider.createFileChooserPanel(pLabel, pFileSelectionMode, pFileFilter);
+    add(fileChooserPanel);
   }
 
   @Override
   public String getMessage()
   {
-    return textField.getText();
+    return fileChooserPanel.getSelectedFile();
   }
 
   @Override

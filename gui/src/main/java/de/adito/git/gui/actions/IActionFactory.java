@@ -114,4 +114,9 @@ interface IActionFactory
 
   SwitchDiffTreeViewAction createSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater,
                                                           @NotNull File pProjectDirectory, @NotNull String pCallerName);
+
+  CreatePatchAction createPatchAction(@NotNull Observable<Optional<IRepository>> pRepository,
+                                      @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+
+  ApplyPatchAction createApplyPatchAction(@NotNull Observable<Optional<IRepository>> pRepository);
 }

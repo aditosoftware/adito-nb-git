@@ -4,10 +4,12 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.filechooser.FileFilter;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
@@ -52,7 +54,8 @@ interface IDialogFactory
 
   StashChangesDialog createStashChangesDialog();
 
-  FileSelectionDialog createFileSelectionDialog();
+  FileSelectionDialog createFileSelectionDialog(String pLabel, FileChooserProvider.FileSelectionMode pFileSelectionMode,
+                                                @javax.annotation.Nullable FileFilter pFileFilter);
 
   RevertFilesDialog createRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
 

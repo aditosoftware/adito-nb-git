@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -166,6 +167,32 @@ public interface IRepository extends IDiscardable
    * @throws AditoGitException if an error occurs
    */
   void fetch(boolean pPrune) throws AditoGitException;
+
+  /**
+   * Applies the patch contained in the passed file to the current state of the repository
+   *
+   * @param pPatchFile File that contains the patch data
+   */
+  void applyPatch(@NotNull File pPatchFile);
+
+  /**
+   * performs a diff of the working copy of the provided files with their version as it is in compareWith and writes the differences to the provided outputStream, in the
+   * form of a git patch
+   *
+   * @param pFileToDiff  List of Files that should be diff'd with HEAD. pass null if all changes should be displayed
+   * @param pCompareWith ICommit giving the version that the files should be compared with. If null files are compared to the HEAD
+   * @param pWriteTo     OutputStream that the patch will be written to
+   */
+  void createPatch(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith, @NotNull OutputStream pWriteTo);
+
+  /**
+   * compare two commits and write their differences to the provided outputStream as patch
+   *
+   * @param pOriginal  the older ICommit
+   * @param pCompareTo the later ICommit
+   * @param pWriteTo   OutputStream that the patch will be written to
+   */
+  void createPatch(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo, @NotNull OutputStream pWriteTo);
 
   /**
    * Diff two strings, one coming from a file
