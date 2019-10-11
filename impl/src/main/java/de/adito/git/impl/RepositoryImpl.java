@@ -6,7 +6,6 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.*;
-import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
@@ -69,14 +68,14 @@ public class RepositoryImpl implements IRepository
   private final IFileSystemUtil fileSystemUtil;
   private final IFileSystemObserver fileSystemObserver;
   private final CompositeDisposable disposables = new CompositeDisposable();
-  private final IDialogProvider dialogProvider;
+  private final IUserInputPrompt userInputPrompt;
 
   @Inject
-  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, IDialogProvider pDialogProvider,
+  public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, IUserInputPrompt pUserInputPrompt,
                         IFileSystemUtil pIFileSystemUtil, ISshProvider pSshProvider, IDataFactory pDataFactory, IStandAloneDiffProvider pStandAloneDiffProvider,
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
-    dialogProvider = pDialogProvider;
+    userInputPrompt = pUserInputPrompt;
     final Properties properties = new Properties();
     try (InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("project.properties"))
     {
@@ -127,7 +126,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       attributesNode.parse(RepositoryImpl.class.getResourceAsStream("example_gitattributes"));
-      GitAttributesChecker.compareToDefault(dialogProvider, attributesNode, git.getRepository().createAttributesNodeProvider().getGlobalAttributesNode(),
+      GitAttributesChecker.compareToDefault(userInputPrompt, attributesNode, git.getRepository().createAttributesNodeProvider().getGlobalAttributesNode(),
                                             getTopLevelDirectory());
     }
     catch (IOException pE)

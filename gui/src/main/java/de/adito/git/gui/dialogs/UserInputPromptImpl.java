@@ -69,6 +69,13 @@ public class UserInputPromptImpl implements IUserInputPrompt
     return new PromptResult(result.isPressedOk(), result.getMessage());
   }
 
+  @Override
+  public PromptResult promptYesNoCheckbox(@NotNull String pMessage, @NotNull String pCheckboxText)
+  {
+    DialogResult<?, Boolean> result = dialogProvider.showCheckboxPrompt(pMessage, pCheckboxText);
+    return new PromptResult(result.isPressedOk(), result.getInformation().toString());
+  }
+
   /**
    * {@inheritDoc}
    */

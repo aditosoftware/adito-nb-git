@@ -64,9 +64,9 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?", which files the user selected to be commited and if the commit should be amended
    */
   @NotNull
-  DialogResult<?, CommitDialogResult> showCommitDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                       @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                                                       @NotNull String pMessageTemplate);
+  DialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                  @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                                                  @NotNull String pMessageTemplate);
 
   /**
    * Shows a dialog with which the user can create a new branch
@@ -75,7 +75,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and the name of the branch that should be created
    */
   @NotNull
-  DialogResult<?, Boolean> showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository);
+  DialogResult<NewBranchDialog, Boolean> showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository);
 
   /**
    * Shows a dialog where the user can select the reset type
@@ -83,7 +83,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and the EResetType the user selected
    */
   @NotNull
-  DialogResult<?, EResetType> showResetDialog();
+  DialogResult<ResetDialog, EResetType> showResetDialog();
 
   /**
    * Shows a dialog with the commits to be pushed and an option to select if tags should be pushed as well
@@ -93,7 +93,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?", the information is a boolean that shows if tags should be pushed as well
    */
   @NotNull
-  DialogResult<?, Boolean> showPushDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<ICommit> pCommitList);
+  DialogResult<PushDialog, Boolean> showPushDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<ICommit> pCommitList);
 
   /**
    * Shows a dialog where the user can select a stashed commit, or delete stashed commits
@@ -103,8 +103,8 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and the ID of the stashed commit the user has selected
    */
   @NotNull
-  DialogResult<?, String> showStashedCommitSelectionDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                           @NotNull List<ICommit> pStashedCommits);
+  DialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                                      @NotNull List<ICommit> pStashedCommits);
 
   /**
    * Shows a dialog that allows the user to enter a password
@@ -113,7 +113,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and a char array containing the entered password. Null this ASAP
    */
   @NotNull
-  DialogResult<?, char[]> showPasswordPromptDialog(@NotNull String pMessage);
+  DialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(@NotNull String pMessage);
 
   /**
    * Shows a basic prompt dialog with a message for the user and an input field
@@ -151,7 +151,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  DialogResult<?, Boolean> showDeleteBranchDialog(@NotNull String pBranchName);
+  DialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(@NotNull String pBranchName);
 
   /**
    * Shows a dialog with some information for the user and a file chooser
@@ -169,7 +169,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and a MultiMap with the chosen settings as information
    */
   @NotNull
-  DialogResult<?, Multimap<String, Object>> showGitConfigDialog(@NotNull Observable<Optional<IRepository>> pRepository);
+  DialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(@NotNull Observable<Optional<IRepository>> pRepository);
 
   /**
    * Shows a dialog that allows the user to set a commit message to be used for the stash commit
@@ -177,7 +177,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and the "commit message" for the stash commit
    */
   @NotNull
-  DialogResult<?, StashChangesResult> showStashChangesDialog();
+  DialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog();
 
   /**
    * Shows a dialog for choosing a ssh key/passphrase combination
@@ -189,8 +189,8 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?", ssh key location as message and the passphrase as char array in the information
    */
   @NotNull
-  DialogResult<?, char[]> showSshInfoPromptDialog(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase,
-                                                  @NotNull IKeyStore pKeyStore);
+  DialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase,
+                                                              @NotNull IKeyStore pKeyStore);
 
   /**
    * Shows a dialog with some text and a checkbox (with its own description) that the use can tick
@@ -200,7 +200,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and if the checkbox was ticket as information
    */
   @NotNull
-  DialogResult<?, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
+  DialogResult<CheckboxPrompt, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
 
   /**
    * Shows a dialog with an overview over all tags of the current repository
@@ -210,8 +210,8 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  DialogResult<?, Object> showTagOverviewDialog(@NotNull Consumer<ICommit> pSelectecCommitCallback,
-                                                @NotNull Observable<Optional<IRepository>> pRepository);
+  DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NotNull Consumer<ICommit> pSelectecCommitCallback,
+                                                                @NotNull Observable<Optional<IRepository>> pRepository);
 
   /**
    * Shows a dialog with a short message explaining the reason for the dialog to the user and a comboBox where the user may select one item
@@ -220,5 +220,5 @@ public interface IDialogProvider
    * @param pOptions List of possible options to select from the comboBox
    * @return DialogResult with information such as "has the user pressed OK?" and which item of the combobox the user selected
    */
-  DialogResult<?, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions);
+  DialogResult<ComboBoxDialog<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions);
 }

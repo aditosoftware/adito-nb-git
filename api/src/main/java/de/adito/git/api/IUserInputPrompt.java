@@ -58,6 +58,15 @@ public interface IUserInputPrompt
   PromptResult promptYesNo(String pMessage);
 
   /**
+   * Prompts the user with a dialog that has an okay and cancel option, as well as a checkbox
+   *
+   * @param pMessage      String to display to the user, informing him about the purpose of the dialog
+   * @param pCheckboxText Text in front of the textbox, explains what the textbox does/is for
+   * @return PromptResult, the userInput is the string of the boolean that tells you whether the checkbox was ticket or not
+   */
+  PromptResult promptYesNoCheckbox(@NotNull String pMessage, @NotNull String pCheckboxText);
+
+  /**
    * Prompts the user to select a file, information from pMessage should tell him which kind of file he should choose
    *
    * @param pMessage pMessage String to display to the user, informing him about what he should enter

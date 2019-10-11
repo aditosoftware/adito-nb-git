@@ -1,7 +1,6 @@
 package de.adito.git.impl;
 
-import de.adito.git.gui.dialogs.DialogResult;
-import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.api.IUserInputPrompt;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.attributes.Attribute;
 import org.eclipse.jgit.attributes.AttributesNode;
@@ -29,13 +28,13 @@ public class GitAttributesChecker
    * If there is one, the rules from that file are compared to the default nodes and, if any rules are missing or changed, asks the user if those rules should be added
    * or changed to be in line with the default nodes.
    *
-   * @param pDialogProvider   IDialogProvider used to show dialogs to the user
+   * @param pUserInputPrompt  IDialogProvider used to show dialogs to the user
    * @param defaultNodes      AttributesNode filled with the default attributes
    * @param configNodes       AttributesNode filled with the attributes of the .gitattributes file
    * @param pProjectDirectory Directory that contains the .gitattributes file and forms the top level of the project
    * @throws IOException if the given gitattributes or the default config cannot be opened/read/written to
    */
-  static void compareToDefault(@NotNull IDialogProvider pDialogProvider, @NotNull AttributesNode defaultNodes, @Nullable AttributesNode configNodes,
+  static void compareToDefault(@NotNull IUserInputPrompt pUserInputPrompt, @NotNull AttributesNode defaultNodes, @Nullable AttributesNode configNodes,
                                @Nullable File pProjectDirectory) throws IOException
   {
     if (pProjectDirectory == null)
@@ -45,15 +44,15 @@ public class GitAttributesChecker
       return;
     if (configNodes == null || configNodes.getRules() == null)
     {
-      DialogResult dialogResult = pDialogProvider.showCheckboxPrompt("<html>No attributes set, use suggested attributes?<br><br>Gitattributes can be used to customize " +
-                                                                         "the behaviour of git, an example would be automatic conversion of lineendings, " +
-                                                                         "depending on the OS used</html>",
-                                                                     "Do not ask me again");
-      if (dialogResult.isPressedOk())
+      IUserInputPrompt.PromptResult dialogResult = pUserInputPrompt.promptYesNoCheckbox("<html>No attributes set, use suggested attributes?<br><br>Gitattributes " +
+                                                                                            "can be used to customize the behaviour of git, an example would be " +
+                                                                                            "automatic conversion of lineendings, depending on the OS used</html>",
+                                                                                        "Do not ask me again");
+      if (dialogResult.isPressedOK())
       {
         _copyDefaultConfig(gitAttributesFile);
       }
-      Boolean isDoNotAskAgain = (Boolean) dialogResult.getInformation();
+      Boolean isDoNotAskAgain = Boolean.valueOf(dialogResult.getUserInput());
       if (isDoNotAskAgain)
         _addDoNotAskAgainFlag(gitAttributesFile);
     }
@@ -62,7 +61,7 @@ public class GitAttributesChecker
       List<AttributesRule> missingOrChangedAttributes = _getMissingOrChangedRules(defaultNodes, configNodes);
       if (!missingOrChangedAttributes.isEmpty())
       {
-        _handleMissingAttributes(pDialogProvider, gitAttributesFile, missingOrChangedAttributes);
+        _handleMissingAttributes(pUserInputPrompt, gitAttributesFile, missingOrChangedAttributes);
       }
     }
   }
@@ -104,14 +103,15 @@ public class GitAttributesChecker
    * @param pMissingOrChangedAttributes List with attributes that are missing or changed compared to the default gitattributes defined in the exampe_gitattributes
    * @throws IOException if the given gitattributes or the default config cannot be opened/read/written to
    */
-  private static void _handleMissingAttributes(@NotNull IDialogProvider pDialogProvider, @NotNull File pGitAttributesFile,
+  private static void _handleMissingAttributes(@NotNull IUserInputPrompt pDialogProvider, @NotNull File pGitAttributesFile,
                                                @NotNull List<AttributesRule> pMissingOrChangedAttributes) throws IOException
   {
     String missingAttributes = pMissingOrChangedAttributes.stream().map(GitAttributesChecker::_ruleAsString).collect(Collectors.joining("<br>"));
-    DialogResult dialogResult = pDialogProvider.showCheckboxPrompt("<html>Attribute file found but some default entries seem to be missing:<br><br>" + missingAttributes +
-                                                                       "<br><br>Change the file to include those rules?<br></html>",
-                                                                   "Do not ask me again");
-    if (dialogResult.isPressedOk())
+    IUserInputPrompt.PromptResult dialogResult = pDialogProvider.promptYesNoCheckbox("<html>Attribute file found but some default entries seem to be missing:<br><br>"
+                                                                                         + missingAttributes +
+                                                                                         "<br><br>Change the file to include those rules?<br></html>",
+                                                                                     "Do not ask me again");
+    if (dialogResult.isPressedOK())
     {
       String modifiedGitAttributes = _getModifiedGitAttributes(pMissingOrChangedAttributes, pGitAttributesFile);
       try (FileOutputStream outputStream = new FileOutputStream(pGitAttributesFile))
@@ -119,7 +119,7 @@ public class GitAttributesChecker
         outputStream.write(modifiedGitAttributes.getBytes());
       }
     }
-    Boolean isDoNotAskAgain = (Boolean) dialogResult.getInformation();
+    Boolean isDoNotAskAgain = Boolean.valueOf(dialogResult.getUserInput());
     if (isDoNotAskAgain)
       _addDoNotAskAgainFlag(pGitAttributesFile);
   }
