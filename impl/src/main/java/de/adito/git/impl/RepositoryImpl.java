@@ -82,7 +82,7 @@ public class RepositoryImpl implements IRepository
     {
       if (resourceAsStream != null)
         properties.load(resourceAsStream);
-      logger.log(Level.INFO, () -> String.format("Initializing Repository for Git Plugin v. %s with .git file located in %s", properties.getProperty("version"),
+      logger.log(Level.INFO, () -> String.format("Initializing Repository for Git Plugin v. %s with .git folder location %s", properties.getProperty("version"),
                                                  pRepositoryDescription.getPath() + File.separator + ".git"));
     }
     fileSystemUtil = pIFileSystemUtil;
