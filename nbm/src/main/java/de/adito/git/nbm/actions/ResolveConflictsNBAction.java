@@ -8,6 +8,8 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -45,19 +47,24 @@ public class ResolveConflictsNBAction extends NBAction
   }
 
   @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
-    File projectDir = repository.blockingFirst().map(IRepository::getTopLevelDirectory).orElse(null);
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
+  }
+
+  private boolean isEnabled(@Nullable IRepository pRepository)
+  {
+    if (pRepository == null)
+      return false;
+    File projectDir = pRepository.getTopLevelDirectory();
     if (projectDir == null)
       return false;
-    Optional<List<File>> conflictingFiles = repository.blockingFirst()
-        .map(pRepo -> pRepo.getStatus().blockingFirst()
+    List<File> conflictingFiles = pRepository.getStatus().blockingFirst()
             .map(IFileStatus::getConflicting).orElse(Collections.emptySet()).stream()
-            .map(pFilePath -> new File(projectDir, pFilePath)).collect(Collectors.toList()));
-    return conflictingFiles.map(pConflictingFiles -> pConflictingFiles.stream()
-        .anyMatch(pConflictingFile -> getAllFilesOfNodes(pActivatedNodes).stream()
-            .anyMatch(pFile -> pFile.equals(pConflictingFile)))).orElse(false);
+        .map(pFilePath -> new File(projectDir, pFilePath)).collect(Collectors.toList());
+    return conflictingFiles.stream()
+        .anyMatch(pConflictingFile -> getAllFilesOfNodes(lastActivated).stream()
+            .anyMatch(pFile -> pFile.equals(pConflictingFile)));
   }
 
   @Override

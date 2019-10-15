@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
@@ -43,14 +44,10 @@ public class PushNBAction extends NBAction
     return NbBundle.getMessage(PushNBAction.class, "ICON_PushNBAction_Path");
   }
 
-  /**
-   * @param pActivatedNodes The activated nodes in NetBeans
-   * @return return true, if there is one repository for the nodes
-   */
   @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    return getCurrentRepository(pActivatedNodes).blockingFirst().isPresent();
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(obj -> true));
   }
 
   @Override

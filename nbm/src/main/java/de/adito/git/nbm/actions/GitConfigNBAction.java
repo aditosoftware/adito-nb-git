@@ -1,12 +1,17 @@
 package de.adito.git.nbm.actions;
 
+import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
+import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
+
+import java.util.Optional;
 
 /**
  * @author m.kaspera, 07.01.2019
@@ -30,9 +35,9 @@ public class GitConfigNBAction extends NBAction
   }
 
   @Override
-  protected boolean enable(Node[] pNodes)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    return getCurrentRepository(pNodes).blockingFirst().isPresent();
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(obj -> true));
   }
 
   @Override

@@ -9,6 +9,8 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -58,30 +60,27 @@ public class CommitNBAction extends NBAction
   }
 
   @Override
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
+  {
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
+  }
+
+  @Override
   protected String iconResource()
   {
     return NbBundle.getMessage(PushNBAction.class, "ICON_CommitNBAction_Path");
   }
 
   /**
-   * @param pActivatedNodes the activated nodes in NetBeans
+   * @param pRepository the currently active repository
    * @return return true if the nodes have one repository and there are files which are not committed.
    */
-  @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  private boolean isEnabled(@Nullable IRepository pRepository)
   {
-    boolean containsUncommittedFiles = false;
-    Boolean canCommit = false;
-    if (pActivatedNodes != null)
-    {
-      Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
-      Optional<IRepository> repositoryOpt = repository.blockingFirst();
-      if (repositoryOpt.isPresent())
-      {
-        containsUncommittedFiles = !repositoryOpt.get().getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true);
-        canCommit = repositoryOpt.get().getRepositoryState().blockingFirst().map(IRepositoryState::canCommit).orElse(false);
-      }
-    }
+    if (pRepository == null)
+      return false;
+    boolean containsUncommittedFiles = !pRepository.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true);
+    Boolean canCommit = pRepository.getRepositoryState().blockingFirst().map(IRepositoryState::canCommit).orElse(false);
     _updateTooltip(canCommit, containsUncommittedFiles);
     return canCommit && containsUncommittedFiles;
   }

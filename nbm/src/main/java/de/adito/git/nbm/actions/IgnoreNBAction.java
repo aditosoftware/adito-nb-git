@@ -10,6 +10,8 @@ import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -53,19 +55,18 @@ public class IgnoreNBAction extends NBAction
     actionProvider.getIgnoreAction(repository, filesToIgnore).actionPerformed(null);
   }
 
-  /**
-   * @param pActivatedNodes the activated nodes in NetBeans
-   * @return true if the can be ignored (no synthetic files) and the files are uncommitted, else false
-   */
   @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
-    IRepository currentRepo = repository.blockingFirst().orElse(null);
-    if (currentRepo == null)
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
+  }
+
+  protected boolean isEnabled(@Nullable IRepository pRepository)
+  {
+    if (pRepository == null)
       return false;
-    return _getUntrackedFiles(currentRepo).stream()
-        .anyMatch(untrackedFile -> getAllFilesOfNodes(pActivatedNodes)
+    return _getUntrackedFiles(pRepository).stream()
+        .anyMatch(untrackedFile -> getAllFilesOfNodes(lastActivated)
             .stream()
             .anyMatch(selectedFile -> selectedFile.toURI()
                 .equals(untrackedFile.getFile().toURI())));

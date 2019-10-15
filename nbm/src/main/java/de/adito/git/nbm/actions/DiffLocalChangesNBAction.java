@@ -13,9 +13,7 @@ import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Action for the toolbar/rightClick menu that allows the user to quickly diff the currently opened file
@@ -37,24 +35,25 @@ public class DiffLocalChangesNBAction extends NBAction
     {
       Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
       IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
-      IFileChangeType changeType = _getIFileChangeType(pActivatedNodes, repository);
-      if (changeType != null)
-        actionProvider.getDiffToHeadAction(repository, Observable.just(Optional.of(List.of(changeType)))).actionPerformed(null);
+      List<IFileChangeType> changeTypes = _getIFileChangeType(pActivatedNodes, repository);
+      if (!changeTypes.isEmpty())
+        actionProvider.getDiffToHeadAction(repository, Observable.just(Optional.of(changeTypes))).actionPerformed(null);
     }
   }
 
   @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    if (pActivatedNodes != null && pActivatedNodes.length == 1)
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
+  }
+
+  private boolean isEnabled(@Nullable IRepository pRepository)
+  {
+    if (pRepository != null)
     {
-      Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
-      if (repository.blockingFirst().isPresent())
-      {
-        IFileChangeType changeType = _getIFileChangeType(pActivatedNodes, repository);
-        return changeType != null && changeType.getChangeType() != EChangeType.SAME;
+      List<IFileChangeType> changeType = _getIFileChangeType(lastActivated, Observable.just(Optional.of(pRepository)));
+      return !changeType.isEmpty() && changeType.stream().anyMatch(pFile -> pFile.getChangeType() != EChangeType.SAME);
       }
-    }
     return false;
   }
 
@@ -78,17 +77,21 @@ public class DiffLocalChangesNBAction extends NBAction
    * @param pRepository     observable with the repository containing the files from the selected nodes
    * @return IFileChangeType of the file in the selected node, or null if no or more than one node are selected
    */
-  @Nullable
-  private static IFileChangeType _getIFileChangeType(Node[] pActivatedNodes, Observable<Optional<IRepository>> pRepository)
+  @NotNull
+  private static List<IFileChangeType> _getIFileChangeType(Node[] pActivatedNodes, Observable<Optional<IRepository>> pRepository)
   {
     List<File> filesOfNodes = getAllFilesOfNodes(pActivatedNodes);
+    List<IFileChangeType> changeTypes = new ArrayList<>();
     if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory())
     {
-      List<File> aodFiles = _getFilesOfType(filesOfNodes.get(0), ".aod");
-      if (aodFiles.size() == 1)
-        return pRepository.blockingFirst().map(pRepo -> pRepo.getStatusOfSingleFile(aodFiles.get(0))).orElse(null);
+      for (File filesOfNode : _getFilesOfType(filesOfNodes.get(0), ""))
+      {
+        IFileChangeType changeType = pRepository.blockingFirst().map(pRepo -> pRepo.getStatusOfSingleFile(filesOfNode)).orElse(null);
+        if (changeType != null && changeType.getChangeType() != EChangeType.SAME)
+          changeTypes.add(changeType);
+      }
     }
-    return null;
+    return changeTypes;
   }
 
   /**

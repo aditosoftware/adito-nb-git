@@ -26,6 +26,12 @@ import java.util.stream.Collectors;
 abstract class NBAction extends NodeAction
 {
 
+  private static Observable<Optional<IRepository>> repositoryObservable = RepositoryUtility.getRepositoryObservable();
+  private Observable<Optional<Boolean>> isEnabledObservable = null;
+  // for caching the nodes that are passed when enabled is called by netbeans, these are usually more up-to-date than the ones retrieved by
+  // TopComponent.getRegistry.getXXX()
+  Node[] lastActivated = new Node[0];
+
   @NotNull
   static Optional<List<IFileChangeType>> getUncommittedFilesOfNodes(@NotNull Node[] pActivatedNodes,
                                                                     @NotNull Observable<Optional<IRepository>> pRepository)
@@ -84,14 +90,29 @@ abstract class NBAction extends NodeAction
   @NotNull
   static Observable<Optional<IRepository>> getCurrentRepository(@NotNull Node[] pActivatedNodes)
   {
-    return Observable.just(RepositoryUtility.getRepositoryObservable().blockingFirst(Optional.empty()));
+    return Observable.just(repositoryObservable.blockingFirst(Optional.empty()));
   }
 
   @Override
   protected abstract void performAction(Node[] pNodes);
 
   @Override
-  protected abstract boolean enable(Node[] pNodes);
+  protected boolean enable(Node[] pNodes)
+  {
+    lastActivated = pNodes;
+    if (isEnabledObservable == null)
+    {
+      isEnabledObservable = getIsEnabledObservable(repositoryObservable);
+      isEnabledObservable.subscribe(pOptBoolean -> setEnabled(pOptBoolean.orElse(Boolean.FALSE)));
+    }
+    return isEnabledObservable.blockingFirst().orElse(Boolean.FALSE);
+  }
+
+  /**
+   * @param pRepositoryObservable Observable with the currently selected Repository
+   * @return Observable that tells if the Action should be enabled or disabled (enabled = true)
+   */
+  protected abstract Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable);
 
   @Override
   public abstract String getName();

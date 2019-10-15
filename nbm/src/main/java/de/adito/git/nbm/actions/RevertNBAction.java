@@ -7,6 +7,8 @@ import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -49,9 +51,15 @@ public class RevertNBAction extends NBAction
   }
 
   @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    return !getUncommittedFilesOfNodes(pActivatedNodes, getCurrentRepository(pActivatedNodes)).orElse(Collections.emptyList()).isEmpty();
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
+  }
+
+  private boolean isEnabled(@Nullable IRepository pRepository)
+  {
+    Node[] activatedNodes = lastActivated;
+    return !getUncommittedFilesOfNodes(activatedNodes, getCurrentRepository(activatedNodes)).orElse(Collections.emptyList()).isEmpty();
   }
 
   @Override

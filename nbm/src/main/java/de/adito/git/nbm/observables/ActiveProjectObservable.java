@@ -1,12 +1,10 @@
 package de.adito.git.nbm.observables;
 
-import de.adito.git.nbm.util.ProjectUtility;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
-import org.openide.nodes.Node;
 import org.openide.windows.TopComponent;
 
 import java.beans.PropertyChangeListener;
@@ -61,18 +59,6 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
   @NotNull
   private static Optional<Project> _findProjectFromActives(TopComponent.Registry pTopComponentRegistry)
   {
-    Node[] activatedNodes = pTopComponentRegistry.getActivatedNodes();
-    if (activatedNodes != null)
-    {
-      for (Node node : activatedNodes)
-      {
-        Project currProject = ProjectUtility.findProject(node);
-        if (currProject != null)
-        {
-          return Optional.of(currProject);
-        }
-      }
-    }
     TopComponent activatedTopComponent = pTopComponentRegistry.getActivated();
     return Optional.ofNullable(activatedTopComponent == null ? null : activatedTopComponent.getLookup().lookup(Project.class));
   }

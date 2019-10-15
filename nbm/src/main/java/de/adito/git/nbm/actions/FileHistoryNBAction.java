@@ -4,6 +4,8 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -37,11 +39,17 @@ public class FileHistoryNBAction extends NBAction
   }
 
   @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
-    List<File> filesOfNodes = getAllFilesOfNodes(pActivatedNodes);
-    return filesOfNodes.size() == 1 && repository.blockingFirst().map(pRepo -> !pRepo.getTopLevelDirectory().equals(filesOfNodes.get(0))).orElse(false);
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
+  }
+
+  private boolean isEnabled(@Nullable IRepository pRepository)
+  {
+    if (pRepository == null)
+      return false;
+    List<File> filesOfNodes = getAllFilesOfNodes(lastActivated);
+    return filesOfNodes.size() == 1 && pRepository.getTopLevelDirectory().equals(filesOfNodes.get(0));
   }
 
   @Override
