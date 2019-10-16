@@ -6,11 +6,15 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.gui.guice.IRepositoryFactory;
 import io.reactivex.Observable;
-import io.reactivex.subjects.*;
-import org.jetbrains.annotations.*;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.filesystems.FileObject;
 
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Gets the Repository object injected and forms the central place to get it from
@@ -22,6 +26,7 @@ public class RepositoryProvider implements IRepositoryProvider
   private final Subject<Optional<IRepository>> git;
   private final IRepositoryFactory gitFactory;
   private final FileObject repositoryFolder;
+  private final Logger logger = Logger.getLogger(RepositoryProvider.class.getName());
 
   @Inject
   RepositoryProvider(IRepositoryFactory pGitFactory, @Assisted FileObject pRepositoryFolder)
@@ -37,6 +42,7 @@ public class RepositoryProvider implements IRepositoryProvider
   @Override
   public Observable<Optional<IRepository>> getRepositoryImpl()
   {
+    logger.log(Level.FINE, () -> String.format("git: retrieving git object for repository in folder %s", repositoryFolder));
     return git.distinctUntilChanged();
   }
 
