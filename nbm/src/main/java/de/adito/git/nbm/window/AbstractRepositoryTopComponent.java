@@ -1,14 +1,18 @@
 package de.adito.git.nbm.window;
 
-import de.adito.git.api.*;
+import de.adito.git.api.IDiscardable;
+import de.adito.git.api.IRepository;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
+import org.netbeans.api.project.Project;
 import org.openide.util.NbBundle;
+import org.openide.util.lookup.Lookups;
 import org.openide.windows.TopComponent;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * An abstract class to show the topComponents in NetBeans
@@ -26,6 +30,8 @@ abstract class AbstractRepositoryTopComponent extends TopComponent
    */
   AbstractRepositoryTopComponent(@NotNull Observable<Optional<IRepository>> pRepository)
   {
+    // Should always work, because the topcomponent that was last active/is still active should have the project on which this component will be based on
+    super(Lookups.fixed(TopComponent.getRegistry().getActivated().getLookup().lookup(Project.class)));
     //Set the displayname in the TopComponent of NetBeans.
     displayNameDisposable = pRepository
         .switchMap(pRepoOpt -> pRepoOpt
