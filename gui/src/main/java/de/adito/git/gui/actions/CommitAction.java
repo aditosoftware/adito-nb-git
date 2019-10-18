@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
-import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.prefs.IPrefStore;
@@ -15,7 +14,6 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
-import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -65,8 +63,6 @@ class CommitAction extends AbstractTableAction
     saveUtil.saveUnsavedFiles();
     Optional<IRepository> currentRepoOpt = repository.blockingFirst();
     String prefStoreInstanceKey = COMMIT_MESSAGE_BASE_STORAGE_KEY + currentRepoOpt.map(pRepo -> pRepo.getTopLevelDirectory().getAbsolutePath()).orElse("");
-    if (!currentRepoOpt.map(this::_coverAutoCRLF).orElse(true))
-      return;
     Observable<Optional<IRepository>> repo = Observable.just(currentRepoOpt);
     if (messageTemplate == null || messageTemplate.isEmpty())
     {
@@ -89,22 +85,6 @@ class CommitAction extends AbstractTableAction
     {
       prefStore.put(prefStoreInstanceKey, dialogResult.getMessage());
     }
-  }
-
-  private boolean _coverAutoCRLF(@NotNull IRepository pRepository)
-  {
-    if (SystemUtils.IS_OS_WINDOWS && pRepository.getConfig().getAutoCRLF() == IConfig.AUTO_CRLF.FALSE)
-    {
-      DialogResult<?, Boolean> dialogResult = dialogProvider
-          .showCheckboxPrompt("Your AUTO_CRLF setting is set to FALSE, it is however advised to have it set to TRUE or at least INPUT in order to avoid " +
-                                  "introduction of CRLFs into the remote repository.\n Press OK to continue nevertheless", "Set AUTO_CRLF to true for me");
-      if (dialogResult.getInformation() && dialogResult.isPressedOk())
-      {
-        pRepository.getConfig().setAutoCRLF(IConfig.AUTO_CRLF.TRUE);
-      }
-      return dialogResult.isPressedOk();
-    }
-    return true;
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepository,
