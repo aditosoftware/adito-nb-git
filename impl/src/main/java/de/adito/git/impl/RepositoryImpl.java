@@ -1104,6 +1104,12 @@ public class RepositoryImpl implements IRepository
     {
       throw new AditoGitException("Unable to checkout remote Branch " + pBranch.getName(), e);
     }
+
+    Optional<IRepositoryState> repositoryState = RepositoryImplHelper.currentState(git, this::getBranch);
+    // JGit tried to check out a tag - again. *sigh*
+    // check out the created local branch that should have been checked out
+    if (repositoryState.isPresent() && repositoryState.get().getCurrentBranch().getType() == EBranchType.DETACHED)
+      checkout("refs/heads/" + pLocalName);
   }
 
   /**
