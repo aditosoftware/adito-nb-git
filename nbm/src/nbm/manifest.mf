@@ -6,6 +6,24 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.3</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+    <ul>
+      <li>The plugin now offers functionality for creating and applying patches</li>
+      <li>The plugin warns the user if no gitattributes file exists or the gitattributes file has basic settings missing. A valid gitattributes file can be created by the plugin</li>
+    </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+    <ul>
+      <li>Changed the way the buttons in the main toolbar decide if they are active or not, now matches the way the branches in the lower right corner work</li>
+      <li>The Plugin uses a more robust way to determine the project of the selected Node or TopComponent and has a fallback if that way fails</li>
+      <li>The Branch selection Combobox in the log now displays the short name of the Branches, the short name is enough for the user and is easier to read</li>
+      <li>Error messages are displayed more prominently once again</li>
+    </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+    <ul>
+      <li>Fix: Toolbar in the "Local changes" window is missing</li>
+      <li>Fix: Checking out a remote branch that has the same name as a tag could leave you in a detached HEAD state</li>
+    </ul>
   <p style="font-weight: bold;">v.1.3.2</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
