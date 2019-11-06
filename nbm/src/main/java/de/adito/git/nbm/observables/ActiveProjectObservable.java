@@ -65,7 +65,13 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
     if (activatedTopComponent == null)
       return Optional.empty();
     Project project = activatedTopComponent.getLookup().lookup(Project.class);
-    return Optional.ofNullable(project == null ? ProjectUtility.findProject(pTopComponentRegistry.getActivated().getLookup().lookup(Node.class)) : project);
+    if (project == null)
+    {
+      Node foundNode = activatedTopComponent.getLookup().lookup(Node.class);
+      if (foundNode != null)
+        project = ProjectUtility.findProject(foundNode);
+    }
+    return Optional.ofNullable(project);
   }
 
   @Override
