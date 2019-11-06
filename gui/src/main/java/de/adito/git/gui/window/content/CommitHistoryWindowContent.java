@@ -12,6 +12,7 @@ import de.adito.git.gui.menu.IMenuProvider;
 import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
+import de.adito.git.gui.swing.SimpleBranchNameListCellRenderer;
 import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import de.adito.git.impl.data.CommitFilterImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
@@ -98,6 +99,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     loadMoreCallback = pLoadMoreCallback;
     if (pStartFilter.getAuthor() != null) authorField.setText(pStartFilter.getAuthor());
     if (!pStartFilter.getFiles().isEmpty()) chosenFiles.addAll(pStartFilter.getFiles());
+    branchSelectionBox.setRenderer(new SimpleBranchNameListCellRenderer());
     commitTableModel = (CommitHistoryTreeListTableModel) pTableModel;
     commitTable = new _SearchableCommitTable(commitTableModel, commitTableView);
     commitTable.removeColumn(commitTable.getColumn(CommitHistoryTreeListTableModel.COMMIT_ID_COL_NAME));
