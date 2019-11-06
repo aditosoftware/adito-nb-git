@@ -80,13 +80,12 @@ class DiffCommitsAction extends AbstractTableAction
         else
           parentCommit = oldestSelectedCommit.getParents().get(0);
         fileDiffs = pRepo.diff(selectedCommit, parentCommitObservable.blockingFirst().orElse(parentCommit));
+        dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, selectedFile.blockingFirst().orElse(null), false, false);
       }
       catch (AditoGitException pE)
       {
-        notifyUtil.notify("Diff failed", "An error occurred while creating the diff, consult the IDE log for further details", false);
-        throw new RuntimeException(pE);
+        notifyUtil.notify(pE, "An error occurred while creating the diff. ", false);
       }
-      dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, selectedFile.blockingFirst().orElse(null), false, false);
     }
   }
 

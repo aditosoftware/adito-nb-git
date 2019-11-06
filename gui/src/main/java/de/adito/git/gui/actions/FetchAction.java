@@ -55,12 +55,11 @@ class FetchAction extends AbstractTableAction
       Throwable rootCause = Util.getRootCause(pE);
       if (rootCause != null && rootCause.getMessage().startsWith("invalid privatekey"))
       {
-        notifyUtil.notify("Invalid privatekey", "Privatekey is invalid, check if it really is a ssh key", false);
+        notifyUtil.notify(pE, "Privatekey is invalid, check if it really is a ssh key. ", false);
       }
       else
       {
-        notifyUtil.notify("Fetch failed", "An error occurred while performing the fetch, consult the IDE log for further details", false);
-        throw new RuntimeException(pE);
+        notifyUtil.notify(pE, "An error occurred while performing the fetch. ", false);
       }
     }
   }

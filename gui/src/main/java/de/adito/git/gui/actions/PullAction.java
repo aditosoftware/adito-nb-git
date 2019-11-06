@@ -128,12 +128,11 @@ class PullAction extends AbstractAction
     }
     catch (MissingTrackedBranchException pE)
     {
-      notifyUtil.notify("Pull failed", pE.getMessage(), false);
+      notifyUtil.notify(pE, "Pull failed.", false);
     }
     catch (Exception e)
     {
-      notifyUtil.notify("Pull failed due to an exception", "See the IDE log for further details", false);
-      throw new RuntimeException(e);
+      notifyUtil.notify(e, "Pull failed due to an exception.", false);
     }
     finally
     {
@@ -179,8 +178,8 @@ class PullAction extends AbstractAction
     if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
     {
       String errorMessage = "The abort of the rebase failed with state: " + abortedRebaseResult.getResultType();
-      notifyUtil.notify("Abort of the rebase failed", errorMessage, false);
-      throw new RuntimeException(errorMessage);
+      RuntimeException pE = new RuntimeException(errorMessage);
+      notifyUtil.notify(pE, errorMessage + ". ", false);
     }
     // abort was successful -> notify user
     notifyUtil.notify("Aborted rebase", "Rebase abort was successful, all local content restored to state before rebase", true);

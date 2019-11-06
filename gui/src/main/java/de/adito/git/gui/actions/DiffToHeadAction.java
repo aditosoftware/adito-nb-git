@@ -93,8 +93,7 @@ class DiffToHeadAction extends AbstractTableAction
     }
     catch (IOException pE)
     {
-      notifyUtil.notify("Diff failed", "An error occurred while creating the diff, consult the IDE log for further details", false);
-      throw new RuntimeException(pE);
+      notifyUtil.notify(pE, "An error occurred while creating the diff. ", false);
     }
   }
 

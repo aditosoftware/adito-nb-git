@@ -49,22 +49,32 @@ class UnStashChangesAction extends AbstractAction
                                                                                                repo.getStashedCommits());
         if (dialogResult.isPressedOk())
         {
-          progressFacade.executeInBackground("unStashing changes", pHandle -> {
-            List<IMergeDiff> stashConflicts = repo.unStashChanges(dialogResult.getInformation());
-            if (!stashConflicts.isEmpty())
-            {
-              DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repo)), stashConflicts, false);
-              if (conflictResult.isPressedOk())
-                dialogProvider.showCommitDialog(Observable.just(Optional.of(repo)), Observable.just(Optional.of(List.of())), "");
-            }
-          });
+          _executeUnstash(repo, dialogResult);
         }
       }
       catch (AditoGitException pE)
       {
-        notifyUtil.notify("Unstash failed", "An error occurred while trying to unstash, consult the IDE log for further details", false);
-        throw new RuntimeException(pE);
+        notifyUtil.notify(pE, "An error occurred while trying to unstash. ", false);
       }
     }
+  }
+
+  /**
+   * perform the actual unstash
+   *
+   * @param pRepo         Repository that is affected by the unstash
+   * @param pDialogResult DialogResult with the information the user entered when asked which stashed commit to unstash
+   */
+  private void _executeUnstash(IRepository pRepo, DialogResult<?, String> pDialogResult)
+  {
+    progressFacade.executeInBackground("unStashing changes", pHandle -> {
+      List<IMergeDiff> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
+      if (!stashConflicts.isEmpty())
+      {
+        DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), stashConflicts, false);
+        if (conflictResult.isPressedOk())
+          dialogProvider.showCommitDialog(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(List.of())), "");
+      }
+    });
   }
 }

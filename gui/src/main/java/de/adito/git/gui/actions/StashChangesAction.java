@@ -52,8 +52,7 @@ class StashChangesAction extends AbstractAction
           }
           catch (AditoGitException pE)
           {
-            notifyUtil.notify("Error during stash", "An error occurred during the stash process, see the IDE log for further details", false);
-            throw new RuntimeException(pE);
+            notifyUtil.notify(pE, "An error occurred during the stash process. ", false);
           }
         });
       }

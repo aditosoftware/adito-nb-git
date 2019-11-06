@@ -151,8 +151,7 @@ class CherryPickAction extends AbstractTableAction
     }
     catch (AditoGitException pE)
     {
-      notifyUtil.notify("Cherry Pick failed", "Error during Cherry Pick, consult the IDE log for further details", false);
-      throw new RuntimeException(pE);
+      notifyUtil.notify(pE, "Error during Cherry Pick. ", false);
     }
   }
 
