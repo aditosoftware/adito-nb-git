@@ -15,6 +15,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
+import java.util.Optional;
 
 /**
  * Wrapper around a DiffPane, similar to DiffPaneWrapper. Made so that both use a DiffPane for displaying the LineNumPanels/ChoiceButtonPanels
@@ -36,12 +37,12 @@ public class ForkPointPaneWrapper implements IDiscardable
    * @param pMergeDiff           MergeDiff that has all the information about the conflict that should be displayed/resolvable
    * @param pEditorKitObservable Observable of the editorKit that should be used in the editorPane
    */
-  public ForkPointPaneWrapper(IMergeDiff pMergeDiff, Observable<EditorKit> pEditorKitObservable)
+  public ForkPointPaneWrapper(IMergeDiff pMergeDiff, Observable<Optional<EditorKit>> pEditorKitObservable)
   {
     mergeDiff = pMergeDiff;
     editorPane = new JEditorPane();
     editorPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-    editorKitDisposable = pEditorKitObservable.subscribe(this::_setEditorKit);
+    editorKitDisposable = pEditorKitObservable.subscribe(pOptEditorKit -> pOptEditorKit.ifPresent(this::_setEditorKit));
     diffPane = new DiffPane(editorPane);
     mergeDiffDisposable = Observable.zip(
         mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),

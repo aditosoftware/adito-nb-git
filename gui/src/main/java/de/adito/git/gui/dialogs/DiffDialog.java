@@ -95,11 +95,11 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     // pSelectedRows[0] because with SINGLE_SELECTION only one row can be selected
     Observable<Optional<IFileDiff>> fileDiffObservable = fileTree.getSelectionObservable()
         .map(pSelectedPaths -> pSelectedPaths.map(pChangeTypes -> pChangeTypes.isEmpty() ? null : (IFileDiff) pChangeTypes.get(0)));
-    Observable<EditorKit> editorKitObservable = fileDiffObservable
-        .map(pFileDiff -> pFileDiff
+    Observable<Optional<EditorKit>> editorKitObservable = fileDiffObservable
+        .map(pFileDiff -> Optional.of(pFileDiff
             .map(pFDiff -> pFDiff.getFileHeader().getAbsoluteFilePath())
             .map(editorKitProvider::getEditorKit)
-            .orElseGet(() -> editorKitProvider.getEditorKitForContentType("text/plain")));
+                                          .orElseGet(() -> editorKitProvider.getEditorKitForContentType("text/plain"))));
 
     diffPanel = new DiffPanel(pIconLoader, fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
 

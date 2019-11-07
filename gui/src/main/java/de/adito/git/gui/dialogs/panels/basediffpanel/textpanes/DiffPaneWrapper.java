@@ -19,6 +19,7 @@ import javax.swing.text.SimpleAttributeSet;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 /**
  * Wrapper around a DiffPane, similar to ForkPointPaneWrapper. Made so that both use a DiffPane for displaying the LineNumPanels/ChoiceButtonPanels
@@ -48,7 +49,7 @@ public class DiffPaneWrapper implements IDiscardable
   /**
    * @param pModel DiffPanelModel that defines what is done when inserting text/how the LineNumbers are retrieved
    */
-  public DiffPaneWrapper(DiffPanelModel pModel, Observable<EditorKit> pEditorKitObservable)
+  public DiffPaneWrapper(DiffPanelModel pModel, Observable<Optional<EditorKit>> pEditorKitObservable)
   {
     model = pModel;
     editorPane = new JEditorPane();
@@ -80,7 +81,8 @@ public class DiffPaneWrapper implements IDiscardable
             _textChanged(pFileChangesEvent);
           }
         });
-    editorKitDisposable = pEditorKitObservable.subscribe(pEditorKit -> SwingUtilities.invokeLater(() -> _setEditorKit(pEditorKit)));
+    editorKitDisposable = pEditorKitObservable.subscribe(pOptEditorKit
+                                                             -> pOptEditorKit.ifPresent(pEditorKit -> SwingUtilities.invokeLater(() -> _setEditorKit(pEditorKit))));
     MarkedScrollbar markedScrollbar = new MarkedScrollbar();
     getScrollPane().setVerticalScrollBar(markedScrollbar);
     scrollbarMarkingsModel = new ScrollbarMarkingsModel(pModel, editorPane, markedScrollbar);

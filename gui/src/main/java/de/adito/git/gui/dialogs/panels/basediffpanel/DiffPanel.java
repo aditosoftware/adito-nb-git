@@ -40,7 +40,7 @@ public class DiffPanel extends JPanel implements IDiscardable
    * @param pEditorKitObservable EditorKitObservable that holds the editorKit for the current IFileDiff
    */
   public DiffPanel(IIconLoader pIconLoader, @NotNull Observable<Optional<IFileDiff>> pFileDiffObs,
-                   @Nullable ImageIcon pAcceptIcon, Observable<EditorKit> pEditorKitObservable)
+                   @Nullable ImageIcon pAcceptIcon, Observable<Optional<EditorKit>> pEditorKitObservable)
   {
     Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
         .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
