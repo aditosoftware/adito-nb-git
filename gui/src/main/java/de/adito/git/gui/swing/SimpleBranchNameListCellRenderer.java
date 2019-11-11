@@ -17,6 +17,9 @@ public class SimpleBranchNameListCellRenderer implements ListCellRenderer<IBranc
   @Override
   public Component getListCellRendererComponent(JList<? extends IBranch> list, IBranch value, int index, boolean isSelected, boolean cellHasFocus)
   {
-    return defaultListCellRenderer.getListCellRendererComponent(list, value.getSimpleName(), index, isSelected, cellHasFocus);
+    String valueString = "No Data";
+    if (value != null)
+      valueString = value.getSimpleName();
+    return defaultListCellRenderer.getListCellRendererComponent(list, valueString, index, isSelected, cellHasFocus);
   }
 }
