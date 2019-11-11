@@ -6,6 +6,7 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
+import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -93,8 +94,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   private void _initGui()
   {
-    setLayout(new BorderLayout(5, 0));
-    setMinimumSize(new Dimension(1200, 1));
+    setLayout(new BorderLayout(5, 10));
+    setPreferredSize(new Dimension(800, 600));
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
     manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable));
@@ -103,6 +104,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
+    buttonPanel.setPreferredSize(new Dimension(120, 60));
     buttonPanel.add(manualMergeButton);
     buttonPanel.add(Box.createVerticalStrut(10));
     buttonPanel.add(acceptYoursButton);
@@ -110,6 +112,11 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     buttonPanel.add(acceptTheirsButton);
     add(buttonPanel, BorderLayout.EAST);
     mergeConflictTable.setModel(mergeDiffStatusModel);
+    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filename")).setPreferredWidth(230);
+    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filepath")).setPreferredWidth(230);
+    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Your Changes")).setPreferredWidth(120);
+    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Their Changes")).setPreferredWidth(120);
+    mergeConflictTable.setDefaultRenderer(Object.class, new MergeDiffTableCellRenderer());
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
     add(mergeConflictTableScrollPane, BorderLayout.CENTER);
   }

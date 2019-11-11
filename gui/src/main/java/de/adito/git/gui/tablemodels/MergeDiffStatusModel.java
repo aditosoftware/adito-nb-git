@@ -15,6 +15,7 @@ import java.util.List;
 public class MergeDiffStatusModel extends AbstractTableModel implements IDiscardable
 {
 
+  private static final List<String> COLUMN_NAMES = List.of("Filename", "Filepath", "Your Changes", "Their Changes");
   private List<IMergeDiff> mergeDiffs = new ArrayList<>();
   private final Disposable disposable;
 
@@ -32,10 +33,10 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   public String getColumnName(int pColumn)
   {
     String columnName;
-    if (pColumn == 0)
-      columnName = "fileName";
-    else if (pColumn == 1)
-      columnName = "filePath";
+    if (pColumn < COLUMN_NAMES.size())
+    {
+      return COLUMN_NAMES.get(pColumn);
+    }
     else
       columnName = super.getColumnName(pColumn);
     return columnName;
@@ -50,22 +51,30 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   @Override
   public int getColumnCount()
   {
-    return 2;
+    return COLUMN_NAMES.size();
+  }
+
+  @Override
+  public int findColumn(String pColumnName)
+  {
+    for (int index = 0; index < COLUMN_NAMES.size(); index++)
+    {
+      if (pColumnName.equals(COLUMN_NAMES.get(index)))
+        return index;
+    }
+    return -1;
+  }
+
+  @Override
+  public Class<?> getColumnClass(int columnIndex)
+  {
+    return IMergeDiff.class;
   }
 
   @Override
   public Object getValueAt(int pRowIndex, int pColumnIndex)
   {
-    String path = mergeDiffs.get(pRowIndex).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath();
-    if (pColumnIndex == 0)
-    {
-      String[] pathFolders = path.split("/");
-      return pathFolders[pathFolders.length - 1];
-    }
-    else
-    {
-      return path;
-    }
+    return mergeDiffs.get(pRowIndex);
   }
 
   @Override
