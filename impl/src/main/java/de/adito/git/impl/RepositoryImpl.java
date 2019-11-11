@@ -129,7 +129,7 @@ public class RepositoryImpl implements IRepository
       // .gitattributes in the top folder
       StoredConfig config = git.getRepository().getConfig();
       String attributesFileLoc = config.getString("core", null, "attributesfile");
-      if (attributesFileLoc == null)
+      if (attributesFileLoc == null || !Files.exists(Paths.get(attributesFileLoc)))
       {
         config.setString("core", null, "attributesfile", new File(getTopLevelDirectory(), ".gitattributes").getAbsolutePath());
         config.save();
