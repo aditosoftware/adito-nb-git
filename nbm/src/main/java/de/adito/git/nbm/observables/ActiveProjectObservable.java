@@ -5,11 +5,13 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.openide.nodes.Node;
 import org.openide.windows.TopComponent;
 
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -67,11 +69,43 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
     Project project = activatedTopComponent.getLookup().lookup(Project.class);
     if (project == null)
     {
-      Node foundNode = activatedTopComponent.getLookup().lookup(Node.class);
-      if (foundNode != null)
-        project = ProjectUtility.findProject(foundNode);
+      project = _getProjectFromActiveNodes(pTopComponentRegistry);
+    }
+    if (project == null)
+    {
+      project = _getProjectFromTopComponentNodes(activatedTopComponent);
     }
     return Optional.ofNullable(project);
+  }
+
+  /**
+   * tries to find a project in the nodes from the active TopComponent
+   *
+   * @param pActivatedTopComponent Netbeans TopComponentRegistry
+   * @return Project if any was found, null otherwise
+   */
+  @Nullable
+  private static Project _getProjectFromTopComponentNodes(TopComponent pActivatedTopComponent)
+  {
+    Node foundNode = pActivatedTopComponent.getLookup().lookup(Node.class);
+    if (foundNode != null)
+      return ProjectUtility.findProject(foundNode);
+    return null;
+  }
+
+  /**
+   * tries to find a project in the activated nodes from the topComponentRegistry
+   *
+   * @param pTopComponentRegistry Netbeans TopComponentRegistry
+   * @return Project if any was found, null otherwise
+   */
+  @Nullable
+  private static Project _getProjectFromActiveNodes(TopComponent.Registry pTopComponentRegistry)
+  {
+    Optional<Project> projectFromActiveNodes = Arrays.stream(pTopComponentRegistry.getActivatedNodes())
+        .map(pActiveNode -> pActiveNode.getLookup().lookup(Project.class))
+        .findFirst();
+    return projectFromActiveNodes.orElse(null);
   }
 
   @Override
