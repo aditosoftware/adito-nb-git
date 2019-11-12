@@ -12,6 +12,7 @@ import org.openide.windows.TopComponent;
 
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -107,6 +108,7 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
   {
     Optional<Project> projectFromActiveNodes = Arrays.stream(pTopComponentRegistry.getActivatedNodes())
         .map(pActiveNode -> pActiveNode.getLookup().lookup(Project.class))
+        .filter(Objects::nonNull)
         .findFirst();
     return projectFromActiveNodes.orElse(null);
   }
