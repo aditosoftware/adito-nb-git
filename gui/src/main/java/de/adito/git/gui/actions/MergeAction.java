@@ -2,10 +2,12 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.exception.AlreadyUpToDateAditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
@@ -26,6 +28,7 @@ class MergeAction extends AbstractTableAction
 
   private static final String STASH_ID_KEY = "merge::stashCommitId";
   private final ISaveUtil saveUtil;
+  private final INotifyUtil notifyUtil;
   private final Observable<Optional<IRepository>> repositoryObservable;
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade progressFacade;
@@ -33,7 +36,7 @@ class MergeAction extends AbstractTableAction
   private Observable<Optional<IBranch>> targetBranch;
 
   @Inject
-  MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil,
+  MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil, INotifyUtil pNotifyUtil,
               @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pTargetBranch)
   {
     super("Merge into Current", _getIsEnabledObservable(pTargetBranch));
@@ -41,6 +44,7 @@ class MergeAction extends AbstractTableAction
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
     saveUtil = pSaveUtil;
+    notifyUtil = pNotifyUtil;
     repositoryObservable = pRepository;
     targetBranch = pTargetBranch;
   }
@@ -88,6 +92,10 @@ class MergeAction extends AbstractTableAction
       repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
                             + repository.getRepositoryState().blockingFirst().map(pState -> pState.getCurrentBranch().getSimpleName())
           .orElse("current Branch"));
+    }
+    catch (AlreadyUpToDateAditoGitException pE)
+    {
+      notifyUtil.notify("Already up-to-date", "Branches are already up-to-date/merged", false);
     }
     finally
     {
