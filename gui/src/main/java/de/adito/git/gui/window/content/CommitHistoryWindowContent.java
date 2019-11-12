@@ -294,9 +294,9 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitListPopupMenu.add(deleteTagsMenu);
     commitListPopupMenu.addSeparator();
     commitListPopupMenu.add(checkoutCommitAction);
-    commitListPopupMenu.add(resetAction);
     commitListPopupMenu.add(cherryPickAction);
     commitListPopupMenu.add(newBranchAction);
+    commitListPopupMenu.addSeparator();
     commitListPopupMenu.add(resetAction);
     commitListPopupMenu.add(revertCommitsAction);
     commitTable.addMouseListener(new PopupMouseListener(commitListPopupMenu));
