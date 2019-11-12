@@ -35,9 +35,12 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
   {
     if (observableRef == null)
     {
-      observableRef = Observable.create(new ActiveProjectObservable())
-          .startWith(_findProjectFromActives(TopComponent.getRegistry()))
+      Observable<Optional<Project>> activeProjectObs = Observable.create(new ActiveProjectObservable())
           .distinctUntilChanged()
+          .filter(Optional::isPresent)
+          .startWith(_findProjectFromActives(TopComponent.getRegistry()));
+      observableRef = Observable.combineLatest(activeProjectObs, OpenProjectsObservable.create(),
+                                               (pOptionalProject, pProjects) -> pOptionalProject.map(pProject -> pProjects.contains(pProject) ? pProject : null))
           .replay(1)
           .autoConnect(0, DISPOSABLES::add);
     }

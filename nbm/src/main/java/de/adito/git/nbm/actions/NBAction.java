@@ -13,6 +13,7 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.actions.NodeAction;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -103,7 +104,7 @@ abstract class NBAction extends NodeAction
     if (isEnabledObservable == null)
     {
       isEnabledObservable = getIsEnabledObservable(repositoryObservable);
-      isEnabledObservable.subscribe(pOptBoolean -> setEnabled(pOptBoolean.orElse(Boolean.FALSE)));
+      isEnabledObservable.subscribe(pOptBoolean -> SwingUtilities.invokeLater(() -> setEnabled(pOptBoolean.orElse(Boolean.FALSE))));
     }
     return isEnabledObservable.blockingFirst().orElse(Boolean.FALSE);
   }
