@@ -110,7 +110,10 @@ public class RepositoryImplHelper
     }
     if (refBranchList != null)
     {
-      refBranchList.forEach(branch -> branches.add(new BranchImpl(branch)));
+      refBranchList.forEach(branch -> {
+        if (!"refs/remotes/origin/HEAD".equals(branch.getName()))
+          branches.add(new BranchImpl(branch));
+      });
     }
     return branches;
   }
