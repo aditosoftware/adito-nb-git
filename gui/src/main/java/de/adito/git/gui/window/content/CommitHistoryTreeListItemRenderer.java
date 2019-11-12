@@ -5,8 +5,8 @@ import de.adito.git.api.HistoryGraphElement;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ITag;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.icon.IIconLoader;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -54,6 +54,8 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
       lineContainer.setFont(comp.getFont());
       shortMessageLabel.setBackground(comp.getBackground());
       shortMessageLabel.setForeground(comp.getForeground());
+      if (itemVal.getCommit().getParents().size() > 1)
+        shortMessageLabel.setEnabled(false);
       shortMessageLabel.setToolTipText(itemVal.getCommit().getShortMessage());
       branchTags.setBackground(comp.getBackground());
       branchTags.setForeground(comp.getForeground());
