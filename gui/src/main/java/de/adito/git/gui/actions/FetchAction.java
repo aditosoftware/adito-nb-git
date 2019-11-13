@@ -7,7 +7,6 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ITrackingRefUpdate;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.impl.util.Util;
 import io.reactivex.Observable;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +41,10 @@ class FetchAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Fetching from remote", this::get);
+    progressFacade.executeInBackground("Fetching from remote", pHandle -> {
+      Optional<IRepository> optionalIRepository = repository.blockingFirst(Optional.empty());
+      optionalIRepository.ifPresent(this::_performFetch);
+    });
   }
 
   /**
@@ -83,10 +85,5 @@ class FetchAction extends AbstractTableAction
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IRepository>> pRepository)
   {
     return pRepository.map(pRepoOpt -> Optional.of(pRepoOpt.isPresent()));
-  }
-
-  private void get(IProgressHandle pHandle)
-  {
-    repository.blockingFirst().ifPresent(this::_performFetch);
   }
 }
