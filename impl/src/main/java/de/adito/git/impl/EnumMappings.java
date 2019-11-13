@@ -1,12 +1,11 @@
 package de.adito.git.impl;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.EPushResult;
+import de.adito.git.api.data.*;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.lib.FileMode;
+import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.jetbrains.annotations.NotNull;
@@ -249,6 +248,59 @@ public class EnumMappings
         break;
     }
     return returnValue;
+  }
+
+  /**
+   * maps JGit RefUpdate.Result to the ITrackingRefUpdate.ResultType of this API
+   *
+   * @param pResult JGit Result to convert
+   * @return corresponding ResultType of the API
+   */
+  public static ITrackingRefUpdate.ResultType mapTrackingRefResultType(RefUpdate.Result pResult)
+  {
+    ITrackingRefUpdate.ResultType resultType;
+    switch (pResult)
+    {
+      case LOCK_FAILURE:
+        resultType = ITrackingRefUpdate.ResultType.LOCK_FAILURE;
+        break;
+      case NEW:
+        resultType = ITrackingRefUpdate.ResultType.NEW;
+        break;
+      case FORCED:
+        resultType = ITrackingRefUpdate.ResultType.FORCED;
+        break;
+      case RENAMED:
+        resultType = ITrackingRefUpdate.ResultType.RENAMED;
+        break;
+      case REJECTED:
+        resultType = ITrackingRefUpdate.ResultType.REJECTED;
+        break;
+      case NO_CHANGE:
+        resultType = ITrackingRefUpdate.ResultType.NO_CHANGE;
+        break;
+      case IO_FAILURE:
+        resultType = ITrackingRefUpdate.ResultType.IO_FAILURE;
+        break;
+      case FAST_FORWARD:
+        resultType = ITrackingRefUpdate.ResultType.FAST_FORWARD;
+        break;
+      case NOT_ATTEMPTED:
+        resultType = ITrackingRefUpdate.ResultType.NOT_ATTEMPTED;
+        break;
+      case REJECTED_OTHER_REASON:
+        resultType = ITrackingRefUpdate.ResultType.REJECTED_OTHER_REASON;
+        break;
+      case REJECTED_CURRENT_BRANCH:
+        resultType = ITrackingRefUpdate.ResultType.REJECTED_CURRENT_BRANCH;
+        break;
+      case REJECTED_MISSING_OBJECT:
+        resultType = ITrackingRefUpdate.ResultType.REJECTED_MISSING_OBJECT;
+        break;
+      default:
+        resultType = null;
+    }
+    return resultType;
   }
 
 }

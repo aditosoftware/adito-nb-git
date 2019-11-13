@@ -4,14 +4,20 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.ITrackingRefUpdate;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.impl.util.Util;
 import io.reactivex.Observable;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.event.ActionEvent;
+import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera, 17.03.2019
@@ -22,6 +28,7 @@ class FetchAction extends AbstractTableAction
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
+  private final Logger logger = Logger.getLogger(FetchAction.class.getName());
 
   @Inject
   FetchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository)
@@ -47,8 +54,17 @@ class FetchAction extends AbstractTableAction
   {
     try
     {
-      pRepo.fetch();
-      notifyUtil.notify("Fetching from remote", "Fetch was successful", true);
+      List<ITrackingRefUpdate> fetchResults = pRepo.fetch();
+      List<ITrackingRefUpdate> failedUpdates = fetchResults.stream()
+          .filter(pITrackingRefUpdate -> !pITrackingRefUpdate.getResult().isSuccessfull())
+          .collect(Collectors.toList());
+      if (fetchResults.isEmpty())
+        notifyUtil.notify("Fetching from remote", "Fetch was successful", true);
+      else
+      {
+        notifyUtil.notify("Fetch succeeded with failed updates", "First failed update: " + failedUpdates.get(0) + ". For all failed updates see IDE Log", false);
+        logger.log(Level.WARNING, () -> "Fetch succeeded with failed updates:\n" + StringUtils.join(failedUpdates, "\n"));
+      }
     }
     catch (AditoGitException pE)
     {

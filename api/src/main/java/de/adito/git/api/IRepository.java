@@ -156,8 +156,9 @@ public interface IRepository extends IDiscardable
    * If there are several remotes, fetches from all remotes
    *
    * @throws AditoGitException if an error occurs
+   * @return List of trackingRefUpdates that were undertaken by the fetch, and their results. Can be checked for failed updates
    */
-  void fetch() throws AditoGitException;
+  List<ITrackingRefUpdate> fetch() throws AditoGitException;
 
   /**
    * Fetches the current state of the remote and stores it internally. Does not affect the working directory.
@@ -165,8 +166,9 @@ public interface IRepository extends IDiscardable
    *
    * @param pPrune whether references to branches/tags that no longer exist on the remote should be deleted or not
    * @throws AditoGitException if an error occurs
+   * @return List of trackingRefUpdates that were undertaken by the fetch, and their results. Can be checked for failed updates
    */
-  void fetch(boolean pPrune) throws AditoGitException;
+  List<ITrackingRefUpdate> fetch(boolean pPrune) throws AditoGitException;
 
   /**
    * Applies the patch contained in the passed file to the current state of the repository

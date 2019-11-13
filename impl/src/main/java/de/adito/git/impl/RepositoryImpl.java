@@ -7,6 +7,7 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.*;
 import de.adito.git.impl.dag.DAGFilterIterator;
+import de.adito.git.impl.data.TrackingRefUpdate;
 import de.adito.git.impl.data.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
@@ -25,9 +26,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -412,32 +411,41 @@ public class RepositoryImpl implements IRepository
 
   /**
    * {@inheritDoc}
+   * @return
    */
   @Override
-  public void fetch() throws AditoGitException
+  public List<ITrackingRefUpdate> fetch() throws AditoGitException
   {
-    fetch(true);
+    return fetch(true);
   }
 
   /**
    * {@inheritDoc}
+   * @return
    */
   @Override
-  public void fetch(boolean pPrune) throws AditoGitException
+  public List<ITrackingRefUpdate> fetch(boolean pPrune) throws AditoGitException
   {
     logger.log(Level.INFO, "git fetch (with prune = {0})", pPrune);
     try
     {
       Set<String> remoteNames = getRemoteNames();
+      List<ITrackingRefUpdate> trackingRefUpdates = new ArrayList<>();
       if (remoteNames.size() <= 1)
-        git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
+      {
+        FetchResult fetchResult = git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
+        fetchResult.getTrackingRefUpdates().forEach(pTrackingRefUpdate -> trackingRefUpdates.add(new TrackingRefUpdate(pTrackingRefUpdate)));
+      }
       else
       {
         for (String remoteName : remoteNames)
         {
-          git.fetch().setRemote(remoteName).setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
+          FetchResult fetchResult = git.fetch().setRemote(remoteName).setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig()))
+              .setRemoveDeletedRefs(pPrune).call();
+          fetchResult.getTrackingRefUpdates().forEach(pTrackingRefUpdate -> trackingRefUpdates.add(new TrackingRefUpdate(pTrackingRefUpdate)));
         }
       }
+      return trackingRefUpdates;
     }
     catch (GitAPIException pE)
     {
