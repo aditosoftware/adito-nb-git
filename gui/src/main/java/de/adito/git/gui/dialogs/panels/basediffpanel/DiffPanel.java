@@ -72,10 +72,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     add(_initToolBar(pIconLoader), BorderLayout.NORTH);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
-    differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionScrollPane, currentVersionScrollPane,
-                                                              oldVersionDiffPane.getEditorPane(),
-                                                              currentVersionDiffPane.getEditorPane(),
-                                                              pFileDiffObs);
+    differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null, pFileDiffObs);
   }
 
   @Override
@@ -92,17 +89,17 @@ public class DiffPanel extends JPanel implements IDiscardable
     nextButton.setFocusable(false);
     nextButton.addActionListener(e -> {
       if (currentVersionDiffPane.isEditorFocusOwner())
-        currentVersionDiffPane.moveCaretToNextChunk();
+        currentVersionDiffPane.moveCaretToNextChunk(oldVersionDiffPane.getEditorPane());
       else
-        oldVersionDiffPane.moveCaretToNextChunk();
+        oldVersionDiffPane.moveCaretToNextChunk(currentVersionDiffPane.getEditorPane());
     });
     JButton previousButton = new JButton(pIconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE));
     previousButton.setFocusable(false);
     previousButton.addActionListener(e -> {
       if (currentVersionDiffPane.isEditorFocusOwner())
-        currentVersionDiffPane.moveCaretToPreviousChunk();
+        currentVersionDiffPane.moveCaretToPreviousChunk(oldVersionDiffPane.getEditorPane());
       else
-        oldVersionDiffPane.moveCaretToPreviousChunk();
+        oldVersionDiffPane.moveCaretToPreviousChunk(currentVersionDiffPane.getEditorPane());
     });
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);

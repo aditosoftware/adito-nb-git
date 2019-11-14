@@ -1,6 +1,8 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
 import de.adito.git.api.IDiscardable;
+import de.adito.git.api.data.EChangeSide;
+import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
@@ -15,6 +17,7 @@ import org.openide.modules.Modules;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -27,7 +30,7 @@ import java.util.Optional;
  *
  * @author m.kaspera, 13.12.2018
  */
-public class DiffPaneWrapper implements IDiscardable
+public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
 {
 
 
@@ -120,18 +123,37 @@ public class DiffPaneWrapper implements IDiscardable
 
   /**
    * moves the caret to the position of the next changed chunk, as seen from the current position of the caret
+   *
+   * @param pTextPane textPane that displays the other side of the diff
    */
-  public void moveCaretToNextChunk()
+  public void moveCaretToNextChunk(JTextComponent pTextPane)
   {
-    IDiffPaneUtil.moveCaretToNextChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
+    IFileChangeChunk nextChunk = IDiffPaneUtil.getNextChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
+    _moveCaretToChunk(pTextPane, nextChunk);
   }
 
   /**
    * moves the caret to the position of the previous changed chunk, as seen from the current position of the caret
+   *
+   * @param pTextPane textPane that displays the other side of the diff
    */
-  public void moveCaretToPreviousChunk()
+  public void moveCaretToPreviousChunk(JTextComponent pTextPane)
   {
-    IDiffPaneUtil.moveCaretToPreviousChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
+    IFileChangeChunk previousChunk = IDiffPaneUtil.getPreviousChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
+    _moveCaretToChunk(pTextPane, previousChunk);
+  }
+
+  /**
+   * moves the caret to the position of the given chunk
+   *
+   * @param pTextPane textPane that displays the other side of the diff
+   * @param pChunk chunk that the caret should be moved to
+   */
+  private void _moveCaretToChunk(JTextComponent pTextPane, IFileChangeChunk pChunk)
+  {
+    IDiffPaneUtil.moveCaretToChunk(editorPane, pChunk, model.getChangeSide());
+    IDiffPaneUtil.moveCaretToChunk(pTextPane, pChunk, model.getChangeSide() == EChangeSide.NEW ? EChangeSide.OLD : EChangeSide.NEW);
+    editorPane.requestFocus();
   }
 
   @Override

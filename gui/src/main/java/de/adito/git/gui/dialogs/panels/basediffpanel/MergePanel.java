@@ -9,7 +9,9 @@ import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
@@ -18,7 +20,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
+import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +36,7 @@ import java.util.function.Consumer;
 public class MergePanel extends JPanel implements IDiscardable
 {
 
+  private static final String FORKPOINT_MODEL_KEY = "forkPointModel";
   private final IIconLoader iconLoader;
   private final IMergeDiff mergeDiff;
   private final ImageIcon acceptYoursIcon;
@@ -59,11 +64,9 @@ public class MergePanel extends JPanel implements IDiscardable
     _initYoursPanel();
     _initTheirsPanel();
     _initGui();
-    yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), yoursPaneWrapper.getScrollPane(),
-                                              forkPointPaneWrapper.getEditorPane(), yoursPaneWrapper.getEditorPane(),
+    yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, yoursPaneWrapper, "yoursPane",
                                               Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS))));
-    theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper.getScrollPane(), theirsPaneWrapper.getScrollPane(),
-                                               forkPointPaneWrapper.getEditorPane(), theirsPaneWrapper.getEditorPane(),
+    theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, theirsPaneWrapper, "theirsPane",
                                                Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS))));
     editorKitObservable.onNext(Optional.of(Optional.ofNullable(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getAbsoluteFilePath())
                                                .map(pEditorKitProvider::getEditorKit)
@@ -144,20 +147,57 @@ public class MergePanel extends JPanel implements IDiscardable
   @NotNull
   public List<Action> getActions()
   {
+    SynchronizedBoundedRangeModel forkPointModel = theirsCoupling.getModel(FORKPOINT_MODEL_KEY);
     return List.of(
         new EnhancedAbstractAction("", iconLoader.getIcon(Constants.NEXT_OCCURRENCE), "next change", e -> {
           if (yoursPaneWrapper.isEditorFocusOwner())
-            yoursPaneWrapper.moveCaretToNextChunk();
+          {
+            chunkMove(forkPointPaneWrapper, theirsPaneWrapper, forkPointModel, yoursPaneWrapper::moveCaretToNextChunk);
+          }
           else
-            theirsPaneWrapper.moveCaretToNextChunk();
+          {
+            chunkMove(forkPointPaneWrapper, yoursPaneWrapper, forkPointModel, theirsPaneWrapper::moveCaretToNextChunk);
+          }
         }),
         new EnhancedAbstractAction("", iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE), "previous change", e -> {
           if (yoursPaneWrapper.isEditorFocusOwner())
-            yoursPaneWrapper.moveCaretToPreviousChunk();
+          {
+            chunkMove(forkPointPaneWrapper, theirsPaneWrapper, forkPointModel, yoursPaneWrapper::moveCaretToPreviousChunk);
+          }
           else
-            theirsPaneWrapper.moveCaretToPreviousChunk();
+          {
+            chunkMove(forkPointPaneWrapper, yoursPaneWrapper, forkPointModel, theirsPaneWrapper::moveCaretToPreviousChunk);
+          }
         })
     );
+  }
+
+  /**
+   * @param pForkPoint    PaneWrapper that should get its caret set
+   * @param pOtherSide    PaneWrapper representing the "opposite" side of the diff
+   * @param pRangeModel   SynchronizedBoundedRangeModel of the forkPoint that contains both the yours and theirs scrollBars
+   * @param pMoveFunction function to be called for actually moving the caret
+   */
+  private void chunkMove(IPaneWrapper pForkPoint, DiffPaneWrapper pOtherSide, SynchronizedBoundedRangeModel pRangeModel, Consumer<JEditorPane> pMoveFunction)
+  {
+    pMoveFunction.accept(pForkPoint.getEditorPane());
+    if (pRangeModel != null)
+      pOtherSide.getEditorPane().getCaret().setDot(getOffsetAtPosition(pOtherSide.getEditorPane(),
+                                                                       (int) pRangeModel.getMappedHeight(pOtherSide.getScrollPane().getVerticalScrollBar(),
+                                                                                                         -pOtherSide.getEditorPane().getFont().getSize())));
+  }
+
+  /**
+   * queries the ui of the textComponent for the offset in the text for the given view position
+   * basically "y-position on screen -> corresponding offset at start of line in model"
+   *
+   * @param pTextComponent JTextComponent
+   * @param pPosition      y coordinate in the view space
+   * @return offset at start of line
+   */
+  private int getOffsetAtPosition(JTextComponent pTextComponent, int pPosition)
+  {
+    return pTextComponent.getUI().viewToModel(pTextComponent, new Point(0, pPosition));
   }
 
   @Override

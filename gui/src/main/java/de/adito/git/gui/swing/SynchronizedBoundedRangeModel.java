@@ -65,6 +65,30 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
   }
 
   /**
+   * Determines the value that the given scrollBar should have, given the current value of this model and the given offset
+   *
+   * @param pScrollBar JScrollBar whose mapped value should be determined
+   * @param pOffset    offset if the height should be offset to the current value
+   * @return the value that the given scrollBar should have, or -1 if the scrollBar is not coupled with this model or the its map is empty
+   */
+  public double getMappedHeight(JScrollBar pScrollBar, int pOffset)
+  {
+    double changedMidVisibleValue = getValue() + getExtent() * SYNCHRONIZE_ON_HEIGHT;
+    for (_CoupledScrollbarInfo pCoupledScrollbarInfo : coupledScrollbarInfos)
+    {
+      if (pCoupledScrollbarInfo.getToCouple().equals(pScrollBar) && !pCoupledScrollbarInfo.getMap().isEmpty())
+      {
+        Map.Entry<Integer, Integer> closestEntry = pCoupledScrollbarInfo.getMap().floorEntry((int) changedMidVisibleValue + pOffset);
+        if (closestEntry != null)
+        {
+          return changedMidVisibleValue + (closestEntry.getValue() - closestEntry.getKey());
+        }
+      }
+    }
+    return -1d;
+  }
+
+  /**
    * set the value without going through the evaluation of scrolling the other scrollPane up/down, basically only notifying the listeners
    *
    * @param n new value for the model

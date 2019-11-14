@@ -23,7 +23,7 @@ import java.util.Optional;
  *
  * @author m.kaspera, 13.12.2018
  */
-public class ForkPointPaneWrapper implements IDiscardable
+public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
 {
 
   private final JEditorPane editorPane;
