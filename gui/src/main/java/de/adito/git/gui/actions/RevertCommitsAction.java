@@ -58,7 +58,11 @@ public class RevertCommitsAction extends AbstractTableAction
       progressFacade.executeInBackground(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
         try
         {
-          if (_stashChanges(selectedCommits, repo, pHandle)) return;
+          if (_stashChanges(repo, pHandle))
+          {
+            repo.revertCommis(selectedCommits);
+            notifyUtil.notify("Revert commits success", String.format("Reverting commits with ID %s was successfull ", selectedCommits), false);
+          }
         }
         finally
         {
@@ -67,14 +71,14 @@ public class RevertCommitsAction extends AbstractTableAction
       });
   }
 
-  private boolean _stashChanges(List<ICommit> pSelectedCommits, IRepository pRepo, @NotNull IProgressHandle pHandle) throws AditoGitException
+  private boolean _stashChanges(IRepository pRepo, @NotNull IProgressHandle pHandle) throws AditoGitException
   {
     if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
+    {
+      pHandle.setDescription("Stashing existing changes");
+      prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, true));
       return true;
-    pHandle.setDescription("Stashing existing changes");
-    prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, true));
-    pRepo.revertCommis(pSelectedCommits);
-    notifyUtil.notify("Revert commits success", String.format("Reverting commits with ID %s was successfull ", pSelectedCommits), false);
+    }
     return false;
   }
 
