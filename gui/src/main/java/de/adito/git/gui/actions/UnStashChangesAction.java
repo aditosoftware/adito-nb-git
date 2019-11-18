@@ -47,6 +47,7 @@ class UnStashChangesAction extends AbstractAction
       {
         DialogResult<?, String> dialogResult = dialogProvider.showStashedCommitSelectionDialog(Observable.just(Optional.of(repo)),
                                                                                                repo.getStashedCommits());
+        repo.setUpdateFlag(false);
         if (dialogResult.isPressedOk())
         {
           _executeUnstash(repo, dialogResult);
@@ -55,6 +56,10 @@ class UnStashChangesAction extends AbstractAction
       catch (AditoGitException pE)
       {
         notifyUtil.notify(pE, "An error occurred while trying to unstash. ", false);
+      }
+      finally
+      {
+        repo.setUpdateFlag(true);
       }
     }
   }

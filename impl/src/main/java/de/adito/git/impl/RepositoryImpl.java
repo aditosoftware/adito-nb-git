@@ -413,6 +413,7 @@ public class RepositoryImpl implements IRepository
 
   /**
    * {@inheritDoc}
+   *
    * @return
    */
   @Override
@@ -423,6 +424,7 @@ public class RepositoryImpl implements IRepository
 
   /**
    * {@inheritDoc}
+   *
    * @return
    */
   @Override
@@ -1613,6 +1615,17 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
+  public void setUpdateFlag(boolean pIsActive)
+  {
+    if (pIsActive)
+    {
+      UpdateFlag.getInstance().activate();
+    }
+    else
+      UpdateFlag.getInstance().deactivate();
+  }
+
+  @Override
   public void discard()
   {
     disposables.clear();
@@ -1636,7 +1649,8 @@ public class RepositoryImpl implements IRepository
                                                          @NotNull IFireable<Object> pIFireable)
     {
       IFileSystemChangeListener listener = () -> {
-        pIFireable.fireValueChanged(new Object());
+        if (UpdateFlag.getInstance().isActive())
+          pIFireable.fireValueChanged(new Object());
       };
       pIFileSystemObserver.addListener(listener);
       return listener;

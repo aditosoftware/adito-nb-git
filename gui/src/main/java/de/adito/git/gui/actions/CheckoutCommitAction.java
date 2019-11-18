@@ -46,11 +46,19 @@ public class CheckoutCommitAction extends AbstractTableAction
     if (selectedCommits.size() == 1)
     {
       progressFacade.executeInBackground("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
-        repository.blockingFirst()
-            .orElseThrow(() -> new RuntimeException("no valid repository found"))
-            .checkout(selectedCommits.get(0).getId());
-        notifyUtil.notify("Checkout successful", "Checkout of commit with id "
-            + selectedCommits.get(0).getId() + " was successful", false);
+        IRepository pRepo = repository.blockingFirst()
+            .orElseThrow(() -> new RuntimeException("no valid repository found"));
+        try
+        {
+          pRepo.setUpdateFlag(false);
+          pRepo.checkout(selectedCommits.get(0).getId());
+          notifyUtil.notify("Checkout successful", "Checkout of commit with id "
+              + selectedCommits.get(0).getId() + " was successful", false);
+        }
+        finally
+        {
+          pRepo.setUpdateFlag(true);
+        }
       });
     }
   }

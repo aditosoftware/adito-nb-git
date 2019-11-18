@@ -30,11 +30,16 @@ public class StashCommand
       List<IMergeDiff> stashConflicts;
       try
       {
+        pRepo.setUpdateFlag(false);
         stashConflicts = pRepo.unStashChanges(pStashedCommitId);
       }
       catch (AditoGitException pE)
       {
         throw new RuntimeException(pE);
+      }
+      finally
+      {
+        pRepo.setUpdateFlag(true);
       }
       DialogResult dialogResult = null;
       if (!stashConflicts.isEmpty())

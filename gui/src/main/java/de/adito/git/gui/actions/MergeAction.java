@@ -68,6 +68,7 @@ class MergeAction extends AbstractTableAction
     IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
     try
     {
+      repository.setUpdateFlag(false);
       if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
       {
         if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
@@ -92,6 +93,7 @@ class MergeAction extends AbstractTableAction
       repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
                             + repository.getRepositoryState().blockingFirst().map(pState -> pState.getCurrentBranch().getSimpleName())
           .orElse("current Branch"));
+      repository.setUpdateFlag(true);
     }
     catch (AlreadyUpToDateAditoGitException pE)
     {

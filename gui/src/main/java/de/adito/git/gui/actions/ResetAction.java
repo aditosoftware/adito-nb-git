@@ -53,11 +53,19 @@ class ResetAction extends AbstractTableAction
     if (selectedCommits.size() == 1 && dialogResult.isPressedOk())
     {
       progressFacade.executeInBackground("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
-        repository.blockingFirst()
-            .orElseThrow(() -> new RuntimeException("no valid repository found"))
-            .reset(selectedCommits.get(0).getId(), dialogResult.getInformation());
-        notifyUtil.notify("Reset success", "Resetting back to commit with id "
-            + selectedCommits.get(0).getId() + " and option " + dialogResult.getInformation() + " was successful", false);
+        IRepository pRepo = repository.blockingFirst()
+            .orElseThrow(() -> new RuntimeException("no valid repository found"));
+        try
+        {
+          pRepo.setUpdateFlag(false);
+          pRepo.reset(selectedCommits.get(0).getId(), dialogResult.getInformation());
+          notifyUtil.notify("Reset success", "Resetting back to commit with id "
+              + selectedCommits.get(0).getId() + " and option " + dialogResult.getInformation() + " was successful", false);
+        }
+        finally
+        {
+          pRepo.setUpdateFlag(true);
+        }
       });
     }
   }

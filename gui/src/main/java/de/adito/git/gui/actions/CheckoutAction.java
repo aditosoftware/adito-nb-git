@@ -62,6 +62,7 @@ class CheckoutAction extends AbstractTableAction
       progressFactory.executeInBackground("Checking out " + branch.getSimpleName(), pProgress -> {
         try
         {
+          repository.setUpdateFlag(false);
           if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
           {
             if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
@@ -85,6 +86,7 @@ class CheckoutAction extends AbstractTableAction
         }
         finally
         {
+          repository.setUpdateFlag(true);
           pProgress.setDescription("Un-stashing saved uncommitted local changes");
           String stashedCommitId = prefStore.get(STASH_ID_KEY);
           if (stashedCommitId != null)

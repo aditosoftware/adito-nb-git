@@ -58,6 +58,7 @@ public class RevertCommitsAction extends AbstractTableAction
       progressFacade.executeInBackground(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
         try
         {
+          repo.setUpdateFlag(false);
           if (_stashChanges(repo, pHandle))
           {
             repo.revertCommis(selectedCommits);
@@ -66,6 +67,7 @@ public class RevertCommitsAction extends AbstractTableAction
         }
         finally
         {
+          repo.setUpdateFlag(true);
           _unStashChanges(pHandle);
         }
       });

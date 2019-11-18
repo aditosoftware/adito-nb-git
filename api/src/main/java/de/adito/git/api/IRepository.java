@@ -604,4 +604,13 @@ public interface IRepository extends IDiscardable
    */
   @NotNull
   Set<String> getRemoteNames();
+
+  /**
+   * Sets the update flag that is determines wether the status and other data is updated when files change.
+   * The updateFlag works with a counter, so if setUpdate(false) is called twice, it takes two calls of setUpdateFlag(true) until the updateFlag is actually
+   * active again. This makes sure that several sources can disable updates, and the updates only start up after the last source enables updates
+   *
+   * @param pIsActive true if updates should be enabled, false otherwise
+   */
+  void setUpdateFlag(boolean pIsActive);
 }
