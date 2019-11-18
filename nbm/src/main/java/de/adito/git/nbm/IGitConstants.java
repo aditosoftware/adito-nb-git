@@ -13,7 +13,7 @@ public interface IGitConstants
 {
   Injector INJECTOR = Guice.createInjector(new AditoNbmModule());
   // Toolbar
-  String TOOLBAR_ACTION_PATH = "Toolbars/Git";
+  String TOOLBAR_ACTION_PATH = "Toolbars/git";
   // Projects
   String RIGHTCLICK_ACTION_PATH = "Actions/Git";
 
