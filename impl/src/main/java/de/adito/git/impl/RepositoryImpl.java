@@ -40,7 +40,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,11 +94,12 @@ public class RepositoryImpl implements IRepository
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
-        .startWith(Optional.of(RepositoryImplHelper.status(git)))
         .throttleLatest(500, TimeUnit.MILLISECONDS)
+        .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
+        .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())))
+        .startWith(Optional.of(RepositoryImplHelper.status(git)))
         .replay(1)
-        .autoConnect(0, disposables::add)
-        .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())));
+        .autoConnect(0, disposables::add);
 
     branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git)))
         .startWith(Optional.of(RepositoryImplHelper.branchList((git))))
@@ -1620,7 +1622,7 @@ public class RepositoryImpl implements IRepository
   /**
    * Bridge from the FileSystemChangeListener to Observables
    */
-  private class _FileSystemChangeObservable extends AbstractListenerObservable<IFileSystemChangeListener, IFileSystemObserver, Optional<IFileStatus>>
+  private static class _FileSystemChangeObservable extends AbstractListenerObservable<IFileSystemChangeListener, IFileSystemObserver, Object>
   {
 
     _FileSystemChangeObservable(@NotNull IFileSystemObserver pListenableValue)
@@ -1631,10 +1633,11 @@ public class RepositoryImpl implements IRepository
     @NotNull
     @Override
     protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver,
-                                                         @NotNull IFireable<Optional<IFileStatus>> pIFireable)
+                                                         @NotNull IFireable<Object> pIFireable)
     {
-      Executor service = new ThreadPoolExecutor(1, 1, 5, TimeUnit.SECONDS, new VoidingPseudoBlockingArrayQueue<>(1));
-      IFileSystemChangeListener listener = () -> service.execute(() -> pIFireable.fireValueChanged(Optional.of(RepositoryImplHelper.status(git))));
+      IFileSystemChangeListener listener = () -> {
+        pIFireable.fireValueChanged(new Object());
+      };
       pIFileSystemObserver.addListener(listener);
       return listener;
     }
