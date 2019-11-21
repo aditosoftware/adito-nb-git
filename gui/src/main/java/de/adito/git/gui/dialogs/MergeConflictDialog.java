@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
@@ -147,19 +148,42 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
         if (path != null)
         {
-          File selectedFile = new File(path);
-          StringBuilder fileContents = new StringBuilder();
-          for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+          try
           {
-            // BLines is always the "new" version of the file, in comparison to the fork point
-            fileContents.append(changeChunk.getLines(EChangeSide.NEW));
+            File selectedFile = new File(path);
+            if (selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getChangeType() == EChangeType.DELETE)
+            {
+              repository.remove(List.of(selectedFile));
+            }
+            else
+            {
+              _saveVersion(pConflictSide, selectedMergeDiff, selectedFile);
+            }
           }
-          logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path,
-                                                     selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW)));
-          _writeToFile(fileContents.toString(), selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, selectedFile);
+          catch (AditoGitException pE)
+          {
+            throw new RuntimeException(pE);
+          }
         }
       }
     }
+  }
+
+  /**
+   * @param pConflictSide     side of the conflict that was accepted by the user
+   * @param selectedMergeDiff the mergeDiff that should be resolved
+   * @param pSelectedFile     File that this mergeDiff is for
+   */
+  private void _saveVersion(IMergeDiff.CONFLICT_SIDE pConflictSide, IMergeDiff selectedMergeDiff, File pSelectedFile)
+  {
+    StringBuilder fileContents = new StringBuilder();
+    for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+    {
+      fileContents.append(changeChunk.getLines(EChangeSide.NEW));
+    }
+    logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", pSelectedFile.getAbsolutePath(),
+                                               selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW)));
+    _writeToFile(fileContents.toString(), selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, pSelectedFile);
   }
 
   /**
