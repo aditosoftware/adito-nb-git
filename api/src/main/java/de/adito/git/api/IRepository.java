@@ -101,6 +101,14 @@ public interface IRepository extends IDiscardable
   void add(List<File> pAddList) throws AditoGitException;
 
   /**
+   * Removes all passed files from staging
+   *
+   * @param pList List of files to remove from staging
+   * @throws AditoGitException if any of the files cannot be removed from staging
+   */
+  void remove(List<File> pList) throws AditoGitException;
+
+  /**
    * performs a commit of the staged files, with the passed message as commit message. Message should not be empty
    *
    * @param pMessage String with the commit message entered by the user

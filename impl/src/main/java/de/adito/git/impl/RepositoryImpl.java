@@ -175,6 +175,24 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  public void remove(List<File> pList) throws AditoGitException
+  {
+    logger.log(Level.FINE, () -> String.format("git rm %s", pList));
+    RmCommand removeCommand = git.rm();
+    for (File file : pList)
+    {
+      removeCommand.addFilepattern(getRelativePath(file, git));
+    }
+    try
+    {
+      removeCommand.call();
+    }
+    catch (GitAPIException e)
+    {
+      throw new AditoGitException("Unable to remove Files from staging area", e);
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
