@@ -81,12 +81,7 @@ public class MergeDiffTableCellRenderer extends DefaultTableCellRenderer
    */
   private static String _getStringRepresenation(IMergeDiff pMergeDiff, int pColumnIndex)
   {
-    EChangeType changeType = pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getChangeType();
-    Path path;
-    if (changeType == EChangeType.ADD || changeType == EChangeType.NEW)
-      path = Paths.get(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath(EChangeSide.OLD));
-    else
-      path = Paths.get(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath());
+    Path path = Paths.get(pMergeDiff.getFilePath());
     if (pColumnIndex == 0)
     {
       return path.getFileName().toString();

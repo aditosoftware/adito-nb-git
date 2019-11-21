@@ -14,6 +14,16 @@ public interface IMergeDiff
 {
 
   /**
+   * Determines the name of the file for which this is the diff. If one or two of the sides are renames, the name is determined in the following way:
+   * - If three side/version (e.g. YOURS.old, YOURS.new, THEIRS.old) are in agreement, take that file name
+   * - If only two side/versions are in agreement, one version has to be in agreement. Take that version. (e.g. YOURS.old and THEIRS.old agree, YOURS.new is file b and
+   * THEIRS.new is file c. It is not possible that YOURS.old and THEIRS.new agree, and YOUR.new is file b and THEIRS.old is file c)
+   *
+   * @return name of the file
+   */
+  String getFilePath();
+
+  /**
    * get the IFileDiff of the specified conflict side
    *
    * @param conflictSide CONFLICT_SIDE describing if the diff from base-side or branch-to-merge-side to fork-point is wanted

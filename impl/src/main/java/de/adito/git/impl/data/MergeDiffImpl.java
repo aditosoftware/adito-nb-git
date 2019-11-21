@@ -34,6 +34,27 @@ public class MergeDiffImpl implements IMergeDiff
     mergeSideDiff = pMergeSideDiff;
   }
 
+  @Override
+  public String getFilePath()
+  {
+    if (baseSideDiff.getFileHeader().getChangeType() != EChangeType.RENAME && mergeSideDiff.getFileHeader().getChangeType() != EChangeType.RENAME)
+      return baseSideDiff.getFileHeader().getFilePath();
+    else if (baseSideDiff.getFileHeader().getChangeType() != EChangeType.RENAME)
+    {
+      return baseSideDiff.getFileHeader().getFilePath();
+    }
+    else if (mergeSideDiff.getFileHeader().getChangeType() != EChangeType.RENAME)
+    {
+      return mergeSideDiff.getFileHeader().getFilePath();
+    }
+    else
+    {
+      if (mergeSideDiff.getFile(EChangeSide.OLD).equals(baseSideDiff.getFile(EChangeSide.OLD)))
+        return mergeSideDiff.getFileHeader().getFilePath(EChangeSide.OLD);
+      else return mergeSideDiff.getFileHeader().getFilePath(EChangeSide.NEW);
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
