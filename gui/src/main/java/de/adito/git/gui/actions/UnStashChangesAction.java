@@ -76,7 +76,7 @@ class UnStashChangesAction extends AbstractAction
       List<IMergeDiff> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
       if (!stashConflicts.isEmpty())
       {
-        DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), stashConflicts, false);
+        DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), stashConflicts, false, "Stash Conflicts");
         if (conflictResult.isPressedOk())
           dialogProvider.showCommitDialog(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(List.of())), "");
       }

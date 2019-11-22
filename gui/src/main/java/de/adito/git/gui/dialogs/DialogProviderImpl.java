@@ -38,13 +38,13 @@ class DialogProviderImpl implements IDialogProvider
   @NotNull
   @Override
   public DialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeDiff> pMergeConflictDiffs,
-                                              boolean pOnlyConflicting)
+                                              boolean pOnlyConflicting, String... pDialogTitle)
   {
     DialogResult<MergeConflictDialog, ?> result = null;
     try
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs, pOnlyConflicting),
-                                          "Merge Conflicts");
+                                          pDialogTitle.length == 1 ? pDialogTitle[0] : "Merge Conflicts");
       return result;
     }
     finally

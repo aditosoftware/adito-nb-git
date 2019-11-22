@@ -29,10 +29,12 @@ public interface IDialogProvider
    * @param pRepository         Observable with the current Repository
    * @param pMergeConflictDiffs List of IMergeDiffs detailing the conflicting files
    * @param pOnlyConflicting    true if only files with status conflicting should be shown
+   * @param pDialogTitle        Optional title for the dialog, only the first passed String is used
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  DialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeDiff> pMergeConflictDiffs, boolean pOnlyConflicting);
+  DialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeDiff> pMergeConflictDiffs, boolean pOnlyConflicting,
+                                       String... pDialogTitle);
 
   /**
    * Shows a dialog with a three-way merge based on the information from pMergeDiff
@@ -47,10 +49,10 @@ public interface IDialogProvider
    * Shows a dialog which show which changes happened to a file, based on the IFileDiffs
    *
    * @param pProjectDirectory TopLevel directory of the project (i.e. the parent of the .git folder)
-   * @param pFileDiffs     List with all IFileDiffs that can potentially be displayed
-   * @param pSelectedFile  file whose diff should be shown when the dialog opens
-   * @param pAcceptChange  true if changes can be moved from the left to the right side
-   * @param pShowFileTree true if the tree with pFileDiffs should be shown. This enables the user to choose which file from pFileDiffs to display
+   * @param pFileDiffs        List with all IFileDiffs that can potentially be displayed
+   * @param pSelectedFile     file whose diff should be shown when the dialog opens
+   * @param pAcceptChange     true if changes can be moved from the left to the right side
+   * @param pShowFileTree     true if the tree with pFileDiffs should be shown. This enables the user to choose which file from pFileDiffs to display
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
