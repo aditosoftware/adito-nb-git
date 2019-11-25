@@ -53,7 +53,7 @@ abstract class NBAction extends NodeAction
                            .stream()
                            .filter(pUncommittedFile -> files
                                .stream()
-                               .anyMatch(pFile -> pUncommittedFile.getFile().getAbsolutePath().equals(pFile.getAbsolutePath())))
+                               .anyMatch(pFile -> pUncommittedFile.getFile().toPath().startsWith(pFile.toPath())))
                            .collect(Collectors.toList()));
   }
 
