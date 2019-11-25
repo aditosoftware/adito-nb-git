@@ -3,6 +3,7 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
@@ -30,13 +31,15 @@ class RevertWorkDirAction extends AbstractTableAction
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
   private final IDialogProvider dialogProvider;
+  private final ISaveUtil saveUtil;
 
   @Inject
-  RevertWorkDirAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
+  RevertWorkDirAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil,
                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Revert", _getIsEnabledObservable(pSelectedFilesObservable));
     dialogProvider = pDialogProvider;
+    saveUtil = pSaveUtil;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.REVERT_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Revert changes");
     progressFacade = pProgressFacade;
@@ -47,6 +50,7 @@ class RevertWorkDirAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
+    saveUtil.saveUnsavedFiles();
     List<IFileChangeType> filesToRevert = selectedFilesObservable.blockingFirst().orElse(Collections.emptyList());
     IRevertDialogResult result = dialogProvider.showRevertDialog(filesToRevert, repository.blockingFirst().map(IRepository::getTopLevelDirectory).orElse(new File("")));
     if (result.isRevertAccepted())
