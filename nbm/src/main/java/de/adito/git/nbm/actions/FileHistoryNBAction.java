@@ -49,7 +49,7 @@ public class FileHistoryNBAction extends NBAction
     if (pRepository == null)
       return false;
     List<File> filesOfNodes = getAllFilesOfNodes(lastActivated);
-    return filesOfNodes.size() == 1 && pRepository.getTopLevelDirectory().equals(filesOfNodes.get(0));
+    return filesOfNodes.size() == 1 && !pRepository.getTopLevelDirectory().equals(filesOfNodes.get(0));
   }
 
   @Override
