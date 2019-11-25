@@ -28,6 +28,7 @@ class RevertFilesDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
   private ObservableTreeUpdater<IFileChangeType> treeUpdater;
+  protected JLabel descriptionLabel;
 
   @Inject
   public RevertFilesDialog(IActionProvider pActionProvider, IIconLoader pIconLoader, IPrefStore pPrefStore, IFileSystemUtil pFileSystemUtil,
@@ -35,13 +36,13 @@ class RevertFilesDialog extends AditoBaseDialog<Object> implements IDiscardable
   {
     if (pFilesToRevert.size() > 1)
     {
-      setPreferredSize(new Dimension(600, 500));
+      setPreferredSize(new Dimension(675, 500));
       setLayout(new BorderLayout(0, 10));
 
       // Label at the top
-      JLabel topLabel = new JLabel("Revert the listed files back to the state of HEAD?");
-      topLabel.setHorizontalAlignment(SwingConstants.CENTER);
-      add(topLabel, BorderLayout.NORTH);
+      descriptionLabel = new JLabel("Revert the listed files back to the state of HEAD?");
+      descriptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+      add(descriptionLabel, BorderLayout.NORTH);
 
       // Tree and scrollPane for tree
       Observable<List<IFileChangeType>> changedFiles = Observable.just(pFilesToRevert);
@@ -69,7 +70,8 @@ class RevertFilesDialog extends AditoBaseDialog<Object> implements IDiscardable
     }
     else if (pFilesToRevert.size() == 1)
     {
-      add(new JLabel("Revert file " + pFilesToRevert.get(0).getFile().getAbsolutePath() + " back to the state of HEAD?"));
+      descriptionLabel = new JLabel("Revert file " + pFilesToRevert.get(0).getFile().getAbsolutePath() + " back to the state of HEAD?");
+      add(descriptionLabel);
     }
   }
 

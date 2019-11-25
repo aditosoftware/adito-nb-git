@@ -5,12 +5,15 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -63,45 +66,54 @@ class CheckoutAction extends AbstractTableAction
         try
         {
           repository.setUpdateFlag(false);
-          if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
+          if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false) &&
+              !ActionUtility.handleStash(prefStore, dialogProvider, repository, STASH_ID_KEY, pProgress))
           {
-            if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
-              return;
-            pProgress.setDescription("Stashing uncommitted local changes");
-            prefStore.put(STASH_ID_KEY, repository.stashChanges(null, true));
+            return;
           }
-          if (branch.getType() == EBranchType.REMOTE)
-          {
-            DialogResult dialogResult = dialogProvider.showUserPromptDialog("Choose a name for the local branch", branch.getSimpleName().replace("origin/", ""));
-            if (dialogResult.isPressedOk())
-            {
-              String branchName = dialogResult.getMessage();
-              repository.checkoutRemote(branch, branchName);
-            }
-          }
-          else
-          {
-            repository.checkout(branch);
-          }
+          _doCheckout(repository, branch);
         }
         finally
         {
-          repository.setUpdateFlag(true);
-          pProgress.setDescription("Un-stashing saved uncommitted local changes");
-          String stashedCommitId = prefStore.get(STASH_ID_KEY);
-          if (stashedCommitId != null)
-          {
-            try
-            {
-              StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(repository)));
-            }
-            finally
-            {
-              prefStore.put(STASH_ID_KEY, null);
-            }
-          }
+          _unstash(repository, pProgress);
         }
       });
+    }
+  }
+
+  private void _doCheckout(IRepository pRepository, IBranch pBranch) throws AditoGitException
+  {
+    if (pBranch.getType() == EBranchType.REMOTE)
+    {
+      IUserPromptDialogResult dialogResult = dialogProvider.showUserPromptDialog("Choose a name for the local branch",
+                                                                                 pBranch.getSimpleName().replace("origin/", ""));
+      if (dialogResult.isOkay())
+      {
+        String branchName = dialogResult.getMessage();
+        pRepository.checkoutRemote(pBranch, branchName);
+      }
+    }
+    else
+    {
+      pRepository.checkout(pBranch);
+    }
+  }
+
+  private void _unstash(IRepository pRepository, @NotNull IProgressHandle pProgress)
+  {
+    pRepository.setUpdateFlag(true);
+    pProgress.setDescription("Un-stashing saved uncommitted local changes");
+    String stashedCommitId = prefStore.get(STASH_ID_KEY);
+    if (stashedCommitId != null)
+    {
+      try
+      {
+        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(pRepository)));
+      }
+      finally
+      {
+        prefStore.put(STASH_ID_KEY, null);
+      }
     }
   }
 

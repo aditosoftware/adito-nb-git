@@ -9,8 +9,8 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IDiffDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
@@ -65,8 +65,8 @@ class DiffToHeadAction extends AbstractTableAction
 
       //Show Dialog in EDT -> Handle gets finished
       SwingUtilities.invokeLater(() -> {
-        DialogResult dialogResult = dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, null, true, false);
-        if (dialogResult.isPressedOk())
+        IDiffDialogResult dialogResult = dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, null, true, false);
+        if (dialogResult.isPressedOkay())
         {
           for (IFileDiff fileDiff : fileDiffs)
           {

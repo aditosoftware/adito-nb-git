@@ -5,11 +5,11 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeType;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IRevertDialogResult;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -48,8 +48,8 @@ class RevertWorkDirAction extends AbstractTableAction
   public void actionPerformed(ActionEvent pEvent)
   {
     List<IFileChangeType> filesToRevert = selectedFilesObservable.blockingFirst().orElse(Collections.emptyList());
-    DialogResult result = dialogProvider.showRevertDialog(filesToRevert, repository.blockingFirst().map(IRepository::getTopLevelDirectory).orElse(new File("")));
-    if (result.isPressedOk())
+    IRevertDialogResult result = dialogProvider.showRevertDialog(filesToRevert, repository.blockingFirst().map(IRepository::getTopLevelDirectory).orElse(new File("")));
+    if (result.isRevertAccepted())
     {
       progressFacade.executeInBackground("Reverting", pHandle -> {
         repository.blockingFirst()

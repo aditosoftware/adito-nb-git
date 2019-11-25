@@ -5,10 +5,10 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -51,8 +51,8 @@ class AddTagAction extends AbstractTableAction
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
     if (selectedCommits.size() == 1)
     {
-      DialogResult dialogResult = dialogProvider.showUserPromptDialog("Insert the name of the tag", null);
-      if (dialogResult.isPressedOk())
+      IUserPromptDialogResult dialogResult = dialogProvider.showUserPromptDialog("Insert the name of the tag", null);
+      if (dialogResult.isOkay())
       {
         repository.blockingFirst().ifPresent(pRepoOpt -> pRepoOpt.createTag(dialogResult.getMessage(), selectedCommits.get(0).getId()));
         notifyUtil.notify(NOTIFY_CATEGORY, "Tag added successfully", true);

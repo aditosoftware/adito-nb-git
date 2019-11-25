@@ -3,9 +3,9 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
+import de.adito.git.gui.dialogs.results.IFileSelectionDialogResult;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -31,9 +31,9 @@ public class ApplyPatchAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    DialogResult<?, String> dialogResult =
+    IFileSelectionDialogResult<?, Object> dialogResult =
         dialogProvider.showFileSelectionDialog("Select file that contains the patch", "Selected file", FileChooserProvider.FileSelectionMode.FILES_ONLY, null);
-    if (dialogResult.isPressedOk())
+    if (dialogResult.acceptFiles())
     {
       repositoryObservable.blockingFirst().ifPresent(pRepo -> pRepo.applyPatch(new File(dialogResult.getMessage())));
     }

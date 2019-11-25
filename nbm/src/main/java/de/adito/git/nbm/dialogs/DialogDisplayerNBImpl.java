@@ -34,11 +34,10 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
    * @return {@code true} if the "okay" button was pressed, {@code false} if the dialogs was cancelled
    */
   @Override
-  public <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier, String pTitle)
+  public <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier, String pTitle, EButtons[] pButtons)
   {
-    Object[] buttons = new Object[]{DialogDescriptor.OK_OPTION, DialogDescriptor.CANCEL_OPTION};
-    DialogDescriptor dialogDescriptor = new DialogDescriptor(null, pTitle, true, buttons,
-                                                             DialogDescriptor.OK_OPTION, DialogDescriptor.BOTTOM_ALIGN, null, null);
+    DialogDescriptor dialogDescriptor = new DialogDescriptor(null, pTitle, true, pButtons,
+                                                             pButtons[0], DialogDescriptor.BOTTOM_ALIGN, null, null);
     S content = pDialogContentSupplier.apply(dialogDescriptor::setValid);
     JPanel borderPane = new JPanel(new BorderLayout());
     borderPane.add(content, BorderLayout.CENTER);
@@ -49,7 +48,7 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     dialog.setMinimumSize(new Dimension(250, 50));
     dialog.pack();
     dialog.setVisible(true);
-    return new DialogResult<>(content, dialogDescriptor.getValue() == DialogDescriptor.OK_OPTION, content.getMessage(), content.getInformation());
+    return new DialogResult<>(content, (EButtons) dialogDescriptor.getValue(), content.getMessage(), content.getInformation());
   }
 
 }

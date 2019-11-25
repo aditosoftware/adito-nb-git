@@ -129,7 +129,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   {
     Optional<List<IMergeDiff>> mergeDiffOptional = pSelectedMergeDiffObservable.blockingFirst();
     mergeDiffOptional.ifPresent(iMergeDiffs -> {
-      if (iMergeDiffs.size() == 1 && dialogProvider.showMergeConflictResolutionDialog(iMergeDiffs.get(0)).isPressedOk())
+      if (iMergeDiffs.size() == 1 && dialogProvider.showMergeConflictResolutionDialog(iMergeDiffs.get(0)).isAcceptChanges())
         _acceptManualVersion(iMergeDiffs.get(0));
     });
   }

@@ -9,8 +9,9 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -60,9 +61,9 @@ class ResolveConflictsAction extends AbstractTableAction
     {
       if (pTBNFE.getOrigHead() != null)
       {
-        DialogResult dialogResult = dialogProvider.showYesNoDialog("Could not determine target of operation that led to conflict," +
+        IUserPromptDialogResult dialogResult = dialogProvider.showYesNoDialog("Could not determine target of operation that led to conflict," +
                                                                        " do you want to go back to the state before merge/pull/cherry pick?");
-        if (dialogResult.isPressedOk())
+        if (dialogResult.isOkay())
           pRepo.reset(pTBNFE.getOrigHead().getId(), EResetType.HARD);
       }
       else
@@ -74,8 +75,8 @@ class ResolveConflictsAction extends AbstractTableAction
     }
     catch (AmbiguousStashCommitsException pE)
     {
-      DialogResult<?, String> dialogResult = dialogProvider.showStashedCommitSelectionDialog(repository, pRepo.getStashedCommits());
-      if (dialogResult.isPressedOk())
+      IStashedCommitSelectionDialogResult<?, String> dialogResult = dialogProvider.showStashedCommitSelectionDialog(repository, pRepo.getStashedCommits());
+      if (dialogResult.doUnStash())
       {
         String selectedStashCommitId = dialogResult.getInformation();
         conflicts = pRepo.getStashConflicts(selectedStashCommitId);

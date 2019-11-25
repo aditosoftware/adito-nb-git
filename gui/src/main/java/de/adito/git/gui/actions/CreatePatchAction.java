@@ -4,9 +4,9 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
+import de.adito.git.gui.dialogs.results.IFileSelectionDialogResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,10 +43,10 @@ public class CreatePatchAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    DialogResult<?, String> dialogResult =
+    IFileSelectionDialogResult<?, Object> dialogResult =
         dialogProvider.showFileSelectionDialog("Choose destination for patch", "Selected file", FileChooserProvider.FileSelectionMode.FILES_AND_DIRECTORIES, null);
     List<@NotNull File> selectedFiles = selectedFilesObservable.blockingFirst().orElse(List.of()).stream().map(IFileChangeType::getFile).collect(Collectors.toList());
-    if (dialogResult.isPressedOk())
+    if (dialogResult.acceptFiles())
     {
       try (OutputStream outputStream = Files.newOutputStream(Paths.get(dialogResult.getMessage())))
       {

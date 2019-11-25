@@ -6,8 +6,8 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IStashChangesDialogResult;
 import de.adito.git.gui.dialogs.results.StashChangesResult;
 import io.reactivex.Observable;
 
@@ -42,8 +42,8 @@ class StashChangesAction extends AbstractAction
     IRepository repo = repository.blockingFirst().orElse(null);
     if (repo != null)
     {
-      DialogResult<?, StashChangesResult> dialogResult = dialogProvider.showStashChangesDialog();
-      if (dialogResult.isPressedOk())
+      IStashChangesDialogResult<?, StashChangesResult> dialogResult = dialogProvider.showStashChangesDialog();
+      if (dialogResult.doStash())
       {
         progressFacade.executeInBackground("Stashing changes", pHandle -> {
           try

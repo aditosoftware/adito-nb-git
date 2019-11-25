@@ -12,8 +12,8 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -92,12 +92,10 @@ class CherryPickAction extends AbstractTableAction
         notifyUtil.notify(ACTION_NAME, "Aborting cherry pick, please make sure the working tree is clean before cherry picking", false);
         return;
       }
-      if (status.map(pStatus -> !pStatus.getUncommitted().isEmpty()).orElse(false))
+      if (status.map(pStatus -> !pStatus.getUncommitted().isEmpty()).orElse(false)
+          && !ActionUtility.handleStash(prefStore, dialogProvider, pRepo, STASH_ID_KEY, pHandle))
       {
-        if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
-          return;
-        pHandle.setDescription("Stashing existing changes");
-        prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, true));
+        return;
       }
       pHandle.setDescription("Cherry picking " + pCommitsToPick.size() + " commit(s)");
       _doCherryPick(pRepo, pCommitsToPick);
@@ -132,9 +130,10 @@ class CherryPickAction extends AbstractTableAction
       ICherryPickResult cherryPickResult = pRepo.cherryPick(pCommitsToPick);
       if (!cherryPickResult.getConflicts().isEmpty())
       {
-        DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), cherryPickResult.getConflicts(), true,
-                                                                             "Cherry Pick conflicts");
-        if (conflictResult.isPressedOk())
+        IMergeConflictDialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),
+                                                                                           cherryPickResult.getConflicts(), true,
+                                                                                           "Cherry Pick conflicts");
+        if (conflictResult.isFinishMerge())
         {
           Observable<Optional<List<IFileChangeType>>> changedFilesObs = pRepo.getStatus()
               .map(pOptStatus -> pOptStatus.map(IFileStatus::getUncommitted));

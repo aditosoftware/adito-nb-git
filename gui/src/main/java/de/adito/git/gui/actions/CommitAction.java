@@ -9,9 +9,9 @@ import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
+import de.adito.git.gui.dialogs.results.ICommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -70,9 +70,9 @@ class CommitAction extends AbstractTableAction
       if (messageTemplate == null)
         messageTemplate = "";
     }
-    DialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repo, selectedFilesObservable, messageTemplate);
+    ICommitDialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repo, selectedFilesObservable, messageTemplate);
     // if user didn't cancel the dialogs
-    if (dialogResult.isPressedOk())
+    if (dialogResult.doCommit())
     {
       progressFacade.executeInBackground("Committing Changes", pProgress -> {
         List<File> files = dialogResult.getInformation().getSelectedFilesSupplier().get();

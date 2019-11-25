@@ -3,8 +3,8 @@ package de.adito.git.gui.actions.commands;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import io.reactivex.Observable;
 
 import java.util.List;
@@ -41,12 +41,12 @@ public class StashCommand
       {
         pRepo.setUpdateFlag(true);
       }
-      DialogResult dialogResult = null;
+      IMergeConflictDialogResult dialogResult = null;
       if (!stashConflicts.isEmpty())
       {
         dialogResult = pDialogProvider.showMergeConflictDialog(pRepository, stashConflicts, false, "Stash Conflicts");
       }
-      if (stashConflicts.isEmpty() || dialogResult.isPressedOk())
+      if (stashConflicts.isEmpty() || dialogResult.isFinishMerge())
       {
         try
         {

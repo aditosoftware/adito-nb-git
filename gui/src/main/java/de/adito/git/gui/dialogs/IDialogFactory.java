@@ -67,4 +67,6 @@ interface IDialogFactory
   TagOverviewDialog createTagOverviewDialog(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
 
   ComboBoxDialog<Object> createComboBoxDialog(String pMessage, List<Object> pOptions);
+
+  StashChangesQuestionDialog createStashChangesQuestionDialog(List<IFileChangeType> pFilesToRevert, File pProjectDir);
 }

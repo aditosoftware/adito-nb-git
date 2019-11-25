@@ -4,8 +4,8 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.INewBranchDialogResult;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -48,8 +48,8 @@ abstract class AbstractNewBranchAction extends AbstractAction implements IDiscar
   @Override
   public void actionPerformed(ActionEvent e)
   {
-    DialogResult<?, Boolean> result = dialogProvider.showNewBranchDialog(repository);
-    if (result.isPressedOk())
+    INewBranchDialogResult<?, Boolean> result = dialogProvider.showNewBranchDialog(repository);
+    if (result.isCreateBranch())
     {
       progressFacade.executeInBackground("Creating branch " + result.getMessage(), pHandle -> {
         IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));

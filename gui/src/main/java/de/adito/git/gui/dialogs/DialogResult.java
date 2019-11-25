@@ -7,36 +7,40 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author a.arnold 31.10.2018
  */
-public class DialogResult<S, T>
+public class DialogResult<S, T> implements IDialogResult<S, T>
 {
-  private S source;
-  private boolean pressedOk;
-  private String message;
-  private T information;
+  private final S source;
+  protected final IDialogDisplayer.EButtons selectedButton;
+  private final String message;
+  private final T information;
 
-  public DialogResult(S pSource, boolean pPressedOk, @Nullable String pMessage, @Nullable T pInformation)
+  public DialogResult(S pSource, IDialogDisplayer.EButtons pSelectedButton, @Nullable String pMessage, @Nullable T pInformation)
   {
     source = pSource;
-    pressedOk = pPressedOk;
+    selectedButton = pSelectedButton;
     message = pMessage;
     information = pInformation;
   }
 
-  S getSource()
+  @Override
+  public S getSource()
   {
     return source;
   }
 
-  public boolean isPressedOk()
+
+  public IDialogDisplayer.EButtons getSelectedButton()
   {
-    return pressedOk;
+    return selectedButton;
   }
 
+  @Override
   public String getMessage()
   {
     return message;
   }
 
+  @Override
   public T getInformation()
   {
     return information;

@@ -1178,7 +1178,7 @@ public class RepositoryImpl implements IRepository
           if (stashedCommits.size() > 1)
             throw new AmbiguousStashCommitsException("num stashed commits: " + stashedCommits.size());
           else if (!stashedCommits.isEmpty())
-            return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, stashedCommits.get(0).getId(), this::diff, this::diff);
+            return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, stashedCommits.get(0).getId(), this::diff);
           else throw new AditoGitException("Conflict from failed un-stashing, but no more stashed commits exist");
         }
         if (git.getRepository().getRepositoryState() == RepositoryState.CHERRY_PICKING)
@@ -1205,7 +1205,7 @@ public class RepositoryImpl implements IRepository
     Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
     try
     {
-      return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, pStashedCommitId, this::diff, this::diff);
+      return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, pStashedCommitId, this::diff);
     }
     catch (IOException pE)
     {
@@ -1577,7 +1577,7 @@ public class RepositoryImpl implements IRepository
         try
         {
           List<IMergeDiff> stashConflicts = RepositoryImplHelper.getStashConflictMerge(git, RepositoryImplHelper.status(git).getConflicting(),
-                                                                                       pStashCommitId, this::diff, this::diff);
+                                                                                       pStashCommitId, this::diff);
           if (stashConflicts.isEmpty())
             throw new AditoGitException("Could not determine conflicting files, commit or undo your changes before trying the unstash again", pStashApplyFailureEx);
           else return stashConflicts;

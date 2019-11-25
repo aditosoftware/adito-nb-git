@@ -219,27 +219,20 @@ public class RepositoryImplHelper
    */
   @NotNull
   static List<IMergeDiff> getStashConflictMerge(@NotNull Git pGit, @NotNull Set<String> pConflicts, String pStashCommitId,
-                                                @NotNull BiFunction<List<File>, ICommit, List<IFileDiff>> pLocalDiffFn,
                                                 @NotNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFn)
       throws IOException, AditoGitException
   {
     RevCommit toUnstash = getStashedCommit(pGit, pStashCommitId);
     if (toUnstash == null)
       throw new AditoGitException("could not find any stashed commits while trying to resolve conflict of stashed commit with HEAD");
+    RevCommit headCommit = pGit.getRepository().parseCommit(pGit.getRepository().resolve(Constants.HEAD));
     RevCommit mergeBase = RepositoryImplHelper.getMergeBase(pGit, toUnstash,
-                                                            pGit.getRepository().parseCommit(pGit.getRepository().resolve(Constants.HEAD)));
+                                                            headCommit);
     List<IMergeDiff> mergeConflicts = new ArrayList<>();
-    ICommit parentBranchCommit;
-    try
-    {
-      parentBranchCommit = new CommitImpl(pGit.getRepository().parseCommit(pGit.getRepository().resolve(toUnstash.getName())));
-    }
-    catch (IOException e)
-    {
-      throw new AditoGitException(e);
-    }
+    ICommit stashCommit = new CommitImpl(toUnstash);
+    ICommit parentBranchCommit = new CommitImpl(headCommit);
     List<IFileDiff> parentDiffList = pDiffFn.apply(parentBranchCommit, new CommitImpl(mergeBase));
-    List<IFileDiff> toMergeDiffList = pLocalDiffFn.apply(null, new CommitImpl(mergeBase));
+    List<IFileDiff> toMergeDiffList = pDiffFn.apply(stashCommit, new CommitImpl(mergeBase));
     for (IFileDiff parentDiff : parentDiffList)
     {
       // may be empty, because JGit unstash doesn't apply changes if a conflict arises during unstashing. Ignore conflicting file status then

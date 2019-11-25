@@ -6,7 +6,6 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IRepositoryState;
-import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
@@ -59,7 +58,7 @@ public class RevertCommitsAction extends AbstractTableAction
         try
         {
           repo.setUpdateFlag(false);
-          if (_stashChanges(repo, pHandle))
+          if (ActionUtility.handleStash(prefStore, dialogProvider, repo, STASH_ID_KEY, pHandle))
           {
             repo.revertCommis(selectedCommits);
             notifyUtil.notify("Revert commits success", String.format("Reverting commits with ID %s was successfull ", selectedCommits), false);
@@ -71,17 +70,6 @@ public class RevertCommitsAction extends AbstractTableAction
           _unStashChanges(pHandle);
         }
       });
-  }
-
-  private boolean _stashChanges(IRepository pRepo, @NotNull IProgressHandle pHandle) throws AditoGitException
-  {
-    if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
-    {
-      pHandle.setDescription("Stashing existing changes");
-      prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, true));
-      return true;
-    }
-    return false;
   }
 
   private void _unStashChanges(@NotNull IProgressHandle pHandle)

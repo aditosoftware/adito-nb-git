@@ -8,8 +8,9 @@ import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IDeleteBranchDialogResult;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -48,8 +49,8 @@ class DeleteBranchAction extends AbstractTableAction
     String branchName = branch.blockingFirst().map(IBranch::getSimpleName).orElse(null);
     if (branchName != null)
     {
-      DialogResult<?, Boolean> result = dialogProvider.showDeleteBranchDialog(branchName);
-      if (result.isPressedOk())
+      IDeleteBranchDialogResult<?, Boolean> result = dialogProvider.showDeleteBranchDialog(branchName);
+      if (result.isDelete())
       {
         progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + branchName, pHandle -> {
           IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
@@ -79,9 +80,9 @@ class DeleteBranchAction extends AbstractTableAction
     {
       if (pE.getMessage().contains("Branch was not deleted as it has not been merged yet; use the force option to delete it anyway"))
       {
-        DialogResult dialogResult = dialogProvider.showYesNoDialog("Branch contains unmerged changes, do you want to force delete it? " +
+        IUserPromptDialogResult dialogResult = dialogProvider.showYesNoDialog("Branch contains unmerged changes, do you want to force delete it? " +
                                                                        "(WARNING: all changes on that branch are lost)");
-        if (dialogResult.isPressedOk())
+        if (dialogResult.isOkay())
         {
           pRepo.deleteBranch(pBranchName, pIsDeleteRemoteBranch, true);
         }

@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IUserInputPrompt;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
+import de.adito.git.gui.dialogs.results.IFileSelectionDialogResult;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,8 +31,8 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptPassword(String pMessage)
   {
-    DialogResult result = dialogProvider.showPasswordPromptDialog(pMessage);
-    return new PromptResult(result.isPressedOk(), result.getMessage());
+    IUserPromptDialogResult result = dialogProvider.showPasswordPromptDialog(pMessage);
+    return new PromptResult(result.isOkay(), result.getMessage());
   }
 
   /**
@@ -39,15 +41,15 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptPassphrase(String pMessage)
   {
-    DialogResult<?, char[]> result = dialogProvider.showPasswordPromptDialog(pMessage);
-    return new PromptResult(result.isPressedOk(), result.getInformation());
+    IUserPromptDialogResult<?, char[]> result = dialogProvider.showPasswordPromptDialog(pMessage);
+    return new PromptResult(result.isOkay(), result.getInformation());
   }
 
   @Override
   public @NotNull PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @Nullable IKeyStore pKeyStore)
   {
-    DialogResult<?, char[]> result = dialogProvider.showSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore);
-    return new PromptResult(result.isPressedOk(), result.getMessage(), result.getInformation());
+    IUserPromptDialogResult<?, char[]> result = dialogProvider.showSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore);
+    return new PromptResult(result.isOkay(), result.getMessage(), result.getInformation());
   }
 
   /**
@@ -56,8 +58,8 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptText(String pMessage)
   {
-    DialogResult result = dialogProvider.showUserPromptDialog(pMessage, null);
-    return new PromptResult(result.isPressedOk(), result.getMessage());
+    IUserPromptDialogResult result = dialogProvider.showUserPromptDialog(pMessage, null);
+    return new PromptResult(result.isOkay(), result.getMessage());
   }
 
   /**
@@ -66,15 +68,15 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptYesNo(String pMessage)
   {
-    DialogResult result = dialogProvider.showYesNoDialog(pMessage);
-    return new PromptResult(result.isPressedOk(), result.getMessage());
+    IUserPromptDialogResult result = dialogProvider.showYesNoDialog(pMessage);
+    return new PromptResult(result.isOkay(), result.getMessage());
   }
 
   @Override
   public PromptResult promptYesNoCheckbox(@NotNull String pMessage, @NotNull String pCheckboxText)
   {
-    DialogResult<?, Boolean> result = dialogProvider.showCheckboxPrompt(pMessage, pCheckboxText);
-    return new PromptResult(result.isPressedOk(), result.getInformation().toString());
+    IUserPromptDialogResult<?, Boolean> result = dialogProvider.showCheckboxPrompt(pMessage, pCheckboxText);
+    return new PromptResult(result.isOkay(), result.getInformation().toString());
   }
 
   /**
@@ -83,7 +85,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptFile(String pMessage)
   {
-    DialogResult result = dialogProvider.showFileSelectionDialog(pMessage, "", FileChooserProvider.FileSelectionMode.FILES_ONLY, null);
-    return new PromptResult(result.isPressedOk(), result.getMessage());
+    IFileSelectionDialogResult result = dialogProvider.showFileSelectionDialog(pMessage, "", FileChooserProvider.FileSelectionMode.FILES_ONLY, null);
+    return new PromptResult(result.acceptFiles(), result.getMessage());
   }
 }

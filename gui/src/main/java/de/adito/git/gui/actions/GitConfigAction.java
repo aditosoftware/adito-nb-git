@@ -7,8 +7,8 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IGitConfigDialogResult;
 import de.adito.git.impl.data.SSHKeyDetails;
 import io.reactivex.Observable;
 
@@ -43,8 +43,8 @@ class GitConfigAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    DialogResult<?, Multimap<String, Object>> dialogResult = dialogProvider.showGitConfigDialog(repository);
-    if (dialogResult.isPressedOk())
+    IGitConfigDialogResult<?, Multimap<String, Object>> dialogResult = dialogProvider.showGitConfigDialog(repository);
+    if (dialogResult.doSave())
     {
       // only set sshKeyLocation for now since that is the only supported setting (for now)
       for (Object obj : dialogResult.getInformation().get(Constants.SSH_KEY_KEY))

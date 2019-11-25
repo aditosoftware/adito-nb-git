@@ -8,8 +8,8 @@ import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IResetDialogResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,9 +48,9 @@ class ResetAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    DialogResult<?, EResetType> dialogResult = dialogProvider.showResetDialog();
+    IResetDialogResult<?, EResetType> dialogResult = dialogProvider.showResetDialog();
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
-    if (selectedCommits.size() == 1 && dialogResult.isPressedOk())
+    if (selectedCommits.size() == 1 && dialogResult.isPerformReset())
     {
       progressFacade.executeInBackground("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
         IRepository pRepo = repository.blockingFirst()

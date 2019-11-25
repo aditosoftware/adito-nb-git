@@ -1,9 +1,18 @@
 package de.adito.git.gui.actions;
 
+import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.DialogResult;
+import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IStashChangesQuestionDialogResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera, 01.07.2019
@@ -11,27 +20,37 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 class ActionUtility
 {
 
-  private static final String AUTMATIC_STASH_INFO = "Existing changes to working tree detected: if you continue these changes will be automatically stashed, " +
-      "however it is safer to manually commit these files first. Continue nonetheless?";
-  private static final String AUTOMATIC_STASH_CB_TEXT = "Don't ask me again and automatically stash the changes from now on";
-
   /**
-   * Checks if autostash is was set by the user, and if not prompts the user if it the changes should be stashed and the process continue/automatically stashed from
-   * now on and continue or if the process should be aborted
+   * Asks the user if he wants to stash the changed files, discard the changes or abort the current action
    *
-   * @return true if the files should be automatically stashed and the action can proceed, false if the user wants to cancel the action
+   * @param pPrefStore PrefStore for saving the Stash commit id
+   * @param pDialogProvider DialogProvider to get the stash dialog
+   * @param pRepository repository to retrieve the changed files
+   * @param pStashKey Key with which the stash commit id should be saved
+   * @param pHandle ProgressHandle to the the status to stashing, may be null
+   * @return true if the user selected an option that allows the action to continue, false if the user aborted
+   * @throws AditoGitException
    */
-  static boolean isAbortAutostash(IPrefStore pPrefStore, IDialogProvider pDialogProvider)
+  static boolean handleStash(@NotNull IPrefStore pPrefStore, @NotNull IDialogProvider pDialogProvider, @NotNull IRepository pRepository, @NotNull String pStashKey,
+                             @Nullable IProgressHandle pHandle) throws AditoGitException
   {
-    if (!String.valueOf(true).equals(pPrefStore.get(Constants.AUTOMATICALLY_STASH_LOCAL_CHANES)))
+    List<IFileChangeType> changedFiles = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommitted).orElse(List.of());
+    IStashChangesQuestionDialogResult<?, Object> dialogResult =
+        pDialogProvider.showStashChangesQuestionDialog(changedFiles,
+                                                       pRepository.getTopLevelDirectory());
+    if (dialogResult.isAbosrt())
+      return false;
+    if (dialogResult.isStashChanges())
     {
-      DialogResult<?, Boolean> dialogResult = pDialogProvider.showCheckboxPrompt(AUTMATIC_STASH_INFO, AUTOMATIC_STASH_CB_TEXT);
-      if (!dialogResult.isPressedOk())
-        return true;
-      else if (dialogResult.getInformation())
-        pPrefStore.put(Constants.AUTOMATICALLY_STASH_LOCAL_CHANES, String.valueOf(true));
+      if (pHandle != null)
+        pHandle.setDescription("Stashing existing changes");
+      pPrefStore.put(pStashKey, pRepository.stashChanges(null, true));
     }
-    return false;
+    else if (dialogResult.isDiscardChanges())
+    {
+      pRepository.revertWorkDir(changedFiles.stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
+    }
+    return true;
   }
 
 }

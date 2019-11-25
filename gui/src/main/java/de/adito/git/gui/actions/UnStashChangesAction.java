@@ -9,6 +9,8 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
+import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -45,12 +47,12 @@ class UnStashChangesAction extends AbstractAction
     {
       try
       {
-        DialogResult<?, String> dialogResult = dialogProvider.showStashedCommitSelectionDialog(Observable.just(Optional.of(repo)),
-                                                                                               repo.getStashedCommits());
+        IStashedCommitSelectionDialogResult<?, String> dialogResult = dialogProvider.showStashedCommitSelectionDialog(Observable.just(Optional.of(repo)),
+                                                                                                                      repo.getStashedCommits());
         repo.setUpdateFlag(false);
-        if (dialogResult.isPressedOk())
+        if (dialogResult.doUnStash())
         {
-          _executeUnstash(repo, dialogResult);
+          _executeUnstash(repo, (DialogResult<?, String>) dialogResult);
         }
       }
       catch (AditoGitException pE)
@@ -76,8 +78,9 @@ class UnStashChangesAction extends AbstractAction
       List<IMergeDiff> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
       if (!stashConflicts.isEmpty())
       {
-        DialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), stashConflicts, false, "Stash Conflicts");
-        if (conflictResult.isPressedOk())
+        IMergeConflictDialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),
+                                                                                           stashConflicts, false, "Stash Conflicts");
+        if (conflictResult.isFinishMerge())
           dialogProvider.showCommitDialog(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(List.of())), "");
       }
     });

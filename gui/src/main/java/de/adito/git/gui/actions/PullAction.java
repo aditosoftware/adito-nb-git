@@ -14,8 +14,8 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -91,10 +91,8 @@ class PullAction extends AbstractAction
       }
       if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
       {
-        if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
+        if (!ActionUtility.handleStash(prefStore, dialogProvider, pRepo, STASH_ID_KEY, pProgressHandle))
           return;
-        pProgressHandle.setDescription("Stashing existing changes");
-        prefStore.put(STASH_ID_KEY, pRepo.stashChanges(null, true));
       }
       while (!doAbort)
       {
@@ -157,8 +155,8 @@ class PullAction extends AbstractAction
    */
   private boolean _handleConflictDialog(IRepository pRepo, List<IMergeDiff> pMergeConflicts) throws AditoGitException
   {
-    DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
-    if (!dialogResult.isPressedOk())
+    IMergeConflictDialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
+    if (!dialogResult.isFinishMerge())
     {
       _abortRebase(pRepo);
       return true;

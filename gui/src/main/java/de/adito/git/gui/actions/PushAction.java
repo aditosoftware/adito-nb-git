@@ -11,8 +11,9 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.GitTransportFailureException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IPushDialogResult;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,16 +73,15 @@ class PushAction extends AbstractAction
     if (repoState != null && repoState.getCurrentRemoteTrackedBranch() == null && repoState.getRemotes().size() > 1)
     {
       // need new ArrayList to convert to List<Object>
-      DialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
+      IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
       remoteName = (String) result.getInformation();
     }
     try
     {
       List<ICommit> commitList = pRepo.getUnPushedCommits();
-      DialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
-                                                                            commitList);
-      boolean doCommit = dialogResult.isPressedOk();
-      if (doCommit)
+      IPushDialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
+                                                                                 commitList);
+      if (dialogResult.isPush())
       {
         pHandle.setDescription("Pushing");
         _doPush(dialogResult.getInformation(), remoteName);

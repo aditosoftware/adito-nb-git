@@ -12,8 +12,8 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -68,20 +68,18 @@ class MergeAction extends AbstractTableAction
     IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
     try
     {
-      if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false))
+      if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false)
+          && !ActionUtility.handleStash(prefStore, dialogProvider, repository, STASH_ID_KEY, pProgressHandle))
       {
-        if (ActionUtility.isAbortAutostash(prefStore, dialogProvider))
-          return;
-        pProgressHandle.setDescription("Stashing uncommitted local changes");
-        prefStore.put(STASH_ID_KEY, repository.stashChanges(null, true));
+        return;
       }
       pProgressHandle.setDescription("Merging branches");
       List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch(),
                                                              pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        DialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs, true);
-        if (!dialogResult.isPressedOk())
+        IMergeConflictDialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs, true);
+        if (!dialogResult.isFinishMerge())
         {
           pProgressHandle.setDescription("Aborting merge");
           repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
