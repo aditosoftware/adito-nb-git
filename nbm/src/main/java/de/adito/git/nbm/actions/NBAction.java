@@ -5,6 +5,7 @@ import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
@@ -29,6 +30,7 @@ abstract class NBAction extends NodeAction
 
   private static Observable<Optional<IRepository>> repositoryObservable = RepositoryUtility.getRepositoryObservable();
   private Observable<Optional<Boolean>> isEnabledObservable = null;
+  private BehaviorSubject<Object> doEnableUpdate = BehaviorSubject.createDefault(new Object());
   // for caching the nodes that are passed when enabled is called by netbeans, these are usually more up-to-date than the ones retrieved by
   // TopComponent.getRegistry.getXXX()
   Node[] lastActivated = new Node[0];
@@ -101,9 +103,11 @@ abstract class NBAction extends NodeAction
   protected boolean enable(Node[] pNodes)
   {
     lastActivated = pNodes;
+    doEnableUpdate.onNext(new Object());
     if (isEnabledObservable == null)
     {
-      isEnabledObservable = getIsEnabledObservable(repositoryObservable);
+      Observable<Optional<IRepository>> combinedObs = Observable.combineLatest(repositoryObservable, doEnableUpdate, (pRepo, pObj) -> pRepo);
+      isEnabledObservable = getIsEnabledObservable(combinedObs);
       isEnabledObservable.subscribe(pOptBoolean -> SwingUtilities.invokeLater(() -> setEnabled(pOptBoolean.orElse(Boolean.FALSE))));
     }
     return isEnabledObservable.blockingFirst().orElse(Boolean.FALSE);
