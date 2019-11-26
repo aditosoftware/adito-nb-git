@@ -11,9 +11,9 @@ import org.eclipse.jgit.lib.Ref;
 public class BranchImpl implements IBranch
 {
 
-  private static final String REF_STRING = "refs/";
-  private static final String HEAD_STRING = "heads/";
-  private static final String REMOTE_STRING = "remotes/";
+  public static final String REF_STRING = "refs/";
+  public static final String HEAD_STRING = "heads/";
+  public static final String REMOTE_STRING = "remotes/";
 
   private Ref branchRef;
   private EBranchType branchType;

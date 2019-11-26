@@ -987,7 +987,7 @@ public class RepositoryImpl implements IRepository
     {
       List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
 
-      if (refs.stream().anyMatch(ref -> ref.getName().equals("refs/heads/" + pBranchName)))
+      if (refs.stream().anyMatch(ref -> ref.getName().equals(BranchImpl.REF_STRING + BranchImpl.HEAD_STRING + pBranchName)))
       {
         throw new AditoGitException("Branch already exist. " + pBranchName);
       }
@@ -1016,7 +1016,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException
   {
-    String destination = "refs/heads/" + pBranchName;
+    String destination = BranchImpl.REF_STRING + BranchImpl.HEAD_STRING + pBranchName;
     try
     {
       git.branchDelete()
@@ -1139,7 +1139,7 @@ public class RepositoryImpl implements IRepository
     // JGit tried to check out a tag - again. *sigh*
     // check out the created local branch that should have been checked out
     if (repositoryState.isPresent() && repositoryState.get().getCurrentBranch().getType() == EBranchType.DETACHED)
-      checkout("refs/heads/" + pLocalName);
+      checkout(BranchImpl.REF_STRING + BranchImpl.HEAD_STRING + pLocalName);
   }
 
   /**
