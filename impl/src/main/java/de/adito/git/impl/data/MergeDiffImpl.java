@@ -146,12 +146,10 @@ public class MergeDiffImpl implements IMergeDiff
     List<IFileChangeChunk> changeChunkList = getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue();
     for (Pair<Integer, Integer> affectedChunkInfo : affectedChunksInfo)
     {
-      int beforeOffsetPartEnd = pOffset - affectedChunkInfo.getValue() > 0 ? pOffset - affectedChunkInfo.getValue() : 0;
+      int beforeOffsetPartEnd = Math.max(pOffset - affectedChunkInfo.getValue(), 0);
       // if this IFileChangeChunk has less lines after the offset of the chunk, set the afterOffsetPartStart to the end of the IFileChangeChunk
-      int afterOffsetPartStart = changeChunkList.get(affectedChunkInfo.getKey()).getLines(EChangeSide.OLD).length()
-          < (pOffset + pLength) - affectedChunkInfo.getValue()
-          ? changeChunkList.get(affectedChunkInfo.getKey()).getLines(EChangeSide.OLD).length()
-          : (pOffset + pLength) - affectedChunkInfo.getValue();
+      int afterOffsetPartStart = Math.min(changeChunkList.get(affectedChunkInfo.getKey()).getLines(EChangeSide.OLD).length(),
+                                          (pOffset + pLength) - affectedChunkInfo.getValue());
       // piece together the parts
       String beforeRemovedPart = changeChunkList.get(affectedChunkInfo.getKey()).getLines(EChangeSide.OLD).substring(0, beforeOffsetPartEnd);
       String afterRemovedPart = changeChunkList.get(affectedChunkInfo.getKey()).getLines(EChangeSide.OLD).substring(afterOffsetPartStart);
@@ -326,8 +324,7 @@ public class MergeDiffImpl implements IMergeDiff
     if (pToInsert.getChangeType() == EChangeType.MODIFY)
     {
       // if the replace change started in a previous chunk, start from an offset(offset = number of lines of the change taken during the last chunk/s)
-      int indexOffset = pToChange.getStart(EChangeSide.OLD) - pToInsert.getStart(EChangeSide.OLD) > 0
-          ? pToChange.getStart(EChangeSide.OLD) - pToInsert.getStart(EChangeSide.OLD) : 0;
+      int indexOffset = Math.max(pToChange.getStart(EChangeSide.OLD) - pToInsert.getStart(EChangeSide.OLD), 0);
       /*
           if the chunk in which to insert the change is longer, terminateAt is the number of lines in the change minus the lines processed in previous
           chunks else it is the length of this chunk
