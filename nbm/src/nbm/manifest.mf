@@ -6,20 +6,47 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.4</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+   <li>Reworked the Merge conflict dialog that shows the conflicting files, the files are colored according to the THEIRS/YOURS change type and both change types are displayed, in case they differ</li>
+   <li>Accepting the deleted version of a file in a merge conflict now properly deletes that file instead of leaving it empty</li>
+   <li>If two branches that are already up-to-date in respect to each other are merged the user gets a notification and no empty merge commit is created</li>
+   <li>Fetch now gives a notification if any of its triggered updates fail, but the fetch itself succeeded</li>
+   <li>The intialization of the Git repositories now happens in asynchronous fashion, which means less impact of the plugin on the start-up time of the designer if several projects are open. This may lead to a short waiting period until all Git actions are available</li>
+   <li>Reworked the dialog that notifies the user of existing local changes when performing a merge, checkout, pull or any other such action. It now offers a third button, "Discard changes", that discards all current changes and then proceeds with the triggered action. The checkbox for "Don't ask me again" was removed</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+   <li>If the config file has a non-existing gitattributes files stored the location is replaced with the default location of a gitattributes file</li>
+   <li>All ScrollPanes in the merge conflict resolution dialog now start at the top</li>
+   <li>Restructured the popup menu in the history/log, also removed the duplicate "Reset current branch to here" action</li>
+   <li>Merge commits are now displayed in a different color compared to the "normal" commits to better distinguish them</li>
+   <li>Further improved the ability of the plugin to keep track of which project is currently selected (affects branch menu in the bottom right as well as actions from the toolbar)</li>
+   <li>The buttons offered in the dialogs are now more specific to the dialog (e.g. "Commit" instead of "Ok" in the commit dialog)</li>
+   <li>The Git actions in the popup menu of the project tree are enabled correctly once more</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+   <li>Fix: "Jump to next/previous change" buttons not working in the diff/merge dialogs</li>
+   <li>Fix: The HEAD of origin sometimes appearing in the list of remote branches</li>
+   <li>Fix: "Revert commit" action not working</li>
+   <li>Fix: The initial commit in the log was shown as empty, even though files were committed</li>
+  </ul>
   <p style="font-weight: bold;">v.1.3.3</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
     <ul>
       <li>The plugin now offers functionality for creating and applying patches</li>
       <li>The plugin warns the user if no gitattributes file exists or the gitattributes file has basic settings missing. A valid gitattributes file can be created by the plugin</li>
     </ul>
-  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
     <ul>
       <li>Changed the way the buttons in the main toolbar decide if they are active or not, now matches the way the branches in the lower right corner work</li>
       <li>The Plugin uses a more robust way to determine the project of the selected Node or TopComponent and has a fallback if that way fails</li>
       <li>The Branch selection Combobox in the log now displays the short name of the Branches, the short name is enough for the user and is easier to read</li>
       <li>Error messages are displayed more prominently once again</li>
     </ul>
-  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
     <ul>
       <li>Fix: Toolbar in the "Local changes" window is missing</li>
       <li>Fix: Checking out a remote branch that has the same name as a tag could leave you in a detached HEAD state</li>
