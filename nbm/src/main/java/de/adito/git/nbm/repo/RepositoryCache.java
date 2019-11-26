@@ -18,6 +18,9 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -34,6 +37,8 @@ public class RepositoryCache
 
   private static final Logger LOGGER = Logger.getLogger(RepositoryCache.class.getName());
   private static final String GIT_FOLDER_NAME = ".git";
+  private static final ThreadPoolExecutor executorService = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 30, TimeUnit.SECONDS,
+                                                                                   new ArrayBlockingQueue<>(20));
   private static RepositoryCache instance;
   private PropertyChangeListener pcl = new _OpenProjectListener();
   private IRepositoryProviderFactory repositoryProviderFactory = IGitConstants.INJECTOR.getInstance(IRepositoryProviderFactory.class);
@@ -61,7 +66,7 @@ public class RepositoryCache
   public void init()
   {
     OpenProjects.getDefault().addPropertyChangeListener(pcl);
-    _update();
+    executorService.submit(RepositoryCache.this::_update);
   }
 
   /**
@@ -126,17 +131,9 @@ public class RepositoryCache
    */
   private void _doOnProjectClose(@NotNull FileObject pProjectFolder)
   {
-    try
-    {
-      RepositoryProvider provider = _getProvider(pProjectFolder, false);
-      // todo close repo
-      //if (provider != null)
-      //  provider.setRepositoryDescription(null);
-    }
-    catch (Exception e)
-    {
-      LOGGER.log(Level.SEVERE, "", e);
-    }
+    // todo close repo
+    // Problem here is, that the project is closed and immediately re-opened if e.g. the version of the project is changed -> project/repository shouldn't be disposed in
+    // this case
   }
 
   @Nullable
@@ -211,7 +208,7 @@ public class RepositoryCache
     public void propertyChange(PropertyChangeEvent pEvent)
     {
       if (pEvent.getPropertyName().equals(OpenProjects.PROPERTY_OPEN_PROJECTS))
-        _update();
+        executorService.submit(RepositoryCache.this::_update);
     }
   }
 }

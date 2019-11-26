@@ -21,6 +21,7 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 
+import javax.inject.Singleton;
 import java.awt.Image;
 import java.beans.BeanInfo;
 import java.io.File;
@@ -40,12 +41,15 @@ import java.util.logging.Logger;
 public class NBFileSystemUtilImpl implements IFileSystemUtil
 {
 
+  private static final int NUM_CORES = Runtime.getRuntime().availableProcessors();
+  private static final ThreadPoolExecutor EXECUTOR_SERVICE = new ThreadPoolExecutor(0, NUM_CORES, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100));
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final FileSystem memoryFS = FileUtil.createMemoryFileSystem();
   private final HashMap<String, Image> artificialIconMap = new HashMap<>();
   private final LoadingCache<_IconKey, Image> iconCache;
   private Image defaultMissingIconImage = ImageUtilities.icon2Image(MissingIcon.get16x16());
 
+  @Singleton
   public NBFileSystemUtilImpl()
   {
     iconCache = CacheBuilder.newBuilder().maximumSize(5000).expireAfterAccess(30, TimeUnit.SECONDS).build(new CacheLoader<>()
@@ -167,24 +171,13 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
    */
   private void _preLoadInParallel(@NotNull List<IFileChangeType> pFileChangeTypes)
   {
-    int numCores = Runtime.getRuntime().availableProcessors();
-    ExecutorService executorService = Executors.newFixedThreadPool(numCores);
-    int numberPerThread = pFileChangeTypes.size() / numCores;
-    for (int index = 0; index < numCores; index++)
+    int numberPerThread = pFileChangeTypes.size() / NUM_CORES;
+    for (int index = 0; index < NUM_CORES; index++)
     {
       // if the index is the first index start at 0, otherwise add one to numberPerThread * index to not do the last item of the previous thread twice
       int startIndex = index == 0 ? 0 : numberPerThread * index + 1;
-      int endIndex = index == numCores - 1 ? pFileChangeTypes.size() : numberPerThread * (index + 1);
-      executorService.submit(() -> _preLoadIcons(pFileChangeTypes.subList(startIndex, endIndex)));
-    }
-    try
-    {
-      executorService.shutdown();
-      executorService.awaitTermination(5, TimeUnit.SECONDS);
-    }
-    catch (InterruptedException pE)
-    {
-      Thread.currentThread().interrupt();
+      int endIndex = index == NUM_CORES - 1 ? pFileChangeTypes.size() : numberPerThread * (index + 1);
+      EXECUTOR_SERVICE.submit(() -> _preLoadIcons(pFileChangeTypes.subList(startIndex, endIndex)));
     }
   }
 
