@@ -81,7 +81,14 @@ public class CommitNBAction extends NBAction
       return false;
     boolean containsUncommittedFiles = !pRepository.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true);
     Boolean canCommit = pRepository.getRepositoryState().blockingFirst().map(IRepositoryState::canCommit).orElse(false);
-    _updateTooltip(canCommit, containsUncommittedFiles);
+    if (SwingUtilities.isEventDispatchThread())
+    {
+      _updateTooltip(canCommit, containsUncommittedFiles);
+    }
+    else
+    {
+      SwingUtilities.invokeLater(() -> _updateTooltip(canCommit, containsUncommittedFiles));
+    }
     return canCommit && containsUncommittedFiles;
   }
 
