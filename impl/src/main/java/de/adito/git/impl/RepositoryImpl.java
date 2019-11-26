@@ -1297,14 +1297,11 @@ public class RepositoryImpl implements IRepository
       List<IDiffInfo> diffInfos = new ArrayList<>();
       for (RevCommit parentCommit : thisCommit.getParents())
       {
-        List<IFileChangeType> fileChangeTypes = RepositoryImplHelper.doDiff(git, thisCommit.getId(), parentCommit).stream()
-            .map(pDiffEntry -> {
-              EChangeType changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
-              return new FileChangeTypeImpl(new File(pDiffEntry.getNewPath()), new File(pDiffEntry.getOldPath()), changeType);
-            })
-            .distinct()
-            .collect(Collectors.toList());
-        diffInfos.add(new DiffInfoImpl(new CommitImpl(thisCommit), new CommitImpl(parentCommit), fileChangeTypes));
+        _addChangedFiles(thisCommit, parentCommit, diffInfos);
+      }
+      if (thisCommit.getParents().length == 0)
+      {
+        _addChangedFiles(thisCommit, null, diffInfos);
       }
       return diffInfos;
     }
@@ -1312,6 +1309,27 @@ public class RepositoryImpl implements IRepository
     {
       throw new AditoGitException(pE);
     }
+  }
+
+  /**
+   * get the list of DiffInfos between pThisCommit and pParentCommit and add them to the list of pDiffInfos
+   *
+   * @param pThisCommit   selected commit
+   * @param pParentCommit parent of pThisCommit for which the DiffInfos should be gathered
+   * @param pDiffInfos    List of gathered DiffInfos so far (may be empty)
+   * @throws AditoGitException if the diff operation encounters an error thrown by JGit
+   */
+  private void _addChangedFiles(@NotNull RevCommit pThisCommit, @Nullable RevCommit pParentCommit, @NotNull List<IDiffInfo> pDiffInfos) throws AditoGitException
+  {
+    List<IFileChangeType> fileChangeTypes = RepositoryImplHelper.doDiff(git, pThisCommit.getId(), pParentCommit).stream()
+        .map(pDiffEntry -> {
+          EChangeType changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
+          return new FileChangeTypeImpl(new File(pDiffEntry.getNewPath()), new File(pDiffEntry.getOldPath()), changeType);
+        })
+        .distinct()
+        .collect(Collectors.toList());
+    pDiffInfos.add(new DiffInfoImpl(new CommitImpl(pThisCommit), pParentCommit == null ? CommitImpl.VOID_COMMIT : new CommitImpl(pParentCommit),
+                                    fileChangeTypes));
   }
 
   /**
