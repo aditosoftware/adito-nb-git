@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 public class ConfigImpl implements IConfig
 {
 
+  private static final String CONFIG_WRITE_ERROR_MSG = "Error while saving the config";
   private final IKeyStore keyStore;
   private final Logger logger = Logger.getLogger(ConfigImpl.class.getName());
   private final INotifyUtil notifyUtil;
@@ -94,6 +95,12 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
+  public @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName)
+  {
+    return git.getRepository().getConfig().getString(pSectionKey, pSubSectionKey, pName);
+  }
+
+  @Override
   public AUTO_CRLF getAutoCRLF()
   {
     String autoCRLFSetting = git.getRepository().getConfig().getString(AUTO_CRLF_SECTION_KEY, null, AUTO_CRLF_KEY);
@@ -117,7 +124,7 @@ public class ConfigImpl implements IConfig
     catch (IOException pE)
     {
       notifyUtil.notify("Config", "Error while trying to save the config, see IDE log for further details", false);
-      logger.log(Level.SEVERE, pE, () -> "Error while saving the config");
+      logger.log(Level.SEVERE, pE, () -> CONFIG_WRITE_ERROR_MSG);
     }
   }
 
@@ -222,6 +229,23 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
+  public boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName, @NotNull String pValue)
+  {
+    StoredConfig config = git.getRepository().getConfig();
+    config.setString(pSectionKey, pSubSectionKey, pName, pValue);
+    try
+    {
+      config.save();
+    }
+    catch (IOException pE)
+    {
+      logger.log(Level.SEVERE, pE, () -> CONFIG_WRITE_ERROR_MSG);
+      return false;
+    }
+    return true;
+  }
+
+  @Override
   public @Nullable String getRemoteName(@Nullable String pRemoteUrl)
   {
     try
@@ -254,7 +278,7 @@ public class ConfigImpl implements IConfig
     }
     catch (IOException pE)
     {
-      logger.log(Level.SEVERE, pE, () -> "Error while saving the config");
+      logger.log(Level.SEVERE, pE, () -> CONFIG_WRITE_ERROR_MSG);
     }
   }
 

@@ -45,6 +45,12 @@ public class CloneConfig implements IConfig
   }
 
   @Override
+  public @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName)
+  {
+    return null;
+  }
+
+  @Override
   public AUTO_CRLF getAutoCRLF()
   {
     return null;
@@ -84,6 +90,12 @@ public class CloneConfig implements IConfig
   public void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl)
   {
     //not implemented
+  }
+
+  @Override
+  public boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName, @NotNull String pValue)
+  {
+    return false;
   }
 
   @Override

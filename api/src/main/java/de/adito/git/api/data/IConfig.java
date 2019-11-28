@@ -83,6 +83,16 @@ public interface IConfig
   @Nullable char[] getPassword();
 
   /**
+   * tries to retrieve the specified value from the config
+   *
+   * @param pSectionKey    name of the section, e.g. "core" or "branch"
+   * @param pSubSectionKey name of the subsection, e.g. "master". Basically the second part of the sections that have two parts, like branch or remote. Null otherwise
+   * @param pName          Name of the key, e.g. "fetch" or "filemode"
+   * @return value of the key if that key exists and has a value, null otherwise
+   */
+  @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName);
+
+  /**
    * checks the autocrlf setting of the repository/global config
    *
    * @return the autoCRLF setting
@@ -124,6 +134,17 @@ public interface IConfig
    * @param pRemoteUrl url of the remote, or null if not known
    */
   void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl);
+
+  /**
+   * tries to store the specified value in the config
+   *
+   * @param pSectionKey    name of the section, e.g. "core" or "branch"
+   * @param pSubSectionKey name of the subsection, e.g. "master". Basically the second part of the sections that have two parts, like branch or remote. Null otherwise
+   * @param pName          Name of the key, e.g. "fetch" or "filemode"
+   * @param pValue         The value that the key should be set to
+   * @return true if the set operation was successful, false otherwise
+   */
+  boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName, @NotNull String pValue);
 
   /**
    * get the name of either the remote with the passes url or the remote that is connected to the current branch (if any is)
