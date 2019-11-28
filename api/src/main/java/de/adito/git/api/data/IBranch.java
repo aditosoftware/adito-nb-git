@@ -14,12 +14,12 @@ public interface IBranch
   IBranch ALL_BRANCHES = new IBranch()
   {
 
-    private String allBranchName = "All";
+    private static final String ALL_BRANCH_NAME = "All";
 
     @Override
     public String getName()
     {
-      return allBranchName;
+      return ALL_BRANCH_NAME;
     }
 
     @Override
@@ -35,6 +35,12 @@ public interface IBranch
     }
 
     @Override
+    public String getActualName()
+    {
+      return getName();
+    }
+
+    @Override
     public EBranchType getType()
     {
       return EBranchType.EMPTY;
@@ -43,7 +49,7 @@ public interface IBranch
     @Override
     public String toString()
     {
-      return allBranchName;
+      return ALL_BRANCH_NAME;
     }
   };
 
@@ -58,9 +64,15 @@ public interface IBranch
   String getId();
 
   /**
-   * @return a String of the short Name, i.e. master
+   * @return a String of the short Name, i.e. master. If the branch is a remote branch, the name of the remote is preprended, e.g. origin/master
    */
   String getSimpleName();
+
+  /**
+   * @return The actual name of the branch, this is the same as the simpleName except in the case of a remote, where this will return only the name of the branch without
+   * the name of the remote prepended
+   */
+  String getActualName();
 
   /**
    * Checkout which type of branch the branch is. There are two types of branches to check: heads(remote) and local

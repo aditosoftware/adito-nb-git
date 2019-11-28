@@ -84,6 +84,15 @@ public class BranchImpl implements IBranch
     return simpleName;
   }
 
+  @Override
+  public String getActualName()
+  {
+    String name = getSimpleName();
+    if (branchType == EBranchType.REMOTE)
+      name = name.substring(name.indexOf('/') + 1);
+    return name;
+  }
+
   /**
    * {@inheritDoc}
    */
