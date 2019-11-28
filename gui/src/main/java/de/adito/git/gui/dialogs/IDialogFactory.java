@@ -46,7 +46,7 @@ interface IDialogFactory
 
   UserPromptDialog createUserPromptDialog(@Nullable String pDefault);
 
-  YesNoDialog createYesNoDialog(String pMessage);
+  NotificationDialog createNotificationDialog(String pMessage);
 
   DeleteBranchDialog createDeleteBranchDialog();
 

@@ -10,12 +10,12 @@ import javax.swing.*;
 /**
  * @author a.arnold, 16.01.2019
  */
-class YesNoDialog extends AditoBaseDialog<Object>
+class NotificationDialog extends AditoBaseDialog<Object>
 {
   private final JLabel label = new JLabel();
 
   @Inject
-  YesNoDialog(@Assisted String pMessage)
+  NotificationDialog(@Assisted String pMessage)
   {
     label.setText(pMessage);
     _initGui();
