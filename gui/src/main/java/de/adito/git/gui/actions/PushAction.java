@@ -12,6 +12,7 @@ import de.adito.git.api.exception.GitTransportFailureException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IChangeTrackedBranchDialogResult;
 import de.adito.git.gui.dialogs.results.IPushDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
@@ -32,6 +33,7 @@ import java.util.logging.Logger;
 class PushAction extends AbstractAction
 {
 
+  private static final String BRANCH_STRING = "branch";
   private static final String FAILURE_HEADER = "Push failed";
   private final Logger logger = Logger.getLogger(PushAction.class.getName());
   private final INotifyUtil notifyUtil;
@@ -76,6 +78,7 @@ class PushAction extends AbstractAction
       IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
       remoteName = (String) result.getInformation();
     }
+    if (_handleNonMatchingTrackedBranch(pRepo, repoState)) return;
     try
     {
       List<ICommit> commitList = pRepo.getUnPushedCommits();
@@ -111,6 +114,37 @@ class PushAction extends AbstractAction
       String errorMessage = "Error while finding un-pushed commits";
       notifyUtil.notify(pE, errorMessage + ". ", false);
     }
+  }
+
+  /**
+   * Checks for and handles the case where a local branch tracks a remote branch with a different name
+   *
+   * @param pRepo      Repository
+   * @param pRepoState current State of the repo
+   * @return true if the push should be cancelled, false otherwise
+   */
+  private boolean _handleNonMatchingTrackedBranch(IRepository pRepo, IRepositoryState pRepoState)
+  {
+    if (pRepoState != null && pRepoState.getCurrentRemoteTrackedBranch() != null
+        && !pRepoState.getCurrentBranch().getActualName().equals(pRepoState.getCurrentRemoteTrackedBranch().getActualName())
+        && !"tracking".equals(pRepo.getConfig().get(BRANCH_STRING, pRepoState.getCurrentBranch().getSimpleName(), "pull")))
+    {
+      IChangeTrackedBranchDialogResult dialogResult = dialogProvider.showChangeTrackedBranchDialog("Name of the local branch and its tracked remote branch ("
+                                                                                                       + pRepoState.getCurrentRemoteTrackedBranch().getSimpleName()
+                                                                                                       + ") differ, do you want to create a new branch \""
+                                                                                                       + pRepoState.getCurrentBranch().getSimpleName()
+                                                                                                       + "\" on the remote and track that branch instead?");
+      if (dialogResult.isChangeBranch())
+      {
+        pRepo.getConfig().setValue(BRANCH_STRING, pRepoState.getCurrentBranch().getSimpleName(), "merge", pRepoState.getCurrentBranch().getName());
+      }
+      else if (dialogResult.isKeepTrackedBranch())
+      {
+        pRepo.getConfig().setValue(BRANCH_STRING, pRepoState.getCurrentBranch().getSimpleName(), "pull", "tracking");
+      }
+      else return dialogResult.isCancel();
+    }
+    return false;
   }
 
   private void _doPush(Boolean pIsPushTags, String pRemoteName) throws AditoGitException
