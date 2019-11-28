@@ -323,7 +323,14 @@ class DialogProviderImpl implements IDialogProvider
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            dialogFactory.createYesNoDialog(pMessage),
-                                                                       pMessage, List.of(EButtons.YES, EButtons.NO).toArray(new EButtons[0])));
+                                                                       pMessage, List.of(EButtons.YES, EButtons.NO).toArray(new EButtons[0])))
+    {
+      @Override
+      public boolean isOkay()
+      {
+        return selectedButton == EButtons.YES;
+      }
+    };
   }
 
   @NotNull
