@@ -138,6 +138,14 @@ public interface IDialogProvider
   IUserPromptDialogResult showYesNoDialog(@NotNull String pMessage);
 
   /**
+   * Aks the user if he wants to push to the tracked branch (different name than the local branch) or if he wants to create a new branch
+   *
+   * @param pMessage message to display, should inform the user about which branch is tracked and what name the created branch should have
+   * @return DialogResult with information about the choice of the user
+   */
+  @NotNull IChangeTrackedBranchDialogResult showChangeTrackedBranchDialog(@NotNull String pMessage);
+
+  /**
    * Shows a dialog that presents the user the list of files to be reverted as tree
    *
    * @param pFilesToRevert List of files that are selected to be reverted

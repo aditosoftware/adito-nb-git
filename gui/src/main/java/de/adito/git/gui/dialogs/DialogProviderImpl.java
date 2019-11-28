@@ -335,6 +335,43 @@ class DialogProviderImpl implements IDialogProvider
 
   @NotNull
   @Override
+  public IChangeTrackedBranchDialogResult showChangeTrackedBranchDialog(@NotNull String pMessage)
+  {
+    return new ChangeTrackedBranchDialogResult<>(dialogDisplayer.showDialog(pValidConsumer ->
+                                                                                dialogFactory.createNotificationDialog(pMessage),
+                                                                            "", List.of(EButtons.CREATE_NEW_BRANCH, EButtons.KEEP_TRACKING, EButtons.ABORT)
+                                                                                .toArray(new EButtons[0])));
+  }
+
+  private static class ChangeTrackedBranchDialogResult<S, T> extends DialogResult<S, T> implements IChangeTrackedBranchDialogResult<S, T>
+  {
+
+    private ChangeTrackedBranchDialogResult(DialogResult<S, T> pDialogResult)
+    {
+      super(pDialogResult.getSource(), pDialogResult.getSelectedButton(), pDialogResult.getMessage(), pDialogResult.getInformation());
+    }
+
+    @Override
+    public boolean isCancel()
+    {
+      return selectedButton == EButtons.ABORT;
+    }
+
+    @Override
+    public boolean isChangeBranch()
+    {
+      return selectedButton == EButtons.CREATE_NEW_BRANCH;
+    }
+
+    @Override
+    public boolean isKeepTrackedBranch()
+    {
+      return selectedButton == EButtons.KEEP_TRACKING;
+    }
+  }
+
+  @NotNull
+  @Override
   public IRevertDialogResult showRevertDialog(@NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
   {
 

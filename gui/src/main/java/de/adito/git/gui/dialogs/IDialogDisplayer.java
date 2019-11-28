@@ -40,7 +40,9 @@ public interface IDialogDisplayer
     DELETE("Delete"),
     SAVE("Save"),
     COMMIT("Commit"),
-    UNSTASH("Unstash commit");
+    UNSTASH("Unstash commit"),
+    CREATE_NEW_BRANCH("Create new branch"),
+    KEEP_TRACKING("Keep tracking the selected branch");
 
     private final String text;
 
