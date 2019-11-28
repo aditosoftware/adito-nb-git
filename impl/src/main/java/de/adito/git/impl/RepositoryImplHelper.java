@@ -143,7 +143,7 @@ public class RepositoryImplHelper
       String remoteTrackingBranchName = getRemoteTrackingBranch(pGit, null);
       IBranch remoteTrackingBranch = null;
       if (remoteTrackingBranchName != null)
-        remoteTrackingBranch = new BranchImpl(pGit.getRepository().resolve(remoteTrackingBranchName));
+        remoteTrackingBranch = new BranchImpl(pGit.getRepository().findRef(remoteTrackingBranchName));
       List<String> remoteNames = new ArrayList<>(pGit.getRepository().getRemoteNames());
       if (pGit.getRepository().getRefDatabase().findRef(branch) == null)
       {
