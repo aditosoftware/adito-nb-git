@@ -273,6 +273,7 @@ public class RepositoryImpl implements IRepository
         push.setPushTags();
       if (pRemoteName != null)
         push.setRemote(pRemoteName);
+      getRepositoryState().blockingFirst(Optional.empty()).ifPresent(pRepoState -> _setRefSpec(push, pRepoState));
       Iterable<PushResult> pushResults = push.call();
       for (PushResult pushResult : pushResults)
       {
@@ -294,6 +295,17 @@ public class RepositoryImpl implements IRepository
       throw new IllegalStateException("Unable to push into remote Git repository", e);
     }
     return resultMap;
+  }
+
+  private void _setRefSpec(PushCommand pPush, IRepositoryState pRepositoryState)
+  {
+    IBranch remoteTrackedBranch = pRepositoryState.getCurrentRemoteTrackedBranch();
+    if (remoteTrackedBranch != null && remoteTrackedBranch.getType() != EBranchType.DETACHED)
+    {
+      String remoteBranchName = remoteTrackedBranch.getActualName();
+      if (!remoteBranchName.isEmpty())
+        pPush.setRefSpecs(new RefSpec(pRepositoryState.getCurrentBranch().getSimpleName() + ":" + remoteBranchName));
+    }
   }
 
   /**
