@@ -48,16 +48,11 @@ class StashChangesAction extends AbstractAction
         progressFacade.executeInBackground("Stashing changes", pHandle -> {
           try
           {
-            repo.setUpdateFlag(false);
             repo.stashChanges(dialogResult.getInformation().getStashMessage(), dialogResult.getInformation().isIncludeUnTracked());
           }
           catch (AditoGitException pE)
           {
             notifyUtil.notify(pE, "An error occurred during the stash process. ", false);
-          }
-          finally
-          {
-            repo.setUpdateFlag(true);
           }
         });
       }

@@ -82,7 +82,6 @@ class PullAction extends AbstractAction
     boolean doAbort = false;
     try
     {
-      pRepo.setUpdateFlag(false);
       ICommit head = pRepo.getCommit(null);
       if (pRepo.getStatus().blockingFirst().map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(false))
       {
@@ -135,7 +134,6 @@ class PullAction extends AbstractAction
     }
     finally
     {
-      pRepo.setUpdateFlag(true);
       String stashedCommitId = prefStore.get(STASH_ID_KEY);
       if (stashedCommitId != null)
       {

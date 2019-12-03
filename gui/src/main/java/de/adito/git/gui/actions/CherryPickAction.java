@@ -86,7 +86,6 @@ class CherryPickAction extends AbstractTableAction
     try
     {
       Optional<IFileStatus> status = pRepo.getStatus().blockingFirst();
-      pRepo.setUpdateFlag(false);
       if (status.map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(true))
       {
         notifyUtil.notify(ACTION_NAME, "Aborting cherry pick, please make sure the working tree is clean before cherry picking", false);
@@ -102,7 +101,6 @@ class CherryPickAction extends AbstractTableAction
     }
     finally
     {
-      pRepo.setUpdateFlag(true);
       _performUnstash(pHandle);
     }
   }
