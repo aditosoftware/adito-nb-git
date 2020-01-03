@@ -216,6 +216,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
    */
   private void _writeToFile(String pFileContents, Charset pCharset, IMergeDiff pSelectedMergeDiff, File pSelectedFile)
   {
+    if (!pSelectedFile.exists())
+      pSelectedFile.getParentFile().mkdirs();
     try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pSelectedFile, false), pCharset))
     {
       writer.write(pFileContents);
