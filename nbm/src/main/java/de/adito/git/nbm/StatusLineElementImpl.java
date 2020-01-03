@@ -36,12 +36,12 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
 
   public StatusLineElementImpl()
   {
+    _initPopup();
     label.addMouseListener(new MouseAdapter()
     {
       @Override
       public void mouseClicked(MouseEvent pE)
       {
-        _initPopup();
         popupWindow.setVisible(true);
         popupWindow.setLocation(pE.getLocationOnScreen().x - popupWindow.getWidth(), pE.getLocationOnScreen().y - popupWindow.getHeight());
       }
