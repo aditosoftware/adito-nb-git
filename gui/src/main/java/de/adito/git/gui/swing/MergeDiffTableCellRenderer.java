@@ -88,7 +88,7 @@ public class MergeDiffTableCellRenderer extends DefaultTableCellRenderer
     }
     else if (pColumnIndex == 1)
     {
-      return path.subpath(0, path.getNameCount() - 1).toString();
+      return path.subpath(0, Math.max(1, path.getNameCount() - 1)).toString();
     }
     else if (pColumnIndex == 2)
     {
