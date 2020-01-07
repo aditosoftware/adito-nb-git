@@ -6,6 +6,7 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -35,7 +36,7 @@ class DeleteBranchAction extends AbstractTableAction
   DeleteBranchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
   {
-    super("Delete Branch", _getIsEnabledObservable(pBranch));
+    super("Delete Branch", _getIsEnabledObservable(pRepository, pBranch));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
@@ -81,7 +82,7 @@ class DeleteBranchAction extends AbstractTableAction
       if (pE.getMessage().contains("Branch was not deleted as it has not been merged yet; use the force option to delete it anyway"))
       {
         IUserPromptDialogResult dialogResult = dialogProvider.showYesNoDialog("Branch contains unmerged changes, do you want to force delete it? " +
-                                                                       "(WARNING: all changes on that branch are lost)");
+                                                                                  "(WARNING: all changes on that branch are lost)");
         if (dialogResult.isOkay())
         {
           pRepo.deleteBranch(pBranchName, pIsDeleteRemoteBranch, true);
@@ -105,10 +106,17 @@ class DeleteBranchAction extends AbstractTableAction
   /**
    * check the selection of columns in branch list
    *
-   * @return return true if the selected list has one element, else false
+   * @return Observable that is true if the selected branch is a local branch and not the currently active branch
    */
-  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IBranch>> pBranch)
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pBranchObservable)
   {
-    return pBranch.map(pBranchOpt -> pBranchOpt.map(branch -> branch.getType() == EBranchType.LOCAL));
+    Observable<Optional<IRepositoryState>> repositoryStateObs = pRepository.switchMap(pRepoOpt -> pRepoOpt
+        .map(IRepository::getRepositoryState)
+        .orElse(Observable.just(Optional.empty())));
+    return Observable.combineLatest(repositoryStateObs, pBranchObservable, (pRepoStateOpt, pBranchOpt) ->
+        pRepoStateOpt.map(pRepoState -> pBranchOpt.isPresent()
+            && pBranchOpt.get().getType() == EBranchType.LOCAL
+            && !pRepoState.getCurrentBranch().equals(pBranchOpt.get()))
+    );
   }
 }

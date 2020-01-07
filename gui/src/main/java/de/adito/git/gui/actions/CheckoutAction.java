@@ -42,7 +42,7 @@ class CheckoutAction extends AbstractTableAction
   CheckoutAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFactory, ISaveUtil pSaveUtil,
                  @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
   {
-    super("Checkout", _getIsEnabledObservable(pRepository));
+    super("Checkout", _getIsEnabledObservable(pRepository, pBranch));
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     progressFactory = pProgressFactory;
@@ -120,14 +120,16 @@ class CheckoutAction extends AbstractTableAction
   /**
    * return an observable that contains information about whether the checkout action can be executed in the current repository state
    *
-   * @param pRepository Observable of the RepositoryObject of the current Project
-   * @return Observable that signals if the user may do a checkout in the current repository state
+   * @param pRepository       Observable of the RepositoryObject of the current Project
+   * @param pBranchObservable Observable of the Branch to check out
+   * @return Observable that signals if the user may do a checkout in the current repository state. Observable is false if the selected Branch is the current one
    */
-  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IRepository>> pRepository)
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pBranchObservable)
   {
-    return pRepository.switchMap(pRepoOpt -> pRepoOpt
+    Observable<Optional<IRepositoryState>> repositoryStateObs = pRepository.switchMap(pRepoOpt -> pRepoOpt
         .map(IRepository::getRepositoryState)
-        .orElse(Observable.just(Optional.empty())))
-        .map(pRepoStateOpt -> pRepoStateOpt.map(IRepositoryState::canCheckout));
+        .orElse(Observable.just(Optional.empty())));
+    return Observable.combineLatest(repositoryStateObs, pBranchObservable, (pRepoStateOpt, pBranchOpt) -> pRepoStateOpt
+        .map(pRepositoryState -> pRepositoryState.canCheckout() && pBranchOpt.isPresent() && !pBranchOpt.get().equals(pRepositoryState.getCurrentBranch())));
   }
 }
