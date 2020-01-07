@@ -24,20 +24,20 @@ import java.util.Optional;
  */
 class AbortLabelController extends ObservingLabelController<IRepositoryState>
 {
-  private final StatusLineWindowContent statusLineWindowContent;
+  private final BranchWindowContent branchWindowContent;
   private final Observable<Optional<IRepository>> repositoryObservable;
   private final INotifyUtil notifyUtil;
   private MouseListener mouseListener = voidListener;
 
-  public AbortLabelController(@NotNull StatusLineWindowContent pStatusLineWindowContent, @NotNull Observable<Optional<IRepositoryState>> pRepoStateObservable,
+  public AbortLabelController(@NotNull BranchWindowContent pBranchWindowContent, @NotNull Observable<Optional<IRepositoryState>> pRepoStateObservable,
                               @NotNull Observable<Optional<IRepository>> pRepositoryObservable, @NotNull INotifyUtil pNotifyUtil)
   {
     super("", pRepoStateObservable);
-    statusLineWindowContent = pStatusLineWindowContent;
+    branchWindowContent = pBranchWindowContent;
     repositoryObservable = pRepositoryObservable;
     notifyUtil = pNotifyUtil;
-    label.addMouseListener(new StatusLineWindowContent._HoverMouseListener());
-    label.addMouseMotionListener(new StatusLineWindowContent._HoverMouseListener());
+    label.addMouseListener(new BranchWindowContent._HoverMouseListener());
+    label.addMouseMotionListener(new BranchWindowContent._HoverMouseListener());
   }
 
   @Override
@@ -91,7 +91,7 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
           notifyUtil.notify(pE, "Error while resetting HEAD", false);
         }
       }
-      statusLineWindowContent.closeWindow();
+      branchWindowContent.closeWindow();
     }
   }
 
@@ -115,7 +115,7 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
           notifyUtil.notify(pE, "Error while aborting the pull", false);
         }
       }
-      statusLineWindowContent.closeWindow();
+      branchWindowContent.closeWindow();
     }
   }
 }

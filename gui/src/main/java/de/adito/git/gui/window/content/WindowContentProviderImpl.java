@@ -40,9 +40,9 @@ public class WindowContentProviderImpl implements IWindowContentProvider
   }
 
   @Override
-  public JComponent createStatusLineWindowContent(@NotNull Observable<Optional<IRepository>> pRepository)
+  public JComponent createBranchWindowContent(@NotNull Observable<Optional<IRepository>> pRepository)
   {
-    return windowContentFactory.createStatusLineWindowContent(pRepository);
+    return windowContentFactory.createBranchWindowContent(pRepository);
   }
 
 }

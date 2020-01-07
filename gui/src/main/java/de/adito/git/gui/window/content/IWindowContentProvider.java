@@ -22,6 +22,6 @@ public interface IWindowContentProvider
                                               @NotNull Runnable pLoadMoreCallback, @NotNull Consumer<ICommitFilter> pFilterChangedCallback,
                                               @NotNull ICommitFilter pStartFilter);
 
-  JComponent createStatusLineWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
+  JComponent createBranchWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
 
 }

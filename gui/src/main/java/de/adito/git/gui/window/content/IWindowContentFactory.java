@@ -22,6 +22,6 @@ interface IWindowContentFactory
                                                               @NotNull Consumer<ICommitFilter> pRefreshContentCallBack,
                                                               @NotNull ICommitFilter pStartFilter);
 
-  StatusLineWindowContent createStatusLineWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
+  BranchWindowContent createBranchWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
 
 }

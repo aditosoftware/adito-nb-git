@@ -64,9 +64,9 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
 
   private void _initPopup()
   {
-    JComponent statusLineWindowContent = windowContentProvider.createStatusLineWindowContent(RepositoryUtility.getRepositoryObservable());
-    popupWindow = new PopupWindow(WindowManager.getDefault().getMainWindow(), "Git Branches", statusLineWindowContent);
-    statusLineWindowContent.putClientProperty("parent", popupWindow);
+    JComponent branchWindowContent = windowContentProvider.createBranchWindowContent(RepositoryUtility.getRepositoryObservable());
+    popupWindow = new PopupWindow(WindowManager.getDefault().getMainWindow(), "Git Branches", branchWindowContent);
+    branchWindowContent.putClientProperty("parent", popupWindow);
   }
 
   @Override

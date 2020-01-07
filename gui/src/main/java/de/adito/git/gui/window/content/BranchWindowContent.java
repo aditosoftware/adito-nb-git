@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  *
  * @author a.arnold, 08.11.2018
  */
-class StatusLineWindowContent extends JPanel implements IDiscardable
+class BranchWindowContent extends JPanel implements IDiscardable
 {
   private static final String POPUP_WINDOW_CLIENT_PROPERTY = "parent";
   private final IActionProvider actionProvider;
@@ -42,7 +42,7 @@ class StatusLineWindowContent extends JPanel implements IDiscardable
   private CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
-  public StatusLineWindowContent(IActionProvider pProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pObservableOptRepo)
+  public BranchWindowContent(IActionProvider pProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pObservableOptRepo)
   {
     actionProvider = pProvider;
     notifyUtil = pNotifyUtil;
