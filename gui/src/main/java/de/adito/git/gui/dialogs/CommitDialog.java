@@ -234,12 +234,12 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * attach the popupMenu to the checkBoxTree
    * This also changes the selectionModel of the Tree to an observableSelectionModel
    *
-   * @param pCheckBoxTree tree that should have the popupMenu attached
+   * @param pTree tree that should have the popupMenu attached
    */
-  private void _attachPopupMenu(@NotNull CheckBoxTree pCheckBoxTree)
+  private void _attachPopupMenu(@NotNull JTree pTree)
   {
-    observableTreeSelectionModel = new ObservableTreeSelectionModel(pCheckBoxTree.getSelectionModel());
-    pCheckBoxTree.setSelectionModel(observableTreeSelectionModel);
+    observableTreeSelectionModel = new ObservableTreeSelectionModel(pTree.getSelectionModel());
+    pTree.setSelectionModel(observableTreeSelectionModel);
     Observable<Optional<List<IFileChangeType>>> selectionObservable = observableTreeSelectionModel.getSelectedPaths().map(pSelected -> {
       if (pSelected == null)
         return Optional.of(Collections.emptyList());
@@ -249,9 +249,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                              .collect(Collectors.toList()));
     });
     JPopupMenu popupMenu = new JPopupMenu();
-    popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable));
+    popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable, true));
     popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
-    pCheckBoxTree.addMouseListener(new PopupMouseListener(popupMenu));
+    pTree.addMouseListener(new PopupMouseListener(popupMenu));
   }
 
   /**

@@ -92,7 +92,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
   private void _initActions(File pProjectDirectory)
   {
     Action commitAction = actionProvider.getCommitAction(repository, selectionObservable, "");
-    Action diffToHeadAction = actionProvider.getDiffToHeadAction(repository, selectionObservable);
+    Action diffToHeadAction = actionProvider.getDiffToHeadAction(repository, selectionObservable, true);
     Action showCommitsForFileAction = actionProvider.getShowCommitsForFileAction(repository, selectionObservable
         .map(pFileChangeTypes -> pFileChangeTypes
             .map(pChangeTypes -> pChangeTypes.stream()

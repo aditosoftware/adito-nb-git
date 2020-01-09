@@ -37,9 +37,12 @@ public interface IActionProvider
   /**
    * @param pRepository              Observable with the current Repository
    * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
+   * @param pIsAsync                 Determines whether the diff is performed in an async matter. Dialog is not shown if some other dialog is already displayed in async
+   *                                 fashion
    * @return Action whose actionPerformed method performs a diff on the selected files and shows the changes between working copy and HEAD
    */
-  Action getDiffToHeadAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+  Action getDiffToHeadAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable,
+                             @NotNull Boolean pIsAsync);
 
   /**
    * @param pRepository              Observable with the current Repository

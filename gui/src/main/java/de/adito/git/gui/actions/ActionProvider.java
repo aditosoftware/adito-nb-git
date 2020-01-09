@@ -53,9 +53,10 @@ class ActionProvider implements IActionProvider
    */
   @Override
   public DiffToHeadAction getDiffToHeadAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                              @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+                                              @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable,
+                                              @NotNull Boolean pIsAsync)
   {
-    return actionFactory.createDiffAction(pRepository, pSelectedFilesObservable);
+    return actionFactory.createDiffAction(pRepository, pSelectedFilesObservable, pIsAsync);
   }
 
   /**

@@ -372,15 +372,16 @@ class DialogProviderImpl implements IDialogProvider
 
   @NotNull
   @Override
-  public IRevertDialogResult showRevertDialog(@NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
+  public IRevertDialogResult<RevertFilesDialog, ?> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepositoryObs,
+                                                                    @NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
   {
 
     DialogResult<RevertFilesDialog, ?> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pFilesToRevert, pProjectDirectory), "Confirm revert of files",
-                                          List.of(EButtons.CONFIRM, EButtons.CANCEL).toArray(new EButtons[0]));
-      return new RevertDialogResult(result);
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pRepositoryObs, pFilesToRevert, pProjectDirectory),
+                                          "Confirm revert of files", List.of(EButtons.CONFIRM, EButtons.CANCEL).toArray(new EButtons[0]));
+      return new RevertDialogResult<>(result);
     }
     finally
     {
@@ -552,11 +553,13 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NotNull List<IFileChangeType> pFilesToRevert,
+  public IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NotNull Observable<Optional<IRepository>> pRepositoryObs,
+                                                                                                              @NotNull List<IFileChangeType> pFilesToRevert,
                                                                                                               @NotNull File pProjectDir)
   {
     return new StashChangesQuestionDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
-                                                                                     dialogFactory.createStashChangesQuestionDialog(pFilesToRevert, pProjectDir),
+                                                                                     dialogFactory.createStashChangesQuestionDialog(pRepositoryObs, pFilesToRevert,
+                                                                                                                                    pProjectDir),
                                                                                  "Local changes detected",
                                                                                  List.of(EButtons.STASH_CHANGES, EButtons.DISCARD_CHANGES, EButtons.ABORT)
                                                                                      .toArray(new EButtons[0])));

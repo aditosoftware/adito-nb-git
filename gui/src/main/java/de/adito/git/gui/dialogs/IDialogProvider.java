@@ -148,12 +148,14 @@ public interface IDialogProvider
   /**
    * Shows a dialog that presents the user the list of files to be reverted as tree
    *
+   * @param pRepository    Observable with the current Repository
    * @param pFilesToRevert List of files that are selected to be reverted
    * @param pProjectDir    top-level directory of the project
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IRevertDialogResult showRevertDialog(@NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDir);
+  IRevertDialogResult<RevertFilesDialog, ?> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IFileChangeType> pFilesToRevert,
+                                                             @NotNull File pProjectDir);
 
   /**
    * Shows a dialog that asks the user to confirm the deletion of branch
@@ -236,6 +238,15 @@ public interface IDialogProvider
   IUserPromptDialogResult<ComboBoxDialog<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions);
 
 
-  IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NotNull List<IFileChangeType> pFilesToRevert,
+  /**
+   * Shows a dialog that asks the user if he wants to stash the current changes, discard the changes or abort the current action
+   *
+   * @param pRepository    Observable with the current Repository
+   * @param pFilesToRevert List of changes files that have to be reverted/stashed to proceed
+   * @param pProjectDir    Top-level directory of the current project
+   * @return DialogResult with Information on whether to discard the changes, stash the changes or abort the current action
+   */
+  IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                                                       @NotNull List<IFileChangeType> pFilesToRevert,
                                                                                                        @NotNull File pProjectDir);
 }

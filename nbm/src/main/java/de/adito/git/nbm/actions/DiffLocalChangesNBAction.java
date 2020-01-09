@@ -37,7 +37,7 @@ public class DiffLocalChangesNBAction extends NBAction
       IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
       List<IFileChangeType> changeTypes = _getIFileChangeType(pActivatedNodes, repository);
       if (!changeTypes.isEmpty())
-        actionProvider.getDiffToHeadAction(repository, Observable.just(Optional.of(changeTypes))).actionPerformed(null);
+        actionProvider.getDiffToHeadAction(repository, Observable.just(Optional.of(changeTypes)), true).actionPerformed(null);
     }
   }
 

@@ -8,10 +8,12 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IStashChangesQuestionDialogResult;
+import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +38,7 @@ class ActionUtility
   {
     List<IFileChangeType> changedFiles = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommitted).orElse(List.of());
     IStashChangesQuestionDialogResult<?, Object> dialogResult =
-        pDialogProvider.showStashChangesQuestionDialog(changedFiles,
+        pDialogProvider.showStashChangesQuestionDialog(Observable.just(Optional.of(pRepository)), changedFiles,
                                                        pRepository.getTopLevelDirectory());
     if (dialogResult.isAbosrt())
       return false;

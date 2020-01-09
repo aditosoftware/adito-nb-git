@@ -57,7 +57,7 @@ interface IDialogFactory
   FileSelectionDialog createFileSelectionDialog(String pLabel, FileChooserProvider.FileSelectionMode pFileSelectionMode,
                                                 @javax.annotation.Nullable FileFilter pFileFilter);
 
-  RevertFilesDialog createRevertDialog(List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
+  RevertFilesDialog createRevertDialog(Observable<Optional<IRepository>> pRepositoryObs, List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
 
   SshInfoPrompt createSshInfoPromptDialog(@Assisted("message") String pMessage, @javax.annotation.Nullable @Assisted("keyLocation") String pSshKeyLocation,
                                           @javax.annotation.Nullable char[] pPassphrase, @javax.annotation.Nullable IKeyStore pKeyStore);
@@ -68,5 +68,5 @@ interface IDialogFactory
 
   ComboBoxDialog<Object> createComboBoxDialog(String pMessage, List<Object> pOptions);
 
-  StashChangesQuestionDialog createStashChangesQuestionDialog(List<IFileChangeType> pFilesToRevert, File pProjectDir);
+  StashChangesQuestionDialog createStashChangesQuestionDialog(Observable<Optional<IRepository>> pRepositoryObs, List<IFileChangeType> pFilesToRevert, File pProjectDir);
 }

@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EChangeSide;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -33,6 +34,7 @@ class DiffToHeadAction extends AbstractTableAction
   private final Logger logger = Logger.getLogger(DiffToHeadAction.class.getName());
   private final IAsyncProgressFacade progressFacade;
   private final INotifyUtil notifyUtil;
+  private final Boolean isAsync;
   private Observable<Optional<IRepository>> repository;
   private IDialogProvider dialogProvider;
   private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
@@ -40,10 +42,12 @@ class DiffToHeadAction extends AbstractTableAction
   @Inject
   DiffToHeadAction(IIconLoader pIconLoader, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil,
                    @Assisted Observable<Optional<IRepository>> pRepository,
-                   @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+                   @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable,
+                   @Assisted Boolean pIsAsync)
   {
     super("Show Changes", _getIsEnabledObservable(pSelectedFilesObservable));
     notifyUtil = pNotifyUtil;
+    isAsync = pIsAsync;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.DIFF_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Diff to HEAD");
     progressFacade = pProgressFacade;
@@ -55,26 +59,60 @@ class DiffToHeadAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    repository.blockingFirst().ifPresentOrElse(pRepo -> progressFacade.executeInBackground("Creating Diff", pHandle -> {
-      List<File> files = selectedFilesObservable.blockingFirst()
-          .orElse(Collections.emptyList())
-          .stream()
-          .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
-          .collect(Collectors.toList());
-      List<IFileDiff> fileDiffs = pRepo.diff(files, null);
+    repository.blockingFirst().ifPresentOrElse(this::_diff, () -> logger.log(Level.SEVERE, () -> "Git: no valid repository found in DiffToHeadAction.actionPerformed"));
+  }
 
-      //Show Dialog in EDT -> Handle gets finished
-      SwingUtilities.invokeLater(() -> {
-        IDiffDialogResult dialogResult = dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, null, true, false);
-        if (dialogResult.isPressedOkay())
-        {
-          for (IFileDiff fileDiff : fileDiffs)
-          {
-            _saveFileDiffChanges(fileDiff);
-          }
-        }
+  /**
+   * Determines whether the diff is performed asynchronously or not, and then executes the diff in the determined way
+   *
+   * @param pRepo Repository that contains the file(s) to diff
+   */
+  private void _diff(IRepository pRepo)
+  {
+    if (isAsync)
+    {
+      progressFacade.executeInBackground("Creating Diff", pHandle -> {
+        _performDiff(pRepo);
       });
-    }), () -> logger.log(Level.SEVERE, () -> "Git: no valid repository found in DiffToHeadAction.actionPerformed"));
+    }
+    else
+    {
+      try
+      {
+        _performDiff(pRepo);
+      }
+      catch (AditoGitException pE)
+      {
+        notifyUtil.notify(pE, "Exception while performing diff", false);
+      }
+    }
+  }
+
+  /**
+   * uses the repository to perform the actual diff of the file, also shows the results in a dialog
+   *
+   * @param pRepo Repository that contains the file(s) to diff
+   */
+  private void _performDiff(IRepository pRepo) throws AditoGitException
+  {
+    List<File> files = selectedFilesObservable.blockingFirst()
+        .orElse(Collections.emptyList())
+        .stream()
+        .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
+        .collect(Collectors.toList());
+    List<IFileDiff> fileDiffs = pRepo.diff(files, null);
+
+    //Show Dialog in EDT -> Handle gets finished
+    SwingUtilities.invokeLater(() -> {
+      IDiffDialogResult<?, ?> dialogResult = dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, null, true, false);
+      if (dialogResult.isPressedOkay())
+      {
+        for (IFileDiff fileDiff : fileDiffs)
+        {
+          _saveFileDiffChanges(fileDiff);
+        }
+      }
+    });
   }
 
   private void _saveFileDiffChanges(IFileDiff pFileDiff)

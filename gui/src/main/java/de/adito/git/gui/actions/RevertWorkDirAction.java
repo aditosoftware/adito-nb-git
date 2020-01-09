@@ -52,7 +52,9 @@ class RevertWorkDirAction extends AbstractTableAction
   {
     saveUtil.saveUnsavedFiles();
     List<IFileChangeType> filesToRevert = selectedFilesObservable.blockingFirst().orElse(Collections.emptyList());
-    IRevertDialogResult result = dialogProvider.showRevertDialog(filesToRevert, repository.blockingFirst().map(IRepository::getTopLevelDirectory).orElse(new File("")));
+    IRevertDialogResult<?, ?> result = dialogProvider.showRevertDialog(repository, filesToRevert, repository.blockingFirst()
+        .map(IRepository::getTopLevelDirectory)
+        .orElse(new File("")));
     if (result.isRevertAccepted())
     {
       progressFacade.executeInBackground("Reverting", pHandle -> {
