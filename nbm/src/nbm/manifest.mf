@@ -6,6 +6,20 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.7</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The "Checkout" and "Delete Branch" actions are now disabled for the currently active branch, since performing those actions on the branch doesn't make sense and only leads to an error anyways</li>
+    <li>The branches list does not flicker and behave weirdly if the branches are updated while the window showing them is open</li>
+    <li>Added an "Abort Merge/Rebase/Cherry Pick" button to the branch menu, the action connected to the button tries to restore the state before a merge/rebase/cherry pick. The button is only visible if the project is in the matching state</li>
+    <li>It is now possible to get a diff of the files shown in the "Revert files" dialog and the dialog that appears when e.g. switching branches with active changes</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: When trying to merge a branch that was continued into a branch whose last commit was a merge with the aforementioned branch the Plugin said: "Already merged/up-to-date". The message now only appears in the reverse case (as it should)</li>
+    <li>Fix: The merge dialog throws an exception if one of the conflicting files is in the top-most folder of the project</li>
+    <li>Fix: In some rare circumstances the Plugin threw an exception when trying to accept the yours or theirs version of a file</li>
+  </ul>
   <p style="font-weight: bold;">v.1.3.6</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
   <ul>
