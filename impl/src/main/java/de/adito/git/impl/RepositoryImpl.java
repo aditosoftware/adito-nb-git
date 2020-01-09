@@ -1236,7 +1236,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       String forkPointId = ObjectId.toString(RepositoryImplHelper.findForkPoint(git, pParentBranch.getName(), pBranchToMerge.getName()));
-      if (forkPointId.equals(pBranchToMerge.getId()) || forkPointId.equals(pParentBranch.getId()))
+      if (forkPointId.equals(pBranchToMerge.getId()))
         throw new AlreadyUpToDateAditoGitException("Already up-to-date");
       String parentID = pParentBranch.getId();
       String toMergeID = pBranchToMerge.getId();
