@@ -125,7 +125,8 @@ class RevertFilesDialog extends AditoBaseDialog<Object> implements IDiscardable
   {
     if (treeUpdater != null)
       treeUpdater.discard();
-    observableTreeSelectionModel.discard();
+    if (observableTreeSelectionModel != null)
+      observableTreeSelectionModel.discard();
     if (fileTree != null)
       fileTree.removeMouseListener(popupMouseListener);
   }
