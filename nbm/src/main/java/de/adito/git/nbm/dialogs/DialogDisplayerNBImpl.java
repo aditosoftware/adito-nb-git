@@ -48,7 +48,13 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     dialog.setMinimumSize(new Dimension(250, 50));
     dialog.pack();
     dialog.setVisible(true);
-    return new DialogResult<>(content, (EButtons) dialogDescriptor.getValue(), content.getMessage(), content.getInformation());
+    Object pressedButtonObject = dialogDescriptor.getValue();
+    EButtons pressedButton;
+    if (pressedButtonObject instanceof EButtons)
+      pressedButton = (EButtons) pressedButtonObject;
+    else
+      pressedButton = EButtons.ESCAPE;
+    return new DialogResult<>(content, pressedButton, content.getMessage(), content.getInformation());
   }
 
 }

@@ -38,7 +38,7 @@ class ActionUtility
     IStashChangesQuestionDialogResult<?, Object> dialogResult =
         pDialogProvider.showStashChangesQuestionDialog(Observable.just(Optional.of(pRepository)), changedFiles,
                                                        pRepository.getTopLevelDirectory());
-    if (dialogResult.isAbosrt())
+    if (dialogResult.isAbort())
       return false;
     if (dialogResult.isStashChanges())
     {

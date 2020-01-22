@@ -12,5 +12,5 @@ public interface IStashChangesQuestionDialogResult<S, T> extends IDialogResult<S
 
   boolean isStashChanges();
 
-  boolean isAbosrt();
+  boolean isAbort();
 }

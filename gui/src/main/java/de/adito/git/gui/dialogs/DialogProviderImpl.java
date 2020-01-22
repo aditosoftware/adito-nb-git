@@ -354,7 +354,7 @@ class DialogProviderImpl implements IDialogProvider
     @Override
     public boolean isCancel()
     {
-      return selectedButton == EButtons.ABORT;
+      return selectedButton == EButtons.ABORT || selectedButton == EButtons.ESCAPE;
     }
 
     @Override
@@ -586,9 +586,9 @@ class DialogProviderImpl implements IDialogProvider
     }
 
     @Override
-    public boolean isAbosrt()
+    public boolean isAbort()
     {
-      return selectedButton == EButtons.ABORT;
+      return selectedButton == EButtons.ABORT || selectedButton == EButtons.ESCAPE;
     }
   }
 }

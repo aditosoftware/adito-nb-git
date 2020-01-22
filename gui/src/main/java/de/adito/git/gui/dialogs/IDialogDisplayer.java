@@ -26,6 +26,7 @@ public interface IDialogDisplayer
 
   enum EButtons
   {
+    ESCAPE("Esc"),
     OK("OK"),
     ACCEPT_CHANGES("Accept Changes"),
     CANCEL("Cancel"),
