@@ -897,36 +897,50 @@ public class RepositoryImpl implements IRepository
   {
     List<String> filesToCheckout = new ArrayList<>();
     List<String> newFiles = new ArrayList<>();
-    status.blockingFirst().ifPresent(pStatus -> {
-      newFiles.addAll(pStatus.getAdded());
-      newFiles.addAll(pStatus.getUntracked());
-    });
-    try
+    Optional<IFileStatus> statusOptional = status.blockingFirst();
+    if (statusOptional.isPresent() && _isAllUncommittedFilesSelected(pFiles, statusOptional.get().getUncommitted()))
     {
-      ResetCommand resetCommand = git.reset();
-      for (File file : pFiles)
+      reset(getCommit(null).getId(), EResetType.HARD);
+    }
+    else
+    {
+      statusOptional.ifPresent(pStatus -> {
+        newFiles.addAll(pStatus.getAdded());
+        newFiles.addAll(pStatus.getUntracked());
+      });
+      try
       {
-        String relativePath = Util.getRelativePath(file, git);
-        if (newFiles.stream().noneMatch(pFilePath -> pFilePath.equals(relativePath)))
-          filesToCheckout.add(relativePath);
-        else
-          Files.deleteIfExists(file.toPath());
-        resetCommand.addPath(relativePath);
+        ResetCommand resetCommand = git.reset();
+        for (File file : pFiles)
+        {
+          String relativePath = Util.getRelativePath(file, git);
+          if (newFiles.stream().noneMatch(pFilePath -> pFilePath.equals(relativePath)))
+            filesToCheckout.add(relativePath);
+          else
+            Files.deleteIfExists(file.toPath());
+          resetCommand.addPath(relativePath);
+        }
+        logger.log(Level.INFO, () -> String.format(CHECKOUT_FORMATTED_STRING, filesToCheckout));
+        resetCommand.call();
+        if (!filesToCheckout.isEmpty())
+        {
+          CheckoutCommand checkoutCommand = git.checkout();
+          checkoutCommand.addPaths(filesToCheckout);
+          checkoutCommand.setStartPoint(git.getRepository().parseCommit(git.getRepository().resolve(Constants.HEAD)));
+          checkoutCommand.call();
+        }
       }
-      logger.log(Level.INFO, () -> String.format(CHECKOUT_FORMATTED_STRING, filesToCheckout));
-      resetCommand.call();
-      if (!filesToCheckout.isEmpty())
+      catch (GitAPIException | IOException pE)
       {
-        CheckoutCommand checkoutCommand = git.checkout();
-        checkoutCommand.addPaths(filesToCheckout);
-        checkoutCommand.setStartPoint(git.getRepository().parseCommit(git.getRepository().resolve(Constants.HEAD)));
-        checkoutCommand.call();
+        throw new AditoGitException(pE);
       }
     }
-    catch (GitAPIException | IOException pE)
-    {
-      throw new AditoGitException(pE);
-    }
+  }
+
+  private boolean _isAllUncommittedFilesSelected(List<File> pSelectedFiles, List<IFileChangeType> pUncommittedFiles)
+  {
+    List<File> uncommittedFileList = pUncommittedFiles.stream().map(IFileChangeType::getFile).collect(Collectors.toList());
+    return pSelectedFiles.containsAll(uncommittedFileList);
   }
 
   @Override
