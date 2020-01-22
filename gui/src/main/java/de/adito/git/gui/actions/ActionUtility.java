@@ -1,8 +1,7 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IProgressHandle;
@@ -14,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera, 01.07.2019
@@ -25,13 +23,13 @@ class ActionUtility
   /**
    * Asks the user if he wants to stash the changed files, discard the changes or abort the current action
    *
-   * @param pPrefStore PrefStore for saving the Stash commit id
+   * @param pPrefStore      PrefStore for saving the Stash commit id
    * @param pDialogProvider DialogProvider to get the stash dialog
-   * @param pRepository repository to retrieve the changed files
-   * @param pStashKey Key with which the stash commit id should be saved
-   * @param pHandle ProgressHandle to the the status to stashing, may be null
+   * @param pRepository     repository to retrieve the changed files
+   * @param pStashKey       Key with which the stash commit id should be saved
+   * @param pHandle         ProgressHandle to the the status to stashing, may be null
    * @return true if the user selected an option that allows the action to continue, false if the user aborted
-   * @throws AditoGitException
+   * @throws AditoGitException thrown when trying to discard the changes and either HEAD cannot be determined or some other error occurs during the reset
    */
   static boolean handleStash(@NotNull IPrefStore pPrefStore, @NotNull IDialogProvider pDialogProvider, @NotNull IRepository pRepository, @NotNull String pStashKey,
                              @Nullable IProgressHandle pHandle) throws AditoGitException
@@ -50,7 +48,10 @@ class ActionUtility
     }
     else if (dialogResult.isDiscardChanges())
     {
-      pRepository.revertWorkDir(changedFiles.stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
+      ICommit head = pRepository.getCommit(null);
+      if (head == null)
+        throw new AditoGitException("Cannot determine HEAD, so the current changes can't be discarded");
+      pRepository.reset(head.getId(), EResetType.HARD);
     }
     return true;
   }
