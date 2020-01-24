@@ -5,6 +5,8 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IFileChangeChunk;
 import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
+import de.adito.git.gui.swing.LineNumber;
+import de.adito.git.gui.swing.TextPaneUtil;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -13,11 +15,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.View;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -66,7 +69,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
             pFileChangeEvent -> SwingUtilities.invokeLater(() -> {
               lineNumFacadeWidth = _calculateLineWidth(pFileChangeEvent);
               setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
-              lineNumImage = _calculateLineNumImage(pEditorPane, pFileChangeEvent, lineNumberColors);
+              lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
               repaint();
             }));
     areaDisposable = Observable.combineLatest(
@@ -75,7 +78,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
             pPair -> SwingUtilities.invokeLater(() -> {
               if (lineNumImage == null)
               {
-                lineNumImage = _calculateLineNumImage(pEditorPane, pPair.getFileChangesEvent(), lineNumberColors);
+                lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
               }
               cachedViewRectangle = pPair.getRectangle();
               repaint();
@@ -108,22 +111,19 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   }
 
   /**
-   * @param pEditorPane       JEditorPane containing the text for which theses lines are
-   * @param pFileChangesEvent IFileChangesEvent with the latest list of IFileChangeChunks
-   * @param pLineNumColors    Areas affected by the ChangeChunks
+   * @param pEditorPane    JEditorPane containing the text for which theses lines are
+   * @param pLineNumColors Areas affected by the ChangeChunks
    * @return BufferedImage that represents the content of this panel
    */
   @Nullable
-  private BufferedImage _calculateLineNumImage(@NotNull JEditorPane pEditorPane, @NotNull IFileChangesEvent pFileChangesEvent,
-                                               @NotNull List<LineNumberColor> pLineNumColors)
+  private BufferedImage _calculateLineNumImage(@NotNull JEditorPane pEditorPane, @NotNull List<LineNumberColor> pLineNumColors)
   {
     View view = pEditorPane.getUI().getRootView(pEditorPane);
     if (pEditorPane.getHeight() <= 0)
       return null;
     try
     {
-      Set<LineNumber> lineNums = _calculateLineNumbers(pEditorPane, view, pEditorPane.getFontMetrics(pEditorPane.getFont()).getHeight(), 0,
-                                                       Math.max(0, _getLastLineNum(pFileChangesEvent) - 1));
+      LineNumber[] lineNums = TextPaneUtil.calculateLineYPositions(pEditorPane, view);
       BufferedImage image = new BufferedImage(lineNumFacadeWidth, pEditorPane.getHeight(), BufferedImage.TYPE_INT_ARGB);
       Graphics graphics = image.getGraphics();
       for (LineNumberColor lineNumberColor : pLineNumColors)
@@ -147,69 +147,6 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     }
   }
 
-  /**
-   * calculates the y coordinates of pStartIndex and pEndIndex lines and then checks if the lines in between have height of pLineHeight each.
-   * If that is not the case, split the interval in 2 and check again
-   * Finally return a Set with the coordinates for each line in the passed interval
-   *
-   * @param pEditorPane JEditorPane containing the text for which theses lines are
-   * @param pView       view mapping the model to viewSpace
-   * @param pLineHeight height of a line in the current font
-   * @param pStartIndex first line to check
-   * @param pEndIndex   last line to check
-   * @return Set of LineNumbers
-   * @throws BadLocationException if one of the accessed lineNumbers is out of bounds
-   */
-  private Set<LineNumber> _calculateLineNumbers(@NotNull JEditorPane pEditorPane, View pView, int pLineHeight, int pStartIndex, int pEndIndex)
-      throws BadLocationException
-  {
-    Set<LineNumber> lineNumbers = new HashSet<>();
-    LineNumber startNumber = _calculateLineNumberPos(pEditorPane, pView, pStartIndex);
-    LineNumber endNumber = _calculateLineNumberPos(pEditorPane, pView, pEndIndex);
-    if (startNumber == null || endNumber == null)
-      return lineNumbers;
-    // we're down to two lines here, if the first one is the on taking up more space the for loop in the "else if" gives the space to the second line,
-    // so seperate treatment here
-    if (pEndIndex - pStartIndex <= 1)
-    {
-      lineNumbers.add(new LineNumber(pStartIndex + 1, startNumber.getYCoordinate(), startNumber.getXCoordinate()));
-      lineNumbers.add(new LineNumber(pEndIndex + 1, endNumber.getYCoordinate(), endNumber.getXCoordinate()));
-    }
-    else if (endNumber.getYCoordinate() - startNumber.getYCoordinate() == (pEndIndex - pStartIndex) * pLineHeight)
-    {
-      for (int index = 0; index <= pEndIndex - pStartIndex; index++)
-      {
-        lineNumbers.add(new LineNumber(pStartIndex + index + 1, startNumber.getYCoordinate() + index * pLineHeight, startNumber.getXCoordinate()));
-      }
-    }
-    else
-    {
-      lineNumbers.addAll(_calculateLineNumbers(pEditorPane, pView, pLineHeight, pStartIndex, (pStartIndex + pEndIndex) / 2));
-      lineNumbers.addAll(_calculateLineNumbers(pEditorPane, pView, pLineHeight, (pStartIndex + pEndIndex) / 2, pEndIndex));
-    }
-    return lineNumbers;
-  }
-
-  /**
-   * @param pEditorPane JEditorPane containing the text for which theses lines are
-   * @param pView       view mapping the model to viewSpace
-   * @param pLineIndex  index of the line for which to calculate the position
-   * @return LineNumber with the number of the line and its position
-   * @throws BadLocationException if the lineIndex is out of bounds
-   */
-  @Nullable
-  private LineNumber _calculateLineNumberPos(@NotNull JEditorPane pEditorPane, @NotNull View pView, int pLineIndex) throws BadLocationException
-  {
-    if (pEditorPane.getDocument().getDefaultRootElement().getElementCount() < pLineIndex)
-      return null;
-    Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineIndex);
-    if (lineElement == null)
-      throw new BadLocationException("Element in Document for line was null", pLineIndex);
-    int startOffset = lineElement.getStartOffset();
-    int yViewCoordinate = pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle())
-        .getBounds().y;
-    return new LineNumber(pLineIndex + 1, yViewCoordinate, 0);
-  }
 
   /**
    * calculate the width this panel must have to display all the lineNumbers, based on the highest lineNumber and the used font

@@ -5,6 +5,8 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.rxjava.ScrollBarExtentObservable;
+import de.adito.git.gui.swing.LineNumber;
+import de.adito.git.gui.swing.TextPaneUtil;
 import de.adito.git.impl.data.FileChangesEventImpl;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.nbm.IGitConstants;
@@ -21,7 +23,9 @@ import org.netbeans.editor.EditorUI;
 import org.openide.loaders.DataObject;
 
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.View;
 import java.awt.*;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -244,63 +248,55 @@ public class Annotator extends JPanel implements IDiscardable
     BufferedImage rawBlameImage = new BufferedImage(getPreferredSize().width, target.getHeight(), BufferedImage.TYPE_INT_ARGB);
     _updateColorsAndFont(target);
     setBackground(backgroundColor);
-    _drawImage(rawBlameImage.getGraphics(), annotatedLines, view);
+    try
+    {
+      LineNumber[] lineNumberPositions = TextPaneUtil.calculateLineYPositions(target, view);
+      _drawImage(rawBlameImage.getGraphics(), annotatedLines, lineNumberPositions);
+    }
+    catch (BadLocationException pE)
+    {
+      pE.printStackTrace();
+    }
     return rawBlameImage;
   }
 
   /**
-   * @param pImageGraphics Graphics object of i.e. a bufferedImage
-   * @param pLines         List of Strings with the information about what to write for each line. Sorted by order in which they appear
-   * @param pView          View of the JTextComponent, used to get the y Coordinates of the lines
+   * @param pImageGraphics       Graphics object of i.e. a bufferedImage
+   * @param pLines               List of Strings with the information about what to write for each line. Sorted by order in which they appear
+   * @param pLineNumberPositions View of the JTextComponent, used to get the y Coordinates of the lines
    */
-  private void _drawImage(Graphics pImageGraphics, List<String> pLines, View pView)
+  private void _drawImage(Graphics pImageGraphics, List<String> pLines, LineNumber[] pLineNumberPositions)
   {
     pImageGraphics.setFont(nbFont);
     pImageGraphics.setColor(foregroundColor);
     int fontHeight = pImageGraphics.getFontMetrics().getAscent();
     ((Graphics2D) pImageGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     pImageGraphics.setColor(foregroundColor);
-    if (pView != null)
+    for (int lineIndex = 0; lineIndex < pLines.size(); lineIndex++)
     {
-      for (int lineIndex = 0; lineIndex < pLines.size(); lineIndex++)
-      {
-        int highestElement = target.getDocument().getDefaultRootElement().getElementCount() - 1;
-        // get the offset to set the annotation at the right height and width
-        Element lineElement = target.getDocument().getDefaultRootElement().getElement(Math.min(highestElement, lineIndex));
-        int startOffset = lineElement.getStartOffset();
-        int endOffset;
-        if (lineIndex + 1 == pLines.size())
-        {
-          endOffset = lineElement.getEndOffset();
-        }
-        else
-        {
-          endOffset = target.getDocument().getDefaultRootElement().getElement(Math.min(highestElement, lineIndex + 1)).getStartOffset();
-        }
-        _drawString(pImageGraphics, pLines, pView, fontHeight, startOffset, endOffset, lineIndex);
-      }
+      _drawString(pImageGraphics, pLines, pLineNumberPositions, fontHeight, lineIndex);
     }
   }
 
-  private void _drawString(Graphics pImageGraphics, List<String> pLines, View pView, int pFontHeight, int pStartOffset, int pEndOffset, int pFinalLineIndex)
+  private void _drawString(Graphics pImageGraphics, List<String> pLines, LineNumber[] pLineNumberPositions, int pFontHeight, int pFinalLineIndex)
   {
-    try
+    if (pFinalLineIndex < pLineNumberPositions.length)
     {
-      Rectangle changeRectangle = pView.modelToView(pStartOffset, Position.Bias.Forward, pEndOffset, Position.Bias.Backward, new Rectangle()).getBounds();
-      changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
-      int x = changeRectangle.x;
-      int y = changeRectangle.y + pFontHeight + Math.round((changeRectangle.height - getFontMetrics(nbFont).getHeight()) / 2f);
-      pImageGraphics.drawString(pLines.get(pFinalLineIndex), x, y);
-    }
-    catch (BadLocationException pE)
-    {
-      logger.log(Level.SEVERE, pE, () -> "Git: error while calculating the location of the Annotation Strings");
-    }
-    catch (Error pE)
-    {
-      if (pE.getMessage().contains("Interrupted mutex acquiring"))
-        logger.log(Level.WARNING, pE, () -> "Git: error while trying to access the document to determine the location of a line, skipping evaluation of that line");
-      else throw new Error(pE);
+      try
+      {
+        Rectangle changeRectangle = new Rectangle();
+        changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
+        int x = pLineNumberPositions[pFinalLineIndex].getXCoordinate();
+        int y = pLineNumberPositions[pFinalLineIndex].getYCoordinate() + pFontHeight +
+            Math.round((target.getFontMetrics(target.getFont()).getHeight() - getFontMetrics(nbFont).getHeight()) / 2f);
+        pImageGraphics.drawString(pLines.get(pFinalLineIndex), x, y);
+      }
+      catch (Error pE)
+      {
+        if (pE.getMessage().contains("Interrupted mutex acquiring"))
+          logger.log(Level.WARNING, pE, () -> "Git: error while trying to access the document to determine the location of a line, skipping evaluation of that line");
+        else throw new Error(pE);
+      }
     }
   }
 

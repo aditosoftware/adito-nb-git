@@ -1,11 +1,11 @@
-package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
+package de.adito.git.gui.swing;
 
 /**
  * Contains the line number and the y Coordinate for the baseline of the line number when drawn on the panel
  *
  * @author m.kaspera, 10.01.2019
  */
-class LineNumber
+public class LineNumber
 {
 
   private final String number;
@@ -14,20 +14,20 @@ class LineNumber
 
   /**
    * @param pNumber      the actual number of the line
-   * @param pYCoordinate y coordinate of the baseline of the number for the line
    * @param pXCoordinate x coordinate of the baseline of the number for the line
+   * @param pYCoordinate y coordinate of the baseline of the number for the line
    */
-  LineNumber(int pNumber, int pYCoordinate, int pXCoordinate)
+  public LineNumber(int pNumber, int pXCoordinate, int pYCoordinate)
   {
     number = String.valueOf(pNumber);
-    yCoordinate = pYCoordinate;
     xCoordinate = pXCoordinate;
+    yCoordinate = pYCoordinate;
   }
 
   /**
    * @return the actual number of the line represented as String
    */
-  String getNumber()
+  public String getNumber()
   {
     return number;
   }
@@ -35,7 +35,7 @@ class LineNumber
   /**
    * @return y coordinate of the baseline of the number for the line
    */
-  int getYCoordinate()
+  public int getYCoordinate()
   {
     return yCoordinate;
   }
@@ -43,7 +43,7 @@ class LineNumber
   /**
    * @return x coordinate of the baseline of the number for the line
    */
-  int getXCoordinate()
+  public int getXCoordinate()
   {
     return xCoordinate;
   }
