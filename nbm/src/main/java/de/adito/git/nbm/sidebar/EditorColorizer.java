@@ -3,22 +3,25 @@ package de.adito.git.nbm.sidebar;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
-import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
+import de.adito.git.gui.swing.LineNumber;
+import de.adito.git.gui.swing.TextPaneUtil;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
+import de.adito.git.nbm.icon.NBIconLoader;
 import de.adito.git.nbm.util.DocumentObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.openide.loaders.DataObject;
 import org.openide.windows.WindowManager;
 
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.Position;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -44,7 +47,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   private final JViewport editorViewPort;
   private CompositeDisposable disposable = new CompositeDisposable();
   private File file;
-  private ImageIcon rightArrow = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
+  private ImageIcon rightArrow = new NBIconLoader().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList<>();
   private Observable<List<_ChangeHolder>> rectanglesObs;
   private BufferedImage cachedImage;
@@ -152,7 +155,7 @@ class EditorColorizer extends JPanel implements IDiscardable
       if (change.changeChunk.getChangeType() == EChangeType.DELETE)
       {
         int y = change.rectangle.y;
-        g.drawImage(rightArrow.getImage(), 0, y, null);
+        g.drawImage(rightArrow.getImage(), 0, y, COLORIZER_WIDTH, y + COLORIZER_WIDTH, 0, 0, rightArrow.getIconWidth(), rightArrow.getIconHeight(), null);
       }
       else
       {
@@ -192,11 +195,11 @@ class EditorColorizer extends JPanel implements IDiscardable
     List<EditorColorizer._ChangeHolder> newChangeList = new ArrayList<>();
     try
     {
+      LineNumber[] lineNumberPositions = TextPaneUtil.calculateLineYPositions(pTarget, pTarget.getUI().getRootView(pTarget));
       for (IFileChangeChunk chunk : pChunkList)
       {
-        _ChangeHolder changeHolder = _calculateRec(pTarget, chunk);
-        if (changeHolder != null)
-          newChangeList.add(changeHolder);
+        _ChangeHolder changeHolder = _calculateRec(pTarget, chunk, lineNumberPositions);
+        newChangeList.add(changeHolder);
       }
     }
     catch (BadLocationException pE)
@@ -207,11 +210,12 @@ class EditorColorizer extends JPanel implements IDiscardable
   }
 
   /**
-   * @param pTarget The text component of the editor
-   * @param pChange A chunk of a file that was changed
+   * @param pTarget              The text component of the editor
+   * @param pChange              A chunk of a file that was changed
+   * @param pLineNumberPositions Array with LineNumbers, giving the y Location of each line
    */
-  @Nullable
-  private _ChangeHolder _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange) throws BadLocationException
+  @NotNull
+  private _ChangeHolder _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange, LineNumber[] pLineNumberPositions)
   {
     int startLine = 0;
     int endLine = 0;
@@ -220,7 +224,7 @@ class EditorColorizer extends JPanel implements IDiscardable
       case MODIFY:
       case ADD:
         startLine = pChange.getStart(EChangeSide.NEW);
-        endLine = pChange.getEnd(EChangeSide.NEW) - 1;
+        endLine = pChange.getEnd(EChangeSide.NEW);
         break;
       case DELETE:
         startLine = pChange.getEnd(EChangeSide.NEW);
@@ -229,29 +233,11 @@ class EditorColorizer extends JPanel implements IDiscardable
       default:
         break;
     }
-    Element defaultRootElement = pTarget.getDocument().getDefaultRootElement();
-    if (defaultRootElement.getElementCount() == 0)
-      return null;
-    Element startElement = defaultRootElement.getElement(Math.min(startLine, defaultRootElement.getElementCount() - 1));
-    Element endElement = defaultRootElement.getElement(Math.min(endLine, defaultRootElement.getElementCount() - 1));
-    int endOffset = endElement.getStartOffset();
-    int startOffset = startElement.getStartOffset();
-
-    if (pChange.getChangeType().equals(EChangeType.MODIFY))
-    {
-      endOffset = endElement.getEndOffset() - 1;
-    }
-
-    View view = pTarget.getUI().getRootView(pTarget);
-    if (view != null)
-    {
-      Rectangle changeRectangle =
-          view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Forward, new Rectangle()).getBounds();
-      if (changeRectangle.width == 0 && changeRectangle.height != 0)
-        changeRectangle.width = COLORIZER_WIDTH;
-      return new _ChangeHolder(changeRectangle, pChange);
-    }
-    return null;
+    int startIndex = Math.min(pLineNumberPositions.length - 1, startLine);
+    int endIndex = Math.min(pLineNumberPositions.length - 1, endLine);
+    int height = pLineNumberPositions[endIndex].getYCoordinate() - pLineNumberPositions[startIndex].getYCoordinate();
+    Rectangle changeRectangle = new Rectangle(0, pLineNumberPositions[startIndex].getYCoordinate(), COLORIZER_WIDTH, Math.max(height, pTarget.getFont().getSize()));
+    return new _ChangeHolder(changeRectangle, pChange);
   }
 
   /**
