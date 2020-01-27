@@ -31,7 +31,7 @@ public class SwingIconLoaderImpl implements IIconLoader
     if (resource == null)
       return new ImageIcon(defaultIcon);
     else
-      return new ImageIcon();
+      return new ImageIcon(resource);
   }
 
   /**
