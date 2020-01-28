@@ -187,7 +187,7 @@ public class Annotator extends JPanel implements IDiscardable
 
     // combine Observables to create an Observable of the BufferedImage, then subscribe and draw it each time it changes
     disposables.add(Observable.combineLatest(pRepository, chunkObservable, isActive, triggerUpdate, (pRepoOpt, pChunks, pIsActive, pTriggerUpdate)
-        -> pRepoOpt.flatMap(pRepo -> _getBlameImage(pFile, pRepo, pChunks, pIsActive.orElse(false))))
+        -> pRepoOpt.flatMap(pRepo -> _getBlameImage(pFile, pRepo, pChunks, pIsActive.orElse(false)))).doOnError(pThrowable -> _showImage(pTarget, null))
                         .subscribe(pBufferedImageOpt -> _showImage(pTarget, pBufferedImageOpt.orElse(null))));
   }
 
@@ -255,7 +255,13 @@ public class Annotator extends JPanel implements IDiscardable
     }
     catch (BadLocationException pE)
     {
-      pE.printStackTrace();
+      logger.log(Level.SEVERE, pE, () -> "Git: Accessed bad index while trying to determine the positions of a line in the text editor");
+    }
+    catch (Error pE)
+    {
+      if (pE.getMessage().contains("Interrupted mutex acquiring"))
+        logger.log(Level.WARNING, pE, () -> "Git: error while trying to access the document to determine the location of a line, skipping evaluation of that line");
+      else throw new Error(pE);
     }
     return rawBlameImage;
   }
@@ -282,21 +288,12 @@ public class Annotator extends JPanel implements IDiscardable
   {
     if (pFinalLineIndex < pLineNumberPositions.length)
     {
-      try
-      {
-        Rectangle changeRectangle = new Rectangle();
-        changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
-        int x = pLineNumberPositions[pFinalLineIndex].getXCoordinate();
-        int y = pLineNumberPositions[pFinalLineIndex].getYCoordinate() + pFontHeight +
-            Math.round((target.getFontMetrics(target.getFont()).getHeight() - getFontMetrics(nbFont).getHeight()) / 2f);
-        pImageGraphics.drawString(pLines.get(pFinalLineIndex), x, y);
-      }
-      catch (Error pE)
-      {
-        if (pE.getMessage().contains("Interrupted mutex acquiring"))
-          logger.log(Level.WARNING, pE, () -> "Git: error while trying to access the document to determine the location of a line, skipping evaluation of that line");
-        else throw new Error(pE);
-      }
+      Rectangle changeRectangle = new Rectangle();
+      changeRectangle.setSize(FREE_SPACE / 2, target.getFontMetrics(target.getFont()).getHeight());
+      int x = pLineNumberPositions[pFinalLineIndex].getXCoordinate();
+      int y = pLineNumberPositions[pFinalLineIndex].getYCoordinate() + pFontHeight +
+          Math.round((target.getFontMetrics(target.getFont()).getHeight() - getFontMetrics(nbFont).getHeight()) / 2f);
+      pImageGraphics.drawString(pLines.get(pFinalLineIndex), x, y);
     }
   }
 
