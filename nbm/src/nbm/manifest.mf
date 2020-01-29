@@ -6,6 +6,19 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.8</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Selecting "Discard Changes" when e.g. switching branches with active changes now works with a hard reset instead of resetting the files individually via checkout</li>
+    <li>When selecting all changed files and doing a revert, a hard reset is performed instead of resetting the files individually</li>
+    <li>Reduced the performance impact of the Annotator and the EditorColorizer, both now use a Divide and Conquer style algorithm that tries to reduce the amount of necessary modelToView calls as much as possible</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: Reverting a single file throws a NullPointerException</li>
+    <li>Fix: Exception when closing the Plugin Dialogs via ESC button</li>
+    <li>Fix: No Icon for a section of deleted lines in the EditorColorizer (located to the left in an editor, shows the changed lines of the file)</li>
+  </ul>
   <p style="font-weight: bold;">v.1.3.7</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
