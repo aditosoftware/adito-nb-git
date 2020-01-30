@@ -60,7 +60,7 @@ class FetchAction extends AbstractTableAction
       List<ITrackingRefUpdate> failedUpdates = fetchResults.stream()
           .filter(pITrackingRefUpdate -> !pITrackingRefUpdate.getResult().isSuccessfull())
           .collect(Collectors.toList());
-      if (fetchResults.isEmpty())
+      if (failedUpdates.isEmpty())
         notifyUtil.notify("Fetching from remote", "Fetch was successful", true);
       else
       {
