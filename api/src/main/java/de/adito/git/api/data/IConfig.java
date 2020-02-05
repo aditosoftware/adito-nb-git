@@ -1,5 +1,6 @@
 package de.adito.git.api.data;
 
+import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +126,7 @@ public interface IConfig
    * @param pPassphrase new passphrase for the ssh key, null means no passphrase required
    * @param pRemoteUrl  url of the remote, or null if not known
    */
-  void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl);
+  void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl) throws UnknownRemoteRepositoryException;
 
   /**
    * save the password for a remote URL in the keyring
@@ -133,7 +134,7 @@ public interface IConfig
    * @param pPassword  new password for the user, null means no password is required
    * @param pRemoteUrl url of the remote, or null if not known
    */
-  void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl);
+  void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl) throws UnknownRemoteRepositoryException;
 
   /**
    * tries to store the specified value in the config

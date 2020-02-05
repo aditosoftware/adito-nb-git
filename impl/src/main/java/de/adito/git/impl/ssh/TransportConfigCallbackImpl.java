@@ -8,6 +8,7 @@ import com.jcraft.jsch.Session;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IUserInputPrompt;
 import de.adito.git.api.data.IConfig;
+import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.impl.http.GitHttpUtil;
 import org.eclipse.jgit.api.TransportConfigCallback;
@@ -16,6 +17,8 @@ import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implementation of {@link org.eclipse.jgit.api.TransportConfigCallback})
@@ -26,6 +29,7 @@ import java.io.File;
 class TransportConfigCallbackImpl implements TransportConfigCallback
 {
 
+  private final Logger logger = Logger.getLogger(TransportConfigCallbackImpl.class.getName());
   private final IPrefStore prefStore;
   private final IKeyStore keyStore;
   private GitUserInfo gitUserInfo;
@@ -174,7 +178,14 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     @Override
     public void reset(URIish pUri)
     {
-      config.setPassphrase(null, pUri.toString());
+      try
+      {
+        config.setPassphrase(null, pUri.toString());
+      }
+      catch (UnknownRemoteRepositoryException pE)
+      {
+        logger.log(Level.INFO, pE, () -> "Tried to reset passphrase for pUri " + pUri + " but couldn't find matching repository");
+      }
     }
 
     @Override

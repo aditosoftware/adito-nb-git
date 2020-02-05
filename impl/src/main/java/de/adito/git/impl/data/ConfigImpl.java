@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.data.IConfig;
+import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -180,7 +181,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl)
+  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl) throws UnknownRemoteRepositoryException
   {
     String sshKeyLocation = getSshKeyLocation(pRemoteUrl);
     if (sshKeyLocation != null)
@@ -198,12 +199,12 @@ public class ConfigImpl implements IConfig
     }
     else
     {
-      throw new RuntimeException("Could not find any valid key in the config for which to set passphrase. Passed url for the remote was: " + pRemoteUrl);
+      throw new UnknownRemoteRepositoryException("Could not find any valid key in the config for which to set passphrase. Passed url for the remote was: " + pRemoteUrl);
     }
   }
 
   @Override
-  public void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl)
+  public void setPassword(@Nullable char[] pPassword, @Nullable String pRemoteUrl) throws UnknownRemoteRepositoryException
   {
     try
     {
@@ -219,7 +220,7 @@ public class ConfigImpl implements IConfig
       }
       else
       {
-        throw new RuntimeException("Could not find any valid key in the config for which to set password. Passed url for the remote was: " + pRemoteUrl);
+        throw new UnknownRemoteRepositoryException("Could not find any valid key in the config for which to set password. Passed url for the remote was: " + pRemoteUrl);
       }
     }
     catch (IOException pE)
