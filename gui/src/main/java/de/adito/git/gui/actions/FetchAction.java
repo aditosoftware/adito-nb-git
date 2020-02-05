@@ -6,6 +6,7 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ITrackingRefUpdate;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.impl.util.Util;
 import io.reactivex.Observable;
@@ -67,6 +68,10 @@ class FetchAction extends AbstractTableAction
         notifyUtil.notify("Fetch succeeded with failed updates", "First failed update: " + failedUpdates.get(0) + ". For all failed updates see IDE Log", false);
         logger.log(Level.WARNING, () -> "Fetch succeeded with failed updates:\n" + StringUtils.join(failedUpdates, "\n"));
       }
+    }
+    catch (AuthCancelledException pE)
+    {
+      notifyUtil.notify("Aborted fetch", "Fetch was aborted because authentication was cancelled", false);
     }
     catch (AditoGitException pE)
     {

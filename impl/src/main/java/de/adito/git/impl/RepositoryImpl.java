@@ -371,8 +371,7 @@ public class RepositoryImpl implements IRepository
         rebaseCommand.setOperation(RebaseCommand.Operation.CONTINUE);
         RebaseResult rebaseResult = rebaseCommand.call();
         iRebaseResult = _handlePullResult(() -> rebaseResult, currentHeadName, targetName,
-                                          rebaseResult.getCurrentCommit() == null ? null
-                                              : new CommitImpl(rebaseResult.getCurrentCommit().getParent(0)));
+                                          rebaseResult.getCurrentCommit() == null ? null : new CommitImpl(rebaseResult.getCurrentCommit().getParent(0)));
       }
       return iRebaseResult;
     }
@@ -380,6 +379,10 @@ public class RepositoryImpl implements IRepository
     {
       throw new MissingTrackedBranchException("The current Branch does not have a corresponding remote branch, " +
                                                   "please switch to a branch that also exists in the remote repository", pException);
+    }
+    catch (TransportException pE)
+    {
+      throw new AuthCancelledException(pE);
     }
     catch (IOException | GitAPIException pE)
     {
@@ -480,6 +483,10 @@ public class RepositoryImpl implements IRepository
         }
       }
       return trackingRefUpdates;
+    }
+    catch (TransportException pE)
+    {
+      throw new AuthCancelledException(pE);
     }
     catch (GitAPIException pE)
     {

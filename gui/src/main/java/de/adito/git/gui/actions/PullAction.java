@@ -9,6 +9,7 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.api.data.IRebaseResult;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.exception.MissingTrackedBranchException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
@@ -127,6 +128,10 @@ class PullAction extends AbstractAction
     catch (MissingTrackedBranchException pE)
     {
       notifyUtil.notify(pE, "Pull failed.", false);
+    }
+    catch (AuthCancelledException pE)
+    {
+      notifyUtil.notify("Aborted pull", "Pull was aborted because authentication was cancelled", false);
     }
     catch (Exception e)
     {
