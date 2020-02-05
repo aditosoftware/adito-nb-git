@@ -24,7 +24,7 @@ import java.util.Optional;
  * @author a.arnold, 25.10.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.CommitNBToolbarAction")
-@ActionRegistration(displayName = "LBL_CommitNBToolbarAction_Name")
+@ActionRegistration(displayName = "#LBL_CommitNBToolbarAction_Name")
 @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = INBActionPositions.COMMIT_ACTION_TOOLBAR)
 public class CommitNBToolbarAction extends CommitNBAction
 {

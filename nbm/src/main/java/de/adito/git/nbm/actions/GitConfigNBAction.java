@@ -17,8 +17,8 @@ import java.util.Optional;
  * @author m.kaspera, 07.01.2019
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.GitConfigNBAction")
-@ActionRegistration(displayName = "LBL_GitConfigNBAction_Name")
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.GIT_CONFIG_ACTION_RIGHT_CLICK)
+@ActionRegistration(displayName = "#LBL_GitConfigNBAction_Name")
+@ActionReference(name = "Settings", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.GIT_CONFIG_ACTION_RIGHT_CLICK)
 public class GitConfigNBAction extends NBAction
 {
 

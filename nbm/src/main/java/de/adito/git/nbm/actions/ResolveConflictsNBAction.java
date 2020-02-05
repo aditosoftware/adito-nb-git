@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @author m.kaspera, 14.12.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.ResolveConflictsNBAction")
-@ActionRegistration(displayName = "LBL_ShowAllBranchesNBAction_Name")
+@ActionRegistration(displayName = "#LBL_ResolveConflictsNBAction_Name")
 //Reference for the menu
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.RESOLVE_CONFLICTS_ACTION_RIGHT_CLICK,
     separatorAfter = INBActionPositions.RESOLVE_CONFLICTS_ACTION_RIGHT_CLICK + 1)

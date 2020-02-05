@@ -18,10 +18,10 @@ import java.util.Optional;
  */
 
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.PullNBAction")
-@ActionRegistration(displayName = "LBL_PullNBAction_Name")
+@ActionRegistration(displayName = "#LBL_PullNBAction_Name")
 //Reference for the menu
 @ActionReferences({
-    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.PULL_ACTION_RIGHT_CLICK),
+    @ActionReference(name = "Pull", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.PULL_ACTION_RIGHT_CLICK),
     @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = INBActionPositions.PULL_ACTION_TOOLBAR)
 })
 public class PullNBAction extends NBAction
@@ -66,4 +66,9 @@ public class PullNBAction extends NBAction
     return NbBundle.getMessage(PullNBAction.class, "LBL_PullNBAction_Name");
   }
 
+  @Override
+  public String toString()
+  {
+    return super.toString();
+  }
 }

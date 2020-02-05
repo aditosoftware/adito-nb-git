@@ -17,7 +17,7 @@ import java.util.Optional;
  * @author m.kaspera, 17.03.2019
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.FetchNBAction")
-@ActionRegistration(displayName = "LBL_FetchNBAction_Name")
+@ActionRegistration(displayName = "#LBL_FetchNBAction_Name")
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.FETCH_ACTION_RIGHT_CLICK)
 public class FetchNBAction extends NBAction
 {

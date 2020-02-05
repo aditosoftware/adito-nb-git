@@ -28,8 +28,8 @@ import java.util.Optional;
  * @author a.arnold, 25.10.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.CommitNBAction")
-@ActionRegistration(displayName = "LBL_CommitNBAction_Name")
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.COMMIT_ACTION_RIGHT_CLICK)
+@ActionRegistration(displayName = "#LBL_CommitNBAction_Name")
+@ActionReference(name = "Commit", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.COMMIT_ACTION_RIGHT_CLICK)
 
 public class CommitNBAction extends NBAction
 {

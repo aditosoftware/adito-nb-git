@@ -22,9 +22,9 @@ import java.util.Optional;
  * @author m.kaspera, 06.02.2019
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.FileHistoryNBAction")
-@ActionRegistration(displayName = "LBL_FileHistoryNBAction_Name")
+@ActionRegistration(displayName = "#LBL_FileHistoryNBAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.SHOW_FILE_HISTORY_ACTION_RIGHT_CLICK,
+@ActionReference(name = "Show file history", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.SHOW_FILE_HISTORY_ACTION_RIGHT_CLICK,
     separatorAfter = INBActionPositions.SHOW_FILE_HISTORY_ACTION_RIGHT_CLICK + 1)
 public class FileHistoryNBAction extends NBAction
 {

@@ -15,11 +15,11 @@ import java.util.Optional;
  * @author m.kaspera 06.11.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.ShowStatusWindowNBAction")
-@ActionRegistration(displayName = "LBL_ShowStatusWindowNBAction_Name")
+@ActionRegistration(displayName = "#LBL_ShowStatusWindowNBAction_Name")
 @ActionReferences({
     @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = INBActionPositions.SHOW_STATUS_WINDOW_ACTION_TOOLBAR),
     //Reference for the menu
-    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.SHOW_STATUS_WINDOW_ACTION_RIGHT_CLICK)
+    @ActionReference(name = "Show local changes", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.SHOW_STATUS_WINDOW_ACTION_RIGHT_CLICK)
 })
 public class ShowStatusWindowNBAction extends NBAction
 {

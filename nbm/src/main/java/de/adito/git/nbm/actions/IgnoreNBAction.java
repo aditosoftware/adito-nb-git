@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @author a.arnold, 31.10.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.IgnoreAction")
-@ActionRegistration(displayName = "LBL_IgnoreAction_Name")
+@ActionRegistration(displayName = "#LBL_IgnoreAction_Name")
 //Reference for the menu
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.IGNORE_ACTION_RIGHT_CLICK)
 public class IgnoreNBAction extends NBAction

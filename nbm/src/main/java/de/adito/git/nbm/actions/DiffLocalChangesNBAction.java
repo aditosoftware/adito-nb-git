@@ -21,10 +21,10 @@ import java.util.*;
  * @author m.kaspera, 16.03.2019
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.DiffLocalChangesNBAction")
-@ActionRegistration(displayName = "LBL_DiffLocalChangesNBAction_Name")
+@ActionRegistration(displayName = "#LBL_DiffLocalChangesNBAction_Name")
 @ActionReferences({
     @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = INBActionPositions.DIFF_LOCAL_CHANGES_ACTION_TOOLBAR),
-    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.DIFF_LOCAL_CHANGES_ACTION_RIGHT_CLICK)
+    @ActionReference(name = "Diff local changes", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.DIFF_LOCAL_CHANGES_ACTION_RIGHT_CLICK)
 })
 public class DiffLocalChangesNBAction extends NBAction
 {

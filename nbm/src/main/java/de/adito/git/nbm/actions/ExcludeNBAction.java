@@ -20,7 +20,7 @@ import java.util.Optional;
  * @author m.kaspera, 18.12.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.ExcludeAction")
-@ActionRegistration(displayName = "LBL_ExcludeAction_Name")
+@ActionRegistration(displayName = "#LBL_ExcludeAction_Name")
 //Reference for the menu
 @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.EXCLUDE_ACTION_RIGHT_CLICK,
     separatorAfter = INBActionPositions.EXCLUDE_ACTION_RIGHT_CLICK + 1)

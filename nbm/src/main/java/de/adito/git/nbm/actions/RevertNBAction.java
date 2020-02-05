@@ -24,9 +24,9 @@ import java.util.Optional;
  */
 
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.RevertNBAction")
-@ActionRegistration(displayName = "LBL_RevertNBAction_Name")
+@ActionRegistration(displayName = "#LBL_RevertNBAction_Name")
 //Reference for the menu
-@ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.REVERT_ACTION_RIGHT_CLICK)
+@ActionReference(name = "Revert file(s)", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.REVERT_ACTION_RIGHT_CLICK)
 public class RevertNBAction extends NBAction
 {
 

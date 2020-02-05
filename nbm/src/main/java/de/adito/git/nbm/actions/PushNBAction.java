@@ -17,12 +17,12 @@ import java.util.Optional;
  * @author a.arnold, 25.10.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.PushNBAction")
-@ActionRegistration(displayName = "LBL_PushNBAction_Name")
+@ActionRegistration(displayName = "#LBL_PushNBAction_Name")
 @ActionReferences({
     //Reference for the toolbar
     @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = INBActionPositions.PUSH_ACTION_TOOLBAR),
     //Reference for the menu
-    @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.PUSH_ACTION_RIGHT_CLICK)
+    @ActionReference(name = "Push", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.PUSH_ACTION_RIGHT_CLICK)
 })
 public class PushNBAction extends NBAction
 {

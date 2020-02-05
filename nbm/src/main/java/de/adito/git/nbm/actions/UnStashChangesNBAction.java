@@ -17,7 +17,7 @@ import java.util.Optional;
  * @author a.arnold, 25.10.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.UnStashChangesNBAction")
-@ActionRegistration(displayName = "LBL_UnStashChangesNBAction_Name")
+@ActionRegistration(displayName = "#LBL_UnStashChangesNBAction_Name")
 @ActionReferences({
     //Reference for the menu
     @ActionReference(path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.UN_STASH_CHANGES_ACTION_RIGHT_CLICK,

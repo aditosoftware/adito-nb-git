@@ -20,7 +20,7 @@ import java.util.Optional;
  * @author m.kaspera 27.11.2018
  */
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.ShowAllCommitsNBAction")
-@ActionRegistration(displayName = "LBL_ShowCommitLogNBAction_Name")
+@ActionRegistration(displayName = "#LBL_ShowCommitLogNBAction_Name")
 @ActionReference(path = IGitConstants.TOOLBAR_ACTION_PATH, position = INBActionPositions.SHOW_ALL_COMMITS_ACTION_TOOLBAR)
 public class ShowAllCommitsNBAction extends NBAction
 {
