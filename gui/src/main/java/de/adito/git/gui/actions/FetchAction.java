@@ -42,7 +42,7 @@ class FetchAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Fetching from remote", pHandle -> {
+    progressFacade.executeInBackground("Fetching from remote(s)", pHandle -> {
       Optional<IRepository> optionalIRepository = repository.blockingFirst(Optional.empty());
       optionalIRepository.ifPresent(this::_performFetch);
     });
@@ -62,7 +62,7 @@ class FetchAction extends AbstractTableAction
           .filter(pITrackingRefUpdate -> !pITrackingRefUpdate.getResult().isSuccessfull())
           .collect(Collectors.toList());
       if (failedUpdates.isEmpty())
-        notifyUtil.notify("Fetching from remote", "Fetch was successful", true);
+        notifyUtil.notify("Fetching from remote(s)", "Fetch from all defined remotes was successful", true);
       else
       {
         notifyUtil.notify("Fetch succeeded with failed updates", "First failed update: " + failedUpdates.get(0) + ". For all failed updates see IDE Log", false);
