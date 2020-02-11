@@ -23,6 +23,7 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
 {
   private JLabel rightLabel = new JLabel();
   private JLabel leftLabel = new JLabel();
+  private Icon arrowIcon = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
 
   BranchCellRenderer()
   {
@@ -53,8 +54,7 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
     setEnabled(pList.isEnabled());
 
 
-    SwingIconLoaderImpl swingIconLoader = new SwingIconLoaderImpl();
-    rightLabel.setIcon(swingIconLoader.getIcon(ARROW_RIGHT));
+    rightLabel.setIcon(arrowIcon);
     leftLabel.setText(pBranch.getSimpleName());
     return this;
   }
