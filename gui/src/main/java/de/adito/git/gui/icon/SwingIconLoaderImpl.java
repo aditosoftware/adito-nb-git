@@ -26,7 +26,14 @@ public class SwingIconLoaderImpl implements IIconLoader
   {
     if (!pIconBase.startsWith("/"))
       pIconBase = "/" + pIconBase;
-    URL resource = getClass().getResource(pIconBase);
+    URL resource = null;
+    if (_isDarkTheme())
+    {
+      resource = getClass().getResource(_getDarkVersion(pIconBase));
+
+    }
+    if (resource == null)
+      resource = getClass().getResource(pIconBase);
     // return the default icon (signalling a missing icon) instead of null
     if (resource == null)
       return new ImageIcon(defaultIcon);
@@ -54,5 +61,18 @@ public class SwingIconLoaderImpl implements IIconLoader
       g.dispose();
       return image;
     }
+  }
+
+  private String _getDarkVersion(String pIconBase)
+  {
+    int indexOfDot = pIconBase.lastIndexOf('.');
+    if (indexOfDot == -1)
+      return pIconBase;
+    else return pIconBase.substring(0, indexOfDot) + "_dark" + pIconBase.substring(indexOfDot);
+  }
+
+  private boolean _isDarkTheme()
+  {
+    return UIManager.getBoolean("nb.dark.theme");
   }
 }
