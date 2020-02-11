@@ -15,6 +15,7 @@ public class Constants
   public static final String ACCEPT_CHANGE_THEIRS_ICON = "de/adito/git/gui/icons/acceptChangeRight.png";
   public static final String DISCARD_CHANGE_ICON = "de/adito/git/gui/icons/discardChange.png";
   public static final String ARROW_RIGHT = "de/adito/git/gui/icons/arrowRight.png";
+  public static final String CARET_RIGHT = "de/adito/git/gui/icons/caret-right.png";
 
   // Diff Dialog Icons
   public static final String NEXT_OCCURRENCE = "de/adito/git/gui/icons/next.png";

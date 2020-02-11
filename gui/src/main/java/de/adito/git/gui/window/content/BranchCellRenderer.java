@@ -6,11 +6,9 @@ import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Rectangle;
+import java.awt.*;
 
-import static de.adito.git.gui.Constants.ARROW_RIGHT;
+import static de.adito.git.gui.Constants.CARET_RIGHT;
 
 /**
  * This renderer is for the popup window.
@@ -23,11 +21,11 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
 {
   private JLabel rightLabel = new JLabel();
   private JLabel leftLabel = new JLabel();
-  private Icon arrowIcon = new SwingIconLoaderImpl().getIcon(ARROW_RIGHT);
+  private Icon arrowIcon = new SwingIconLoaderImpl().getIcon(CARET_RIGHT);
 
   BranchCellRenderer()
   {
-    double[] cols = {TableLayout.FILL, 10};
+    double[] cols = {TableLayout.FILL, 16};
     double[] rows = {TableLayout.PREFERRED};
 
     setLayout(new TableLayout(cols, rows));
@@ -54,9 +52,20 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
     setEnabled(pList.isEnabled());
 
 
-    rightLabel.setIcon(arrowIcon);
     leftLabel.setText(pBranch.getSimpleName());
     return this;
+  }
+
+  @Override
+  public void paint(Graphics g)
+  {
+    super.paint(g);
+    Rectangle bounds = g.getClipBounds();
+    Graphics2D graphics2D = (Graphics2D) g;
+    graphics2D.setColor(getBackground());
+    graphics2D.fillRect((int) (bounds.getMaxX() - arrowIcon.getIconWidth()), getHeight() - arrowIcon.getIconHeight(),
+                        arrowIcon.getIconWidth(), arrowIcon.getIconHeight());
+    arrowIcon.paintIcon(this, g, (int) (bounds.getMaxX() - arrowIcon.getIconWidth()), getHeight() - arrowIcon.getIconHeight());
   }
 
   /**
