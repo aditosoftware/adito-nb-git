@@ -7,10 +7,12 @@ import javax.swing.*;
  *
  * @author a.arnold, 15.11.2018
  */
-class MouseSensor extends JPanel {
+class MouseSensor extends JPanel
+{
 
-    MouseSensor(MouseDragHandler pDragHandler) {
-        addMouseListener(pDragHandler);
-        addMouseMotionListener(pDragHandler);
-    }
+  MouseSensor(MouseDragHandler pDragHandler)
+  {
+    addMouseListener(pDragHandler);
+    addMouseMotionListener(pDragHandler);
+  }
 }
