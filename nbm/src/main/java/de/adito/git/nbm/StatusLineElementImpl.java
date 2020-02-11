@@ -55,8 +55,11 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
       @Override
       public void mouseClicked(MouseEvent pE)
       {
+        Point labelStart = label.getLocationOnScreen();
+        int x = Math.min(labelStart.x, labelStart.x + label.getWidth() - (int) popupWindow.getPreferredSize().getWidth());
+        int y = labelStart.y - (int) popupWindow.getPreferredSize().getHeight();
         popupWindow.setVisible(true);
-        popupWindow.setLocation(pE.getLocationOnScreen().x - popupWindow.getWidth(), pE.getLocationOnScreen().y - popupWindow.getHeight());
+        popupWindow.setLocation(x, y);
       }
     });
     statusLinePanel = new JPanel(new BorderLayout());
