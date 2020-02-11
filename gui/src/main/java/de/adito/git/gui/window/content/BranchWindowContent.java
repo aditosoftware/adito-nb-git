@@ -16,6 +16,7 @@ import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
@@ -128,6 +129,7 @@ class BranchWindowContent extends JPanel implements IDiscardable
     branchList.addMouseListener(hoverMouseListener);
     branchList.addMouseMotionListener(hoverMouseListener);
     branchLists.add(branchList);
+    branchList.setBorder(new EmptyBorder(2, 18, 2, 0));
 
     return branchList;
   }
