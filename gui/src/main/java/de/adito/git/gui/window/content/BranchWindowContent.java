@@ -311,7 +311,8 @@ class BranchWindowContent extends JPanel implements IDiscardable
 
     protected NewBranchLabelController(Observable<Optional<IRepository>> pObservable)
     {
-      super("+ New Branch", pObservable);
+      super("+   New Branch", pObservable);
+      label.setBorder(new EmptyBorder(0, 2, 0, 0));
       label.addMouseMotionListener(new _HoverMouseListener());
       label.addMouseListener(new _HoverMouseListener());
       label.addMouseListener(new MouseAdapter()
