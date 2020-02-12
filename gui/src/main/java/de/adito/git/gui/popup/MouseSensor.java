@@ -1,6 +1,7 @@
 package de.adito.git.gui.popup;
 
 import javax.swing.*;
+import java.awt.Color;
 
 /**
  * Mouse provider for the MouseListener
@@ -10,9 +11,22 @@ import javax.swing.*;
 class MouseSensor extends JPanel
 {
 
+  /**
+   * @param pDragHandler DragHandler that should be added as mouse and mousemotionListener
+   */
   MouseSensor(MouseDragHandler pDragHandler)
   {
     addMouseListener(pDragHandler);
     addMouseMotionListener(pDragHandler);
+  }
+
+  /**
+   * @param pDragHandler     DragHandler that should be added as mouse and mousemotionListener
+   * @param pBackgroundColor color used as background for this panel
+   */
+  MouseSensor(MouseDragHandler pDragHandler, Color pBackgroundColor)
+  {
+    this(pDragHandler);
+    setBackground(pBackgroundColor);
   }
 }

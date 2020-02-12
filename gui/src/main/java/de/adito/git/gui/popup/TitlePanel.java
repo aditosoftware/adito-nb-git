@@ -1,8 +1,10 @@
 package de.adito.git.gui.popup;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 
+import static de.adito.git.gui.popup.PopupPanel.DRAG_BORDER_WIDTH;
 import static javax.swing.SwingConstants.CENTER;
 
 /**
@@ -17,6 +19,7 @@ class TitlePanel extends JPanel
     setLayout(new BorderLayout());
     JLabel titleLabel = new JLabel(pLabelName);
     titleLabel.setHorizontalAlignment(CENTER);
+    titleLabel.setBorder(new EmptyBorder(0, 0, DRAG_BORDER_WIDTH, 0));
     add(titleLabel, BorderLayout.CENTER);
     setBackground(UIManager.getColor("adito.secondary.background.color"));
     addMouseListener(pMouseDragHandler);

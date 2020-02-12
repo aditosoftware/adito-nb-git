@@ -7,7 +7,7 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
+import java.awt.Graphics;
 
 /**
  * A Panel for all mouse handlers.
@@ -17,28 +17,30 @@ import java.awt.Dimension;
  */
 class PopupPanel extends JPanel
 {
+  protected static final int DRAG_BORDER_WIDTH = 5;
+  private static final String SECONDARY_BACKGROUND_COLOR_KEY = "adito.secondary.background.color";
 
   PopupPanel(JComponent pComponent, String pTitle, PopupWindow pWindow)
   {
     setBorder(new LineBorder(Color.gray));
-    final int outerLine = 5;
-    final int gap = 10;
+    final int gap = 5;
     double fill = TableLayout.FILL;
-    double[] cols = {outerLine, fill, outerLine};
-    double[] rows = {outerLine,
+    double[] cols = {DRAG_BORDER_WIDTH, fill, DRAG_BORDER_WIDTH};
+    double[] rows = {DRAG_BORDER_WIDTH,
                      TableLayout.PREFERRED, //Title
                      gap,
                      fill, //Content
-                     outerLine};
+                     DRAG_BORDER_WIDTH};
 
     setLayout(new TableLayout(cols, rows));
+    TitlePanel titlePanel = new TitlePanel(new HandlerMovement(pWindow), pTitle);
     TableLayoutUtil tlu = new TableLayoutUtil(this);
-    tlu.add(0, 0, new MouseSensor(new MouseDragHandler(pWindow, Cursor.NW_RESIZE_CURSOR)));
-    tlu.add(1, 0, new MouseSensor(new MouseDragHandler(pWindow, Cursor.N_RESIZE_CURSOR)));
-    tlu.add(2, 0, new MouseSensor(new MouseDragHandler(pWindow, Cursor.NE_RESIZE_CURSOR)));
-    tlu.add(0, 1, 0, 3, new MouseSensor(new MouseDragHandler(pWindow, Cursor.W_RESIZE_CURSOR)));
-    tlu.add(1, 1, new TitlePanel(new HandlerMovement(pWindow), pTitle));
-    tlu.add(2, 1, 2, 3, new MouseSensor(new MouseDragHandler(pWindow, Cursor.E_RESIZE_CURSOR)));
+    tlu.add(0, 0, new MouseSensor(new MouseDragHandler(pWindow, Cursor.NW_RESIZE_CURSOR), UIManager.getColor(SECONDARY_BACKGROUND_COLOR_KEY)));
+    tlu.add(1, 0, new MouseSensor(new MouseDragHandler(pWindow, Cursor.N_RESIZE_CURSOR), UIManager.getColor(SECONDARY_BACKGROUND_COLOR_KEY)));
+    tlu.add(2, 0, new MouseSensor(new MouseDragHandler(pWindow, Cursor.NE_RESIZE_CURSOR), UIManager.getColor(SECONDARY_BACKGROUND_COLOR_KEY)));
+    tlu.add(0, 1, 0, 3, new EastWestColoredMouseDragHandler(pWindow, titlePanel, Cursor.W_RESIZE_CURSOR));
+    tlu.add(1, 1, titlePanel);
+    tlu.add(2, 1, 2, 3, new EastWestColoredMouseDragHandler(pWindow, titlePanel, Cursor.E_RESIZE_CURSOR));
     tlu.add(1, 2, new MouseSensor(new HandlerMovement(pWindow)));
     tlu.add(1, 3, _createContentPanel(pComponent));
     tlu.add(0, 4, new MouseSensor(new MouseDragHandler(pWindow, Cursor.SW_RESIZE_CURSOR)));
@@ -49,7 +51,6 @@ class PopupPanel extends JPanel
   private JComponent _createContentPanel(JComponent pComponent)
   {
     JScrollPane contentScrollPane = new JScrollPane(pComponent);
-    contentScrollPane.setPreferredSize(new Dimension(pComponent.getPreferredSize().width, 600));
     contentScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
     contentScrollPane.setViewportBorder(null);
@@ -58,4 +59,25 @@ class PopupPanel extends JPanel
     return contentScrollPane;
   }
 
+  /**
+   * MouseDragHandler that has the secondary background color for the upper height of the titlePanel
+   */
+  private static class EastWestColoredMouseDragHandler extends MouseSensor
+  {
+    private final TitlePanel titlePanel;
+
+    public EastWestColoredMouseDragHandler(PopupWindow pWindow, TitlePanel pTitlePanel, int pCursorType)
+    {
+      super(new MouseDragHandler(pWindow, pCursorType));
+      titlePanel = pTitlePanel;
+    }
+
+    @Override
+    public void paint(Graphics g)
+    {
+      super.paint(g);
+      g.setColor(UIManager.getColor(SECONDARY_BACKGROUND_COLOR_KEY));
+      g.fillRect(0, 0, g.getClipBounds().width, titlePanel.getHeight());
+    }
+  }
 }
