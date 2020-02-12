@@ -1,11 +1,10 @@
 package de.adito.git.gui.window.content;
 
 import de.adito.git.api.data.IBranch;
-import de.adito.git.gui.TableLayoutUtil;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
-import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 import static de.adito.git.gui.Constants.CARET_RIGHT;
@@ -19,19 +18,19 @@ import static de.adito.git.gui.Constants.CARET_RIGHT;
  */
 class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
 {
-  private JLabel rightLabel = new JLabel();
   private JLabel leftLabel = new JLabel();
-  private Icon arrowIcon = new SwingIconLoaderImpl().getIcon(CARET_RIGHT);
+  private static final int LIST_SPACING_TOP_BOTTOM = 2;
+  private static final int LIST_ELEMENTS_OFFSET_LEFT = 18;
 
   BranchCellRenderer()
   {
-    double[] cols = {TableLayout.FILL, 16};
-    double[] rows = {TableLayout.PREFERRED};
-
-    setLayout(new TableLayout(cols, rows));
-    TableLayoutUtil tlu = new TableLayoutUtil(this);
-    tlu.add(0, 0, leftLabel);
-    tlu.add(1, 0, rightLabel);
+    leftLabel.setBorder(new EmptyBorder(LIST_SPACING_TOP_BOTTOM, LIST_ELEMENTS_OFFSET_LEFT, LIST_SPACING_TOP_BOTTOM, 0));
+    JLabel rightLabel = new JLabel();
+    Icon arrowIcon = new SwingIconLoaderImpl().getIcon(CARET_RIGHT);
+    rightLabel.setIcon(arrowIcon);
+    setLayout(new BorderLayout());
+    add(leftLabel, BorderLayout.CENTER);
+    add(rightLabel, BorderLayout.EAST);
   }
 
   @Override
@@ -54,18 +53,6 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
 
     leftLabel.setText(pBranch.getSimpleName());
     return this;
-  }
-
-  @Override
-  public void paint(Graphics g)
-  {
-    super.paint(g);
-    Rectangle bounds = g.getClipBounds();
-    Graphics2D graphics2D = (Graphics2D) g;
-    graphics2D.setColor(getBackground());
-    graphics2D.fillRect((int) (bounds.getMaxX() - arrowIcon.getIconWidth()), getHeight() - arrowIcon.getIconHeight(),
-                        arrowIcon.getIconWidth(), arrowIcon.getIconHeight());
-    arrowIcon.paintIcon(this, g, (int) (bounds.getMaxX() - arrowIcon.getIconWidth()), getHeight() - arrowIcon.getIconHeight());
   }
 
   /**
