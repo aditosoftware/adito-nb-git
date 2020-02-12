@@ -17,12 +17,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,7 +30,7 @@ import java.util.stream.Collectors;
  *
  * @author a.arnold, 08.11.2018
  */
-class BranchWindowContent extends JPanel implements IDiscardable
+class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
 {
   private static final String POPUP_WINDOW_CLIENT_PROPERTY = "parent";
   private final IActionProvider actionProvider;
@@ -75,7 +74,7 @@ class BranchWindowContent extends JPanel implements IDiscardable
   private void _initGUI(Observable<Optional<IRepositoryState>> pRepoStateObservable)
   {
     //room between the components
-    final double gap = 8;
+    final double gap = 7;
     double pref = TableLayout.PREFERRED;
     double[] cols = {TableLayout.FILL};
     double[] rows = {
@@ -129,8 +128,6 @@ class BranchWindowContent extends JPanel implements IDiscardable
     branchList.addMouseListener(hoverMouseListener);
     branchList.addMouseMotionListener(hoverMouseListener);
     branchLists.add(branchList);
-    branchList.setBorder(new EmptyBorder(2, 18, 2, 0));
-
     return branchList;
   }
 
@@ -148,6 +145,44 @@ class BranchWindowContent extends JPanel implements IDiscardable
       disposable.dispose();
     observableListSelectionModel.discard();
   }
+
+  /*
+  Implementation of Scrollable, to disable horizontal scrolling -> make sure that the arrows drawn in the branchcellRenderer are always shown on top
+   */
+
+  @Override
+  public Dimension getPreferredScrollableViewportSize()
+  {
+    return getPreferredSize();
+  }
+
+  @Override
+  public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
+  {
+    return 16;
+  }
+
+  @Override
+  public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
+  {
+    return 16;
+  }
+
+  @Override
+  public boolean getScrollableTracksViewportWidth()
+  {
+    return true;
+  }
+
+  @Override
+  public boolean getScrollableTracksViewportHeight()
+  {
+    return false;
+  }
+
+  /*
+  End Scrollable methods
+   */
 
   /**
    * add a {@link MouseAdapter} to the second popup menu at the clicked branch.
@@ -312,7 +347,7 @@ class BranchWindowContent extends JPanel implements IDiscardable
     protected NewBranchLabelController(Observable<Optional<IRepository>> pObservable)
     {
       super("+   New Branch", pObservable);
-      label.setBorder(new EmptyBorder(0, 2, 0, 0));
+      label.setBorder(new EmptyBorder(3, 2, 3, 0));
       label.addMouseMotionListener(new _HoverMouseListener());
       label.addMouseListener(new _HoverMouseListener());
       label.addMouseListener(new MouseAdapter()
