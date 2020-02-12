@@ -33,7 +33,7 @@ class MouseDragHandler extends MouseAdapter
   private final PopupWindow window;
   private final int cursorType;
   private final Point mouseBefore;
-  private Rectangle rectangle;
+  private Rectangle currentArea;
   private Dimension minDimension;
 
   private final BiFunction<Rectangle, Point, Rectangle> resizeFunction;
@@ -44,7 +44,7 @@ class MouseDragHandler extends MouseAdapter
     minDimension = new Dimension(125, 200);
     cursorType = pCursorType;
     mouseBefore = new Point();
-    rectangle = new Rectangle(new Point(), new Dimension());
+    currentArea = new Rectangle(new Point(), new Dimension());
     switch (pCursorType)
     {
       case Cursor.N_RESIZE_CURSOR:
@@ -76,12 +76,12 @@ class MouseDragHandler extends MouseAdapter
     }
   }
 
-  Rectangle getRectangle()
+  Rectangle getCurrentArea()
   {
-    return rectangle;
+    return currentArea;
   }
 
-  Point getDistance(MouseEvent e)
+  Point getDragDistance(MouseEvent e)
   {
     Point p = new Point();
     p.x = e.getLocationOnScreen().x - mouseBefore.x;
@@ -93,7 +93,7 @@ class MouseDragHandler extends MouseAdapter
   public void mousePressed(MouseEvent e)
   {
     mouseBefore.setLocation(e.getLocationOnScreen().x, e.getLocationOnScreen().y);
-    rectangle = new Rectangle(window.getLocation(), window.getSize());
+    currentArea = new Rectangle(window.getLocation(), window.getSize());
   }
 
   @Override
@@ -127,8 +127,8 @@ class MouseDragHandler extends MouseAdapter
 
   protected Rectangle calc(MouseEvent e)
   {
-    Rectangle rectangle = getRectangle();
-    Point distance = getDistance(e);
-    return resizeFunction.apply(rectangle, distance);
+    Rectangle areaBefore = getCurrentArea();
+    Point dragDistance = getDragDistance(e);
+    return resizeFunction.apply(areaBefore, dragDistance);
   }
 }

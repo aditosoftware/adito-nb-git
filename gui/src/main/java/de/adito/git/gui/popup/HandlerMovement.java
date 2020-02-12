@@ -20,8 +20,8 @@ class HandlerMovement extends MouseDragHandler
   @Override
   protected Rectangle calc(MouseEvent e)
   {
-    Rectangle rectangle = getRectangle();
-    Point distance = getDistance(e);
+    Rectangle rectangle = getCurrentArea();
+    Point distance = getDragDistance(e);
     return new Rectangle(rectangle.x + distance.x, rectangle.y + distance.y, rectangle.width, rectangle.height);
   }
 }
