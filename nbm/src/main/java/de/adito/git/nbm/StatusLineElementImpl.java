@@ -31,6 +31,7 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
 {
 
   private final JPanel statusLinePanel;
+  private JComponent branchWindowContent;
   private IWindowContentProvider windowContentProvider = IGitConstants.INJECTOR.getInstance(IWindowContentProvider.class);
   private JLabel label = new JLabel(NbBundle.getMessage(StatusLineElementImpl.class, "Invalid.Initialized"));
   private PopupWindow popupWindow;
@@ -55,9 +56,11 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
       @Override
       public void mouseClicked(MouseEvent pE)
       {
+        // set the size of the popup, maximum initial height of 600 px
+        popupWindow.setPreferredSize(new Dimension(branchWindowContent.getPreferredSize().width + 30, Math.min(branchWindowContent.getPreferredSize().height, 600)));
         Point labelStart = label.getLocationOnScreen();
         int x = Math.min(labelStart.x, labelStart.x + label.getWidth() - (int) popupWindow.getPreferredSize().getWidth());
-        int y = labelStart.y - (int) popupWindow.getPreferredSize().getHeight();
+        int y = labelStart.y + label.getHeight() - (int) popupWindow.getPreferredSize().getHeight();
         popupWindow.setVisible(true);
         popupWindow.setLocation(x, y);
       }
@@ -82,7 +85,7 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
 
   private void _initPopup()
   {
-    JComponent branchWindowContent = windowContentProvider.createBranchWindowContent(RepositoryUtility.getRepositoryObservable());
+    branchWindowContent = windowContentProvider.createBranchWindowContent(RepositoryUtility.getRepositoryObservable());
     popupWindow = new PopupWindow(WindowManager.getDefault().getMainWindow(), "Git Branches", branchWindowContent);
     branchWindowContent.putClientProperty("parent", popupWindow);
   }
