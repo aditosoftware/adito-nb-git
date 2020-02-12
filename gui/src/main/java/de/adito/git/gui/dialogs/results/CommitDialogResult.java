@@ -15,11 +15,15 @@ public class CommitDialogResult
 
   private final Supplier<List<File>> selectedFilesSupplier;
   private final boolean doAmend;
+  private final String userName;
+  private final String userMail;
 
-  public CommitDialogResult(Supplier<List<File>> pSelectedFilesSupplier, boolean pDoAmend)
+  public CommitDialogResult(Supplier<List<File>> pSelectedFilesSupplier, boolean pDoAmend, String pUserName, String pUserMail)
   {
     this.selectedFilesSupplier = pSelectedFilesSupplier;
     this.doAmend = pDoAmend;
+    userName = pUserName;
+    userMail = pUserMail;
   }
 
   public Supplier<List<File>> getSelectedFilesSupplier()
@@ -30,5 +34,15 @@ public class CommitDialogResult
   public boolean isDoAmend()
   {
     return doAmend;
+  }
+
+  public String getUserName()
+  {
+    return userName;
+  }
+
+  public String getUserMail()
+  {
+    return userMail;
   }
 }

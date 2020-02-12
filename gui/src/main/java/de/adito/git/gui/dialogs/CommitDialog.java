@@ -5,9 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.jidesoft.swing.CheckBoxTree;
 import com.jidesoft.swing.CheckBoxTreeSelectionModel;
 import de.adito.git.api.*;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.data.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
@@ -70,6 +68,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final Observable<List<File>> selectedFiles;
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final JLabel loadingLabel = new JLabel("Loading...");
+  private _DetailsWithDescriptionPanel committerNamePanel;
+  private _DetailsWithDescriptionPanel committerMailPanel;
   private ObservableTreeUpdater<IFileChangeType> treeUpdater;
   private ObservableTreeSelectionModel observableTreeSelectionModel;
 
@@ -109,7 +109,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
           .autoConnect(0, disposables::add);
       disposables.add(Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
                           .subscribe(pIsValidDescriptor::setValid));
-      _initGui(dir);
+      _initGui(dir, optRepo.get().getConfig());
     }
     else
     {
@@ -135,6 +135,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     {
       amendCheckBox.setToolTipText("");
     }
+    amendCheckBox.setAlignmentX(JComponent.LEFT_ALIGNMENT);
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
@@ -257,9 +258,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   /**
    * initialise GUI elements
    *
-   * @param pDir project directory
+   * @param pDir    project directory
+   * @param pConfig
    */
-  private void _initGui(@NotNull File pDir)
+  private void _initGui(@NotNull File pDir, IConfig pConfig)
   {
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
@@ -287,6 +289,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
     JPanel contentWithToolbar = new JPanel(new BorderLayout());
     contentWithToolbar.add(content, BorderLayout.CENTER);
+    committerNamePanel = new _DetailsWithDescriptionPanel("Author", pConfig.getUserName() == null ? "" : pConfig.getUserName());
+    committerMailPanel = new _DetailsWithDescriptionPanel("Author email", pConfig.getUserEmail() == null ? "" : pConfig.getUserEmail());
 
     setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT));
     setLayout(new BorderLayout());
@@ -302,7 +306,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     details.setLayout(new BoxLayout(details, BoxLayout.Y_AXIS));
     details.setBorder(new EmptyBorder(2, 12, 0, 0));
 
-    _addDetailsCategory(details, "Git", amendCheckBox);
+    JPanel userInfoPanel = new JPanel(new BorderLayout());
+    userInfoPanel.add(committerNamePanel, BorderLayout.NORTH);
+    userInfoPanel.add(committerMailPanel, BorderLayout.SOUTH);
+    _addDetailsCategory(details, "Git", userInfoPanel, amendCheckBox);
 
     return details;
   }
@@ -315,8 +322,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     content.setBorder(new EmptyBorder(0, 16, 0, 0));
     content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
     for (JComponent component : pComponents)
+    {
       content.add(component);
-    pDetailsPanel.add(content);
+      content.add(Box.createRigidArea(new Dimension(1, 5)));
+    }
+    JPanel wrapperPanel = new JPanel(new BorderLayout());
+    wrapperPanel.add(content, BorderLayout.NORTH);
+    wrapperPanel.add(new JPanel(), BorderLayout.CENTER);
+    pDetailsPanel.add(wrapperPanel);
   }
 
   @Override
@@ -328,7 +341,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   @Override
   public CommitDialogResult getInformation()
   {
-    return new CommitDialogResult(_getFilesToCommit(), amendCheckBox.isSelected());
+    return new CommitDialogResult(_getFilesToCommit(), amendCheckBox.isSelected(), committerNamePanel.getFieldContent(), committerMailPanel.getFieldContent());
   }
 
   private Supplier<List<File>> _getFilesToCommit()
@@ -342,6 +355,29 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     disposables.clear();
     observableTreeSelectionModel.discard();
     treeUpdater.discard();
+  }
+
+  private static class _DetailsWithDescriptionPanel extends JPanel
+  {
+
+    private final JTextField contentField;
+
+    public _DetailsWithDescriptionPanel(@NotNull String pDescription, @NotNull String pFieldContent)
+    {
+      setLayout(new BorderLayout());
+      JLabel descriptionLabel = new JLabel(pDescription);
+      contentField = new JTextField(pFieldContent);
+      add(descriptionLabel, BorderLayout.NORTH);
+      descriptionLabel.setBorder(new EmptyBorder(0, 0, 3, 0));
+      add(contentField, BorderLayout.SOUTH);
+      setMaximumSize(new Dimension(Integer.MAX_VALUE, descriptionLabel.getHeight() + contentField.getHeight() + 10));
+      setBorder(new EmptyBorder(5, 0, 5, 0));
+    }
+
+    public String getFieldContent()
+    {
+      return contentField.getText();
+    }
   }
 
   /**
