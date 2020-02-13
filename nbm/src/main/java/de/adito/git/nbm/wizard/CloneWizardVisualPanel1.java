@@ -1,14 +1,15 @@
 package de.adito.git.nbm.wizard;
 
-import de.adito.git.gui.TableLayoutUtil;
 import de.adito.git.nbm.prefs.NBPrefStore;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 
 import javax.swing.*;
 import java.io.File;
 
-import static de.adito.git.nbm.IGitConstants.*;
+import static de.adito.git.nbm.IGitConstants.GIT_PROJECT_LOCATION;
+import static de.adito.git.nbm.IGitConstants.GIT_SSH_KEY;
 
 /**
  * @author a.arnold, 08.01.2019

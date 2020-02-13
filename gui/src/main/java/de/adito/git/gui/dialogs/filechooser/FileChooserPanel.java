@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.filechooser;
 
-import de.adito.git.gui.TableLayoutUtil;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

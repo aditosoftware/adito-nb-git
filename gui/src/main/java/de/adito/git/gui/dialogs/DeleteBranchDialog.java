@@ -1,7 +1,7 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
-import de.adito.git.gui.TableLayoutUtil;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;

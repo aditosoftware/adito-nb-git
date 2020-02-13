@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
-import de.adito.git.gui.TableLayoutUtil;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;

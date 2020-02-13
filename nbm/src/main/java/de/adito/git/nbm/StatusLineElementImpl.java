@@ -3,10 +3,11 @@ package de.adito.git.nbm;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IRepositoryState;
-import de.adito.git.gui.popup.PopupWindow;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import de.adito.git.nbm.observables.ActiveProjectObservable;
 import de.adito.git.nbm.util.RepositoryUtility;
+import de.adito.swing.popup.PopupMouseAdapter;
+import de.adito.swing.popup.PopupWindow;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.openide.awt.StatusLineElementProvider;
@@ -17,8 +18,6 @@ import org.openide.windows.WindowManager;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Optional;
 
 /**
@@ -51,20 +50,7 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
     separator.setBorder(new EmptyBorder(1, 1, 1, 1));
 
     label.setBorder(new EmptyBorder(0, 10, 0, 10));
-    label.addMouseListener(new MouseAdapter()
-    {
-      @Override
-      public void mouseClicked(MouseEvent pE)
-      {
-        // set the size of the popup, maximum initial height of 600 px
-        popupWindow.setPreferredSize(new Dimension(branchWindowContent.getPreferredSize().width + 30, Math.min(branchWindowContent.getPreferredSize().height, 600)));
-        Point labelStart = label.getLocationOnScreen();
-        int x = Math.min(labelStart.x, labelStart.x + label.getWidth() - (int) popupWindow.getPreferredSize().getWidth());
-        int y = labelStart.y + label.getHeight() - (int) popupWindow.getPreferredSize().getHeight();
-        popupWindow.setVisible(true);
-        popupWindow.setLocation(x, y);
-      }
-    });
+    label.addMouseListener(new PopupMouseAdapter(popupWindow, label, branchWindowContent));
     statusLinePanel = new JPanel(new BorderLayout());
     statusLinePanel.add(separator, BorderLayout.WEST);
     statusLinePanel.add(label, BorderLayout.CENTER);

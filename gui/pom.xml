@@ -57,6 +57,12 @@
       <artifactId>jide-common-layer</artifactId>
       <version>3.2.4</version>
     </dependency>
+    <dependency>
+      <groupId>de.adito.nb-modules</groupId>
+      <artifactId>de-adito-netbeans-utilities</artifactId>
+      <version>1.0</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
 </project>

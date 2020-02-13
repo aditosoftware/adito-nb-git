@@ -1,7 +1,7 @@
 package de.adito.git.nbm.wizard;
 
 import de.adito.git.api.data.IBranch;
-import de.adito.git.gui.TableLayoutUtil;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import org.jetbrains.annotations.Nullable;
 

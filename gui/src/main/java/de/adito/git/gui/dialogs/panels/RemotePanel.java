@@ -5,8 +5,8 @@ import com.google.common.collect.Multimap;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.TableLayoutUtil;
 import de.adito.git.impl.data.SSHKeyDetails;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;

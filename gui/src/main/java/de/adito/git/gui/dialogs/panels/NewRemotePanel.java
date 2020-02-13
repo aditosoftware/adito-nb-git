@@ -2,8 +2,8 @@ package de.adito.git.gui.dialogs.panels;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IConfig;
-import de.adito.git.gui.TableLayoutUtil;
 import de.adito.git.gui.swing.ADocumentListener;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
 import javax.swing.*;

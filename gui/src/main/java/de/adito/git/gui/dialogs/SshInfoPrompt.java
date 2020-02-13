@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
-import de.adito.git.gui.TableLayoutUtil;
+import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
 import javax.annotation.Nullable;
