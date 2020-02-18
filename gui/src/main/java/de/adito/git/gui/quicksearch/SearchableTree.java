@@ -1,11 +1,10 @@
 package de.adito.git.gui.quicksearch;
 
 import de.adito.git.api.IDiscardable;
+import de.adito.swing.KeyForwardAdapter;
 
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 /**
  * @author m.kaspera, 19.02.2019
@@ -13,7 +12,7 @@ import java.awt.event.KeyEvent;
 public class SearchableTree extends JTree implements IDiscardable
 {
 
-  private _KeyForwardAdapter keyForwardAdapter = null;
+  private KeyForwardAdapter keyForwardAdapter = null;
 
   /**
    * sets the model and initiales the keyAdapter bridge from this Tree to the specified panel
@@ -26,7 +25,7 @@ public class SearchableTree extends JTree implements IDiscardable
     setModel(pModel);
     if (keyForwardAdapter != null)
       removeKeyListener(keyForwardAdapter);
-    keyForwardAdapter = new _KeyForwardAdapter(pView);
+    keyForwardAdapter = new KeyForwardAdapter(pView);
     addKeyListener(keyForwardAdapter);
   }
 
@@ -36,23 +35,4 @@ public class SearchableTree extends JTree implements IDiscardable
     removeKeyListener(keyForwardAdapter);
   }
 
-  /**
-   * KeyAdapter that forwards all KeyEvents to the Component that the QuickSearch is attached to
-   */
-  private static class _KeyForwardAdapter extends KeyAdapter
-  {
-
-    private JComponent receiver;
-
-    _KeyForwardAdapter(JComponent pReceiver)
-    {
-      receiver = pReceiver;
-    }
-
-    @Override
-    public void keyTyped(KeyEvent pEvent)
-    {
-      receiver.dispatchEvent(pEvent);
-    }
-  }
 }

@@ -1,11 +1,10 @@
 package de.adito.git.gui.quicksearch;
 
 import com.jidesoft.swing.CheckBoxTree;
+import de.adito.swing.KeyForwardAdapter;
 
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 /**
  * @author m.kaspera, 19.02.2019
@@ -13,7 +12,7 @@ import java.awt.event.KeyEvent;
 public class SearchableCheckboxTree extends CheckBoxTree
 {
 
-  private _KeyForwardAdapter keyForwardAdapter = null;
+  private KeyForwardAdapter keyForwardAdapter = null;
 
   /**
    * sets the model and initiales the keyAdapter bridge from this Tree to the specified panel
@@ -26,27 +25,7 @@ public class SearchableCheckboxTree extends CheckBoxTree
     setModel(pModel);
     if (keyForwardAdapter != null)
       removeKeyListener(keyForwardAdapter);
-    keyForwardAdapter = new _KeyForwardAdapter(pView);
+    keyForwardAdapter = new KeyForwardAdapter(pView);
     addKeyListener(keyForwardAdapter);
-  }
-
-  /**
-   * KeyAdapter that forwards all KeyEvents to the Component that the QuickSearch is attached to
-   */
-  private class _KeyForwardAdapter extends KeyAdapter
-  {
-
-    private JPanel receiver;
-
-    _KeyForwardAdapter(JPanel pReceiver)
-    {
-      receiver = pReceiver;
-    }
-
-    @Override
-    public void keyTyped(KeyEvent pEvent)
-    {
-      receiver.dispatchEvent(pEvent);
-    }
   }
 }

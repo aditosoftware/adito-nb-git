@@ -1,12 +1,12 @@
 package de.adito.git.gui.quicksearch;
 
+import de.adito.git.api.IDiscardable;
+import de.adito.swing.KeyForwardAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 /**
  * Table that is supposed to have QuickSearch attached to it. Since QuickSearch cannot attach itself to the table itself, QuickSearch is attached to
@@ -15,8 +15,10 @@ import java.awt.event.KeyEvent;
  *
  * @author m.kaspera, 08.02.2019
  */
-public class SearchableTable extends JTable
+public class SearchableTable extends JTable implements IDiscardable
 {
+
+  private KeyForwardAdapter keyForwardAdapter;
 
   public SearchableTable(JPanel pView)
   {
@@ -24,33 +26,19 @@ public class SearchableTable extends JTable
   }
 
   /**
-   * @param pTableModel          The TableModel for this table
-   * @param pView                Component that can accommodate the searchField (if it is added to the table, the field is not shown)
+   * @param pTableModel The TableModel for this table
+   * @param pView       Component that can accommodate the searchField (if it is added to the table, the field is not shown)
    */
   public SearchableTable(@Nullable TableModel pTableModel, @NotNull JPanel pView)
   {
     super(pTableModel);
-    addKeyListener(new _KeyForwardAdapter(pView));
+    keyForwardAdapter = new KeyForwardAdapter(pView);
+    addKeyListener(keyForwardAdapter);
   }
 
-  /**
-   * KeyAdapter that forwards all KeyEvents to the Component that the QuickSearch is attached to
-   */
-  private class _KeyForwardAdapter extends KeyAdapter
+  @Override
+  public void discard()
   {
-
-    private JPanel receiver;
-
-    _KeyForwardAdapter(JPanel pReceiver)
-    {
-      receiver = pReceiver;
-    }
-
-    @Override
-    public void keyTyped(KeyEvent pEvent)
-    {
-      receiver.dispatchEvent(pEvent);
-    }
+    removeKeyListener(keyForwardAdapter);
   }
-
 }
