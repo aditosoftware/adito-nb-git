@@ -43,6 +43,9 @@ public class Constants
   // Sidebar Icon
   public static final String ROLLBACK_ICON = "de/adito/git/nbm/sidebar/rollback.png";
 
+  // Branch Window Icons
+  public static final String NEW_BRANCH_ICON = "de/adito/git/gui/icons/plus12.png";
+
   // Branch Icon in CommitHistoryWindow
   public static final String BRANCH_ICON_LOCAL = "de/adito/git/gui/icons/branch_icon_local.png";
   public static final String BRANCH_ICON_HEAD = "de/adito/git/gui/icons/branch_icon_head.png";
@@ -53,7 +56,6 @@ public class Constants
   //Settings map keys
   public static final String SSH_KEY_KEY = "sshKey";
   public static final String LOG_LEVEL_SETTINGS_KEY = "gitLogLevel";
-  public static final String AUTOMATICALLY_STASH_LOCAL_CHANES = "git.settings.autostashIfLocalChanges";
   public static final String TREE_VIEW_TYPE_KEY = "git.settings.tree.view";
   public static final String TREE_VIEW_FLAT = "flat";
   public static final String TREE_VIEW_HIERARCHICAL = "hierarchical";

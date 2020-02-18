@@ -7,6 +7,7 @@ import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
@@ -24,6 +25,8 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static de.adito.git.gui.Constants.NEW_BRANCH_ICON;
 
 /**
  * Creates the content for the branch menu.
@@ -346,7 +349,8 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
 
     protected NewBranchLabelController(Observable<Optional<IRepository>> pObservable)
     {
-      super("+   New Branch", pObservable);
+      super("New Branch", pObservable);
+      label.setIcon(new SwingIconLoaderImpl().getIcon(NEW_BRANCH_ICON));
       label.setBorder(new EmptyBorder(3, 2, 3, 0));
       label.addMouseMotionListener(new _HoverMouseListener());
       label.addMouseListener(new _HoverMouseListener());
