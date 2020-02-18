@@ -6,6 +6,22 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.9</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>Reworked parts of the branch window, it now always pops up at the same location, better respects the size of its content and has a sleeker look in general. It also uses proper elements as separators and such, instead of approximating those elements via letters</li>
+    <li>The current author and author email is visible in the commit dialog. If needed, that information can be changed on the spot and will be used for the commit and all following commits</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The name registration for the actions now works, meaning they show a proper name in the "Customize Toolbars" window</li>
+    <li>The text that is shown while performing a fetch now reflects the fact that a fetch is performed on all known remotes, not just one</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Aborting a pull or fetch by pressing cancel on the Authentication Dialog now shows a notification instead of an exception</li>
+    <li>Fixed an IndexOutOfBoundsException when performing a fetch (Occurred if more than one update was applied and none failed)</li>
+  </ul>
   <p style="font-weight: bold;">v.1.3.8</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
