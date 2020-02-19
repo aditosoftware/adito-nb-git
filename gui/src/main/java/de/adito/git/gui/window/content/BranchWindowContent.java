@@ -250,6 +250,8 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   static class _HoverMouseListener extends MouseAdapter
   {
     Color hoverColor;
+    Color labelSelectedForeground = new JList().getSelectionForeground();
+    Color labelForeground = new JLabel().getForeground();
 
     _HoverMouseListener()
     {
@@ -269,6 +271,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
       {
         JLabel label = (JLabel) source;
         label.setOpaque(false);
+        label.setForeground(labelForeground);
         label.repaint();
       }
     }
@@ -289,6 +292,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
         JLabel label = (JLabel) source;
         label.setOpaque(true);
         label.setBackground(hoverColor);
+        label.setForeground(labelSelectedForeground);
         label.repaint();
       }
     }

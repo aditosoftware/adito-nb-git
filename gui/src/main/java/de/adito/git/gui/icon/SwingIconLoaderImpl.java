@@ -41,6 +41,25 @@ public class SwingIconLoaderImpl implements IIconLoader
       return new ImageIcon(resource);
   }
 
+  public ImageIcon getInverseIcon(@NotNull String pIconBase)
+  {
+    if (!pIconBase.startsWith("/"))
+      pIconBase = "/" + pIconBase;
+    URL resource = null;
+    if (!_isDarkTheme())
+    {
+      resource = getClass().getResource(_getDarkVersion(pIconBase));
+
+    }
+    if (resource == null)
+      resource = getClass().getResource(pIconBase);
+    // return the default icon (signalling a missing icon) instead of null
+    if (resource == null)
+      return new ImageIcon(defaultIcon);
+    else
+      return new ImageIcon(resource);
+  }
+
   /**
    * converts an Icon to a image so that it can be used as an ImageIcon
    *

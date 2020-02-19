@@ -21,12 +21,19 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
   private JLabel leftLabel = new JLabel();
   private static final int LIST_SPACING_TOP_BOTTOM = 2;
   private static final int LIST_ELEMENTS_OFFSET_LEFT = 18;
+  private final Color backgroundColor = getBackground();
+  private final Color foregroundColor = getForeground();
+  private final JLabel rightLabel;
+  private final Icon arrowIcon;
+  private final Icon arrowIconInverse;
 
   BranchCellRenderer()
   {
     leftLabel.setBorder(new EmptyBorder(LIST_SPACING_TOP_BOTTOM, LIST_ELEMENTS_OFFSET_LEFT, LIST_SPACING_TOP_BOTTOM, 0));
-    JLabel rightLabel = new JLabel();
-    Icon arrowIcon = new SwingIconLoaderImpl().getIcon(CARET_RIGHT);
+    SwingIconLoaderImpl swingIconLoader = new SwingIconLoaderImpl();
+    arrowIcon = swingIconLoader.getIcon(CARET_RIGHT);
+    arrowIconInverse = swingIconLoader.getInverseIcon(CARET_RIGHT);
+    rightLabel = new JLabel();
     rightLabel.setIcon(arrowIcon);
     setLayout(new BorderLayout());
     add(leftLabel, BorderLayout.CENTER);
@@ -42,11 +49,17 @@ class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
     {
       setBackground(pList.getSelectionBackground());
       setForeground(pList.getSelectionForeground());
+      leftLabel.setBackground(pList.getSelectionBackground());
+      leftLabel.setForeground(pList.getSelectionForeground());
+      rightLabel.setIcon(arrowIconInverse);
     }
     else
     {
-      setBackground(pList.getBackground());
-      setForeground(pList.getForeground());
+      setBackground(backgroundColor);
+      setForeground(foregroundColor);
+      leftLabel.setBackground(pList.getBackground());
+      leftLabel.setForeground(pList.getForeground());
+      rightLabel.setIcon(arrowIcon);
     }
     setEnabled(pList.isEnabled());
 
