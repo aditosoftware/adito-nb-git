@@ -9,6 +9,7 @@ import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Translates the JGit enums to the API enums and back
@@ -301,6 +302,33 @@ public class EnumMappings
         resultType = null;
     }
     return resultType;
+  }
+
+  /**
+   * Converts a Edit Type to an EChangeType
+   *
+   * @param pType type to convert
+   * @return EChangeType that corresponds to the given Edit.Type
+   */
+  @Nullable
+  public static de.adito.git.api.data.diff.EChangeType toChangeType(@NotNull Edit.Type pType)
+  {
+    de.adito.git.api.data.diff.EChangeType returnValue;
+    switch (pType)
+    {
+      case REPLACE:
+        returnValue = de.adito.git.api.data.diff.EChangeType.MODIFY;
+        break;
+      case INSERT:
+        returnValue = de.adito.git.api.data.diff.EChangeType.ADD;
+        break;
+      case DELETE:
+        returnValue = de.adito.git.api.data.diff.EChangeType.DELETE;
+        break;
+      default:
+        returnValue = null;
+    }
+    return returnValue;
   }
 
 }
