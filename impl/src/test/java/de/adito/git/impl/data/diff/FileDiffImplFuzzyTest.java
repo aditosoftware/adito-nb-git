@@ -31,7 +31,7 @@ public class FileDiffImplFuzzyTest
 
   private static final int NUM_FUZZ_TESTS = 100000;
   private static final int MAX_NUM_CHUNKS_PER_FUZZ = 100;
-  private static final int MIN_NUM_CHUNKS_PER_FUZZ = 3;
+  private static final int MIN_NUM_CHUNKS_PER_FUZZ = 5;
   private static final int MAX_LINES_PER_DELETED_CHUNK = 10;
   private static final int MAX_LINES_PER_ADDED_CHUNK = 10;
   private static final int MAX_LINES_PER_MODIFIED_CHUNK = 5;
