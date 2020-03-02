@@ -3,6 +3,8 @@ package de.adito.git.api.data.diff;
 import java.util.List;
 
 /**
+ * Defines a single change of a file, offers methods to accept or discard those changes and keeps track of the location of the change in relation to the whole text
+ *
  * @author m.kaspera, 20.02.2020
  */
 public interface IChangeDelta
@@ -30,18 +32,18 @@ public interface IChangeDelta
   int getEndLine(EChangeSide pChangeSide);
 
   /**
-   * Get the index of the first character of this chunk, the index should be the same as in a document containing all changeDeltas of a fileChange
+   * Get the index of the first character of this delta, the index should be the same as in a document containing all changeDeltas of a fileChange
    *
    * @param pChangeSide which side of the change should be taken
-   * @return index of the first character of this chunk as seen for the whole file
+   * @return index of the first character of this delta as seen for the whole file
    */
   int getStartTextIndex(EChangeSide pChangeSide);
 
   /**
-   * Get the index of the last character of this chunk, the index should be the same as in a document containing all changeDeltas of a fileChange
+   * Get the index of the last character of this delta, the index should be the same as in a document containing all changeDeltas of a fileChange
    *
    * @param pChangeSide which side of the change should be taken
-   * @return index of the last character  of this chunk as seen for the whole file
+   * @return index of the last character  of this delta as seen for the whole file
    */
   int getEndTextIndex(EChangeSide pChangeSide);
 
@@ -59,7 +61,7 @@ public interface IChangeDelta
    *
    * @return List describing the changes of this delta on a word-basis
    */
-  List<IChangeDelta> getWordChanges();
+  List<ILinePartChangeDelta> getLinePartChanges();
 
   /**
    * Accepts the changes in this delta and returns a new IChangeDelta with the changed attributes

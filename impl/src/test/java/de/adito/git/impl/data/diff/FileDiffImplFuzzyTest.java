@@ -4,12 +4,12 @@ import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.EChangeSide;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileContentInfo;
-import de.adito.git.impl.StandAloneDiffProviderImpl;
 import de.adito.git.impl.data.diff.fuzzing.IRandomGenerator;
 import de.adito.git.impl.data.diff.fuzzing.ProbabilityEventGenerator;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jgit.diff.EditList;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,11 +63,10 @@ public class FileDiffImplFuzzyTest
   void testRandomStrings()
   {
     Random random = new Random(seed);
-    StandAloneDiffProviderImpl diffProvider = new StandAloneDiffProviderImpl(new FileSystemUtilTestStub());
     for (int index = 0; index < NUM_FUZZ_TESTS; index++)
     {
       Pair<String, String> versions = _createVersions(random);
-      EditList editList = diffProvider.diff(versions.getLeft(), versions.getRight(), true);
+      EditList editList = LineIndexDiffUtil.getChangedLines(versions.getLeft(), versions.getRight(), RawTextComparator.WS_IGNORE_TRAILING);
       FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(null, "old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE, "filea", "fileb");
       IFileContentInfo oldFileContent = new FileContentInfoImpl(versions::getLeft, () -> StandardCharsets.UTF_8);
       IFileContentInfo newFileContent = new FileContentInfoImpl(versions::getRight, () -> StandardCharsets.UTF_8);

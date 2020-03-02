@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -151,82 +150,23 @@ public class FileDiffImpl implements IFileDiff
    */
   private void _initChangeDeltas()
   {
-    changeDeltas = new ArrayList<>();
-    List<_LineInfo> oldTextLineInfos = _getLineInfos(originalFileContentInfo.getFileContent().get());
-    List<_LineInfo> newTextLineInfos = _getLineInfos(newFileContentInfo.getFileContent().get());
-
-    for (Edit edit : editList)
-    {
-      int startIndexOld = _getStartIndexSafely(oldTextLineInfos, edit.getBeginA());
-      int endIndexOld = oldTextLineInfos.get(Math.min(oldTextLineInfos.size() - 1, Math.max(edit.getBeginA(), edit.getEndA() - 1))).getEndIndex();
-      int startIndexNew = _getStartIndexSafely(newTextLineInfos, edit.getBeginB());
-      int endIndexNew;
-      if (edit.getType() == Edit.Type.DELETE)
-        endIndexNew = startIndexNew;
-      else
-        endIndexNew = newTextLineInfos.get(Math.min(newTextLineInfos.size() - 1, Math.max(edit.getBeginB(), edit.getEndB() - 1))).getEndIndex();
-      changeDeltas.add(new ChangeDeltaImpl(edit, new ChangeStatusImpl(EChangeStatus.PEDNING, EnumMappings.toChangeType(edit.getType())),
-                                           startIndexOld, endIndexOld,
-                                           startIndexNew, endIndexNew));
-    }
+    changeDeltas = LineIndexDiffUtil.getTextOffsets(originalFileContentInfo.getFileContent().get(), newFileContentInfo.getFileContent().get(), editList,
+                                                    new ChangeDeltaImplFactory());
   }
 
   /**
-   * @param pLineInfos List of LineInfos
-   * @param pIndex     index of the line
-   * @return start index of the line, or +1 to the endIndex of the last line if index is out of bounds
+   * Factory, creates ChangeDeltaImpls from an Edit and a ChangeDeltaTextOffsets data object
    */
-  private int _getStartIndexSafely(List<_LineInfo> pLineInfos, int pIndex)
+  private class ChangeDeltaImplFactory implements IChangeDeltaFactory<IChangeDelta>
   {
-    if (pLineInfos.size() > pIndex)
+
+    @NotNull
+    @Override
+    public IChangeDelta createDelta(@NotNull Edit pEdit, @NotNull ChangeDeltaTextOffsets pDeltaTextOffsets)
     {
-      return pLineInfos.get(pIndex).getStartIndex();
-    }
-    else
-    {
-      // E.g. if there was no \n in the last line, we end up here. Take the last lineInfo and then add one character
-      return pLineInfos.get(pLineInfos.size() - 1).getEndIndex() + 1;
+      return new ChangeDeltaImpl(pEdit, new ChangeStatusImpl(EChangeStatus.PEDNING, EnumMappings.toChangeType(pEdit.getType())),
+                                 pDeltaTextOffsets, FileDiffImpl.this::getText);
     }
   }
 
-  private List<_LineInfo> _getLineInfos(String pText)
-  {
-    List<_LineInfo> lineInfos = new ArrayList<>();
-    int startIndex = 0;
-    for (String line : pText.split("\n", -1))
-    {
-      // + 1 because of the missing \n in line (that is actually there)
-      lineInfos.add(new _LineInfo(startIndex, startIndex + line.length() + 1));
-      startIndex += line.length() + 1;
-    }
-    _LineInfo lastLineInfo = lineInfos.get(lineInfos.size() - 1);
-    lineInfos.set(lineInfos.size() - 1, new _LineInfo(lastLineInfo.getStartIndex(), lastLineInfo.getEndIndex() - 1));
-    return lineInfos;
-  }
-
-  /**
-   * Pair of two integers for the first and last index of a line
-   */
-  private static class _LineInfo
-  {
-
-    private final int startIndex;
-    private final int endIndex;
-
-    private _LineInfo(int pStartIndex, int pEndIndex)
-    {
-      startIndex = pStartIndex;
-      endIndex = pEndIndex;
-    }
-
-    public int getStartIndex()
-    {
-      return startIndex;
-    }
-
-    public int getEndIndex()
-    {
-      return endIndex;
-    }
-  }
 }
