@@ -48,11 +48,4 @@ public class StandAloneDiffProviderImpl implements IStandAloneDiffProvider
                             new FileContentInfoImpl(() -> pVersion2, fileSystemUtil));
   }
 
-  public EditList diff(String pVersion1, String pVersion2, boolean ignoreTrailingWS)
-  {
-    RawText fileContents = new RawText(pVersion1.getBytes());
-    RawText currentFileContents = new RawText(pVersion2.getBytes());
-
-    return new HistogramDiff().diff(ignoreTrailingWS ? RawTextComparator.WS_IGNORE_TRAILING : RawTextComparator.DEFAULT, fileContents, currentFileContents);
-  }
 }
