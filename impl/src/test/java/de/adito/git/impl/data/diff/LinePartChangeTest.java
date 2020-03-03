@@ -1,17 +1,16 @@
 package de.adito.git.impl.data.diff;
 
-import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.diff.*;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.data.diff.ILinePartChangeDelta;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawTextComparator;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static de.adito.git.impl.data.diff.TestUtil._createFileDiff;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -159,22 +158,6 @@ public class LinePartChangeTest
     _testResult(List.of(new MutablePair<>("Hello ", "Hellou ")), fileDiff, 0);
     fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
     _testResult(List.of(), fileDiff, 0);
-  }
-
-  /**
-   * Convenience method to shorten the amount of code for setting up a diff for a test
-   *
-   * @param pEditList   List with edits describing the changed lines
-   * @param pOldVersion Text before changes
-   * @param pNewVersion Text after changes
-   * @return IFileDiff with some default parameters and the passed arguments
-   */
-  private IFileDiff _createFileDiff(@NotNull EditList pEditList, @NotNull String pOldVersion, @NotNull String pNewVersion)
-  {
-    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(null, "old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE, "filea", "fileb");
-    IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> pOldVersion, () -> StandardCharsets.UTF_8);
-    IFileContentInfo newFileContent = new FileContentInfoImpl(() -> pNewVersion, () -> StandardCharsets.UTF_8);
-    return new FileDiffImpl(fileDiffHeader, pEditList, oldFileContent, newFileContent);
   }
 
   /**
