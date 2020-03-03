@@ -394,7 +394,7 @@ public class FileDiffImplTest
 
 
   /**
-   * Tests if accepting all changes for a multi-line text that has and additional line inserted in the middle results in the original text
+   * Tests if accepting all changes for a multi-line text that has an additional line inserted in the middle results in the original text
    */
   @Test
   void testAcceptDeltasInsertBetween()
@@ -409,6 +409,33 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
+  }
+
+  /*
+   *************************************  RESET TESTS  *************************************
+   */
+
+  /**
+   * Tests if accepting some changes and then calling reset results in the starting state
+   */
+  @Test
+  void testReset()
+  {
+    String oldLine1 = "Hello there!\n";
+    String oldLine2 = "This was here before though";
+    String newLine = "There is some additional stuff here\n";
+    String oldVersion = oldLine1 + oldLine2;
+    String newVersion = oldLine1 + newLine + oldLine2;
+    EditList editList = new EditList();
+    editList.add(new Edit(1, 1, 1, 2));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
+    assertEquals(EChangeStatus.ACCEPTED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    fileDiff.reset();
+    assertEquals(oldVersion, fileDiff.getText(EChangeSide.OLD));
+    assertEquals(newVersion, fileDiff.getText(EChangeSide.NEW));
+    assertEquals(EChangeStatus.PEDNING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
   }
 
   /**
