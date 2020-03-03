@@ -37,4 +37,12 @@ public interface ILinePartChangeDelta
    */
   ILinePartChangeDelta applyOffset(int pTextOffset);
 
+  /**
+   * Checks wether this delta is in conflict with another delta (affects same indizes)
+   *
+   * @param pLinePartChangeDelta the other linePartChangeDelta
+   * @return true if the changes overlap, false otherwise
+   */
+  boolean isConflictingWith(ILinePartChangeDelta pLinePartChangeDelta);
+
 }

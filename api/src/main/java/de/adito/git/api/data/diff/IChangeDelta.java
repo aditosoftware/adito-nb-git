@@ -64,6 +64,22 @@ public interface IChangeDelta
   List<ILinePartChangeDelta> getLinePartChanges();
 
   /**
+   * Checks wether this delta is in conflict with another delta (affects same indizes)
+   *
+   * @param pOtherChangeDelta the other IChangeDelta
+   * @return true if the changes overlap, false otherwise
+   */
+  boolean isConflictingWith(IChangeDelta pOtherChangeDelta);
+
+  /**
+   * get the text of one side of this delta
+   *
+   * @param pChangeSide which side of the delta
+   * @return text of the given side of this delta
+   */
+  String getText(EChangeSide pChangeSide);
+
+  /**
    * Accepts the changes in this delta and returns a new IChangeDelta with the changed attributes
    *
    * @return new IChangeDelta

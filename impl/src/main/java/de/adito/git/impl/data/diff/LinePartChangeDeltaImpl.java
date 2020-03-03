@@ -54,4 +54,10 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
   {
     return new LinePartChangeDeltaImpl(changeType, new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew));
   }
+
+  @Override
+  public boolean isConflictingWith(ILinePartChangeDelta pLinePartChangeDelta)
+  {
+    return pLinePartChangeDelta.getStartTextIndex(EChangeSide.OLD) < endTextIndexOld && pLinePartChangeDelta.getEndTextIndex(EChangeSide.OLD) > startTextIndexOld;
+  }
 }

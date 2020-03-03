@@ -102,6 +102,43 @@ public final class ChangeDeltaImpl implements IChangeDelta
     return linePartChangeDeltas;
   }
 
+  @Override
+  public boolean isConflictingWith(IChangeDelta pOtherChangeDelta)
+  {
+    if (pOtherChangeDelta.getStartTextIndex(EChangeSide.OLD) < endTextIndexOld && pOtherChangeDelta.getEndTextIndex(EChangeSide.OLD) > startTextIndexOld)
+    {
+      return pOtherChangeDelta.getLinePartChanges()
+          .stream().anyMatch(pLinePartChangeDelta -> getLinePartChanges()
+              .stream().anyMatch(pOwnLinePartChangeDelta -> pOwnLinePartChangeDelta.isConflictingWith(pLinePartChangeDelta) && _isSameChange(pOtherChangeDelta)));
+    }
+    else
+      return false;
+  }
+
+  @Override
+  public String getText(EChangeSide pChangeSide)
+  {
+    if (pChangeSide == EChangeSide.NEW)
+    {
+      return textVersionProvider.getVersion(pChangeSide).substring(startTextIndexNew, endTextIndexNew);
+    }
+    else
+    {
+      return textVersionProvider.getVersion(pChangeSide).substring(startTextIndexOld, endTextIndexOld);
+    }
+  }
+
+  /**
+   * @param pOtherChangeDelta the IChangeDelta to compare this delta to
+   * @return true if the change is the same, false otherwise
+   */
+  private boolean _isSameChange(IChangeDelta pOtherChangeDelta)
+  {
+    return !(startTextIndexOld == pOtherChangeDelta.getStartTextIndex(EChangeSide.OLD) && endTextIndexOld == pOtherChangeDelta.getEndTextIndex(EChangeSide.OLD)
+        && getText(EChangeSide.NEW).equals(pOtherChangeDelta.getText(EChangeSide.NEW)));
+  }
+
+
   private List<ILinePartChangeDelta> _calculateLinePartChangeDeltas()
   {
     String originalVersion;
