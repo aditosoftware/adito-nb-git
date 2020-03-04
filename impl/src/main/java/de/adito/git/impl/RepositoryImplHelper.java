@@ -378,6 +378,7 @@ public class RepositoryImplHelper
   @Nullable
   static RevCommit findForkPoint(@NotNull Git pGit, String pParentBranchName, String pForeignBranchName) throws IOException
   {
+    HashSet<ObjectId> parsedIds = new HashSet<>();
     try (RevWalk walk = new RevWalk(pGit.getRepository()))
     {
       RevCommit foreignCommit = walk.lookupCommit(pGit.getRepository().resolve(pForeignBranchName));
@@ -385,6 +386,7 @@ public class RepositoryImplHelper
       parentsToParse.add(pGit.getRepository().resolve(pParentBranchName));
       while (!parentsToParse.isEmpty())
       {
+        parsedIds.add(parentsToParse.peekFirst());
         RevCommit commit = walk.lookupCommit(parentsToParse.poll());
         // check if foreignCommit is reachable from the currently selected commit
         if (walk.isMergedInto(commit, foreignCommit))
@@ -395,7 +397,10 @@ public class RepositoryImplHelper
         }
         else
         {
-          parentsToParse.addAll(Arrays.stream(commit.getParents()).map(RevObject::getId).collect(Collectors.toList()));
+          parentsToParse.addAll(Arrays.stream(commit.getParents())
+                                    .map(RevObject::getId)
+                                    .filter(pObjectId -> !parsedIds.contains(pObjectId))
+                                    .collect(Collectors.toList()));
         }
       }
     }
