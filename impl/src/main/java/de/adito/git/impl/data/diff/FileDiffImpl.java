@@ -5,6 +5,7 @@ import de.adito.git.impl.EnumMappings;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -97,10 +98,7 @@ public class FileDiffImpl implements IFileDiff
       IChangeDelta changeDelta = changeDeltas.get(deltaIndex);
       changeDeltas.remove(changeDelta);
       changeDeltas.add(deltaIndex, changeDelta.acceptChange());
-      for (int index = deltaIndex + 1; index < changeDeltas.size(); index++)
-      {
-        changeDeltas.set(index, changeDeltas.get(index).applyOffset(lineDifference, textDifference));
-      }
+      _applyOffsetToFollowingDeltas(deltaIndex, textDifference, lineDifference);
     }
   }
 
@@ -111,8 +109,100 @@ public class FileDiffImpl implements IFileDiff
     if (deltaIndex != -1)
     {
       IChangeDelta changeDelta = changeDeltas.get(deltaIndex);
-      changeDeltas.remove(changeDelta);
-      changeDeltas.add(deltaIndex, changeDelta.discardChange());
+      changeDeltas.set(deltaIndex, changeDelta.discardChange());
+      // TODO change text
+    }
+  }
+
+  @Override
+  public void processTextEvent(int pOffset, int pLength, @Nullable String pText)
+  {
+    if (newVersion == null || oldVersion == null)
+      reset();
+    String prefix = newVersion.substring(0, pOffset);
+    if (pText != null)
+    {
+      String postfix = newVersion.substring(pOffset);
+      _processInsertEvent(pOffset, pLength, pText);
+      newVersion = prefix + pText + postfix;
+    }
+    else
+    {
+      String postfix = newVersion.substring(pOffset + pLength);
+      _processDeleteEvent(pOffset, pLength);
+      newVersion = prefix + postfix;
+    }
+  }
+
+  /**
+   * @param pOffset index of the insertion event
+   * @param pLength number of characters that were inserted
+   * @param pText   text that was inserted
+   */
+  private void _processInsertEvent(int pOffset, int pLength, @NotNull String pText)
+  {
+    int lineOffset;
+    lineOffset = pText.split("\n", -1).length - 1;
+
+    for (int index = 0; index < getChangeDeltas().size(); index++)
+    {
+      IChangeDelta currentDelta = changeDeltas.get(index);
+      if (pOffset < currentDelta.getEndTextIndex(EChangeSide.NEW))
+      {
+        if (pOffset >= currentDelta.getStartTextIndex(EChangeSide.NEW))
+        {
+          // see IChangeDelta.processTextEvent case INSERT 3
+          changeDeltas.set(index, currentDelta.processTextEvent(pOffset, pLength, 0, lineOffset, true));
+          _applyOffsetToFollowingDeltas(index, pLength, lineOffset);
+        }
+        else
+        {
+          // see IChangeDelta.processTextEvent case INSERT 1
+          _applyOffsetToFollowingDeltas(index - 1, pLength, lineOffset);
+        }
+        break;
+      }
+    }
+  }
+
+  /**
+   * @param pOffset index of the start of the delete event (first deleted character)
+   * @param pLength number of deleted characters
+   */
+  private void _processDeleteEvent(int pOffset, int pLength)
+  {
+    int lineOffset;
+    String infix = newVersion.substring(pOffset, pOffset + pLength);
+    lineOffset = -(infix.split("\n", -1).length - 1);
+    for (int index = 0; index < getChangeDeltas().size(); index++)
+    {
+      IChangeDelta currentDelta = changeDeltas.get(index);
+      if (pOffset < currentDelta.getEndTextIndex(EChangeSide.NEW))
+      {
+        // check if the event may affect a delta that comes after this one
+        boolean isChangeBiggerThanDelta = pOffset + pLength > currentDelta.getEndTextIndex(EChangeSide.NEW);
+        if (pOffset + pLength < currentDelta.getStartTextIndex(EChangeSide.NEW))
+        {
+          // see IChangeDelta.processTextEvent case DELETE 5
+          changeDeltas.set(index, currentDelta.applyOffset(lineOffset, -pLength));
+        }
+        else
+        {
+          // part of the delete operation text that is in front of the chunk
+          String deletedBefore = newVersion.substring(Math.min(currentDelta.getStartTextIndex(EChangeSide.NEW), pOffset),
+                                                      currentDelta.getStartTextIndex(EChangeSide.NEW));
+          // part of the delete operation text that is inside the chunk
+          String deletedOfChunk = newVersion.substring(Math.max(currentDelta.getStartTextIndex(EChangeSide.NEW), pOffset),
+                                                       Math.min(currentDelta.getEndTextIndex(EChangeSide.NEW), pOffset + pLength));
+          changeDeltas.set(index, currentDelta.processTextEvent(pOffset, -pLength, -(deletedBefore.split("\n", -1).length - 1),
+                                                                -(deletedOfChunk.split("\n", -1).length - 1), false));
+        }
+        if (!isChangeBiggerThanDelta)
+        {
+          _applyOffsetToFollowingDeltas(index, -pLength, lineOffset);
+          break;
+        }
+      }
     }
   }
 
@@ -143,6 +233,22 @@ public class FileDiffImpl implements IFileDiff
   public @NotNull EChangeType getChangeType()
   {
     return fileDiffHeader.getChangeType();
+  }
+
+
+  /**
+   * applies the given text and lineoffsets to the deltas for indices after pDeltaIndex
+   *
+   * @param pDeltaIndex     index for the list of deltas, given index is exclusive
+   * @param pTextDifference offset that will be added to the textOffsets
+   * @param pLineDifference offset that will be added to the lineOffsets
+   */
+  private void _applyOffsetToFollowingDeltas(int pDeltaIndex, int pTextDifference, int pLineDifference)
+  {
+    for (int index = pDeltaIndex + 1; index < changeDeltas.size(); index++)
+    {
+      changeDeltas.set(index, changeDeltas.get(index).applyOffset(pLineDifference, pTextDifference));
+    }
   }
 
   /**

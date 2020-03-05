@@ -52,6 +52,12 @@ public final class ChangeDeltaImpl implements IChangeDelta
     linePartChangeDeltas = pLinePartChangeDeltas;
   }
 
+  public static Edit getLineInfo(IChangeDelta pChangeDelta)
+  {
+    return new Edit(pChangeDelta.getStartLine(EChangeSide.OLD), pChangeDelta.getEndLine(EChangeSide.OLD),
+                    pChangeDelta.getStartLine(EChangeSide.NEW), pChangeDelta.getEndLine(EChangeSide.NEW));
+  }
+
   @Override
   public IChangeStatus getChangeStatus()
   {
@@ -92,6 +98,53 @@ public final class ChangeDeltaImpl implements IChangeDelta
                                linePartChangeDeltas == null ? null : linePartChangeDeltas.stream()
                                    .map(pILinePartChangeDelta -> pILinePartChangeDelta.applyOffset(pTextOffset))
                                    .collect(Collectors.toList()));
+  }
+
+  @Override
+  public IChangeDelta processTextEvent(int pOffset, int pLength, int pNumNewlinesBefore, int pNumNewlines, boolean pIsInsert)
+  {
+    Edit modifiedEdit;
+    IChangeStatus modifiedChangeStatus = new ChangeStatusImpl(EChangeStatus.UNDEFINED, changeStatus.getChangeType());
+    ChangeDeltaTextOffsets modifiedChangeDeltaOffsets;
+    if (pIsInsert)
+    {
+      modifiedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, endLineIndexNew + pNumNewlines);
+      modifiedChangeDeltaOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew + pLength);
+    }
+    else
+    {
+      if (pOffset < startTextIndexNew)
+      {
+        if (pOffset + -pLength < endTextIndexNew)
+        {
+          // case DELETE 1
+          modifiedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew + pNumNewlinesBefore, endLineIndexNew + pNumNewlines + pNumNewlinesBefore);
+          modifiedChangeDeltaOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew + (pOffset - startTextIndexNew), endTextIndexNew + pLength);
+        }
+        else
+        {
+          // case DELETE 2
+          modifiedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew + pNumNewlinesBefore, endLineIndexNew + pNumNewlines + pNumNewlinesBefore);
+          modifiedChangeDeltaOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, pOffset, pOffset);
+        }
+      }
+      else
+      {
+        if (pOffset + -pLength <= endTextIndexNew)
+        {
+          // case DELETE 3/7
+          modifiedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, endLineIndexNew + pNumNewlines);
+          modifiedChangeDeltaOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew + pLength);
+        }
+        else
+        {
+          // case DELETE 4
+          modifiedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, endLineIndexNew + pNumNewlines);
+          modifiedChangeDeltaOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew - (endTextIndexNew - pOffset));
+        }
+      }
+    }
+    return new ChangeDeltaImpl(modifiedEdit, modifiedChangeStatus, modifiedChangeDeltaOffsets, textVersionProvider, null);
   }
 
   @Override

@@ -3,6 +3,7 @@ package de.adito.git.impl.data.diff;
 import de.adito.git.api.data.diff.*;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -434,6 +435,280 @@ public class FileDiffImplTest
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.OLD));
     assertEquals(newVersion, fileDiff.getText(EChangeSide.NEW));
     assertEquals(EChangeStatus.PEDNING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+  }
+
+  /*
+   *************************************  PROCESS TEXT EVENTS DELETE TESTS  *************************************
+   */
+
+  /**
+   * Tests if deleting some text before a moves the indices of the delta by the appropriate amount
+   */
+  @Test
+  void testProcessTextEventDeleteBeforeChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String versionBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                       fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent(0, 5, null);
+    assertEquals(versionBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                            fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.PEDNING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+  }
+
+  /**
+   * Tests if deleting some text between two deltas leaves the first delta untouchted but moves the second delta's indices by the appropriate amount
+   */
+  @Test
+  void testProcessTextEventDeleteBetweenChunks()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String versionBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                       fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few words\nNo ".length(), "use ".length(), null);
+    assertEquals(versionBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                            fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.PEDNING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+  }
+
+  /**
+   * Tests if deleting some text inside a delta pushes back the endTextIndex of the delta and all indices of the following delta by the appropriate amount
+   */
+  @Test
+  void testProcessTextEventDeleteInChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String versionBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                       fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent("Hello there, this is a test\n".length(), 5, null);
+    assertEquals(versionBefore.substring(5), fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                                         fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+  }
+
+  /**
+   * Tests if deleting text that is inside a delta and a bit after (case DELETE 4) results in the delta changing status to undefined and if the indices of the delta
+   * and the following deltas are adjusted accordingly
+   */
+  @Test
+  void testProcessTextEventDeleteInChunkAndAfter()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    Edit firstDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(0));
+    Edit secondDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(1));
+    fileDiff.processTextEvent("Hello there, this is a test\nSo here are ".length(), "a few words\nNo use ".length(), null);
+    assertEquals("So here are ", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                             fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    _checkLineEndings(fileDiff.getChangeDeltas().get(0), firstDeltaEdit, 0, -1);
+    _checkLineEndings(fileDiff.getChangeDeltas().get(1), secondDeltaEdit, -1, -1);
+  }
+
+  /**
+   * Tests if deleting exactly the text contained in the delta (case DELETE 7) results in the delta changing status to undefined,
+   * all its startIndices being equal to the endIndices (has size/length of 0) and the following chunk adjusting its indices accordingly
+   */
+  @Test
+  void testProcessTextEventDeleteChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent("Hello there, this is a test\n".length(), "So here are a few words\n".length(), null);
+    assertEquals("", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                 fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartLine(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndLine(EChangeSide.NEW));
+  }
+
+  /**
+   * Tests if deleting more than the text contained in the delta (this time mix of case 1 and 7) results in the delta changing status to undefined,
+   * all its startIndices being equal to the endIndices (has size/length of 0) and the following chunk adjusting its indices accordingly
+   */
+  @Test
+  void testProcessTextEventDeleteMoreThanChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent("Hello there, this is a".length(), " test\nSo here are a few words\n".length(), null);
+    assertEquals("", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                 fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartLine(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndLine(EChangeSide.NEW));
+  }
+
+  /**
+   * Tests if deleting more than the text contained in the delta (DELETE case 2) results in the delta changing status to undefined, all its startIndices being equal to
+   * the endIndices (has size/length of 0) and the following chunk adjusting its indices accordingly
+   */
+  @Test
+  void testProcessTextEventDeleteMoreThanChunk2()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent("Hello there, this is a".length(), " test\nSo here are a few words\nNo".length(), null);
+    assertEquals("", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                 fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartLine(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndLine(EChangeSide.NEW));
+  }
+
+  /*
+   *************************************  PROCESS TEXT EVENTS INSERT TESTS  *************************************
+   */
+
+  /**
+   * Tests if inserting a few additional words in front of a delta results in both startTextIndex and endTextIndex being moved back accordingly
+   */
+  @Test
+  void testProcessTextEventInsertBeforeChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String versionBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                       fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent(6, 4, "you ");
+    assertEquals(versionBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                            fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.PEDNING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+  }
+
+  /**
+   * Tests if inserting a few words inside a delta results in the endTextIndex being moved back accordingly
+   */
+  @Test
+  void testProcessTextEventInsertInChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few ".length(), "more ".length(), "more ");
+    assertEquals("So here are a few more words\n", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                                               fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+  }
+
+  /**
+   * Tests if inserting a text with a newline before a delta moves the indices back
+   */
+  @Test
+  void testProcessTextEventInsertNewline()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String versionBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                       fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    Edit firstDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(0));
+    Edit secondDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(1));
+    fileDiff.processTextEvent(6, 4, "you\n");
+    assertEquals(versionBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                            fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.PEDNING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    _checkLineEndings(fileDiff.getChangeDeltas().get(0), firstDeltaEdit, 1, 1);
+    _checkLineEndings(fileDiff.getChangeDeltas().get(1), secondDeltaEdit, 1, 1);
+  }
+
+  /**
+   * Tests if inserting several new lines into a delta modifies the content and start/end lines as should be
+   */
+  @Test
+  void testProcessTextEventInsertNewLinesInChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    Edit firstDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(0));
+    Edit secondDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(1));
+    fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few ".length(), "\nmore\n".length(), "\nmore\n");
+    assertEquals("So here are a few \nmore\nwords\n", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                                                  fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    _checkLineEndings(fileDiff.getChangeDeltas().get(0), firstDeltaEdit, 0, 2);
+    _checkLineEndings(fileDiff.getChangeDeltas().get(1), secondDeltaEdit, 2, 2);
+  }
+
+  /**
+   * checks if the ChangeDelta has the specified indices for start/end line
+   *
+   * @param pChangeDelta ChangeDelta whose line numbers should be checked
+   * @param pEdit        Edit with the line numbers as were before the change/processed event
+   * @param pOffsetStart offset from the edit that the new start line should have
+   * @param pOffsetEnd   offset from the edit that the new end line should have
+   */
+  private void _checkLineEndings(IChangeDelta pChangeDelta, Edit pEdit, int pOffsetStart, int pOffsetEnd)
+  {
+    assertEquals(pEdit.getBeginB() + pOffsetStart, pChangeDelta.getStartLine(EChangeSide.NEW));
+    assertEquals(pEdit.getEndB() + pOffsetEnd, pChangeDelta.getEndLine(EChangeSide.NEW));
   }
 
   /**

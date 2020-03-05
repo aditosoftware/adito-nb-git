@@ -57,6 +57,96 @@ public interface IChangeDelta
   IChangeDelta applyOffset(int pLineOffset, int pTextOffset);
 
   /**
+   * processes a text event that impacts this delta
+   * There are 3 possible insert operation that can happen and 7 delete operations. In the following the | characters mark the position of the delta, the - characters
+   * mark the position of the text event
+   *
+   * INSERT 1
+   *
+   * -
+   * |
+   * |
+   *
+   * This should be treated with an applyOffset instead of this method
+   *
+   * INSERT 2
+   *
+   * |
+   * |
+   * -
+   *
+   * This does not affect the delta at all
+   *
+   * INSERT 3
+   *
+   * |
+   * |   -
+   * |
+   *
+   * DELETE 1
+   *
+   * -
+   * |   -
+   * |   -
+   * |
+   *
+   * DELETE 2
+   *
+   * -
+   * |   -
+   * |   -
+   * -
+   *
+   * DELETE 3
+   *
+   * |
+   * |   -
+   * |   -
+   * |
+   *
+   * DELETE 4
+   *
+   * |
+   * |   -
+   * |   -
+   * -
+   *
+   * DELETE 5
+   *
+   * -
+   * -
+   * |
+   * |
+   *
+   * This should be done with a call to applyOffset and not this method
+   *
+   * DELETE 6
+   *
+   * |
+   * |
+   * -
+   * -
+   *
+   * This does not affect the chunk at all
+   *
+   * DELETE 7
+   *
+   * |   -
+   * |   -
+   * |   -
+   *
+   * This is a special case of 3
+   *
+   * @param pOffset            start index of the text event
+   * @param pLength            number of characters that were deleted/inserted
+   * @param pNumNewlinesBefore number of newLines that were added/removed before this delta
+   * @param pNumNewlines       number of newLines that were added/removed inside this delta
+   * @param pIsInsert          if the text event was an insert operation, false if it was a delete operation
+   * @return new IChangeDelta with the changes from the text event applied
+   */
+  IChangeDelta processTextEvent(int pOffset, int pLength, int pNumNewlinesBefore, int pNumNewlines, boolean pIsInsert);
+
+  /**
    * Get a list of changes of this delta on a word-basis
    *
    * @return List describing the changes of this delta on a word-basis
