@@ -110,7 +110,6 @@ public class FileDiffImpl implements IFileDiff
     {
       IChangeDelta changeDelta = changeDeltas.get(deltaIndex);
       changeDeltas.set(deltaIndex, changeDelta.discardChange());
-      // TODO change text
     }
   }
 

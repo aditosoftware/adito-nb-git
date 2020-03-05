@@ -119,7 +119,8 @@ public final class ChangeDeltaImpl implements IChangeDelta
         {
           // case DELETE 1
           modifiedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew + pNumNewlinesBefore, endLineIndexNew + pNumNewlines + pNumNewlinesBefore);
-          modifiedChangeDeltaOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew + (pOffset - startTextIndexNew), endTextIndexNew + pLength);
+          modifiedChangeDeltaOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew + (pOffset - startTextIndexNew),
+                                                                  endTextIndexNew + pLength);
         }
         else
         {
