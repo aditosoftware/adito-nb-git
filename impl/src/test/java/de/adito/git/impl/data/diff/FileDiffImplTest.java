@@ -6,6 +6,9 @@ import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Document;
 import java.util.List;
 
 import static de.adito.git.impl.data.diff.TestUtil._createFileDiff;
@@ -411,6 +414,249 @@ public class FileDiffImplTest
   }
 
   /*
+   *************************************  TESTS THAT CHECK THE CHANGEEVENT MECHANISM  *************************************
+   * These tests use the same data and cases as the acceptDelta tests, however they only check if the DeltaChangeEvents applied to a string and document
+   * result in the expected outcome (in short - they test a different aspect of the acceptDelta method)
+   */
+
+  /**
+   * Tests if accepting all changes for a one-line text that is modified results in the original text
+   */
+  @Test
+  void testChangeEventDeltaModifySimple() throws BadLocationException
+  {
+    String oldVersion = "Hello there! Some changes in the first and only line";
+    String newVersion = "Hello there! Some changes in the first and only line!";
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 1, 0, 1));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
+    List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(changeDeltas.get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a modified multi-line text results in the original text
+   */
+  @Test
+  void testChangeEventModifyAll() throws BadLocationException
+  {
+    String oldVersion = "Hello there! Some changes in the first and only line\nOh\n";
+    String newVersion = "Hello there! Some changes in the first and only line!\nOh my\n";
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 2, 0, 2));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
+    List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(changeDeltas.get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a mutli-line text that has several non-connected modifications results in the original text
+   */
+  @Test
+  void testChangeEventsModifyMultiple() throws BadLocationException
+  {
+    String oldPart1 = "Hello there! Some changes in the first and only line\n";
+    String oldPart2 = "Filler line\n";
+    String oldPart3 = "Oh\n";
+    String newPart1 = "Hello there! Some changes in the first and only line!\n";
+    String newPart3 = "Oh my\n";
+    String oldVersion = oldPart1 + oldPart2 + oldPart3;
+    String newVersion = newPart1 + oldPart2 + newPart3;
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 1, 0, 1));
+    editList.add(new Edit(2, 3, 2, 3));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
+    List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
+    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.acceptDelta(changeDeltas.get(0));
+    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(1));
+    assertEquals(oldVersion, deltaTextChangeEvent2.apply(deltaTextChangeEvent1.apply(newVersion)));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent1.apply(document);
+    deltaTextChangeEvent2.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a multi-line text that has several of its lines removed (removed lines are continous) results in the original text
+   */
+  @Test
+  void testChangeEventRemovalMultiLine() throws BadLocationException
+  {
+    String oldVersion = "Hello there!\n There was some stuff here\nAnd here?\n";
+    String newVersion = "Hello there!";
+    EditList editList = new EditList();
+    editList.add(new Edit(1, 3, 1, 1));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a multi-line text that has one of its lines in the middle removed results in the original text
+   */
+  @Test
+  void testChangeEventRemovalInBetween() throws BadLocationException
+  {
+    String oldVersion1 = "Hello there!\n";
+    String oldVersion2 = "There was some stuff here\n";
+    String oldVersion3 = "And here?\n";
+    String oldVersion = oldVersion1 + oldVersion2 + oldVersion3;
+    String newVersion = oldVersion1 + oldVersion3;
+    EditList editList = new EditList();
+    editList.add(new Edit(1, 2, 1, 1));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a multi-line text that has all of its lines removed results in the original text
+   */
+  @Test
+  void testChangeEventRemovalComplete() throws BadLocationException
+  {
+    String oldVersion = "Hello there!\n There was some stuff here\nAnd here?\n";
+    String newVersion = "";
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 3, 0, 0));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a one-line text that has an additional line added at the back results in the original text
+   */
+  @Test
+  void testChangeEventInsert() throws BadLocationException
+  {
+    String oldVersion = "Hello there!\n";
+    String newVersion = "Hello there!\n There is some additional stuff here";
+    EditList editList = new EditList();
+    editList.add(new Edit(1, 1, 1, 2));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a one-line text that has an additional line added at the front results in the original text
+   */
+  @Test
+  void testChangeEventInsertFront() throws BadLocationException
+  {
+    String oldVersion = "Hello there!\n";
+    String additionalLine = "There is some additional stuff here\n";
+    String newVersion = additionalLine + "Hello there!\n";
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 0, 0, 1));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes for a one-line text that has an additional line added at the front and the back results in the original text
+   */
+  @Test
+  void testChangeEventsInsert2() throws BadLocationException
+  {
+    String oldVersion = "Hello there!\n";
+    String newVersion = "Title?\nHello there!\nThere is some additional stuff here";
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 0, 0, 1));
+    editList.add(new Edit(1, 1, 2, 3));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(1));
+    assertEquals(oldVersion, deltaTextChangeEvent2.apply(deltaTextChangeEvent1.apply(newVersion)));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent1.apply(document);
+    deltaTextChangeEvent2.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /**
+   * Tests if accepting all changes in reverse for a one-line text that has an additional line added at the front and the back results in the original text
+   */
+  @Test
+  void testChangeEventsInsert2Reverse() throws BadLocationException
+  {
+    String oldVersion = "Hello there!\n";
+    String newVersion = "Title?\nHello there!\nThere is some additional stuff here";
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 0, 0, 1));
+    editList.add(new Edit(1, 1, 2, 3));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(1));
+    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent2.apply(deltaTextChangeEvent1.apply(newVersion)));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent1.apply(document);
+    deltaTextChangeEvent2.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+
+  /**
+   * Tests if accepting all changes for a multi-line text that has an additional line inserted in the middle results in the original text
+   */
+  @Test
+  void testChangeEventInsertBetween() throws BadLocationException
+  {
+    String oldLine1 = "Hello there!\n";
+    String oldLine2 = "This was here before though";
+    String newLine = " There is some additional stuff here\n";
+    String oldVersion = oldLine1 + oldLine2;
+    String newVersion = oldLine1 + newLine + oldLine2;
+    EditList editList = new EditList();
+    editList.add(new Edit(1, 1, 1, 2));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(0));
+    assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
+    Document document = new DefaultStyledDocument();
+    document.insertString(0, newVersion, null);
+    deltaTextChangeEvent.apply(document);
+    assertEquals(oldVersion, document.getText(0, document.getLength()));
+  }
+
+  /*
    *************************************  RESET TESTS  *************************************
    */
 
@@ -599,6 +845,29 @@ public class FileDiffImplTest
     assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
     assertEquals(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
     assertEquals(fileDiff.getChangeDeltas().get(0).getStartLine(EChangeSide.NEW), fileDiff.getChangeDeltas().get(0).getEndLine(EChangeSide.NEW));
+  }
+
+  /**
+   * Tests if deleting more than the text contained in the delta (this time mix of case 1 and 7) results in the delta changing status to undefined,
+   * all its startIndices being equal to the endIndices (has size/length of 0) and the following chunk adjusting its indices accordingly
+   */
+  @Test
+  void testProcessTextEventDeletePartOfChunk()
+  {
+    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
+    String changedVersion = "Hello there, this is a test\nSo here are a few words\nNo use taking a rest\nWe are not creating any turds";
+    EditList changedLines = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion, RawTextComparator.DEFAULT);
+    IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
+    String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                           fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
+    fileDiff.processTextEvent("Hello there, this is a".length(), " test\nSo here are a few ".length(), null);
+    assertEquals("words\n", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
+                                                                        fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
+                                                                                fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
+    assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW) + "words\n".length(), fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
+    assertEquals(fileDiff.getChangeDeltas().get(0).getStartLine(EChangeSide.NEW) + 1, fileDiff.getChangeDeltas().get(0).getEndLine(EChangeSide.NEW));
   }
 
   /*

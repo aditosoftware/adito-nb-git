@@ -53,8 +53,9 @@ public interface IFileDiff extends IFileChangeType
    * Accepts the changes introduced by the given Delta
    *
    * @param pChangeDelta ChangeDelta to accept
+   * @return Event describing the changes done to the new side of the diff
    */
-  void acceptDelta(IChangeDelta pChangeDelta);
+  IDeltaTextChangeEvent acceptDelta(IChangeDelta pChangeDelta);
 
   /**
    * Discards the changes introduced by the given Delta

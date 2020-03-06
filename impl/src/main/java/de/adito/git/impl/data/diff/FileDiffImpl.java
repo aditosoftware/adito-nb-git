@@ -71,7 +71,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public void acceptDelta(IChangeDelta pChangeDelta)
+  public IDeltaTextChangeEvent acceptDelta(IChangeDelta pChangeDelta)
   {
     if (oldVersion == null || newVersion == null)
     {
@@ -81,15 +81,23 @@ public class FileDiffImpl implements IFileDiff
     if (deltaIndex != -1)
     {
       String prefix;
+      String infix = "";
+      int startIndex;
       if (newVersion.length() < pChangeDelta.getStartTextIndex(EChangeSide.NEW))
-        prefix = newVersion + "\n";
+      {
+        prefix = newVersion;
+        infix = "\n";
+        startIndex = newVersion.length();
+      }
       else
-        prefix = newVersion.substring(0, Math.max(0, pChangeDelta.getStartTextIndex(EChangeSide.NEW)));
-      String infix;
+      {
+        startIndex = Math.max(0, pChangeDelta.getStartTextIndex(EChangeSide.NEW));
+        prefix = newVersion.substring(0, startIndex);
+      }
       if (pChangeDelta.getChangeStatus().getChangeType() == EChangeType.ADD)
         infix = "";
       else
-        infix = oldVersion.substring(pChangeDelta.getStartTextIndex(EChangeSide.OLD), pChangeDelta.getEndTextIndex(EChangeSide.OLD));
+        infix += oldVersion.substring(pChangeDelta.getStartTextIndex(EChangeSide.OLD), pChangeDelta.getEndTextIndex(EChangeSide.OLD));
       String postFix = newVersion.substring(Math.min(newVersion.length(), pChangeDelta.getEndTextIndex(EChangeSide.NEW)));
       newVersion = prefix + infix + postFix;
       int textDifference = infix.length() - (pChangeDelta.getEndTextIndex(EChangeSide.NEW) - pChangeDelta.getStartTextIndex(EChangeSide.NEW));
@@ -99,7 +107,9 @@ public class FileDiffImpl implements IFileDiff
       changeDeltas.remove(changeDelta);
       changeDeltas.add(deltaIndex, changeDelta.acceptChange());
       _applyOffsetToFollowingDeltas(deltaIndex, textDifference, lineDifference);
+      return new DeltaTextChangeEventImpl(startIndex, (pChangeDelta.getEndTextIndex(EChangeSide.NEW) - pChangeDelta.getStartTextIndex(EChangeSide.NEW)), infix);
     }
+    return new DeltaTextChangeEventImpl(0, 0, "");
   }
 
   @Override
