@@ -1,5 +1,6 @@
 package de.adito.git.impl.data.diff;
 
+import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.*;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
@@ -9,10 +10,14 @@ import org.junit.jupiter.api.Test;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Document;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static de.adito.git.impl.data.diff.TestUtil._createFileDiff;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @author m.kaspera, 24.02.2020
@@ -964,6 +969,28 @@ public class FileDiffImplTest
     assertEquals(EChangeStatus.UNDEFINED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
     _checkLineEndings(fileDiff.getChangeDeltas().get(0), firstDeltaEdit, 0, 2);
     _checkLineEndings(fileDiff.getChangeDeltas().get(1), secondDeltaEdit, 2, 2);
+  }
+
+  /**
+   * Tests the diverse methods that have anything to do with retrieving the file paths
+   */
+  @Test
+  void testGetFilePath()
+  {
+    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(null, "old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE, "filea", "fileb");
+    IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
+    IFileContentInfo newFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
+    FileDiffImpl fileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, newFileContent);
+    assertEquals("filea", fileDiff.getFileHeader().getFilePath(EChangeSide.OLD));
+    assertEquals("fileb", fileDiff.getFileHeader().getFilePath(EChangeSide.NEW));
+    assertNull(fileDiff.getFileHeader().getAbsoluteFilePath());
+    // set up a new fileDiffHeader that has a topLevel folder set
+    fileDiffHeader = new FileDiffHeaderImpl(new File("C:/test"), "old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE, "filea", "fileb");
+    oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
+    newFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
+    fileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, newFileContent);
+    String absoluteFilePath = fileDiff.getFileHeader().getAbsoluteFilePath();
+    assertEquals(Paths.get("C:/test/fileb"), absoluteFilePath == null ? null : Paths.get(absoluteFilePath));
   }
 
   /**
