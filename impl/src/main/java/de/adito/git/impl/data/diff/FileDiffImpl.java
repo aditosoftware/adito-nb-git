@@ -129,26 +129,31 @@ public class FileDiffImpl implements IFileDiff
     if (newVersion == null || oldVersion == null)
       reset();
     String prefix = newVersion.substring(0, pOffset);
-    if (pText != null)
-    {
-      String postfix = newVersion.substring(pOffset);
-      _processInsertEvent(pOffset, pLength, pText);
-      newVersion = prefix + pText + postfix;
-    }
-    else
+    if (pText == null)
     {
       String postfix = newVersion.substring(pOffset + pLength);
       _processDeleteEvent(pOffset, pLength);
       newVersion = prefix + postfix;
     }
+    else
+    {
+      if (pLength > 0)
+      {
+        String postfix = newVersion.substring(pOffset + pLength);
+        _processDeleteEvent(pOffset, pLength);
+        newVersion = prefix + postfix;
+      }
+      String postfix = newVersion.substring(pOffset);
+      _processInsertEvent(pOffset, pText);
+      newVersion = prefix + pText + postfix;
+    }
   }
 
   /**
    * @param pOffset index of the insertion event
-   * @param pLength number of characters that were inserted
    * @param pText   text that was inserted
    */
-  private void _processInsertEvent(int pOffset, int pLength, @NotNull String pText)
+  private void _processInsertEvent(int pOffset, @NotNull String pText)
   {
     int lineOffset;
     lineOffset = pText.split("\n", -1).length - 1;
@@ -161,13 +166,13 @@ public class FileDiffImpl implements IFileDiff
         if (pOffset >= currentDelta.getStartTextIndex(EChangeSide.NEW))
         {
           // see IChangeDelta.processTextEvent case INSERT 3
-          changeDeltas.set(index, currentDelta.processTextEvent(pOffset, pLength, 0, lineOffset, true));
-          _applyOffsetToFollowingDeltas(index, pLength, lineOffset);
+          changeDeltas.set(index, currentDelta.processTextEvent(pOffset, pText.length(), 0, lineOffset, true));
+          _applyOffsetToFollowingDeltas(index, pText.length(), lineOffset);
         }
         else
         {
           // see IChangeDelta.processTextEvent case INSERT 1
-          _applyOffsetToFollowingDeltas(index - 1, pLength, lineOffset);
+          _applyOffsetToFollowingDeltas(index - 1, pText.length(), lineOffset);
         }
         break;
       }

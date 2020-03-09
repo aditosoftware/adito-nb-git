@@ -41,16 +41,9 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
 
   public FileDiffHeaderImpl(@NotNull DiffEntry pDiffEntry, @Nullable File pTopLevelDirectory)
   {
-    oldId = pDiffEntry.getOldId().toString();
-    newId = pDiffEntry.getNewId().toString();
-    //changeType = EnumMappings.toEChangeType(pDiffEntry.getChangeType());
-    //TODO revert to above
-    changeType = EChangeType.CHANGED;
-    oldFileType = EnumMappings.toEFileType(pDiffEntry.getOldMode());
-    newFileType = EnumMappings.toEFileType(pDiffEntry.getNewMode());
-    oldFilePath = pDiffEntry.getOldPath();
-    newFilePath = pDiffEntry.getNewPath();
-    topLevelDirectory = pTopLevelDirectory;
+    // TODO revert EChangeType to EnumMappings.toEChangeType(pDiffEntry.getChangeType());
+    this(pTopLevelDirectory, pDiffEntry.getOldId().toString(), pDiffEntry.getNewId().toString(), EChangeType.CHANGED, EnumMappings.toEFileType(pDiffEntry.getOldMode()),
+         EnumMappings.toEFileType(pDiffEntry.getNewMode()), pDiffEntry.getOldPath(), pDiffEntry.getNewPath());
   }
 
   /**

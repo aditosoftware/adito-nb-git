@@ -69,7 +69,7 @@ public interface IFileDiff extends IFileChangeType
    * The text should be filtered in such a way that it contains only \n as newlines (indices still have to match)
    *
    * @param pOffset offset from the start of the text to where the change begins
-   * @param pLength length of the changed block
+   * @param pLength length of the changed block, 0 for insert
    * @param pText   inserted text, null for a removal operation. If this is an empty insert, use ""
    */
   void processTextEvent(int pOffset, int pLength, @Nullable String pText);

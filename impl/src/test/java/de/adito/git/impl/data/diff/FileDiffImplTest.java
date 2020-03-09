@@ -908,7 +908,7 @@ public class FileDiffImplTest
     IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
     String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                            fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
-    fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few ".length(), "more ".length(), "more ");
+    fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few ".length(), 0, "more ");
     assertEquals("So here are a few more words\n", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
                                                                                                fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
     assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
@@ -956,7 +956,7 @@ public class FileDiffImplTest
                                                                            fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
     Edit firstDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(0));
     Edit secondDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(1));
-    fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few ".length(), "\nmore\n".length(), "\nmore\n");
+    fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few ".length(), 0, "\nmore\n");
     assertEquals("So here are a few \nmore\nwords\n", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
                                                                                                   fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
     assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
