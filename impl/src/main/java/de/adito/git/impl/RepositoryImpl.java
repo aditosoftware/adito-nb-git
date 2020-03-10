@@ -14,6 +14,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.attributes.AttributesNode;
@@ -232,7 +233,8 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public String commit(@NotNull String pMessage, List<File> pFileList, boolean pIsAmend) throws AditoGitException
+  public String commit(@NotNull String pMessage, @NotNull List<File> pFileList, @Nullable String pAuthorName, @Nullable String pAuthorEmail, boolean pIsAmend)
+      throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git commit %s -m \"%s\" %s", pFileList, pMessage, pIsAmend ? "--amend" : ""));
     CommitCommand commit = git.commit();
@@ -244,6 +246,8 @@ public class RepositoryImpl implements IRepository
     try
     {
       add(pFileList);
+      if (StringUtils.isNotEmpty(pAuthorName) && StringUtils.isNotEmpty(pAuthorEmail))
+        commit.setAuthor(pAuthorName, pAuthorEmail);
       revCommit = commit.setMessage(pMessage).setAmend(pIsAmend).call();
     }
     catch (GitAPIException e)

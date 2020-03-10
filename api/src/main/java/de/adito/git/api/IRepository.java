@@ -120,13 +120,16 @@ public interface IRepository extends IDiscardable
   /**
    * performs a commit of all staged files as well as the passed files.
    *
-   * @param pMessage  String with the commit message entered by the user
-   * @param pFileList List of files that should be committed (and none else)
-   * @param pIsAmend  If this commit should be amended to the previous commit
+   * @param pMessage    String with the commit message entered by the user
+   * @param pFileList   List of files that should be committed (and none else)
+   * @param pAuthorName name of the author, null if default should be used
+   * @param pAuthorMail email of the author, null if default should be used
+   * @param pIsAmend    If this commit should be amended to the previous commit
    * @return the ID of the commit as String
    * @throws AditoGitException if an error occurs
    */
-  String commit(@NotNull String pMessage, List<File> pFileList, boolean pIsAmend) throws AditoGitException;
+  String commit(@NotNull String pMessage, @NotNull List<File> pFileList, @Nullable String pAuthorName, @Nullable String pAuthorMail, boolean pIsAmend)
+      throws AditoGitException;
 
   /**
    * Pushes the changes made to HEAD onto the selected branch/remote
