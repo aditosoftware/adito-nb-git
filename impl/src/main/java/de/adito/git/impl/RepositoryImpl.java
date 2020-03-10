@@ -1411,19 +1411,23 @@ public class RepositoryImpl implements IRepository
       LogCommand logCommand = git.log()
           .add(git.getRepository().resolve(git.getRepository().getFullBranch()));
       String remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
-      ObjectId remoteTrackingId = null;
+      ObjectId remoteTrackingId;
       if (remoteTrackingBranch != null)
       {
         remoteTrackingId = git.getRepository().resolve(remoteTrackingBranch);
+        if (remoteTrackingId != null)
+          logCommand.not(remoteTrackingId);
       }
+      // if no remote tracking branch is set, exclude all remote tracked branches
       else
       {
-        remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), "master").getRemoteTrackingBranch();
-        if (remoteTrackingBranch != null)
-          remoteTrackingId = git.getRepository().resolve(remoteTrackingBranch);
+        for (String remoteTrackedBranch : _getRemoteTrackedBranches())
+        {
+          remoteTrackingId = git.getRepository().resolve(remoteTrackedBranch);
+          if (remoteTrackingId != null)
+            logCommand.not(remoteTrackingId);
+        }
       }
-      if (remoteTrackingId != null)
-        logCommand.not(remoteTrackingId);
       logger.log(Level.INFO, "remote tracking branch for unpushed commits: {0}", remoteTrackingBranch);
       Iterable<RevCommit> unPushedCommitsIter = logCommand.call();
       unPushedCommitsIter.forEach(pUnPushedCommit -> unPushedCommits.add(new CommitImpl(pUnPushedCommit)));
@@ -1433,6 +1437,26 @@ public class RepositoryImpl implements IRepository
       throw new AditoGitException(pE);
     }
     return unPushedCommits;
+  }
+
+  /**
+   * Creates a list with names of tracked remote branches. The list contains the sum of all tracked branches by the local branches
+   *
+   * @return List with names of remote branches
+   */
+  private List<String> _getRemoteTrackedBranches()
+  {
+    Set<String> branches = git.getRepository().getConfig().getSubsections("branch");
+    return branches.stream().map(pBranch -> {
+      try
+      {
+        return RepositoryImplHelper.getRemoteTrackingBranch(git, pBranch);
+      }
+      catch (IOException pE)
+      {
+        return null;
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   @Override
