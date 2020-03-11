@@ -10,6 +10,7 @@ import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.lib.UserConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,13 +44,13 @@ public class ConfigImpl implements IConfig
   @Override
   public @Nullable String getUserName()
   {
-    return git.getRepository().getConfig().getString(USER_SECTION_KEY, null, USER_NAME_KEY);
+    return git.getRepository().getConfig().get(UserConfig.KEY).getAuthorName();
   }
 
   @Override
   public @Nullable String getUserEmail()
   {
-    return git.getRepository().getConfig().getString(USER_SECTION_KEY, null, USER_EMAIL_KEY);
+    return git.getRepository().getConfig().get(UserConfig.KEY).getAuthorEmail();
   }
 
   @Override
