@@ -1,6 +1,7 @@
 package de.adito.git.impl;
 
 import com.google.common.collect.Iterators;
+import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.impl.dag.DAGFilterIterator;
@@ -95,7 +96,7 @@ public class RepositoryImplHelper
     }
   }
 
-  static List<IBranch> branchList(@NotNull Git pGit)
+  static List<IBranch> branchList(@NotNull Git pGit, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     ListBranchCommand listBranchCommand = pGit.branchList().setListMode(ListBranchCommand.ListMode.ALL);
     List<IBranch> branches = new ArrayList<>();
@@ -112,7 +113,7 @@ public class RepositoryImplHelper
     {
       refBranchList.forEach(branch -> {
         if (!"refs/remotes/origin/HEAD".equals(branch.getName()))
-          branches.add(new BranchImpl(branch));
+          branches.add(new BranchImpl(branch, pTrackedBranchStatusCache));
       });
     }
     return branches;
@@ -133,7 +134,8 @@ public class RepositoryImplHelper
     return new FileStatusImpl(currentStatus, pGit.getRepository().getDirectory());
   }
 
-  static Optional<IRepositoryState> currentState(@NotNull Git pGit, Function<String, IBranch> pGetBranchFunction)
+  static Optional<IRepositoryState> currentState(@NotNull Git pGit, @NotNull Function<String, IBranch> pGetBranchFunction,
+                                                 @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     try
     {
@@ -143,11 +145,11 @@ public class RepositoryImplHelper
       String remoteTrackingBranchName = getRemoteTrackingBranch(pGit, null);
       IBranch remoteTrackingBranch = null;
       if (remoteTrackingBranchName != null && pGit.getRepository().findRef(remoteTrackingBranchName) != null)
-        remoteTrackingBranch = new BranchImpl(pGit.getRepository().findRef(remoteTrackingBranchName));
+        remoteTrackingBranch = new BranchImpl(pGit.getRepository().findRef(remoteTrackingBranchName), pTrackedBranchStatusCache);
       List<String> remoteNames = new ArrayList<>(pGit.getRepository().getRemoteNames());
       if (pGit.getRepository().getRefDatabase().findRef(branch) == null)
       {
-        return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch)), remoteTrackingBranch,
+        return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch), pTrackedBranchStatusCache), remoteTrackingBranch,
                                                    EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState()), remoteNames));
       }
       return Optional.of(new RepositoryStateImpl(pGetBranchFunction.apply(branch), remoteTrackingBranch,

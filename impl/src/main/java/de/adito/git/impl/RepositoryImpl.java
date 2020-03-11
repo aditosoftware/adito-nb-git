@@ -70,6 +70,7 @@ public class RepositoryImpl implements IRepository
   private final IFileSystemUtil fileSystemUtil;
   private final IFileSystemObserver fileSystemObserver;
   private final CompositeDisposable disposables = new CompositeDisposable();
+  private final TrackedBranchStatusCache trackedBranchStatusCache = new TrackedBranchStatusCacheImpl();
   private final IUserInputPrompt userInputPrompt;
 
   @Inject
@@ -102,12 +103,12 @@ public class RepositoryImpl implements IRepository
         .replay(1)
         .autoConnect(0, disposables::add);
 
-    branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git)))
-        .startWith(Optional.of(RepositoryImplHelper.branchList((git))))
+    branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
+        .startWith(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
         .replay(1)
         .autoConnect(0, disposables::add);
-    currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch))
-        .startWith(RepositoryImplHelper.currentState(git, this::getBranch))
+    currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
+        .startWith(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
         .replay(1)
         .autoConnect(0, disposables::add);
     tagList = status.map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
@@ -1172,7 +1173,7 @@ public class RepositoryImpl implements IRepository
       throw new AditoGitException("Unable to checkout remote Branch " + pBranch.getName(), e);
     }
 
-    Optional<IRepositoryState> repositoryState = RepositoryImplHelper.currentState(git, this::getBranch);
+    Optional<IRepositoryState> repositoryState = RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache);
     // JGit tried to check out a tag - again. *sigh*
     // check out the created local branch that should have been checked out
     if (repositoryState.isPresent() && repositoryState.get().getCurrentBranch().getType() == EBranchType.DETACHED)
@@ -1499,7 +1500,7 @@ public class RepositoryImpl implements IRepository
       {
         pBranchString = Paths.get("refs", "heads", pBranchString).toString().replace("\\", "/");
       }
-      return new BranchImpl(git.getRepository().getRefDatabase().findRef(pBranchString));
+      return new BranchImpl(git.getRepository().getRefDatabase().findRef(pBranchString), trackedBranchStatusCache);
     }
     catch (IOException pE)
     {
@@ -1757,6 +1758,31 @@ public class RepositoryImpl implements IRepository
     protected void removeListener(@NotNull IFileSystemObserver pListenableValue, @NotNull IFileSystemChangeListener pLISTENER)
     {
       pListenableValue.removeListener(pLISTENER);
+    }
+  }
+
+  /**
+   * Impementation of the TrackedBranchStatusCache, calculates the ahead/behind commits with the help of BranchTrackingStatus
+   */
+  private class TrackedBranchStatusCacheImpl extends TrackedBranchStatusCache
+  {
+
+    @NotNull
+    public TrackedBranchStatus getTrackedBranchStatus(@NotNull IBranch pBranch)
+    {
+      BranchTrackingStatus trackingStatus = null;
+      if (pBranch.getType() == EBranchType.LOCAL)
+      {
+        try
+        {
+          trackingStatus = BranchTrackingStatus.of(git.getRepository(), pBranch.getName());
+        }
+        catch (IOException pE)
+        {
+          logger.log(Level.INFO, pE, () -> "Exception while trying to get the ahead/behind count of branch " + pBranch.getName());
+        }
+      }
+      return trackingStatus == null ? TrackedBranchStatus.NONE : new TrackedBranchStatus(trackingStatus.getBehindCount(), trackingStatus.getAheadCount());
     }
   }
 }

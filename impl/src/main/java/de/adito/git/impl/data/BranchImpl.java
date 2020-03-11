@@ -1,7 +1,9 @@
 package de.adito.git.impl.data;
 
+import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.TrackedBranchStatus;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 
@@ -16,12 +18,14 @@ public class BranchImpl implements IBranch
   public static final String REMOTE_STRING = "remotes/";
 
   private Ref branchRef;
+  private final TrackedBranchStatusCache trackedBranchStatusCache;
   private EBranchType branchType;
   private String simpleName;
 
-  public BranchImpl(Ref pBranchRef)
+  public BranchImpl(Ref pBranchRef, TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     branchRef = pBranchRef;
+    trackedBranchStatusCache = pTrackedBranchStatusCache;
     branchType = EBranchType.EMPTY;
     String simpleNameRaw = getName();
     if (simpleNameRaw.startsWith(REF_STRING))
@@ -46,8 +50,9 @@ public class BranchImpl implements IBranch
     this.simpleName = simpleNameRaw;
   }
 
-  public BranchImpl(ObjectId pId)
+  public BranchImpl(ObjectId pId, TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
+    trackedBranchStatusCache = pTrackedBranchStatusCache;
     branchType = EBranchType.DETACHED;
     simpleName = ObjectId.toString(pId);
   }
@@ -100,6 +105,12 @@ public class BranchImpl implements IBranch
   public EBranchType getType()
   {
     return branchType;
+  }
+
+  @Override
+  public TrackedBranchStatus getTrackedBranchStatus()
+  {
+    return trackedBranchStatusCache.get(this);
   }
 
   /**
