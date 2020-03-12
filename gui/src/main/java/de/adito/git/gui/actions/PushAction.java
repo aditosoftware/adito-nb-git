@@ -17,10 +17,13 @@ import de.adito.git.gui.dialogs.results.IPushDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,36 +65,92 @@ class PushAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Pushing Commits", pHandle -> {
-      pHandle.setDescription("Collecting Information");
-      repository.blockingFirst().ifPresent(pRepo -> _preparePush(pHandle, pRepo));
+    repository.blockingFirst().ifPresent(pRepo -> {
+      IRepositoryState repoState = pRepo.getRepositoryState().blockingFirst().orElse(null);
+      final String[] remoteNameParam = new String[1];
+      Future<List<ICommit>> future = progressFacade.executeInBackground("Gathering Information for Push", pHandle -> {
+        return _determineUnpushedCommits(pRepo, repoState, remoteNameParam);
+      });
+      List<ICommit> commitList = null;
+      try
+      {
+        // Could try to implement Future Chaining here, but as-is, the time it takes the future to complete is not noticeable
+        commitList = future.get();
+      }
+      catch (InterruptedException | ExecutionException pE)
+      {
+        logger.log(Level.WARNING, pE, () -> "Exception while waiting for the job that determines the unpushed commits");
+        Thread.currentThread().interrupt();
+      }
+      if (commitList != null)
+      {
+        IPushDialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
+                                                                                   commitList);
+
+        progressFacade.executeInBackground("Pushing Commits", pHandle -> {
+          _performPush(pHandle, pRepo, dialogResult, remoteNameParam[0], repoState);
+        });
+      }
+      else
+      {
+        notifyUtil.notify("Error while preparing the push", "An error occurred while setting up the push, check the log for more information", false);
+      }
+
     });
+
   }
 
-  private void _preparePush(@NotNull IProgressHandle pHandle, IRepository pRepo)
+  /**
+   * @param pRepo            current repo
+   * @param pRepoState       current state of the repo
+   * @param pRemoteNameParam array used to get the name of the selected remote out of the async call
+   * @return List of unpushed commits, or null if any error occurs while determining the unpushed commits
+   */
+  @Nullable
+  private List<ICommit> _determineUnpushedCommits(@NotNull IRepository pRepo, @Nullable IRepositoryState pRepoState, String[] pRemoteNameParam)
   {
-    IRepositoryState repoState = pRepo.getRepositoryState().blockingFirst().orElse(null);
-    String remoteName = (repoState != null && repoState.getRemotes().size() == 1) ? repoState.getRemotes().get(0) : null;
-    if (repoState != null && repoState.getCurrentRemoteTrackedBranch() == null && repoState.getRemotes().size() > 1)
+    String remoteName = (pRepoState != null && pRepoState.getRemotes().size() == 1) ? pRepoState.getRemotes().get(0) : null;
+    if (pRepoState != null && pRepoState.getCurrentRemoteTrackedBranch() == null && pRepoState.getRemotes().size() > 1)
     {
       // need new ArrayList to convert to List<Object>
-      IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
+      IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(pRepoState.getRemotes()));
       remoteName = (String) result.getInformation();
     }
-    if (_handleNonMatchingTrackedBranch(pRepo, repoState)) return;
+    pRemoteNameParam[0] = remoteName;
+    if (_handleNonMatchingTrackedBranch(pRepo, pRepoState)) return null;
     try
     {
-      List<ICommit> commitList = pRepo.getUnPushedCommits();
-      IPushDialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
-                                                                                 commitList);
-      if (dialogResult.isPush())
+      return pRepo.getUnPushedCommits();
+    }
+    catch (AditoGitException pE)
+    {
+      String errorMessage = "Error while finding un-pushed commits";
+      notifyUtil.notify(pE, errorMessage + ". ", false);
+      return null;
+    }
+  }
+
+  /**
+   * @param pHandle       handle of the progressFacade
+   * @param pRepo         current repo
+   * @param pDialogResult dialogResult of the PushDialog
+   * @param pRemoteName   name of the remote to push to
+   * @param repoState     current state of the repo
+   */
+  private void _performPush(@NotNull IProgressHandle pHandle, @NotNull IRepository pRepo, @NotNull IPushDialogResult<?, Boolean> pDialogResult,
+                            @Nullable String pRemoteName, @Nullable IRepositoryState repoState)
+  {
+    try
+    {
+
+      if (pDialogResult.isPush())
       {
         pHandle.setDescription("Pushing");
-        _doPush(dialogResult.getInformation(), remoteName);
-        if (pRepo.getRepositoryState().blockingFirst().map(pRepoState -> pRepoState.getCurrentRemoteTrackedBranch() == null).orElse(false) && remoteName != null)
+        _doPush(pDialogResult.getInformation(), pRemoteName);
+        if (pRepo.getRepositoryState().blockingFirst().map(pRepoState -> pRepoState.getCurrentRemoteTrackedBranch() == null).orElse(false) && pRemoteName != null)
         {
 
-          pRepo.getConfig().establishTrackingRelationship(repoState.getCurrentBranch().getSimpleName(), repoState.getCurrentBranch().getName(), remoteName);
+          pRepo.getConfig().establishTrackingRelationship(repoState.getCurrentBranch().getSimpleName(), repoState.getCurrentBranch().getName(), pRemoteName);
         }
         notifyUtil.notify("Push", "Push was successful", true);
       }
