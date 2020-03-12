@@ -5,9 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IMergeDiff;
-import de.adito.git.api.data.IRebaseResult;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.exception.MissingTrackedBranchException;
@@ -15,8 +13,10 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
+import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -93,6 +93,10 @@ class PullAction extends AbstractAction
       {
         if (!ActionUtility.handleStash(prefStore, dialogProvider, pRepo, STASH_ID_KEY, pProgressHandle))
           return;
+      }
+      if (_checkRebasingMergeCommit(pRepo))
+      {
+        return;
       }
       while (!doAbort)
       {
@@ -186,5 +190,43 @@ class PullAction extends AbstractAction
     }
     // abort was successful -> notify user
     notifyUtil.notify("Aborted rebase", "Rebase abort was successful, all local content restored to state before rebase", true);
+  }
+
+  /**
+   * checks if a merge-commit would be rebased, and if so asks the user if a merge should be performed instead.
+   *
+   * @param pRepo current repo
+   * @return true if a merge-commit would be rebased, false otherwise
+   * @throws AditoGitException if an error occurs while retrieving the unpushed commits
+   */
+  private boolean _checkRebasingMergeCommit(@NotNull IRepository pRepo) throws AditoGitException
+  {
+    Optional<IRepositoryState> repositoryState = pRepo.getRepositoryState().blockingFirst();
+    if (repositoryState.isPresent())
+    {
+      IBranch currentBranch = repositoryState.get().getCurrentBranch();
+      List<ICommit> unPushedCommits = pRepo.getUnPushedCommits();
+      if (unPushedCommits.stream().anyMatch(pCommit -> pCommit.getParents().size() > 1) && currentBranch.getTrackedBranchStatus().getRemoteAheadCount() > 0)
+      {
+        if (repositoryState.get().getCurrentRemoteTrackedBranch() != null)
+        {
+          IUserPromptDialogResult dialogResult = dialogProvider.showMessageDialog("<html>Local unpushed commits contain a merge-commit, rebasing a merge-commit can" +
+                                                                                      " lead to lost data.<br>Do you want to merge the remote branch into the current " +
+                                                                                      "branch instead?</html>", List.of(IDialogDisplayer.EButtons.MERGE_REMOTE,
+                                                                                                                        IDialogDisplayer.EButtons.CANCEL),
+                                                                                  List.of(IDialogDisplayer.EButtons.MERGE_REMOTE));
+          if (dialogResult.isOkay())
+          {
+            actionProvider.getMergeAction(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(repositoryState.get().getCurrentRemoteTrackedBranch())))
+                .actionPerformed(null);
+          }
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
+    return true;
   }
 }

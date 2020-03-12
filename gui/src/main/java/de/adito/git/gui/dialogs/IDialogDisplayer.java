@@ -43,7 +43,8 @@ public interface IDialogDisplayer
     COMMIT("Commit"),
     UNSTASH("Unstash commit"),
     CREATE_NEW_BRANCH("Create new branch"),
-    KEEP_TRACKING("Keep tracking the selected branch");
+    KEEP_TRACKING("Keep tracking the selected branch"),
+    MERGE_REMOTE("Merge remote into current");
 
     private final String text;
 
