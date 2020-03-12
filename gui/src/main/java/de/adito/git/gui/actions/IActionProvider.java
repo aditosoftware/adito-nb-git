@@ -20,7 +20,7 @@ public interface IActionProvider
 
   /**
    * @param pRepository   Observable with the current Repository
-   * @param pTargetBranch Observable that contains the currently selected branch
+   * @param pTargetBranch Observable that contains the branch that should be merged into the current one
    * @return Action whose actionPerformed method merges the two branches
    */
   Action getMergeAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pTargetBranch);
