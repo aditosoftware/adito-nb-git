@@ -330,7 +330,7 @@ public interface IRepository extends IDiscardable
    * @param pCommitsToRevert List of commits that should be reverted
    * @throws AditoGitException if an error occurs
    */
-  void revertCommis(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException;
+  void revertCommit(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException;
 
   /**
    * resets all given files (basically the opposite of "git add")

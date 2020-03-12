@@ -956,7 +956,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public void revertCommis(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException
+  public void revertCommit(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException
   {
     RevertCommand revertCommand = git.revert();
     pCommitsToRevert.forEach(pCommit -> revertCommand.include(ObjectId.fromString(pCommit.getId())));
