@@ -978,6 +978,8 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
+      // add the files to the index, in case they are still untracked. JGit cannot reset untracked files
+      add(pFiles);
       ResetCommand resetCommand = git.reset();
       for (File file : pFiles)
         resetCommand.addPath(Util.getRelativePath(file, git));
@@ -999,6 +1001,11 @@ public class RepositoryImpl implements IRepository
     logger.log(Level.INFO, () -> String.format("git reset --%s %s", pResetType, pIdentifier));
     try
     {
+      // add all untracked files to the index, else git cannot revert/reset those files
+      add(status.blockingFirst().map(IFileStatus::getUntracked).orElse(Set.of())
+              .stream()
+              .map(pString -> new File(getTopLevelDirectory(), pString))
+              .collect(Collectors.toList()));
       ResetCommand resetCommand = git.reset();
       resetCommand.setRef(pIdentifier);
       if (pResetType == EResetType.HARD)
