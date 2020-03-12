@@ -138,6 +138,17 @@ public interface IDialogProvider
   IUserPromptDialogResult showYesNoDialog(@NotNull String pMessage);
 
   /**
+   * Shows a dialog with the specified message and the passed buttons.
+   *
+   * @param pMessage      message to display for the user
+   * @param pShownButtons Buttons that the user can choose from
+   * @param pOkayButtons  Buttons that are considered as "User confirmed the dialog"
+   * @return DialogResult with information about the choice of the user
+   */
+  IUserPromptDialogResult showMessageDialog(@NotNull String pMessage, @NotNull List<IDialogDisplayer.EButtons> pShownButtons,
+                                            @NotNull List<IDialogDisplayer.EButtons> pOkayButtons);
+
+  /**
    * Aks the user if he wants to push to the tracked branch (different name than the local branch) or if he wants to create a new branch
    *
    * @param pMessage message to display, should inform the user about which branch is tracked and what name the created branch should have
