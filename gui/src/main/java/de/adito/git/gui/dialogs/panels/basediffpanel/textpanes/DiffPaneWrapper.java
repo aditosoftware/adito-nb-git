@@ -12,16 +12,13 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.MarkedScrollbar;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.ScrollbarMarkingsModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import org.openide.modules.Modules;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
-import javax.swing.text.SimpleAttributeSet;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 /**
@@ -33,20 +30,12 @@ import java.util.Optional;
 public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
 {
 
-
-  private static final String LIB2_CLASSLOADER_NAME = "org.netbeans.modules.editor.lib2";
-  private static final String HIGHLIGHTING_MANAGER_CLASS_NAME = "org.netbeans.modules.editor.lib2.highlighting.HighlightingManager";
-  private static final String CARET_BASED_HIGHLIGHTING_CLASS_NAME = "org.netbeans.modules.editor.lib2.highlighting.CaretBasedBlockHighlighting";
-  private static final String CARET_BASED_ROW_HIGHLIGHTS_CLASS_NAME = "org.netbeans.modules.editor.lib2.highlighting." +
-      "CaretBasedBlockHighlighting$CaretRowHighlighting";
   private final JEditorPane editorPane;
   private final DiffPane diffPane;
   private final DiffPanelModel model;
   private final Disposable fileChangeDisposable;
   private final Disposable editorKitDisposable;
   private final ScrollbarMarkingsModel scrollbarMarkingsModel;
-  private Field attribsFields;
-  private Object attribsParentLayer;
   private int cachedListHash = 0;
 
   /**
@@ -147,7 +136,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    * moves the caret to the position of the given chunk
    *
    * @param pTextPane textPane that displays the other side of the diff
-   * @param pChunk chunk that the caret should be moved to
+   * @param pChunk    chunk that the caret should be moved to
    */
   private void _moveCaretToChunk(JTextComponent pTextPane, IFileChangeChunk pChunk)
   {
@@ -172,60 +161,6 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     editorPane.setText(currentText);
     editorPane.setCaretPosition(0);
     getScrollPane().getVerticalScrollBar().setValue(0);
-
-    _setNoCaretLineHighlights();
-  }
-
-  /**
-   * Sets the attributes responsible for coloring the line the caret is in to EMPTY
-   * only works via reflections, so whack-a-mole reflection style it is
-   */
-  private void _setNoCaretLineHighlights()
-  {
-    try
-    {
-      ClassLoader clazzLoader = Modules.getDefault().findCodeNameBase(LIB2_CLASSLOADER_NAME).getClassLoader();
-      Class<?> hlmanager = Class.forName(HIGHLIGHTING_MANAGER_CLASS_NAME, false, clazzLoader);
-      Object manager = editorPane.getClientProperty(hlmanager);
-      Field highlighting = hlmanager.getDeclaredField("highlighting");
-      highlighting.setAccessible(true);
-      Object highlightingObj = highlighting.get(manager);
-      Field topHighlights = highlightingObj.getClass().getDeclaredField("topHighlights");
-      topHighlights.setAccessible(true);
-      Object topHighlightsObj = topHighlights.get(highlightingObj);
-      Field layers = topHighlightsObj.getClass().getDeclaredField("layers");
-      layers.setAccessible(true);
-      Object[] layersArr = (Object[]) layers.get(topHighlightsObj);
-      for (Object layer : layersArr)
-      {
-        Class<?> cbbhClazz = Class.forName(CARET_BASED_HIGHLIGHTING_CLASS_NAME, false, clazzLoader);
-        Class<?> crhClazz = Class.forName(CARET_BASED_ROW_HIGHLIGHTS_CLASS_NAME,
-                                          false, clazzLoader);
-        if (layer != null && cbbhClazz.isAssignableFrom(layer.getClass()) && layer.getClass().equals(crhClazz))
-        {
-          attribsParentLayer = layer;
-          attribsFields = cbbhClazz.getDeclaredField("attribs");
-          attribsFields.setAccessible(true);
-          attribsFields.set(layer, SimpleAttributeSet.EMPTY);
-        }
-      }
-      // the actual whack-a-mole part: each time the caret is set, the attribs would be set to an actual color, so we set them back to EMPTY
-      editorPane.getCaret().addChangeListener(e -> {
-        try
-        {
-          if (attribsFields != null)
-            attribsFields.set(attribsParentLayer, SimpleAttributeSet.EMPTY);
-        }
-        catch (Exception ex)
-        {
-          throw new RuntimeException(ex);
-        }
-      });
-    }
-    catch (Exception e)
-    {
-      throw new RuntimeException(e);
-    }
   }
 
   private void _textChanged(IFileChangesEvent pChangesEvent)
