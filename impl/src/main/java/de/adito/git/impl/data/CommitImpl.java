@@ -39,7 +39,7 @@ public class CommitImpl implements ICommit
   @Override
   public String getEmail()
   {
-    return revCommit.getCommitterIdent().getEmailAddress();
+    return revCommit.getAuthorIdent().getEmailAddress();
   }
 
   /**

@@ -60,7 +60,7 @@ public class RevertCommitsAction extends AbstractTableAction
           repo.setUpdateFlag(false);
           if (ActionUtility.handleStash(prefStore, dialogProvider, repo, STASH_ID_KEY, pHandle))
           {
-            repo.revertCommis(selectedCommits);
+            repo.revertCommit(selectedCommits);
             notifyUtil.notify("Revert commits success", String.format("Reverting commits with ID %s was successfull ", selectedCommits), false);
           }
         }

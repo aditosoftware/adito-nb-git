@@ -1,6 +1,7 @@
 package de.adito.git.impl;
 
 import com.google.common.collect.Iterators;
+import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.impl.dag.DAGFilterIterator;
@@ -95,7 +96,7 @@ public class RepositoryImplHelper
     }
   }
 
-  static List<IBranch> branchList(@NotNull Git pGit)
+  static List<IBranch> branchList(@NotNull Git pGit, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     ListBranchCommand listBranchCommand = pGit.branchList().setListMode(ListBranchCommand.ListMode.ALL);
     List<IBranch> branches = new ArrayList<>();
@@ -112,7 +113,7 @@ public class RepositoryImplHelper
     {
       refBranchList.forEach(branch -> {
         if (!"refs/remotes/origin/HEAD".equals(branch.getName()))
-          branches.add(new BranchImpl(branch));
+          branches.add(new BranchImpl(branch, pTrackedBranchStatusCache));
       });
     }
     return branches;
@@ -133,7 +134,8 @@ public class RepositoryImplHelper
     return new FileStatusImpl(currentStatus, pGit.getRepository().getDirectory());
   }
 
-  static Optional<IRepositoryState> currentState(@NotNull Git pGit, Function<String, IBranch> pGetBranchFunction)
+  static Optional<IRepositoryState> currentState(@NotNull Git pGit, @NotNull Function<String, IBranch> pGetBranchFunction,
+                                                 @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     try
     {
@@ -143,11 +145,11 @@ public class RepositoryImplHelper
       String remoteTrackingBranchName = getRemoteTrackingBranch(pGit, null);
       IBranch remoteTrackingBranch = null;
       if (remoteTrackingBranchName != null && pGit.getRepository().findRef(remoteTrackingBranchName) != null)
-        remoteTrackingBranch = new BranchImpl(pGit.getRepository().findRef(remoteTrackingBranchName));
+        remoteTrackingBranch = new BranchImpl(pGit.getRepository().findRef(remoteTrackingBranchName), pTrackedBranchStatusCache);
       List<String> remoteNames = new ArrayList<>(pGit.getRepository().getRemoteNames());
       if (pGit.getRepository().getRefDatabase().findRef(branch) == null)
       {
-        return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch)), remoteTrackingBranch,
+        return Optional.of(new RepositoryStateImpl(new BranchImpl(pGit.getRepository().resolve(branch), pTrackedBranchStatusCache), remoteTrackingBranch,
                                                    EnumMappings.mapRepositoryState(pGit.getRepository().getRepositoryState()), remoteNames));
       }
       return Optional.of(new RepositoryStateImpl(pGetBranchFunction.apply(branch), remoteTrackingBranch,
@@ -378,6 +380,7 @@ public class RepositoryImplHelper
   @Nullable
   static RevCommit findForkPoint(@NotNull Git pGit, String pParentBranchName, String pForeignBranchName) throws IOException
   {
+    HashSet<ObjectId> parsedIds = new HashSet<>();
     try (RevWalk walk = new RevWalk(pGit.getRepository()))
     {
       RevCommit foreignCommit = walk.lookupCommit(pGit.getRepository().resolve(pForeignBranchName));
@@ -385,6 +388,7 @@ public class RepositoryImplHelper
       parentsToParse.add(pGit.getRepository().resolve(pParentBranchName));
       while (!parentsToParse.isEmpty())
       {
+        parsedIds.add(parentsToParse.peekFirst());
         RevCommit commit = walk.lookupCommit(parentsToParse.poll());
         // check if foreignCommit is reachable from the currently selected commit
         if (walk.isMergedInto(commit, foreignCommit))
@@ -395,7 +399,10 @@ public class RepositoryImplHelper
         }
         else
         {
-          parentsToParse.addAll(Arrays.stream(commit.getParents()).map(RevObject::getId).collect(Collectors.toList()));
+          parentsToParse.addAll(Arrays.stream(commit.getParents())
+                                    .map(RevObject::getId)
+                                    .filter(pObjectId -> !parsedIds.contains(pObjectId))
+                                    .collect(Collectors.toList()));
         }
       }
     }

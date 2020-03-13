@@ -42,6 +42,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
 {
 
   private static final int NUM_CORES = Runtime.getRuntime().availableProcessors();
+  private static final Object FILE_OBJECT_LOCK = new Object();
   private static final ThreadPoolExecutor EXECUTOR_SERVICE = new ThreadPoolExecutor(0, NUM_CORES, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100));
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final FileSystem memoryFS = FileUtil.createMemoryFileSystem();
@@ -212,9 +213,12 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
       FileObject fileObject = FileUtil.toFileObject(pFile);
       if (fileObject == null)
         return artificialIconMap.computeIfAbsent(FilenameUtils.getExtension(pFile.getName()), this::_createArtificialIcon);
-      DataObject dataObject = DataObject.find(fileObject);
-      image = pIsOpened ? dataObject.getNodeDelegate().getOpenedIcon(BeanInfo.ICON_COLOR_16x16)
-          : dataObject.getNodeDelegate().getIcon(BeanInfo.ICON_COLOR_16x16);
+      synchronized (FILE_OBJECT_LOCK)
+      {
+        DataObject dataObject = DataObject.find(fileObject);
+        image = pIsOpened ? dataObject.getNodeDelegate().getOpenedIcon(BeanInfo.ICON_COLOR_16x16)
+            : dataObject.getNodeDelegate().getIcon(BeanInfo.ICON_COLOR_16x16);
+      }
     }
     catch (Exception pE)
     {

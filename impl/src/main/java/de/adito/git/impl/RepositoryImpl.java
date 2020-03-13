@@ -14,6 +14,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.attributes.AttributesNode;
@@ -69,6 +70,7 @@ public class RepositoryImpl implements IRepository
   private final IFileSystemUtil fileSystemUtil;
   private final IFileSystemObserver fileSystemObserver;
   private final CompositeDisposable disposables = new CompositeDisposable();
+  private final TrackedBranchStatusCache trackedBranchStatusCache = new TrackedBranchStatusCacheImpl();
   private final IUserInputPrompt userInputPrompt;
 
   @Inject
@@ -101,12 +103,12 @@ public class RepositoryImpl implements IRepository
         .replay(1)
         .autoConnect(0, disposables::add);
 
-    branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git)))
-        .startWith(Optional.of(RepositoryImplHelper.branchList((git))))
+    branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
+        .startWith(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
         .replay(1)
         .autoConnect(0, disposables::add);
-    currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch))
-        .startWith(RepositoryImplHelper.currentState(git, this::getBranch))
+    currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
+        .startWith(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
         .replay(1)
         .autoConnect(0, disposables::add);
     tagList = status.map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
@@ -159,6 +161,8 @@ public class RepositoryImpl implements IRepository
   @Override
   public void add(List<File> pAddList) throws AditoGitException
   {
+    if (pAddList.isEmpty())
+      return;
     logger.log(Level.FINE, () -> String.format("git add %s", pAddList));
     AddCommand adder = git.add();
     for (File file : pAddList)
@@ -232,7 +236,8 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public String commit(@NotNull String pMessage, List<File> pFileList, boolean pIsAmend) throws AditoGitException
+  public String commit(@NotNull String pMessage, @NotNull List<File> pFileList, @Nullable String pAuthorName, @Nullable String pAuthorEmail, boolean pIsAmend)
+      throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git commit %s -m \"%s\" %s", pFileList, pMessage, pIsAmend ? "--amend" : ""));
     CommitCommand commit = git.commit();
@@ -244,6 +249,8 @@ public class RepositoryImpl implements IRepository
     try
     {
       add(pFileList);
+      if (StringUtils.isNotEmpty(pAuthorName) && StringUtils.isNotEmpty(pAuthorEmail))
+        commit.setAuthor(pAuthorName, pAuthorEmail);
       revCommit = commit.setMessage(pMessage).setAmend(pIsAmend).call();
     }
     catch (GitAPIException e)
@@ -951,7 +958,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public void revertCommis(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException
+  public void revertCommit(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException
   {
     RevertCommand revertCommand = git.revert();
     pCommitsToRevert.forEach(pCommit -> revertCommand.include(ObjectId.fromString(pCommit.getId())));
@@ -973,6 +980,8 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
+      // add the files to the index, in case they are still untracked. JGit cannot reset untracked files
+      add(pFiles);
       ResetCommand resetCommand = git.reset();
       for (File file : pFiles)
         resetCommand.addPath(Util.getRelativePath(file, git));
@@ -994,6 +1003,11 @@ public class RepositoryImpl implements IRepository
     logger.log(Level.INFO, () -> String.format("git reset --%s %s", pResetType, pIdentifier));
     try
     {
+      // add all untracked files to the index, else git cannot revert/reset those files
+      add(status.blockingFirst().map(IFileStatus::getUntracked).orElse(Set.of())
+              .stream()
+              .map(pString -> new File(getTopLevelDirectory(), pString))
+              .collect(Collectors.toList()));
       ResetCommand resetCommand = git.reset();
       resetCommand.setRef(pIdentifier);
       if (pResetType == EResetType.HARD)
@@ -1168,7 +1182,7 @@ public class RepositoryImpl implements IRepository
       throw new AditoGitException("Unable to checkout remote Branch " + pBranch.getName(), e);
     }
 
-    Optional<IRepositoryState> repositoryState = RepositoryImplHelper.currentState(git, this::getBranch);
+    Optional<IRepositoryState> repositoryState = RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache);
     // JGit tried to check out a tag - again. *sigh*
     // check out the created local branch that should have been checked out
     if (repositoryState.isPresent() && repositoryState.get().getCurrentBranch().getType() == EBranchType.DETACHED)
@@ -1407,19 +1421,23 @@ public class RepositoryImpl implements IRepository
       LogCommand logCommand = git.log()
           .add(git.getRepository().resolve(git.getRepository().getFullBranch()));
       String remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch()).getRemoteTrackingBranch();
-      ObjectId remoteTrackingId = null;
+      ObjectId remoteTrackingId;
       if (remoteTrackingBranch != null)
       {
         remoteTrackingId = git.getRepository().resolve(remoteTrackingBranch);
+        if (remoteTrackingId != null)
+          logCommand.not(remoteTrackingId);
       }
+      // if no remote tracking branch is set, exclude all remote tracked branches
       else
       {
-        remoteTrackingBranch = new BranchConfig(git.getRepository().getConfig(), "master").getRemoteTrackingBranch();
-        if (remoteTrackingBranch != null)
-          remoteTrackingId = git.getRepository().resolve(remoteTrackingBranch);
+        for (String remoteTrackedBranch : _getRemoteTrackedBranches())
+        {
+          remoteTrackingId = git.getRepository().resolve(remoteTrackedBranch);
+          if (remoteTrackingId != null)
+            logCommand.not(remoteTrackingId);
+        }
       }
-      if (remoteTrackingId != null)
-        logCommand.not(remoteTrackingId);
       logger.log(Level.INFO, "remote tracking branch for unpushed commits: {0}", remoteTrackingBranch);
       Iterable<RevCommit> unPushedCommitsIter = logCommand.call();
       unPushedCommitsIter.forEach(pUnPushedCommit -> unPushedCommits.add(new CommitImpl(pUnPushedCommit)));
@@ -1429,6 +1447,26 @@ public class RepositoryImpl implements IRepository
       throw new AditoGitException(pE);
     }
     return unPushedCommits;
+  }
+
+  /**
+   * Creates a list with names of tracked remote branches. The list contains the sum of all tracked branches by the local branches
+   *
+   * @return List with names of remote branches
+   */
+  private List<String> _getRemoteTrackedBranches()
+  {
+    Set<String> branches = git.getRepository().getConfig().getSubsections("branch");
+    return branches.stream().map(pBranch -> {
+      try
+      {
+        return RepositoryImplHelper.getRemoteTrackingBranch(git, pBranch);
+      }
+      catch (IOException pE)
+      {
+        return null;
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   @Override
@@ -1471,7 +1509,7 @@ public class RepositoryImpl implements IRepository
       {
         pBranchString = Paths.get("refs", "heads", pBranchString).toString().replace("\\", "/");
       }
-      return new BranchImpl(git.getRepository().getRefDatabase().findRef(pBranchString));
+      return new BranchImpl(git.getRepository().getRefDatabase().findRef(pBranchString), trackedBranchStatusCache);
     }
     catch (IOException pE)
     {
@@ -1729,6 +1767,31 @@ public class RepositoryImpl implements IRepository
     protected void removeListener(@NotNull IFileSystemObserver pListenableValue, @NotNull IFileSystemChangeListener pLISTENER)
     {
       pListenableValue.removeListener(pLISTENER);
+    }
+  }
+
+  /**
+   * Impementation of the TrackedBranchStatusCache, calculates the ahead/behind commits with the help of BranchTrackingStatus
+   */
+  private class TrackedBranchStatusCacheImpl extends TrackedBranchStatusCache
+  {
+
+    @NotNull
+    public TrackedBranchStatus getTrackedBranchStatus(@NotNull IBranch pBranch)
+    {
+      BranchTrackingStatus trackingStatus = null;
+      if (pBranch.getType() == EBranchType.LOCAL)
+      {
+        try
+        {
+          trackingStatus = BranchTrackingStatus.of(git.getRepository(), pBranch.getName());
+        }
+        catch (IOException pE)
+        {
+          logger.log(Level.INFO, pE, () -> "Exception while trying to get the ahead/behind count of branch " + pBranch.getName());
+        }
+      }
+      return trackingStatus == null ? TrackedBranchStatus.NONE : new TrackedBranchStatus(trackingStatus.getBehindCount(), trackingStatus.getAheadCount());
     }
   }
 }

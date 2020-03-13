@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
-import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.prefs.IPrefStore;
@@ -78,12 +77,8 @@ class CommitAction extends AbstractTableAction
       progressFacade.executeInBackground("Committing Changes", pProgress -> {
         List<File> files = dialogResult.getInformation().getSelectedFilesSupplier().get();
         IRepository iRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
-        IConfig config = iRepo.getConfig();
-        if (dialogResult.getInformation().getUserName() != null && !dialogResult.getInformation().getUserName().equals(config.getUserName()))
-          config.setUserName(dialogResult.getInformation().getUserName());
-        if (dialogResult.getInformation().getUserMail() != null && !dialogResult.getInformation().getUserMail().equals(config.getUserEmail()))
-          config.setUserEmail(dialogResult.getInformation().getUserMail());
-        iRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().isDoAmend());
+        iRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().getUserName(), dialogResult.getInformation().getUserMail(),
+                     dialogResult.getInformation().isDoAmend());
         prefStore.put(prefStoreInstanceKey, null);
       });
     }

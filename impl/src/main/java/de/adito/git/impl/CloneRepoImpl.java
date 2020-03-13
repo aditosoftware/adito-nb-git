@@ -2,7 +2,9 @@ package de.adito.git.impl;
 
 import com.google.inject.Inject;
 import de.adito.git.api.ICloneRepo;
+import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.TrackedBranchStatus;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.impl.data.BranchImpl;
@@ -64,7 +66,7 @@ public class CloneRepoImpl implements ICloneRepo
       throw new AditoGitException("Can't get branches from Remote Repository", pE);
     }
     List<IBranch> branchesList = new ArrayList<>();
-    refs.forEach(branch -> branchesList.add(new BranchImpl(branch)));
+    refs.forEach(branch -> branchesList.add(new BranchImpl(branch, new CloneRepoTrackedBranchStatusCache())));
     return branchesList;
   }
 
@@ -115,6 +117,15 @@ public class CloneRepoImpl implements ICloneRepo
     cloneConfig.setPassphrase(pSshKey, null);
 
     return sshProvider.getTransportConfigCallBack(cloneConfig);
+  }
+
+  private static class CloneRepoTrackedBranchStatusCache extends TrackedBranchStatusCache
+  {
+    @Override
+    public @NotNull TrackedBranchStatus getTrackedBranchStatus(@NotNull IBranch pBranch)
+    {
+      return TrackedBranchStatus.NONE;
+    }
   }
 
   private class _ProgressMonitor implements ProgressMonitor

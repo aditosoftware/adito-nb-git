@@ -333,6 +333,21 @@ class DialogProviderImpl implements IDialogProvider
     };
   }
 
+  @Override
+  public IUserPromptDialogResult showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons, @NotNull List<EButtons> pOkayButtons)
+  {
+    return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
+                                                                           dialogFactory.createNotificationDialog(pMessage),
+                                                                       "Git Plugin", pShownButtons.toArray(new EButtons[0])))
+    {
+      @Override
+      public boolean isOkay()
+      {
+        return pOkayButtons.contains(selectedButton);
+      }
+    };
+  }
+
   @NotNull
   @Override
   public IChangeTrackedBranchDialogResult showChangeTrackedBranchDialog(@NotNull String pMessage)
