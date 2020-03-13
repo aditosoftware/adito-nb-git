@@ -161,6 +161,8 @@ public class RepositoryImpl implements IRepository
   @Override
   public void add(List<File> pAddList) throws AditoGitException
   {
+    if (pAddList.isEmpty())
+      return;
     logger.log(Level.FINE, () -> String.format("git add %s", pAddList));
     AddCommand adder = git.add();
     for (File file : pAddList)
