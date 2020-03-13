@@ -18,9 +18,9 @@ import java.util.Map;
  */
 public class InputFieldTablePanel extends JPanel
 {
-  private final Map<String, JTextField> textFieldList = new HashMap<>();
+  private final Map<String, TextFieldWithPlaceholder> textFieldList = new HashMap<>();
 
-  public InputFieldTablePanel(List<String> pFieldTitles, List<String> pFieldContent)
+  public InputFieldTablePanel(List<String> pFieldTitles, List<String> pFieldContent, List<String> pPlaceholders)
   {
     double fill = TableLayout.FILL;
     double pref = TableLayout.PREFERRED;
@@ -38,7 +38,8 @@ public class InputFieldTablePanel extends JPanel
 
     for (int index = 0; index < pFieldTitles.size(); index++)
     {
-      JTextField textField = new JTextField(pFieldContent.size() < index ? "" : pFieldContent.get(index));
+      TextFieldWithPlaceholder textField = new TextFieldWithPlaceholder(pFieldContent.size() < index ? "" : pFieldContent.get(index),
+                                                                        pPlaceholders.size() < index ? null : pPlaceholders.get(index));
       textFieldList.put(pFieldTitles.get(index), textField);
       tlu.add(0, index * 2, new JLabel(pFieldTitles.get(index)));
       tlu.add(2, index * 2, textField);

@@ -5,9 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.jidesoft.swing.CheckBoxTree;
 import com.jidesoft.swing.CheckBoxTreeSelectionModel;
 import de.adito.git.api.*;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.data.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
@@ -118,7 +116,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
           .autoConnect(0, disposables::add);
       disposables.add(Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
                           .subscribe(pIsValidDescriptor::setValid));
-      _initGui(dir);
+      _initGui(dir, optRepo.get().getConfig());
     }
     else
     {
@@ -269,7 +267,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    *
    * @param pDir project directory
    */
-  private void _initGui(@NotNull File pDir)
+  private void _initGui(@NotNull File pDir, @NotNull IConfig pConfig)
   {
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
@@ -304,7 +302,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     setLayout(new BorderLayout());
     add(toolBar, BorderLayout.NORTH);
     add(contentWithToolbar, BorderLayout.CENTER);
-    add(_createDetailsPanel(), BorderLayout.EAST);
+    add(_createDetailsPanel(pConfig), BorderLayout.EAST);
   }
 
   /**
@@ -313,14 +311,15 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    *
    * @return JPanel with content
    */
-  private JPanel _createDetailsPanel()
+  private JPanel _createDetailsPanel(@NotNull IConfig pConfig)
   {
     JPanel details = new JPanel();
     details.setPreferredSize(new Dimension(250, 0));
     details.setLayout(new BoxLayout(details, BoxLayout.Y_AXIS));
     details.setBorder(DETAILS_PANEL_BORDER);
 
-    committerDetailsPanel = new InputFieldTablePanel(List.of(AUTHOR_NAME_FIELD_TITLE, AUTHOR_EMAIL_FIELD_TITLE), List.of("", ""));
+    committerDetailsPanel = new InputFieldTablePanel(List.of(AUTHOR_NAME_FIELD_TITLE, AUTHOR_EMAIL_FIELD_TITLE), List.of("", ""),
+                                                     Arrays.asList(pConfig.getUserName(), pConfig.getUserEmail()));
     _addDetailsCategory(details, "Author (This commit only)", committerDetailsPanel);
     _addDetailsCategory(details, "General", amendCheckBox);
     details.add(Box.createRigidArea(new Dimension(0, Integer.MAX_VALUE)));
