@@ -27,6 +27,7 @@ public class ColorPicker
   public static final Color LIST_SELECTION_BACKGROUND = _getColor("List.selectionBackground");
   public static final Color DIFF_LINE_NUM = _getColor("diff.line.num");
   public static final Color DIFF_BACKGROUND = _getColor("diff.background");
+  public static final Color DIFF_MODIFIED_SECONDARY = _getColor("nb.diff.changedArea.color");
 
   private static Map<String, Color> defaultColors;
 
@@ -59,6 +60,7 @@ public class ColorPicker
         Map.entry("infoText", new Color(187, 187, 187)),
         Map.entry("nb.versioning.added.color", new Color(73, 210, 73)),
         Map.entry("nb.diff.added.color", new Color(43, 85, 43)),
+        Map.entry("nb.diff.changedArea.color", new Color(46, 58, 72)),
         Map.entry("nb.versioning.modified.color", new Color(26, 184, 255)),
         Map.entry("nb.diff.changed.color", new Color(40, 85, 112)),
         Map.entry("nb.versioning.deleted.color", new Color(255, 175, 175)),
