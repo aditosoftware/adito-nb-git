@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;

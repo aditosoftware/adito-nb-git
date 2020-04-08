@@ -2,7 +2,7 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IDiffInfo;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

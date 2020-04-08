@@ -1,9 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IFileChangesEvent;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPane;
 import io.reactivex.Observable;
@@ -28,7 +26,7 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
 
   private final JEditorPane editorPane;
   private final DiffPane diffPane;
-  private final IMergeDiff mergeDiff;
+  private final IMergeData mergeDiff;
   private final Disposable mergeDiffDisposable;
   private final Disposable editorKitDisposable;
   private final _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
@@ -37,7 +35,7 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
    * @param pMergeDiff           MergeDiff that has all the information about the conflict that should be displayed/resolvable
    * @param pEditorKitObservable Observable of the editorKit that should be used in the editorPane
    */
-  public ForkPointPaneWrapper(IMergeDiff pMergeDiff, Observable<Optional<EditorKit>> pEditorKitObservable)
+  public ForkPointPaneWrapper(IMergeData pMergeDiff, Observable<Optional<EditorKit>> pEditorKitObservable)
   {
     mergeDiff = pMergeDiff;
     editorPane = new JEditorPane();
@@ -45,8 +43,8 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
     editorKitDisposable = pEditorKitObservable.subscribe(pOptEditorKit -> pOptEditorKit.ifPresent(this::_setEditorKit));
     diffPane = new DiffPane(editorPane);
     mergeDiffDisposable = Observable.zip(
-        mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
-        mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(), _ChangesEventPair::new)
+        mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(),
+        mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), _ChangesEventPair::new)
         .subscribe(this::_refreshContent);
   }
 
@@ -77,21 +75,18 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
     editorPane.getDocument().addDocumentListener(paneDocumentListener);
   }
 
-  private void _refreshContent(_ChangesEventPair pChangeChunkLists)
+  private void _refreshContent(_ChangesEventPair pChangeDeltaLists)
   {
-    if (pChangeChunkLists.doUpdate)
-    {
-      paneDocumentListener.disable();
-      // OLD because the content of the ForkPointTextPane is the version of the forkPoint (i.e. the old version in all cases since forkPoint
-      // predates both commits)
-      TextHighlightUtil.insertColoredText(editorPane,
-                                          pChangeChunkLists.yourVersion,
-                                          pChangeChunkLists.theirVersion,
-                                          EChangeSide.OLD);
-      editorPane.revalidate();
-      editorPane.repaint();
-      paneDocumentListener.enable();
-    }
+    paneDocumentListener.disable();
+    // OLD because the content of the ForkPointTextPane is the version of the forkPoint (i.e. the old version in all cases since forkPoint
+    // predates both commits)
+    TextHighlightUtil.insertColoredText(editorPane,
+                                        pChangeDeltaLists.yourTextChangeEvent,
+                                        pChangeDeltaLists.theirsTextChangeEvent,
+                                        EChangeSide.OLD);
+    editorPane.revalidate();
+    editorPane.repaint();
+    paneDocumentListener.enable();
   }
 
   @Override
@@ -121,7 +116,7 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
           // get the information about what text and where before the invokeLater(), else the information can be outdated
           final String insertedText = pEvent.getDocument().getText(pEvent.getOffset(), pEvent.getLength());
           final int insertOffset = pEvent.getOffset();
-          SwingUtilities.invokeLater(() -> mergeDiff.insertText(insertedText, insertedText.length(), insertOffset, true));
+          SwingUtilities.invokeLater(() -> mergeDiff.modifyText(insertedText, 0, insertOffset));
         }
         catch (BadLocationException e1)
         {
@@ -136,7 +131,7 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
       if (isActive)
       {
         final int removeOffset = pEvent.getOffset();
-        SwingUtilities.invokeLater(() -> mergeDiff.insertText("", pEvent.getLength(), removeOffset, false));
+        SwingUtilities.invokeLater(() -> mergeDiff.modifyText("", pEvent.getLength(), removeOffset));
       }
     }
 
@@ -165,15 +160,14 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
 
   private static class _ChangesEventPair
   {
-    IFileChangesEvent yourVersion;
-    IFileChangesEvent theirVersion;
-    boolean doUpdate;
+    private final IDeltaTextChangeEvent yourTextChangeEvent;
+    private final IDeltaTextChangeEvent theirsTextChangeEvent;
 
-    _ChangesEventPair(IFileChangesEvent yourVersion, IFileChangesEvent theirVersion)
+    private _ChangesEventPair(IDeltaTextChangeEvent pYourTextChangeEvent, IDeltaTextChangeEvent pTheirsTextChangeEvent)
     {
-      this.yourVersion = yourVersion;
-      this.theirVersion = theirVersion;
-      doUpdate = yourVersion.isUpdateUI() && theirVersion.isUpdateUI();
+      yourTextChangeEvent = pYourTextChangeEvent;
+      theirsTextChangeEvent = pTheirsTextChangeEvent;
     }
+
   }
 }

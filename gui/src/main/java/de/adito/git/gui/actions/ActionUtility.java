@@ -1,7 +1,10 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EResetType;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IProgressHandle;

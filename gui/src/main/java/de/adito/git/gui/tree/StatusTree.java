@@ -3,7 +3,7 @@ package de.adito.git.gui.tree;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.IQuickSearchProvider;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;

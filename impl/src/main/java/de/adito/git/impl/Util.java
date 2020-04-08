@@ -3,6 +3,7 @@ package de.adito.git.impl;
 import de.adito.git.api.IFileSystemUtil;
 import org.eclipse.jgit.api.Git;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -59,5 +60,37 @@ public class Util
   public static Charset getEncoding(@NotNull byte[] pContents, @NotNull IFileSystemUtil pFileSystemUtil)
   {
     return pFileSystemUtil.getEncoding(pContents);
+  }
+
+  /**
+   * this method performs a safe charAt call (check for length of string and oob stuff) and then checks if the char is equal to any of the passed characters in
+   * pCompareTo.
+   * If the charAt call would cause an OutOfBoundsException/NullPointerExcption this method just returns false
+   *
+   * @param pString    String for which a character should be checked
+   * @param pIndex     index of the character in the string
+   * @param pCompareTo characters to compare the character of the string to
+   * @return true only if the character at the given index can be accessed and is equal to any of the given characters, else false
+   */
+  public static boolean safeIsCharAt(@Nullable String pString, int pIndex, char... pCompareTo)
+  {
+    return pString != null && pIndex >= 0 && pIndex < pString.length() && _anyMatch(pString.charAt(pIndex), pCompareTo);
+  }
+
+  /**
+   * check if the given character matches any of the characters in pCompareTo
+   *
+   * @param pChar      character to compare
+   * @param pCompareTo vararg of characters to compare with pChar
+   * @return true if any of the characters in pCompareTo match pChar, false otherwise
+   */
+  private static boolean _anyMatch(char pChar, char... pCompareTo)
+  {
+    for (char character : pCompareTo)
+    {
+      if (pChar == character)
+        return true;
+    }
+    return false;
   }
 }

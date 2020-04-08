@@ -1,7 +1,8 @@
 package de.adito.git.gui.tablemodels;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.EConflictSide;
+import de.adito.git.api.data.diff.IMergeData;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -16,10 +17,10 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
 {
 
   private static final List<String> COLUMN_NAMES = List.of("Filename", "Filepath", "Your Changes", "Their Changes");
-  private List<IMergeDiff> mergeDiffs = new ArrayList<>();
+  private List<IMergeData> mergeDiffs = new ArrayList<>();
   private final Disposable disposable;
 
-  public MergeDiffStatusModel(Observable<List<IMergeDiff>> pMergeDiffObservable)
+  public MergeDiffStatusModel(Observable<List<IMergeData>> pMergeDiffObservable)
   {
     disposable = pMergeDiffObservable.subscribe(pMergeDiffs -> {
       boolean sameFiles = _containsSameFiles(mergeDiffs, pMergeDiffs);
@@ -68,7 +69,7 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   @Override
   public Class<?> getColumnClass(int columnIndex)
   {
-    return IMergeDiff.class;
+    return IMergeData.class;
   }
 
   @Override
@@ -91,14 +92,14 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
    * @param pList2 second list of the pair to compare
    * @return if the lists differ from each other false, if they have the same size and same elements true
    */
-  private boolean _containsSameFiles(List<IMergeDiff> pList1, List<IMergeDiff> pList2)
+  private boolean _containsSameFiles(List<IMergeData> pList1, List<IMergeData> pList2)
   {
     if (pList1 != null && pList2 != null && pList1.size() == pList2.size())
     {
       for (int index = 0; index < pList1.size(); index++)
       {
-        if (!pList1.get(index).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath()
-            .equals(pList2.get(index).getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath()))
+        if (!pList1.get(index).getDiff(EConflictSide.YOURS).getFileHeader().getFilePath()
+            .equals(pList2.get(index).getDiff(EConflictSide.YOURS).getFileHeader().getFilePath()))
           return false;
       }
       return true;

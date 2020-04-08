@@ -1,10 +1,14 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.IFileDiff;
+import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -145,5 +149,35 @@ public class ChangeDeltaImplTest
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
     assertTrue(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
     assertFalse(fileDiff1.getChangeDeltas().get(1).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
+  }
+
+  @Test
+  void testFixEditList()
+  {
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 1, 0, 1));
+    editList.add(new Edit(2, 3, 2, 2));
+    editList.add(new Edit(8, 9, 7, 10));
+    editList.add(new Edit(10, 11, 11, 13));
+    String oldVersion = "v1FFSk+ \n-rRG IaSE8m7' S(pm@jk_ (nAg\" \n>U._me3 $*>Ruo \nJ\\>yHK3x*2 \n";
+    String newVersion = "-rRp[Sm$GFtDT4Z  IaSE8m7' S(pm@jk_ (nAg\" \n>U._me3 $*>Dv0--g-{ s5zWs o \nJ\\>i|dw2dk9aQrs6> 2 \n";
+    EditList edits = ChangeDeltaImpl._validateLines(editList, oldVersion, newVersion, oldVersion.replace(" ", "\n"), newVersion.replace(" ", "\n"));
+    assertEquals(3, edits.size());
+    assertEquals(new Edit(0, 3, 0, 2), edits.get(0));
+    assertEquals(editList.get(3), edits.get(1));
+    assertEquals(editList.get(4), edits.get(2));
+  }
+
+  @Test
+  void testGetUnmodifedLines()
+  {
+    EditList editList = new EditList();
+    editList.add(new Edit(0, 1, 0, 1));
+    editList.add(new Edit(2, 3, 2, 2));
+    editList.add(new Edit(8, 9, 7, 10));
+    editList.add(new Edit(10, 11, 11, 13));
+    String oldVersion = "v1FFSk+ \n-rRG IaSE8m7' S(pm@jk_ (nAg\" \n>U._me3 $*>Ruo \nJ\\>yHK3x*2 \n";
+    List<Integer> list = ChangeDeltaImpl._getUnmodifiedLines(editList, oldVersion.replace(" ", "\n"), new ChangeDeltaImpl.OriginalEditSideInfo());
+    assertEquals(List.of(1, 3, 4, 5, 6, 7, 9, 11), list);
   }
 }

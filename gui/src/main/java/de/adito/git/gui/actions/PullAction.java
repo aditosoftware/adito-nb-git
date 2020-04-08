@@ -6,6 +6,7 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.exception.MissingTrackedBranchException;
@@ -156,11 +157,11 @@ class PullAction extends AbstractAction
   /**
    * Handles showing the conflict dialog if a conflict occurred during the pull
    *
-   * @param pMergeConflicts List of IMergeDiff for each file that is in a conflicting state
+   * @param pMergeConflicts List of IMergeData for each file that is in a conflicting state
    * @return true if the user pressed cancel and the pull should be aborted, false otherwise
    * @throws AditoGitException if an error occurred during the pull
    */
-  private boolean _handleConflictDialog(IRepository pRepo, List<IMergeDiff> pMergeConflicts) throws AditoGitException
+  private boolean _handleConflictDialog(IRepository pRepo, List<IMergeData> pMergeConflicts) throws AditoGitException
   {
     IMergeConflictDialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
     if (!dialogResult.isFinishMerge())

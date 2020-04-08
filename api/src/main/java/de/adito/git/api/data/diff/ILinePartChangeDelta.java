@@ -35,7 +35,7 @@ public interface ILinePartChangeDelta
    * @param pTextOffset offset for the text indices
    * @return IChangeDelta that has its values updated with the given offsets
    */
-  ILinePartChangeDelta applyOffset(int pTextOffset);
+  ILinePartChangeDelta applyOffset(int pTextOffset, EChangeSide pChangeSide);
 
   /**
    * Checks wether this delta is in conflict with another delta (affects same indizes)

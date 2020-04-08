@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
 

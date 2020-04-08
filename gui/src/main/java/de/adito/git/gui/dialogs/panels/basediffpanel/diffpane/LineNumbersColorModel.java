@@ -1,9 +1,9 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.diff.EChangeStatus;
+import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -40,8 +40,8 @@ public class LineNumbersColorModel implements IDiscardable
     modelNumber = pModelNumber;
     Observable<Rectangle> viewPortObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewPortObs,
                                                                         (pChangesEvent, pViewPort) -> pViewPort);
-    Observable<IFileChangesEvent> eventObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewAreaObs,
-                                                                             (pChangesEvent, pArea) -> pChangesEvent);
+    Observable<IDeltaTextChangeEvent> eventObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewAreaObs,
+                                                                                 (pChangesEvent, pArea) -> pChangesEvent);
     areaDisposable = eventObservable.subscribe(pEvent -> _calculateLineNumColors(pEditorPane, pEvent));
     disposable = viewPortObservable.subscribe(this::_calculateRelativeLineNumberColors);
   }
@@ -112,21 +112,21 @@ public class LineNumbersColorModel implements IDiscardable
    * @param pEditorPane       JEditorPane with the text from the IFileChangesEvent. It's UI defines the y values for the LineNumColors
    * @param pFileChangesEvent currentIFileChangesEvent
    */
-  private void _calculateLineNumColors(JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent)
+  private void _calculateLineNumColors(JEditorPane pEditorPane, IDeltaTextChangeEvent pFileChangesEvent)
   {
-    List<LineNumberColor> lineNumberColors = new ArrayList<>();
+    List<LineNumberColor> lineNumberColors = new ArrayList<>(pEditorPane.getDocument().getDefaultRootElement().getElementCount());
     try
     {
       View view = pEditorPane.getUI().getRootView(pEditorPane);
-      int lineCounter = 0;
-      for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
+      List<IChangeDelta> changeDeltas = pFileChangesEvent.getFileDiff() == null ? List.of() : pFileChangesEvent.getFileDiff().getChangeDeltas();
+      for (IChangeDelta fileChange : changeDeltas)
       {
-        int numLines = fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide());
-        if (fileChange.getChangeType() != EChangeType.SAME)
+        if (fileChange.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
         {
-          if (lineCounter <= pEditorPane.getDocument().getDefaultRootElement().getElementCount())
+          int numLines = fileChange.getEndLine(model.getChangeSide()) - fileChange.getStartLine(model.getChangeSide());
+          if (fileChange.getStartLine(model.getChangeSide()) <= pEditorPane.getDocument().getDefaultRootElement().getElementCount())
           {
-            LineNumberColor lineNumberColor = _viewCoordinatesLineNumberColor(pEditorPane, lineCounter, numLines, fileChange, view);
+            LineNumberColor lineNumberColor = _viewCoordinatesLineNumberColor(pEditorPane, fileChange.getStartLine(model.getChangeSide()), numLines, fileChange, view);
             lineNumberColors.add(lineNumberColor);
           }
           else
@@ -135,7 +135,6 @@ public class LineNumbersColorModel implements IDiscardable
             return;
           }
         }
-        lineCounter += numLines;
       }
     }
     catch (BadLocationException pE)
@@ -155,14 +154,13 @@ public class LineNumbersColorModel implements IDiscardable
    * @return LineNumberColor with the gathered information about where and what color the LineNumberColor should be drawn, view coordinates
    * @throws BadLocationException i.e. if the line is out of bounds
    */
-  private LineNumberColor _viewCoordinatesLineNumberColor(JEditorPane pEditorPane, int pLineCounter, int pNumLines, IFileChangeChunk pFileChange,
+  private LineNumberColor _viewCoordinatesLineNumberColor(JEditorPane pEditorPane, int pLineCounter, int pNumLines, IChangeDelta pFileChange,
                                                           View pView) throws BadLocationException
   {
-    Element startingLineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(pLineCounter);
+    Element startingLineElement = pEditorPane.getDocument().getDefaultRootElement()
+        .getElement(Math.min(pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1, pLineCounter));
     Element endingLineElement = pEditorPane.getDocument().getDefaultRootElement()
-        .getElement(
-            Math.min(pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1,
-                     Math.max(0, pLineCounter + pNumLines - 1)));
+        .getElement(Math.min(pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1, Math.max(0, pLineCounter + pNumLines - 1)));
     Rectangle bounds;
     if (startingLineElement != null && endingLineElement != null)
     {
@@ -181,7 +179,7 @@ public class LineNumbersColorModel implements IDiscardable
                                    endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle()).getBounds();
       }
       // adjust coordinates from view to viewPort coordinates
-      return new LineNumberColor(pFileChange.getChangeType().getDiffColor(), bounds);
+      return new LineNumberColor(pFileChange.getChangeStatus().getChangeType().getDiffColor(), bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
         pLineCounter + pNumLines - 1);

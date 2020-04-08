@@ -1,7 +1,7 @@
 package de.adito.git.gui.swing;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.impl.util.BiNavigateAbleMap;
 import io.reactivex.Observable;
@@ -34,8 +34,8 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
   private final AtomicInteger throttleCounter = new AtomicInteger(0);
   private HashMap<BoundedRangeModel, List<_CoupledScrollbarInfo>> subListCache = new HashMap<>();
 
-  public SynchronizedBoundedRangeModel(@NotNull JScrollBar pCoupledBar, @NotNull Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
-                                       @NotNull Observable<Optional<IFileChangesEvent>> pFileChangesEventObs, boolean pUseInverseMap)
+  public SynchronizedBoundedRangeModel(@NotNull JScrollBar pCoupledBar, @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
+                                       @NotNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
   {
     coupledScrollbarInfos.add(new _CoupledScrollbarInfo(pCoupledBar, pRefreshMappings, pFileChangesEventObs, pUseInverseMap));
     throttleDisposable = throttler.throttleLast(16, TimeUnit.MILLISECONDS).subscribe(pScrollAmount -> {
@@ -57,8 +57,8 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
    * @param pFileChangesEventObs Observable that fires on FileChangeEvents to the Editor
    * @param pUseInverseMap       whether or not the inverse mapping should be used to determine the height mappings
    */
-  public void addCoupledScrollbar(@NotNull JScrollBar pToCouple, @NotNull Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
-                                  @NotNull Observable<Optional<IFileChangesEvent>> pFileChangesEventObs, boolean pUseInverseMap)
+  public void addCoupledScrollbar(@NotNull JScrollBar pToCouple, @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
+                                  @NotNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
   {
     _CoupledScrollbarInfo newInfo = new _CoupledScrollbarInfo(pToCouple, pRefreshMappings, pFileChangesEventObs, pUseInverseMap);
     coupledScrollbarInfos.add(newInfo);
@@ -245,13 +245,13 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
     private final Disposable disposable;
     private final Disposable propertyChangeDisposable;
     private final JScrollBar toCouple;
-    private final Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshMappings;
+    private final Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> refreshMappings;
     private final boolean useInverseMap;
     private BiNavigateAbleMap<Integer, Integer> map = new BiNavigateAbleMap<>();
     private Function<Integer, Boolean> setOtherScrollBarValueFunction;
 
-    _CoupledScrollbarInfo(@NotNull JScrollBar pToCouple, @NotNull Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
-                          @NotNull Observable<Optional<IFileChangesEvent>> pFileChangesEventObs, boolean pUseInverseMap)
+    _CoupledScrollbarInfo(@NotNull JScrollBar pToCouple, @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
+                          @NotNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
     {
       toCouple = pToCouple;
       this.refreshMappings = refreshMappings;
@@ -291,7 +291,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
      *
      * @param pFileChangesEvent the FileChangesEvent, containing information to determine the height mappings
      */
-    void refreshMappings(@Nullable IFileChangesEvent pFileChangesEvent)
+    void refreshMappings(@Nullable List<IChangeDelta> pFileChangesEvent)
     {
       if (pFileChangesEvent != null)
         map = refreshMappings.apply(pFileChangesEvent);

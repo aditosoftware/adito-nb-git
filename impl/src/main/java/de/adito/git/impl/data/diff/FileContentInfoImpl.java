@@ -5,6 +5,8 @@ import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.diff.ELineEnding;
 import de.adito.git.api.data.diff.IFileContentInfo;
 import de.adito.git.impl.Util;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.util.function.Supplier;
@@ -35,7 +37,7 @@ public class FileContentInfoImpl implements IFileContentInfo
 
   public Supplier<String> getFileContent()
   {
-    return fileContent;
+    return () -> _cleanString(fileContent.get());
   }
 
   @Override
@@ -47,5 +49,25 @@ public class FileContentInfoImpl implements IFileContentInfo
   public Supplier<Charset> getEncoding()
   {
     return encoding;
+  }
+
+  /**
+   * Make the newlines in the string uniform \n
+   *
+   * @param pUnCleanString String that should be cleaned such that the newlines are always only \n
+   * @return String with only \n as newlines
+   */
+  @NotNull
+  private static String _cleanString(@Nullable String pUnCleanString)
+  {
+    if (pUnCleanString != null)
+    {
+      if (pUnCleanString.contains("\n"))
+        pUnCleanString = pUnCleanString.replace("\r", "");
+      else
+        pUnCleanString = pUnCleanString.replace("\r", "\n");
+      return pUnCleanString;
+    }
+    return "";
   }
 }

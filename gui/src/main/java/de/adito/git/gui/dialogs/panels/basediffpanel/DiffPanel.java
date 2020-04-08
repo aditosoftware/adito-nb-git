@@ -1,15 +1,15 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IFileChangesEvent;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
+import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
-import de.adito.git.impl.data.FileChangesEventImpl;
+import de.adito.git.impl.data.diff.DeltaTextChangeEventImpl;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.EditorKit;
 import java.awt.BorderLayout;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,9 +41,9 @@ public class DiffPanel extends JPanel implements IDiscardable
   public DiffPanel(IIconLoader pIconLoader, @NotNull Observable<Optional<IFileDiff>> pFileDiffObs,
                    @Nullable ImageIcon pAcceptIcon, Observable<Optional<EditorKit>> pEditorKitObservable)
   {
-    Observable<IFileChangesEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
-        .map(pDiff -> pDiff.getFileChanges().getChangeChunks())
-        .orElse(Observable.just(new FileChangesEventImpl(true, Collections.emptyList(), null))));
+    Observable<IDeltaTextChangeEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
+        .map(IFileDiff::getDiffTextChangeObservable)
+        .orElse(Observable.just(new DeltaTextChangeEventImpl(0, 0, "", null))));
     LineNumbersColorModel[] lineNumbersColorModels = new LineNumbersColorModel[2];
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.NEW);
     currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);
@@ -54,7 +53,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
-        .setDoOnAccept(pChangeChunk -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.getFileChanges().resetChanges(pChangeChunk)));
+        .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
     // old version is to the left, so index 0
     LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPane().addLineNumPanel(oldDiffPanelModel, BorderLayout.EAST, 0);

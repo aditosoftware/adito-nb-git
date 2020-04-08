@@ -1,6 +1,6 @@
 package de.adito.git.gui.tree.nodes;
 
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

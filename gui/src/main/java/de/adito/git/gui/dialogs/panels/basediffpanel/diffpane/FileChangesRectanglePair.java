@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 
 import java.awt.Rectangle;
 
@@ -12,18 +12,18 @@ import java.awt.Rectangle;
 class FileChangesRectanglePair
 {
 
-  private final IFileChangesEvent fileChangesEvent;
+  private final IDeltaTextChangeEvent changeEvent;
   private final Rectangle rectangle;
 
-  FileChangesRectanglePair(IFileChangesEvent pFileChangesEvent, Rectangle pRectangle)
+  FileChangesRectanglePair(IDeltaTextChangeEvent pChangeEvent, Rectangle pRectangle)
   {
-    fileChangesEvent = pFileChangesEvent;
+    changeEvent = pChangeEvent;
     rectangle = pRectangle;
   }
 
-  IFileChangesEvent getFileChangesEvent()
+  IDeltaTextChangeEvent getChangeEvent()
   {
-    return fileChangesEvent;
+    return changeEvent;
   }
 
   Rectangle getRectangle()

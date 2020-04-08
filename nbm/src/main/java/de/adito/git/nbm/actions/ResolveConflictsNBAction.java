@@ -1,9 +1,9 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeType;
 import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.git.nbm.IGitConstants;

@@ -1,7 +1,7 @@
 package de.adito.git.api.data;
 
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
+import de.adito.git.api.data.diff.EChangeStatus;
+import de.adito.git.api.data.diff.IChangeDelta;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -15,31 +15,6 @@ public interface IFileChanges
 {
 
   /**
-   * @return IFileChangesEvent with the information about what triggered the change
-   */
-  Observable<IFileChangesEvent> getChangeChunks();
-
-  /**
-   * Accepts the changes from the B-side of the IFileChangeChunk, writes them to the A-side, saves
-   * the changes into the list and adjusts the line numbers in the following IFileChangeChunks if needed
-   *
-   * @param pToChangeChunk IFileChangeChunk whose B-side is accepted -> copy B-side over to the A-side
-   */
-  void applyChanges(@NotNull IFileChangeChunk pToChangeChunk);
-
-  /**
-   * Reverts the changes made and resets the changes made in the B-side back to the state of the A-side
-   *
-   * @param pToChangeChunk IFileChangeChunk whose changes should be reverted
-   */
-  void resetChanges(@NotNull IFileChangeChunk pToChangeChunk);
-
-  /**
-   * sends out a new item in the observable, with the list of the last sent out item and an empty editEvent
-   */
-  void emptyUpdate();
-
-  /**
    * Replaces pCurrent in the list provided by getChangeChunks by pReplaceWith
    *
    * @param pCurrent       IFileChangeChunk to replace, should be part of the list in getChangeChunks()
@@ -47,27 +22,27 @@ public interface IFileChanges
    * @param pTriggerUpdate Whether or not the Observable from getChangeChunks should fire a onNext update
    * @return true if current was in the list and could be replaced, false otherwise
    */
-  boolean replace(IFileChangeChunk pCurrent, IFileChangeChunk pReplaceWith, boolean pTriggerUpdate);
+  boolean replace(IChangeDelta pCurrent, IChangeDelta pReplaceWith, boolean pTriggerUpdate);
 
   /**
    * Retrieves the next changed chunk, as seen from pCurrentChunk, in the list
    *
    * @param pCurrentChunk The current IFileChangeChunk
-   * @param pChangeChunks The list of all IFileChangeChunks
+   * @param pChangeDeltas The list of all IFileChangeChunks
    * @return the next changedChunk in the list as seen from pCurrentChunk, or null if no next changed chunk exists
    */
   @Nullable
-  static IFileChangeChunk getNextChangedChunk(IFileChangeChunk pCurrentChunk, List<IFileChangeChunk> pChangeChunks)
+  static IChangeDelta getNextChangedChunk(IChangeDelta pCurrentChunk, List<IChangeDelta> pChangeDeltas)
   {
-    IFileChangeChunk nextChunk = null;
+    IChangeDelta nextChunk = null;
     boolean encounteredCurrentChunk = false;
-    for (IFileChangeChunk changeChunk : pChangeChunks)
+    for (IChangeDelta changeChunk : pChangeDeltas)
     {
       if (changeChunk.equals(pCurrentChunk))
       {
         encounteredCurrentChunk = true;
       }
-      else if (changeChunk.getChangeType() != EChangeType.SAME && encounteredCurrentChunk)
+      else if (changeChunk.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && encounteredCurrentChunk)
       {
         nextChunk = changeChunk;
         break;
@@ -80,23 +55,23 @@ public interface IFileChanges
    * Retrieves the previous changed chunk, as seen from pCurrentChunk, in the list
    *
    * @param pCurrentChunk The current IFileChangeChunk
-   * @param pChangeChunks The list of all IFileChangeChunks
+   * @param pChangeDeltas The list of all IFileChangeChunks
    * @return the previous changedChunk in the list as seen from pCurrentChunk, or null if no previous changed chunk exists
    */
   @Nullable
-  static IFileChangeChunk getPreviousChangedChunk(IFileChangeChunk pCurrentChunk, List<IFileChangeChunk> pChangeChunks)
+  static IChangeDelta getPreviousChangedChunk(IChangeDelta pCurrentChunk, List<IChangeDelta> pChangeDeltas)
   {
-    IFileChangeChunk previousChunk = null;
+    IChangeDelta previousChunk = null;
     boolean encounteredCurrentChunk = false;
-    for (int index = pChangeChunks.size() - 1; index >= 0; index--)
+    for (int index = pChangeDeltas.size() - 1; index >= 0; index--)
     {
-      if (pChangeChunks.get(index).equals(pCurrentChunk))
+      if (pChangeDeltas.get(index).equals(pCurrentChunk))
       {
         encounteredCurrentChunk = true;
       }
-      else if (pChangeChunks.get(index).getChangeType() != EChangeType.SAME && encounteredCurrentChunk)
+      else if (pChangeDeltas.get(index).getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && encounteredCurrentChunk)
       {
-        previousChunk = pChangeChunks.get(index);
+        previousChunk = pChangeDeltas.get(index);
         break;
       }
     }

@@ -1,6 +1,6 @@
 package de.adito.git.nbm.vcs;
 
-import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.diff.EChangeType;
 import org.netbeans.modules.versioning.spi.VCSAnnotator;
 import org.netbeans.modules.versioning.spi.VCSContext;
 import org.openide.util.Utilities;

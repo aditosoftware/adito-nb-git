@@ -1,8 +1,8 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,22 +17,22 @@ import java.util.function.Consumer;
 public class DiffPanelModel
 {
 
-  private final Observable<IFileChangesEvent> fileChangesObservable;
+  private final Observable<IDeltaTextChangeEvent> fileChangesObservable;
   private final EChangeSide changeSide;
-  private Consumer<IFileChangeChunk> doOnAccept;
-  private Consumer<IFileChangeChunk> doOnDiscard;
+  private Consumer<IChangeDelta> doOnAccept;
+  private Consumer<IChangeDelta> doOnDiscard;
 
   /**
    * @param pFileChangesObservable Observable of the IFileChangesEvents of the IFileDiff this model is for
-   * @param pChangeSide Which side of an IFileChangeChunk this model should utilize
+   * @param pChangeSide            Which side of an IFileChangeChunk this model should utilize
    */
-  DiffPanelModel(Observable<IFileChangesEvent> pFileChangesObservable, EChangeSide pChangeSide)
+  DiffPanelModel(Observable<IDeltaTextChangeEvent> pFileChangesObservable, EChangeSide pChangeSide)
   {
     fileChangesObservable = pFileChangesObservable;
     changeSide = pChangeSide;
   }
 
-  public Observable<IFileChangesEvent> getFileChangesObservable()
+  public Observable<IDeltaTextChangeEvent> getFileChangesObservable()
   {
     return fileChangesObservable;
   }
@@ -40,7 +40,7 @@ public class DiffPanelModel
   /**
    * @return Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "accept changes" icon
    */
-  public Consumer<IFileChangeChunk> getDoOnDiscard()
+  public Consumer<IChangeDelta> getDoOnDiscard()
   {
     return doOnDiscard;
   }
@@ -49,7 +49,7 @@ public class DiffPanelModel
    * @return Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "discard changes" icon
    */
   @Nullable
-  public Consumer<IFileChangeChunk> getDoOnAccept()
+  public Consumer<IChangeDelta> getDoOnAccept()
   {
     return doOnAccept;
   }
@@ -58,7 +58,7 @@ public class DiffPanelModel
    * @param pDoOnAccept Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "accept changes" icon
    * @return this Object for fluent calls
    */
-  public DiffPanelModel setDoOnAccept(@NotNull Consumer<IFileChangeChunk> pDoOnAccept)
+  public DiffPanelModel setDoOnAccept(@NotNull Consumer<IChangeDelta> pDoOnAccept)
   {
     doOnAccept = pDoOnAccept;
     return this;
@@ -68,7 +68,7 @@ public class DiffPanelModel
    * @param pDoOnDiscard Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "discard changes" icon
    * @return this Object for fluent calls
    */
-  public DiffPanelModel setDoOnDiscard(@Nullable Consumer<IFileChangeChunk> pDoOnDiscard)
+  public DiffPanelModel setDoOnDiscard(@Nullable Consumer<IChangeDelta> pDoOnDiscard)
   {
     doOnDiscard = pDoOnDiscard;
     return this;

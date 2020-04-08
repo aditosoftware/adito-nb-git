@@ -2,6 +2,7 @@ package de.adito.git.api;
 
 import de.adito.git.api.dag.IDAGFilterIterator;
 import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -166,8 +167,8 @@ public interface IRepository extends IDiscardable
    * See also the "git fetch" command
    * If there are several remotes, fetches from all remotes
    *
-   * @throws AditoGitException if an error occurs
    * @return List of trackingRefUpdates that were undertaken by the fetch, and their results. Can be checked for failed updates
+   * @throws AditoGitException if an error occurs
    */
   List<ITrackingRefUpdate> fetch() throws AditoGitException;
 
@@ -176,8 +177,8 @@ public interface IRepository extends IDiscardable
    * See also the "git fetch" command
    *
    * @param pPrune whether references to branches/tags that no longer exist on the remote should be deleted or not
-   * @throws AditoGitException if an error occurs
    * @return List of trackingRefUpdates that were undertaken by the fetch, and their results. Can be checked for failed updates
+   * @throws AditoGitException if an error occurs
    */
   List<ITrackingRefUpdate> fetch(boolean pPrune) throws AditoGitException;
 
@@ -225,7 +226,7 @@ public interface IRepository extends IDiscardable
    * @return List of IFileChangeChunks containing the changed lines between the two versions
    * @throws IOException if an error during file read occurs
    */
-  List<IFileChangeChunk> diff(@NotNull String pFileContents, File pCompareWith) throws IOException;
+  List<IChangeDelta> diff(@NotNull String pFileContents, File pCompareWith) throws IOException;
 
   /**
    * compare two commits, returns a list of IFileDiffs. Each IFileDiff contains the changes that occurred to one file between the commits
@@ -415,30 +416,30 @@ public interface IRepository extends IDiscardable
   void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException;
 
   /**
-   * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
+   * @return List with IMergeDatas for all conflicting files. Empty list if no conflicting files exists
    * or if the branch to be merged cannot be read from the conflicting files
    * @throws AditoGitException if an error occurs or if the conflict was caused by a stashed commit, but several commits are stashed
    */
-  List<IMergeDiff> getConflicts() throws AditoGitException;
+  List<IMergeData> getConflicts() throws AditoGitException;
 
   /**
    * retrieves a list with all conflicting changes caused by the passed stash commit
    *
    * @param pStashedCommitId sha-1 id of the stashed commit that caused the conflicts
-   * @return List with IMergeDiffs for all conflicting files. Empty list if no conflicting files exists
+   * @return List with IMergeDatas for all conflicting files. Empty list if no conflicting files exists
    * @throws AditoGitException if an error occurs
    */
-  List<IMergeDiff> getStashConflicts(String pStashedCommitId) throws AditoGitException;
+  List<IMergeData> getStashConflicts(String pStashedCommitId) throws AditoGitException;
 
   /**
    * merges two branches
    *
    * @param pSourceBranch The source branch
    * @param pTargetBranch The target branch
-   * @return List of IMergeDiffs, the list is empty if no merge conflict happened, else the list of IMergeDiffs describe the merge conflicts
+   * @return List of IMergeDatas, the list is empty if no merge conflict happened, else the list of IMergeDatas describe the merge conflicts
    * @throws AditoGitException if an error occurs
    */
-  List<IMergeDiff> merge(@NotNull IBranch pSourceBranch, @NotNull IBranch pTargetBranch) throws AditoGitException;
+  List<IMergeData> merge(@NotNull IBranch pSourceBranch, @NotNull IBranch pTargetBranch) throws AditoGitException;
 
   /**
    * retrieves all files that were committed in the passed commit. One IDiffInfo represents the change to one parent commit, if the commit is a merge commit
@@ -575,22 +576,22 @@ public interface IRepository extends IDiscardable
   /**
    * un-stashed the latest stashed commit
    *
-   * @return list with IMergeDiffs if a conflict occurs during un-stashing, empty list if successful
+   * @return list with IMergeDatas if a conflict occurs during un-stashing, empty list if successful
    * @throws AditoGitException if an error occurs
    */
   @NotNull
-  List<IMergeDiff> unStashIfAvailable() throws AditoGitException;
+  List<IMergeData> unStashIfAvailable() throws AditoGitException;
 
   /**
    * un-stash the changes of the specified stashed commit and drop the commit if the changes
    * could be successfully un-stashed
    *
    * @param pStashCommitId sha-1 id for the commit to be un-stashed
-   * @return list with IMergeDiffs if a conflict occurs during un-stashing, empty list if successful
+   * @return list with IMergeDatas if a conflict occurs during un-stashing, empty list if successful
    * @throws AditoGitException if an error occurs
    */
   @NotNull
-  List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException;
+  List<IMergeData> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException;
 
   /**
    * drop the specified stashed commit

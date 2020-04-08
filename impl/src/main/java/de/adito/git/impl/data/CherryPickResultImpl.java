@@ -2,7 +2,7 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.ICherryPickResult;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import org.eclipse.jgit.api.CherryPickResult;
 
 import java.util.List;
@@ -15,9 +15,9 @@ public class CherryPickResultImpl implements ICherryPickResult
 
   private final CherryPickResult result;
   private final ICommit cherryPickHead;
-  private final List<IMergeDiff> conflicts;
+  private final List<IMergeData> conflicts;
 
-  public CherryPickResultImpl(CherryPickResult pResult, ICommit pCherryPickHead, List<IMergeDiff> pConflicts)
+  public CherryPickResultImpl(CherryPickResult pResult, ICommit pCherryPickHead, List<IMergeData> pConflicts)
   {
     result = pResult;
     cherryPickHead = pCherryPickHead;
@@ -42,7 +42,7 @@ public class CherryPickResultImpl implements ICherryPickResult
   }
 
   @Override
-  public List<IMergeDiff> getConflicts()
+  public List<IMergeData> getConflicts()
   {
     return conflicts;
   }

@@ -52,18 +52,20 @@ public interface IChangeDelta
    *
    * @param pLineOffset offset for the lines
    * @param pTextOffset offset for the text indices
+   * @param pChangeSide which side the offset should be applied to
    * @return IChangeDelta that has its values updated with the given offsets
    */
-  IChangeDelta applyOffset(int pLineOffset, int pTextOffset);
+  IChangeDelta applyOffset(int pLineOffset, int pTextOffset, EChangeSide pChangeSide);
 
   /**
    * processes a text event that impacts this delta
    * There are 3 possible insert operation that can happen and 7 delete operations. In the following the | characters mark the position of the delta, the - characters
    * mark the position of the text event
    *
+   * @formatter:off
    * INSERT 1
    *
-   * -
+   *     -
    * |
    * |
    *
@@ -73,7 +75,7 @@ public interface IChangeDelta
    *
    * |
    * |
-   * -
+   *     -
    *
    * This does not affect the delta at all
    *
@@ -85,17 +87,17 @@ public interface IChangeDelta
    *
    * DELETE 1
    *
-   * -
+   *     -
    * |   -
    * |   -
    * |
    *
    * DELETE 2
    *
-   * -
+   *     -
    * |   -
    * |   -
-   * -
+   *     -
    *
    * DELETE 3
    *
@@ -109,12 +111,12 @@ public interface IChangeDelta
    * |
    * |   -
    * |   -
-   * -
+   *     -
    *
    * DELETE 5
    *
-   * -
-   * -
+   *     -
+   *     -
    * |
    * |
    *
@@ -124,8 +126,8 @@ public interface IChangeDelta
    *
    * |
    * |
-   * -
-   * -
+   *     -
+   *     -
    *
    * This does not affect the chunk at all
    *
@@ -136,15 +138,17 @@ public interface IChangeDelta
    * |   -
    *
    * This is a special case of 3
+   * @formatter:on
    *
    * @param pOffset            start index of the text event
    * @param pLength            number of characters that were deleted/inserted
    * @param pNumNewlinesBefore number of newLines that were added/removed before this delta
    * @param pNumNewlines       number of newLines that were added/removed inside this delta
    * @param pIsInsert          if the text event was an insert operation, false if it was a delete operation
+   * @param pChangeSide        which side the text was inserted in
    * @return new IChangeDelta with the changes from the text event applied
    */
-  IChangeDelta processTextEvent(int pOffset, int pLength, int pNumNewlinesBefore, int pNumNewlines, boolean pIsInsert);
+  IChangeDelta processTextEvent(int pOffset, int pLength, int pNumNewlinesBefore, int pNumNewlines, boolean pIsInsert, EChangeSide pChangeSide);
 
   /**
    * Get a list of changes of this delta on a word-basis
@@ -170,11 +174,20 @@ public interface IChangeDelta
   String getText(EChangeSide pChangeSide);
 
   /**
+   * checks if the given IChangeDelta represents the same change as this one
+   *
+   * @param pOtherChangeDelta the IChangeDelta to compare this delta to
+   * @return true if the change is the same, false otherwise
+   */
+  boolean isSameChange(IChangeDelta pOtherChangeDelta);
+
+  /**
    * Accepts the changes in this delta and returns a new IChangeDelta with the changed attributes
    *
+   * @param pChangedSide Side that is changed by accepting the change
    * @return new IChangeDelta
    */
-  IChangeDelta acceptChange();
+  IChangeDelta acceptChange(EChangeSide pChangedSide);
 
   /**
    * Discards the Changes of this delta and returns a new IChangeDelta with the changed attributes
@@ -182,4 +195,13 @@ public interface IChangeDelta
    * @return new IChangeDelta
    */
   IChangeDelta discardChange();
+
+  /**
+   * Create a new ChangeDelta from the current one with the given status, should only be used to e.g. set the conflicting state if the delta clashes with another
+   * one in a merge
+   *
+   * @param pChangeStatus status to set
+   * @return new ChangeDelta
+   */
+  IChangeDelta setChangeStatus(IChangeStatus pChangeStatus);
 }

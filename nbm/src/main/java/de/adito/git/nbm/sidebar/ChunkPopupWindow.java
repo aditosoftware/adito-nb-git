@@ -1,11 +1,14 @@
 package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileChanges;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;
 
@@ -33,8 +36,8 @@ class ChunkPopupWindow extends JWindow
   private static final int INSET_RIGHT = 25;
   private static final int MIN_HEIGHT = 16;
   private final IIconLoader iconLoader = IGitConstants.INJECTOR.getInstance(IIconLoader.class);
-  private final IFileChangeChunk changeChunk;
-  private final Observable<List<IFileChangeChunk>> changeChunkList;
+  private final IChangeDelta changeDelta;
+  private final Observable<List<IChangeDelta>> changeChunkList;
   private final EditorColorizer editorColorizer;
   private _WindowDisposer windowDisposer;
   private JScrollPane scrollPane;
@@ -44,25 +47,25 @@ class ChunkPopupWindow extends JWindow
    * @param pRepository      Observable that contains the IRepository, used for retrieving the HEAD version of the file in pTextComponent
    * @param pParent          Window who should be the owner of this window
    * @param pLocation        Absolute position that this window should appear at
-   * @param pChangeChunk     IFileChangeChunk for which this window offers rollback functionality
-   * @param pChangeChunkList Observable of the list of IFileChangeChunk that is kept up-to-date
-   * @param pTextComponent   JTextComponent that contains the text which the pChangeChunks is part of
+   * @param pChangeDelta     IFileChangeChunk for which this window offers rollback functionality
+   * @param pChangeDeltaList Observable of the list of IFileChangeChunk that is kept up-to-date
+   * @param pTextComponent   JTextComponent that contains the text which the pChangeDeltas is part of
    * @param pEditorColorizer EditorColorizer that spawns this PopupWindow. Needed to fire mouseEvents (that spawn a new PopupWindow)
    * @param pFile            File whose contents are opened in pTextComponent
    */
-  ChunkPopupWindow(Observable<Optional<IRepository>> pRepository, Window pParent, Point pLocation, IFileChangeChunk pChangeChunk,
-                   Observable<List<IFileChangeChunk>> pChangeChunkList, JTextComponent pTextComponent, EditorColorizer pEditorColorizer, File pFile)
+  ChunkPopupWindow(Observable<Optional<IRepository>> pRepository, Window pParent, Point pLocation, IChangeDelta pChangeDelta,
+                   Observable<List<IChangeDelta>> pChangeDeltaList, JTextComponent pTextComponent, EditorColorizer pEditorColorizer, File pFile)
   {
     super(pParent);
-    changeChunk = pChangeChunk;
-    changeChunkList = pChangeChunkList;
+    changeDelta = pChangeDelta;
+    changeChunkList = pChangeDeltaList;
     editorColorizer = pEditorColorizer;
     windowDisposer = new _WindowDisposer();
     pLocation.x = pTextComponent.getLocationOnScreen().x - new JScrollPane().getInsets().left;
     setLocation(pLocation);
     _RollbackInformation rollbackInformation;
     rollbackInformation = pRepository.blockingFirst()
-        .map(pRepo -> _calculateRollbackInfo(pRepo, pChangeChunk, pTextComponent, pFile)).orElse(new _RollbackInformation(0, 0, ""));
+        .map(pRepo -> _calculateRollbackInfo(pRepo, pChangeDelta, pFile)).orElse(new _RollbackInformation(0, 0, ""));
     setLayout(new BorderLayout());
     Dimension viewPortSize = pTextComponent.getParent().getSize();
     _initGui(rollbackInformation, pTextComponent);
@@ -150,20 +153,20 @@ class ChunkPopupWindow extends JWindow
     toolBar.setFloatable(false);
     toolBar.add(button);
     JButton nextChangeButton = new JButton(iconLoader.getIcon(Constants.NEXT_OCCURRENCE));
-    IFileChangeChunk nextChunk = IFileChanges.getNextChangedChunk(this.changeChunk, changeChunkList.blockingFirst());
-    if (nextChunk != null)
+    IChangeDelta nextDelta = IFileChanges.getNextChangedChunk(this.changeDelta, changeChunkList.blockingFirst());
+    if (nextDelta != null)
     {
-      nextChangeButton.addActionListener(new MoveChunkActionListener(pTextComponent, nextChunk));
+      nextChangeButton.addActionListener(new MoveChunkActionListener(pTextComponent, nextDelta));
     }
     else
     {
       nextChangeButton.setEnabled(false);
     }
     JButton previousChangeButton = new JButton(iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE));
-    IFileChangeChunk previousChunk = IFileChanges.getPreviousChangedChunk(changeChunk, changeChunkList.blockingFirst());
-    if (previousChunk != null)
+    IChangeDelta previousDelta = IFileChanges.getPreviousChangedChunk(changeDelta, changeChunkList.blockingFirst());
+    if (previousDelta != null)
     {
-      previousChangeButton.addActionListener(new MoveChunkActionListener(pTextComponent, previousChunk));
+      previousChangeButton.addActionListener(new MoveChunkActionListener(pTextComponent, previousDelta));
     }
     else
     {
@@ -193,22 +196,20 @@ class ChunkPopupWindow extends JWindow
   }
 
   /**
-   * @param pRepo          IRepository from which to retrieve the HEAD version of the file
-   * @param pChangeChunk   IFileChangeChunk describing the changed lines
-   * @param pTextComponent JTextComponent on which potentially perform the roll back of the lines in the IFileChangeChunk
-   * @param pFile          File that is opened in the JTextComponent, needed to retrieve the version in HEAD
+   * @param pRepo        IRepository from which to retrieve the HEAD version of the file
+   * @param pChangeDelta IChangeDelta describing the changed lines
+   * @param pFile        File that is opened in the JTextComponent, needed to retrieve the version in HEAD
    * @return _RollbackInformation with which the roll back can be performed
    */
-  private _RollbackInformation _calculateRollbackInfo(IRepository pRepo, IFileChangeChunk pChangeChunk, JTextComponent pTextComponent,
-                                                      File pFile)
+  private _RollbackInformation _calculateRollbackInfo(IRepository pRepo, IChangeDelta pChangeDelta, File pFile)
   {
     int startOffset;
     int length;
     String content;
     try
     {
-      startOffset = pTextComponent.getDocument().getDefaultRootElement().getElement(pChangeChunk.getStart(EChangeSide.NEW)).getStartOffset();
-      int endOffset = pTextComponent.getDocument().getDefaultRootElement().getElement(pChangeChunk.getEnd(EChangeSide.NEW) - 1).getEndOffset();
+      startOffset = pChangeDelta.getStartTextIndex(EChangeSide.NEW);
+      int endOffset = pChangeDelta.getEndTextIndex(EChangeSide.NEW);
       if (endOffset <= startOffset)
         length = 0;
       else
@@ -221,17 +222,17 @@ class ChunkPopupWindow extends JWindow
       throw new RuntimeException(pE);
     }
     // If it is an insert, remove the newline at the end as well (because else the newline is still an insertion)
-    if (pChangeChunk.getEnd(EChangeSide.OLD) == pChangeChunk.getStart(EChangeSide.OLD))
+    if (pChangeDelta.getEndLine(EChangeSide.OLD) == pChangeDelta.getStartLine(EChangeSide.OLD))
       length += 1;
-    return new _RollbackInformation(startOffset, length, _getAffectedContents(content, pChangeChunk));
+    return new _RollbackInformation(startOffset, length, _getAffectedContents(content, pChangeDelta));
   }
 
   /**
    * @param pContents    Original contents of the file, as in HEAD
-   * @param pChangeChunk IFileChangeChunk with information about the affected lines
+   * @param pChangeDelta IChangeDelta with information about the affected lines
    * @return String containing all the lines marked as affected by the IFileChangeChunk
    */
-  private String _getAffectedContents(String pContents, IFileChangeChunk pChangeChunk)
+  private String _getAffectedContents(String pContents, IChangeDelta pChangeDelta)
   {
     if (pContents.contains("\n"))
     {
@@ -243,11 +244,11 @@ class ChunkPopupWindow extends JWindow
     }
     String[] lines = pContents.replace("\r", "").split("\n");
     StringBuilder builder = new StringBuilder();
-    for (int index = pChangeChunk.getStart(EChangeSide.OLD); index < pChangeChunk.getEnd(EChangeSide.OLD); index++)
+    for (int index = pChangeDelta.getStartLine(EChangeSide.OLD); index < pChangeDelta.getEndLine(EChangeSide.OLD); index++)
     {
       builder.append(lines[index]).append("\n");
     }
-    if (pChangeChunk.getChangeType() == EChangeType.MODIFY)
+    if (pChangeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY)
       builder.deleteCharAt(builder.lastIndexOf("\n"));
     return builder.toString();
   }
@@ -335,9 +336,9 @@ class ChunkPopupWindow extends JWindow
   {
 
     private final JTextComponent textComponent;
-    private final IFileChangeChunk moveTo;
+    private final IChangeDelta moveTo;
 
-    public MoveChunkActionListener(JTextComponent pTextComponent, IFileChangeChunk pMoveTo)
+    public MoveChunkActionListener(JTextComponent pTextComponent, IChangeDelta pMoveTo)
     {
       textComponent = pTextComponent;
       moveTo = pMoveTo;
@@ -346,10 +347,10 @@ class ChunkPopupWindow extends JWindow
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      IDiffPaneUtil.moveCaretToChunk(textComponent, moveTo, EChangeSide.NEW);
+      IDiffPaneUtil.moveCaretToDelta(textComponent, moveTo, EChangeSide.NEW);
       try
       {
-        editorColorizer.showPopupForChunk(moveTo);
+        editorColorizer.showPopupForDelta(moveTo);
       }
       catch (BadLocationException pE)
       {

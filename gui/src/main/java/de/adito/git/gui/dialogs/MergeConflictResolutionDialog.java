@@ -3,9 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
@@ -33,16 +31,17 @@ import static de.adito.git.gui.Constants.DISCARD_CHANGE_ICON;
 class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
-  private final IMergeDiff mergeDiff;
+  private final IMergeData mergeDiff;
   private final MergePanel mergePanel;
 
   @Inject
-  MergeConflictResolutionDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeDiff pMergeDiff)
+  MergeConflictResolutionDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff)
   {
     mergeDiff = pMergeDiff;
     ImageIcon acceptYoursIcon = pIconLoader.getIcon(ACCEPT_CHANGE_YOURS_ICON);
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
     ImageIcon discardIcon = pIconLoader.getIcon(DISCARD_CHANGE_ICON);
+    mergeDiff.markConflicting();
     mergePanel = new MergePanel(pIconLoader, mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui(pIconLoader);
   }
@@ -78,9 +77,9 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     toolbar.addSeparator();
 
     // Our Actions
-    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.YOURS, pIconLoader)));
+    toolbar.add(new JButton(new _AcceptAllActionImpl(EConflictSide.YOURS, pIconLoader)));
     toolbar.add(new JButton(new _AcceptNonConflictingChangesAction(pIconLoader)));
-    toolbar.add(new JButton(new _AcceptAllActionImpl(IMergeDiff.CONFLICT_SIDE.THEIRS, pIconLoader)));
+    toolbar.add(new JButton(new _AcceptAllActionImpl(EConflictSide.THEIRS, pIconLoader)));
 
     return toolbar;
   }
@@ -108,11 +107,11 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
    */
   private class _AcceptAllActionImpl extends AbstractAction
   {
-    private final IMergeDiff.CONFLICT_SIDE conflictSide;
+    private final EConflictSide conflictSide;
 
-    _AcceptAllActionImpl(@NotNull IMergeDiff.CONFLICT_SIDE pConflictSide, IIconLoader pIconLoader)
+    _AcceptAllActionImpl(@NotNull EConflictSide pConflictSide, IIconLoader pIconLoader)
     {
-      super("", pIconLoader.getIcon(pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ? Constants.ACCEPT_ALL_LEFT : Constants.ACCEPT_ALL_RIGHT));
+      super("", pIconLoader.getIcon(pConflictSide == EConflictSide.YOURS ? Constants.ACCEPT_ALL_LEFT : Constants.ACCEPT_ALL_RIGHT));
       putValue(SHORT_DESCRIPTION, "accept remaining " + pConflictSide.name() + " changes");
       conflictSide = pConflictSide;
     }
@@ -120,11 +119,11 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     @Override
     public void actionPerformed(ActionEvent pEvent)
     {
-      for (IFileChangeChunk changeChunk : mergeDiff.getDiff(conflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+      for (IChangeDelta changeDelta : mergeDiff.getDiff(conflictSide).getChangeDeltas())
       {
-        if (changeChunk.getChangeType() != EChangeType.SAME)
+        if (changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
         {
-          mergeDiff.acceptChunk(changeChunk, conflictSide);
+          mergeDiff.acceptDelta(changeDelta, conflictSide);
         }
       }
     }
@@ -145,14 +144,14 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     @Override
     public void actionPerformed(ActionEvent pEvent)
     {
-      _acceptSide(IMergeDiff.CONFLICT_SIDE.YOURS);
-      _acceptSide(IMergeDiff.CONFLICT_SIDE.THEIRS);
+      _acceptSide(EConflictSide.YOURS);
+      _acceptSide(EConflictSide.THEIRS);
     }
 
     @Override
     public boolean isEnabled()
     {
-      return _containsNonConflicting(IMergeDiff.CONFLICT_SIDE.YOURS) || _containsNonConflicting(IMergeDiff.CONFLICT_SIDE.THEIRS);
+      return _containsNonConflicting(EConflictSide.YOURS) || _containsNonConflicting(EConflictSide.THEIRS);
     }
 
     /**
@@ -160,18 +159,18 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
      *
      * @param pConflictSide CONFLICT_SIDE
      */
-    private void _acceptSide(IMergeDiff.CONFLICT_SIDE pConflictSide)
+    private void _acceptSide(EConflictSide pConflictSide)
     {
-      IMergeDiff.CONFLICT_SIDE theirSide = pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ? IMergeDiff.CONFLICT_SIDE.THEIRS : IMergeDiff.CONFLICT_SIDE.YOURS;
-      List<IFileChangeChunk> theirChanges = mergeDiff.getDiff(theirSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue();
-      for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+      EConflictSide theirSide = pConflictSide == EConflictSide.YOURS ? EConflictSide.THEIRS : EConflictSide.YOURS;
+      List<IChangeDelta> theirChanges = mergeDiff.getDiff(theirSide).getChangeDeltas();
+      // TODO assume CONFLICTING state has been set, and use that state to determine if changes are accpeted or not
+      for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
       {
-        boolean isConflicting = IMergeDiff.affectedChunkIndices(changeChunk, theirChanges).stream()
-            .map(theirChanges::get)
-            .anyMatch(pChange -> pChange.getChangeType() != EChangeType.SAME);
-        if (changeChunk.getChangeType() != EChangeType.SAME && !isConflicting)
+        boolean isConflicting = theirChanges.stream().anyMatch(pTheirChange -> pTheirChange.isConflictingWith(changeDelta));
+        if (changeDelta.getChangeStatus().getChangeType() != EChangeType.SAME && changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING
+            && !isConflicting)
         {
-          mergeDiff.acceptChunk(changeChunk, pConflictSide);
+          mergeDiff.acceptDelta(changeDelta, pConflictSide);
         }
       }
     }
@@ -182,18 +181,16 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
      * @param pConflictSide CONFLICT_SIDE to check
      * @return true if there are any non-conflicting changes that are not accepted, false otherwise
      */
-    private boolean _containsNonConflicting(IMergeDiff.CONFLICT_SIDE pConflictSide)
+    private boolean _containsNonConflicting(EConflictSide pConflictSide)
     {
-      IMergeDiff.CONFLICT_SIDE theirSide = pConflictSide == IMergeDiff.CONFLICT_SIDE.YOURS ? IMergeDiff.CONFLICT_SIDE.THEIRS : IMergeDiff.CONFLICT_SIDE.YOURS;
-      List<IFileChangeChunk> theirChanges = mergeDiff.getDiff(theirSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue();
-      for (IFileChangeChunk changeChunk : mergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
+      EConflictSide theirSide = pConflictSide == EConflictSide.YOURS ? EConflictSide.THEIRS : EConflictSide.YOURS;
+      List<IChangeDelta> theirChanges = mergeDiff.getDiff(theirSide).getChangeDeltas();
+      for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
       {
-        boolean isConflicting = IMergeDiff.affectedChunkIndices(changeChunk, theirChanges).stream()
-            .map(theirChanges::get)
-            .anyMatch(pChange -> pChange.getChangeType() != EChangeType.SAME);
-        if (changeChunk.getChangeType() != EChangeType.SAME && !isConflicting)
+        boolean isConflicting = theirChanges.stream().anyMatch(pTheirChange -> pTheirChange.isConflictingWith(changeDelta));
+        if (changeDelta.getChangeStatus().getChangeType() != EChangeType.SAME && !isConflicting)
         {
-          // one changeChunk that can be accepted and that is not conflicting exists -> Action is enabled
+          // one changeDelta that can be accepted and that is not conflicting exists -> Action is enabled
           return true;
         }
       }

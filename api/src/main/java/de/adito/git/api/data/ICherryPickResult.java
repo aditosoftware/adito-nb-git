@@ -1,5 +1,7 @@
 package de.adito.git.api.data;
 
+import de.adito.git.api.data.diff.IMergeData;
+
 import java.util.List;
 
 /**
@@ -40,8 +42,8 @@ public interface ICherryPickResult
   ICommit getCherryPickHead();
 
   /**
-   * @return list of IMergeDiffs that describe the conflicts and can be used in the MergeConflictDialog
+   * @return list of IMergeDatas that describe the conflicts and can be used in the MergeConflictDialog
    */
-  List<IMergeDiff> getConflicts();
+  List<IMergeData> getConflicts();
 
 }

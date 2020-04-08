@@ -5,10 +5,14 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.*;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.TrackingRefUpdate;
 import de.adito.git.impl.data.*;
+import de.adito.git.impl.data.diff.FileContentInfoImpl;
+import de.adito.git.impl.data.diff.FileDiffHeaderImpl;
+import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
@@ -408,7 +412,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       CherryPickResult cherryPickResult = cherryPickCommand.call();
-      List<IMergeDiff> mergeConflicts = new ArrayList<>();
+      List<IMergeData> mergeConflicts = new ArrayList<>();
       ICommit cherryPickCommit = null;
       if (cherryPickResult == CherryPickResult.CONFLICT)
       {
@@ -538,23 +542,19 @@ public class RepositoryImpl implements IRepository
 
   @Override
   @NotNull
-  public List<IFileChangeChunk> diff(@NotNull String pFileContents, File pCompareWith) throws IOException
+  public List<IChangeDelta> diff(@NotNull String pFileContents, File pCompareWith) throws IOException
   {
 
     String headId = ObjectId.toString(git.getRepository().resolve(Constants.HEAD));
 
 
-    RawText headFileContents = new RawText(getFileContents(getFileVersion(headId, Util.getRelativePath(pCompareWith, git)), pCompareWith)
-                                               .getFileContent().get().getBytes());
+    IFileContentInfo fileContents = getFileContents(getFileVersion(headId, getRelativePath(pCompareWith, git)), pCompareWith);
+    RawText headFileContents = new RawText(fileContents.getFileContent().get().getBytes());
     RawText currentFileContents = new RawText(pFileContents.getBytes());
 
     EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, headFileContents, currentFileContents);
-    List<IFileChangeChunk> changeChunks = new ArrayList<>();
-    for (Edit edit : linesChanged)
-    {
-      changeChunks.add(new FileChangeChunkImpl(edit, "", "", EnumMappings.toEChangeType(edit.getType())));
-    }
-    return changeChunks;
+    return new FileDiffImpl(IFileDiffHeader.EMPTY_HEADER, linesChanged, new FileContentInfoImpl(() -> pFileContents, () -> StandardCharsets.UTF_8), fileContents)
+        .getChangeDeltas();
   }
 
   /**
@@ -602,7 +602,9 @@ public class RepositoryImpl implements IRepository
                 : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
             IFileContentInfo newFileContent = VOID_PATH.equals(diff.getNewPath()) ? emptyContentInfo
                 : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
-            listDiffImpl.add(new FileDiffImpl(new FileDiffHeaderImpl(diff, tld), fileHeader.getHunks().get(0).toEditList(), oldFileContent, newFileContent));
+            // TODO find out real line ending instead of using default UNIX
+            listDiffImpl.add(new FileDiffImpl(new FileDiffHeaderImpl(diff, tld, ELineEnding.UNIX), fileHeader.getHunks().get(0).toEditList(),
+                                              oldFileContent, newFileContent));
           }
           if (pWriteTo != null)
           {
@@ -635,6 +637,7 @@ public class RepositoryImpl implements IRepository
       // Use the DiffFormatter to retrieve a list of changes
       DiffFormatter diffFormatter = new DiffFormatter(pWriteTo == null ? DisabledOutputStream.INSTANCE : pWriteTo);
       diffFormatter.setRepository(git.getRepository());
+      diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_TRAILING);
       List<TreeFilter> pathFilters = new ArrayList<>();
       if (pFilesToDiff != null)
       {
@@ -667,7 +670,8 @@ public class RepositoryImpl implements IRepository
               : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
           IFileContentInfo newFileContents = VOID_PATH.equals(diffEntry.getNewPath()) ? new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8)
               : new FileContentInfoImpl(Suppliers.memoize(() -> _getFileContent(diffEntry.getNewPath())), fileSystemUtil);
-          returnList.add(new FileDiffImpl(new FileDiffHeaderImpl(diffEntry, getTopLevelDirectory()), fileHeader.getHunks().get(0).toEditList(),
+          // TODO find out real line ending instead of using default UNIX
+          returnList.add(new FileDiffImpl(new FileDiffHeaderImpl(diffEntry, getTopLevelDirectory(), ELineEnding.UNIX), fileHeader.getHunks().get(0).toEditList(),
                                           oldFileContents, newFileContents));
         }
       }
@@ -1194,7 +1198,7 @@ public class RepositoryImpl implements IRepository
    */
   @Override
   @NotNull
-  public List<IMergeDiff> getConflicts() throws AditoGitException
+  public List<IMergeData> getConflicts() throws AditoGitException
   {
     try
     {
@@ -1247,7 +1251,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @NotNull
-  public List<IMergeDiff> getStashConflicts(String pStashedCommitId) throws AditoGitException
+  public List<IMergeData> getStashConflicts(String pStashedCommitId) throws AditoGitException
   {
     Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
     try
@@ -1265,7 +1269,7 @@ public class RepositoryImpl implements IRepository
    */
   @NotNull
   @Override
-  public List<IMergeDiff> merge(@NotNull IBranch pParentBranch, @NotNull IBranch pBranchToMerge) throws AditoGitException
+  public List<IMergeData> merge(@NotNull IBranch pParentBranch, @NotNull IBranch pBranchToMerge) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git merge %s %s", pParentBranch, pBranchToMerge));
     try
@@ -1275,7 +1279,7 @@ public class RepositoryImpl implements IRepository
         throw new AlreadyUpToDateAditoGitException("Already up-to-date");
       String parentID = pParentBranch.getId();
       String toMergeID = pBranchToMerge.getId();
-      List<IMergeDiff> mergeConflicts = new ArrayList<>();
+      List<IMergeData> mergeConflicts = new ArrayList<>();
       if (!status.blockingFirst().map(pStatus -> pStatus.getConflicting().isEmpty()).orElse(true))
       {
         RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
@@ -1634,7 +1638,7 @@ public class RepositoryImpl implements IRepository
    */
   @NotNull
   @Override
-  public List<IMergeDiff> unStashIfAvailable() throws AditoGitException
+  public List<IMergeData> unStashIfAvailable() throws AditoGitException
   {
     String topMostStashedCommitId = peekStash();
     if (topMostStashedCommitId != null)
@@ -1649,7 +1653,7 @@ public class RepositoryImpl implements IRepository
    */
   @NotNull
   @Override
-  public List<IMergeDiff> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException
+  public List<IMergeData> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("unstashing stash with commit id %s", pStashCommitId));
     int stashIndexForId = RepositoryImplHelper.getStashIndexForId(git, pStashCommitId);
@@ -1665,7 +1669,7 @@ public class RepositoryImpl implements IRepository
       {
         try
         {
-          List<IMergeDiff> stashConflicts = RepositoryImplHelper.getStashConflictMerge(git, RepositoryImplHelper.status(git).getConflicting(),
+          List<IMergeData> stashConflicts = RepositoryImplHelper.getStashConflictMerge(git, RepositoryImplHelper.status(git).getConflicting(),
                                                                                        pStashCommitId, this::diff);
           if (stashConflicts.isEmpty())
             throw new AditoGitException("Could not determine conflicting files, commit or undo your changes before trying the unstash again", pStashApplyFailureEx);

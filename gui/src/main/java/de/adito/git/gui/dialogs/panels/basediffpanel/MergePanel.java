@@ -1,8 +1,9 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EConflictSide;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
@@ -38,7 +39,7 @@ public class MergePanel extends JPanel implements IDiscardable
 
   private static final String FORKPOINT_MODEL_KEY = "forkPointModel";
   private final IIconLoader iconLoader;
-  private final IMergeDiff mergeDiff;
+  private final IMergeData mergeDiff;
   private final ImageIcon acceptYoursIcon;
   private final ImageIcon acceptTheirsIcon;
   private final ImageIcon discardIcon;
@@ -51,7 +52,7 @@ public class MergePanel extends JPanel implements IDiscardable
   private LineNumbersColorModel leftForkPointLineNumColorModel;
   private LineNumbersColorModel rightForkPointLineNumColorModel;
 
-  public MergePanel(IIconLoader pIconLoader, IMergeDiff pMergeDiff, ImageIcon pAcceptYoursIcon, ImageIcon pAcceptTheirsIcon, ImageIcon pDiscardIcon,
+  public MergePanel(IIconLoader pIconLoader, IMergeData pMergeDiff, ImageIcon pAcceptYoursIcon, ImageIcon pAcceptTheirsIcon, ImageIcon pDiscardIcon,
                     IEditorKitProvider pEditorKitProvider)
   {
     iconLoader = pIconLoader;
@@ -65,10 +66,10 @@ public class MergePanel extends JPanel implements IDiscardable
     _initTheirsPanel();
     _initGui();
     yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, yoursPaneWrapper, "yoursPane",
-                                              Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS))));
+                                              Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.YOURS))));
     theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, theirsPaneWrapper, "theirsPane",
-                                               Observable.just(Optional.of(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS))));
-    editorKitObservable.onNext(Optional.of(Optional.ofNullable(pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getAbsoluteFilePath())
+                                               Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.THEIRS))));
+    editorKitObservable.onNext(Optional.of(Optional.ofNullable(pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getAbsoluteFilePath())
                                                .map(pEditorKitProvider::getEditorKit)
                                                .orElseGet(() -> pEditorKitProvider.getEditorKitForContentType("text/plain"))));
   }
@@ -100,10 +101,9 @@ public class MergePanel extends JPanel implements IDiscardable
   private void _initYoursPanel()
   {
     LineNumbersColorModel[] lineNumColorModels = new LineNumbersColorModel[2];
-    DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
-                                                   EChangeSide.NEW)
-        .setDoOnAccept(pChangeChunk -> mergeDiff.acceptChunk(pChangeChunk, IMergeDiff.CONFLICT_SIDE.YOURS))
-        .setDoOnDiscard(pChangeChunk -> mergeDiff.discardChange(pChangeChunk, IMergeDiff.CONFLICT_SIDE.YOURS));
+    DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.NEW)
+        .setDoOnAccept(pChangeDelta -> mergeDiff.acceptDelta(pChangeDelta, EConflictSide.YOURS))
+        .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.YOURS));
     yoursPaneWrapper = new DiffPaneWrapper(yoursModel, editorKitObservable);
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     yoursPaneWrapper.getScrollPane().setLayout(new LeftSideVSBScrollPaneLayout());
@@ -118,10 +118,9 @@ public class MergePanel extends JPanel implements IDiscardable
   private void _initTheirsPanel()
   {
     LineNumbersColorModel[] lineNumPanels = new LineNumbersColorModel[2];
-    DiffPanelModel theirsModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(),
-                                                    EChangeSide.NEW)
-        .setDoOnAccept(pChangeChunk -> mergeDiff.acceptChunk(pChangeChunk, IMergeDiff.CONFLICT_SIDE.THEIRS))
-        .setDoOnDiscard(pChangeChunk -> mergeDiff.discardChange(pChangeChunk, IMergeDiff.CONFLICT_SIDE.THEIRS));
+    DiffPanelModel theirsModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), EChangeSide.NEW)
+        .setDoOnAccept(pChangeDelta -> mergeDiff.acceptDelta(pChangeDelta, EConflictSide.THEIRS))
+        .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.THEIRS));
     theirsPaneWrapper = new DiffPaneWrapper(theirsModel, editorKitObservable);
     theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     // index 1 because the lineNumPanel is of the right-most panel, and thus to the right to the ChoiceButtonPanel
@@ -136,10 +135,8 @@ public class MergePanel extends JPanel implements IDiscardable
   {
     forkPointPaneWrapper = new ForkPointPaneWrapper(mergeDiff, editorKitObservable);
     forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
-    DiffPanelModel forkPointYoursModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges().getChangeChunks(),
-                                                            EChangeSide.OLD);
-    DiffPanelModel forkPointTheirsModel = new DiffPanelModel(mergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileChanges().getChangeChunks(),
-                                                             EChangeSide.OLD);
+    DiffPanelModel forkPointYoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.OLD);
+    DiffPanelModel forkPointTheirsModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), EChangeSide.OLD);
     leftForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointYoursModel, BorderLayout.WEST, 1);
     rightForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, BorderLayout.EAST, 0);
   }

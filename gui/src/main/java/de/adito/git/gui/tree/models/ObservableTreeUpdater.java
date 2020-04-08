@@ -3,7 +3,7 @@ package de.adito.git.gui.tree.models;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.IDiffInfo;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;

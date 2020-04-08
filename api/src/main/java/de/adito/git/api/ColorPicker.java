@@ -27,7 +27,9 @@ public class ColorPicker
   public static final Color LIST_SELECTION_BACKGROUND = _getColor("List.selectionBackground");
   public static final Color DIFF_LINE_NUM = _getColor("diff.line.num");
   public static final Color DIFF_BACKGROUND = _getColor("diff.background");
-  public static final Color DIFF_MODIFIED_SECONDARY = _getColor("nb.diff.changedArea.color");
+  public static final Color DIFF_MODIFIED_SECONDARY = _getColor("nb.diff.secondary.changed.color");
+  public static final Color DIFF_ADDED_SECONDARY = _getColor("nb.diff.secondary.added.color");
+  public static final Color DIFF_DELETED_SECONDARY = _getColor("nb.diff.secondary.deleted.color");
 
   private static Map<String, Color> defaultColors;
 
@@ -60,11 +62,13 @@ public class ColorPicker
         Map.entry("infoText", new Color(187, 187, 187)),
         Map.entry("nb.versioning.added.color", new Color(73, 210, 73)),
         Map.entry("nb.diff.added.color", new Color(43, 85, 43)),
-        Map.entry("nb.diff.changedArea.color", new Color(46, 58, 72)),
+        Map.entry("nb.diff.secondary.added.color", new Color(43, 62, 43)),
+        Map.entry("nb.diff.secondary.changed.color", new Color(46, 58, 72)),
         Map.entry("nb.versioning.modified.color", new Color(26, 184, 255)),
         Map.entry("nb.diff.changed.color", new Color(40, 85, 112)),
         Map.entry("nb.versioning.deleted.color", new Color(255, 175, 175)),
-        Map.entry("nb.diff.deleted.color", new Color(85, 43, 43)),
+        Map.entry("nb.diff.deleted.color", new Color(100, 100, 100)),
+        Map.entry("nb.diff.secondary.deleted.color", new Color(70, 70, 70)),
         Map.entry("nb.versioning.conflicted.color", new Color(255, 100, 100)),
         Map.entry("nb.diff.unresolved.color", new Color(130, 30, 30)),
         Map.entry("List.selectionBackground", new Color(52, 152, 219)),

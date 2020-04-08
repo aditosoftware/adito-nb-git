@@ -1,20 +1,17 @@
 package de.adito.git.gui;
 
-import de.adito.git.api.data.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import de.adito.git.api.data.diff.*;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Handles inserting lists of IFileChangeChunks into textPanes and highlighting parts of the text
- * The highlighted parts are determined by the IFileChangeChunks, and the highlighting is done
- * in a layered manner, so text selection is still possible
+ * Handles IDeltaTextChangeEvent that describe changes to the contents of a given editorPane. The IDeltaTextChangeEvents also contain IChangeDeltas that determine
+ * the parts of the text that should be highlighted. The highlighting is done in a layered manner, so text selection is still possible
  *
  * @author m.kaspera 22.10.2018
  */
@@ -26,106 +23,124 @@ public class TextHighlightUtil
   }
 
   /**
-   * @param pEditorPane       JEditorPane that should be filled with text and colored
-   * @param pFileChangesEvent IFileChangesEvent that has the current list of IFileChangeChunks and the descriptions about the changes that have to
-   *                          happen to the contents of the editor to keep it in sync with the list of IFileChangeChunks, without throwing away the
-   *                          complete text
-   * @param pChangeSide       which side of a IFileChangeChunk should be taken
+   * @param pEditorPane      JEditorPane that should be filled with text and colored
+   * @param pTextChangeEvent IDeltaTextChangeEvent that has the current list of IChangeDeltas and the descriptions about the changes that have to
+   *                         happen to the contents of the editor to keep it in sync, without throwing away the complete text
+   * @param pChangeSide      which side of a IDeltaTextChangeEvent and IChangeDeltas should be taken
    */
-  public static void insertColoredText(JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent, EChangeSide pChangeSide)
+  public static void insertColoredText(JEditorPane pEditorPane, IDeltaTextChangeEvent pTextChangeEvent, EChangeSide pChangeSide)
   {
-    _insertColoredText(pEditorPane, pFileChangesEvent, pChangeSide, () -> _getHighlightSpots(pEditorPane, pFileChangesEvent.getNewValue(),
-                                                                                             pChangeSide));
+    List<IChangeDelta> changeDeltas = pTextChangeEvent.getFileDiff() == null ? List.of() : pTextChangeEvent.getFileDiff().getChangeDeltas();
+    if (pTextChangeEvent.getSide() == pChangeSide)
+    {
+      _insertColoredText(pEditorPane, pTextChangeEvent, () -> _getHighlightSpots(changeDeltas, pChangeSide, true));
+    }
+    else
+    {
+      _colorHighlights(pEditorPane, _getHighlightSpots(changeDeltas, pChangeSide, true));
+    }
   }
 
   /**
-   * Combines the highlighting of two List of IFileChangeChunks, text is assumed to be identical
+   * Combines the highlighting of IDeltaTextChangeEvent, text of the used EChangeSide is assumed to be identical
    *
-   * @param pEditorPane            JEditorPane that should be filled with text and colored
-   * @param pYourFileChangesEvent  IFileChangeChunks determining the text and highlighting
-   * @param pTheirFileChangesEvent IFileChangeChunks determining the text and highlighting
-   * @param pChangeSide            which side of a IFileChangeChunk should be taken
+   * @param pEditorPane JEditorPane that should be filled with text and colored
+   * @param pChangeSide which side of the IDeltaTextChangeEvents should be taken
    */
-  public static void insertColoredText(JEditorPane pEditorPane, IFileChangesEvent pYourFileChangesEvent,
-                                       IFileChangesEvent pTheirFileChangesEvent, EChangeSide pChangeSide)
+  public static void insertColoredText(JEditorPane pEditorPane, IDeltaTextChangeEvent pYourChangeEvent, IDeltaTextChangeEvent pTheirChangeEvent, EChangeSide pChangeSide)
   {
-    IFileChangesEvent passOnEvent = pYourFileChangesEvent;
-    if (pYourFileChangesEvent.getEditorChange() == null ||
-        (pTheirFileChangesEvent.getEditorChange() != null
-            && pTheirFileChangesEvent.getEditorChange().getChange(pChangeSide).getType() != EChangeType.SAME
-            && pTheirFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength()
-            < pYourFileChangesEvent.getEditorChange().getChange(EChangeSide.OLD).getLength()))
-      passOnEvent = pTheirFileChangesEvent;
-    _insertColoredText(pEditorPane, passOnEvent, pChangeSide,
-                       () -> {
-                         List<_Highlight> highlightSpots = _getHighlightSpots(pEditorPane, pTheirFileChangesEvent.getNewValue(), pChangeSide);
-                         highlightSpots.addAll(_getHighlightSpots(pEditorPane, pYourFileChangesEvent.getNewValue(), pChangeSide));
+    if (pYourChangeEvent.getSide() != pChangeSide)
+      return;
+    List<IChangeDelta> yourChangeDeltas = pYourChangeEvent.getFileDiff() == null ? List.of() : pYourChangeEvent.getFileDiff().getChangeDeltas();
+    List<IChangeDelta> theirChangeDeltas = pTheirChangeEvent.getFileDiff() == null ? List.of() : pTheirChangeEvent.getFileDiff().getChangeDeltas();
+    _insertColoredText(pEditorPane, pYourChangeEvent, () -> {
+                         List<_Highlight> highlightSpots = _getHighlightSpots(yourChangeDeltas, pChangeSide, true);
+                         highlightSpots.addAll(_getHighlightSpots(theirChangeDeltas, pChangeSide, true));
                          return highlightSpots;
-                       });
+                       }
+    );
   }
 
   /**
-   * @param pEditorPane       JEditorPane that should be filled with text and colored
-   * @param pFileChangeChunks List of IFileChangeChunks for which the highlighted areas should be determined
-   * @param pChangeSide       which side of a IFileChangeChunk should be taken
+   * @param pFileChangeChunks List of IChangeDelta for which the highlighted areas should be determined
+   * @param pChangeSide       which side of a IChangeDelta should be used
    * @return List of _Highlight
    */
-  private static List<_Highlight> _getHighlightSpots(JEditorPane pEditorPane,
-                                                     List<IFileChangeChunk> pFileChangeChunks, EChangeSide pChangeSide)
+  // TODO: pIsMarkWords is always true, get a real value from some kind of setting
+  private static List<_Highlight> _getHighlightSpots(List<IChangeDelta> pFileChangeChunks, EChangeSide pChangeSide, boolean pIsMarkWords)
   {
     List<_Highlight> highlightSpots = new ArrayList<>();
-    for (IFileChangeChunk changeChunk : pFileChangeChunks)
+    for (IChangeDelta changeDelta : pFileChangeChunks)
     {
-      if (changeChunk.getChangeType() != EChangeType.SAME)
+      if (pIsMarkWords && changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING
+          && changeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY)
       {
-        // use maxEditorLineIndex to min(maxEditorLineIndex, x) to make sure no oOBException occurs, better to have a wrong result before update
-        int maxEditorLineIndex = pEditorPane.getDocument().getDefaultRootElement().getElementCount() - 1;
-        int startOffset = pEditorPane.getDocument().getDefaultRootElement()
-            .getElement(Math.min(maxEditorLineIndex, changeChunk.getStart(pChangeSide)))
-            .getStartOffset();
-        // -1 because the end line is considered exclusive (also if endLine == startLine the offsets are the same this way).
-        // Edge case here: empty file -> endLine - 1 would result in -1, so need to use Math.max(0, endLine - 1)
-        int endOffset = pEditorPane.getDocument().getDefaultRootElement()
-            .getElement(Math.min(maxEditorLineIndex, Math.max(0, changeChunk.getEnd(pChangeSide) - 1)))
-            .getEndOffset();
-        // endOffset is considered the next line, so unless endOffset and startOffset are the same subtract 1 so the next line is not colored as well
-        if (startOffset < endOffset)
-          endOffset -= 1;
-        highlightSpots.add(new _Highlight(startOffset, endOffset,
-                                          new LineHighlightPainter(changeChunk.getChangeType().getDiffColor(),
-                                                                   startOffset == endOffset ? LineHighlightPainter.Mode.THIN_LINE
-                                                                       : LineHighlightPainter.Mode.WHOLE_LINE)));
+        highlightSpots.add(_getWordsHighlight(changeDelta, pChangeSide));
       }
+      else
+        highlightSpots.add(_getLineHighlight(changeDelta, pChangeSide));
     }
     return highlightSpots;
   }
 
   /**
+   * Get the _Highlight object encompassing the whole change for the given IChangeDelta
+   *
+   * @param changeDelta IChangeDelta for which the _Highlight object should be created
+   * @param pChangeSide which side of a IChangeDelta should be used
+   * @return _Highlight object for the IChangeDelta
+   */
+  private static _Highlight _getLineHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide)
+  {
+    int startOffset = changeDelta.getStartTextIndex(pChangeSide);
+    int endOffset = changeDelta.getEndTextIndex(pChangeSide);
+    if (startOffset < endOffset)
+      endOffset -= 1;
+    Color highlightColor = changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING ? changeDelta.getChangeStatus().getChangeType().getDiffColor()
+        : changeDelta.getChangeStatus().getChangeType().getSecondaryDiffColor();
+    return new _Highlight(new _HighlightSpot(startOffset, endOffset, highlightColor),
+                          _isUseThinLine(changeDelta, pChangeSide) ? LineHighlightPainter.Mode.THIN_LINE : LineHighlightPainter.Mode.WHOLE_LINE);
+  }
+
+  /**
+   * Get the _Highlight for the given IChangeDelta. The highlight here marks the whole change in a background color and separately highlights the
+   * differences on a word-basis
+   *
+   * @param changeDelta IChangeDelta for which the _Highlight object should be created
+   * @param pChangeSide which side of a IChangeDelta should be used
+   * @return _Highlight object for the IChangeDelta
+   */
+  private static _Highlight _getWordsHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide)
+  {
+    List<_HighlightSpot> highlightSpots = new ArrayList<>();
+    for (ILinePartChangeDelta linePartChangeDelta : changeDelta.getLinePartChanges())
+    {
+      int startOffset = linePartChangeDelta.getStartTextIndex(pChangeSide);
+      int endOffset = linePartChangeDelta.getEndTextIndex(pChangeSide);
+      if (startOffset < endOffset)
+        endOffset -= 1;
+      highlightSpots.add(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getDiffColor()));
+    }
+    int startOffset = changeDelta.getStartTextIndex(pChangeSide);
+    int endOffset = changeDelta.getEndTextIndex(pChangeSide);
+    if (startOffset < endOffset)
+      endOffset -= 1;
+    return new _MultiHighlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getSecondaryDiffColor()),
+                               highlightSpots, LineHighlightPainter.Mode.MARK_PART);
+  }
+
+  /**
+   * applies the given textChangeEvent and the applies the given highlights
+   *
    * @param pJEditorPane        JEditorPane that should be filled with text and colored
-   * @param pFileChangesEvent   IFileChangesEvent that has the current list of IFileChangeChunks and the descriptions about the changes that have to
-   *                            happen to the contents of the editor to keep it in sync with the list of IFileChangeChunks, without throwing away the
-   *                            complete text
-   * @param pChangeSide         which side of a IFileChangeChunk should be taken
    * @param pHighlightsSupplier Supplier of list of _Highlight determining which additional areas get colored and the color of the areas
    *                            This is a supplier instead of a list because the text has to be inserted before the highlights are calculated
    */
-  private static void _insertColoredText(JEditorPane pJEditorPane, IFileChangesEvent pFileChangesEvent,
-                                         EChangeSide pChangeSide, Supplier<List<_Highlight>> pHighlightsSupplier)
+  private static void _insertColoredText(JEditorPane pJEditorPane, IDeltaTextChangeEvent pTextChangeEvent, Supplier<List<_Highlight>> pHighlightsSupplier)
   {
     try
     {
-      if (pFileChangesEvent.getEditorChange() != null)
-      {
-        IEditorChange editorChange = pFileChangesEvent.getEditorChange().getChange(pChangeSide);
-        if (editorChange.getType() == EChangeType.DELETE || editorChange.getType() == EChangeType.MODIFY)
-        {
-          pJEditorPane.getDocument().remove(editorChange.getOffset(), editorChange.getLength());
-        }
-        if (editorChange.getType() == EChangeType.MODIFY || editorChange.getType() == EChangeType.ADD)
-        {
-          pJEditorPane.getDocument().insertString(editorChange.getOffset(), _cleanString(editorChange.getText()), null);
-        }
-      }
+      pTextChangeEvent.apply(pJEditorPane.getDocument());
     }
     catch (BadLocationException pE)
     {
@@ -134,74 +149,135 @@ public class TextHighlightUtil
     _colorHighlights(pJEditorPane, pHighlightsSupplier.get());
   }
 
+  /**
+   * applies the given highlights to the editorPane
+   *
+   * @param pJEditorPane    EditorPane to add the highlights to
+   * @param pHighlightSpots highlights to add to the editorPane
+   */
   private static void _colorHighlights(JEditorPane pJEditorPane, List<_Highlight> pHighlightSpots)
   {
     LineHighlighter highlighter = new LineHighlighter();
+    // TODO: check if highlighter is already a LineHighlighter and if so, call removeAllHighlights. Seems a better solution and could be better performance-wise
     pJEditorPane.setHighlighter(highlighter);
     try
     {
       for (_Highlight highlight : pHighlightSpots)
       {
-        highlighter.addBackgroundHighlight(highlight.getStartIndex(), highlight.getEndOffset(), highlight.getPainter());
+        highlighter.addBackgroundHighlight(highlight.getStartIndex(), highlight.getEndOffset(), new LineHighlightPainter(highlight.getColor(), highlight.getMode()));
+        if (highlight instanceof _MultiHighlight)
+        {
+          for (_HighlightSpot highlightSpot : ((_MultiHighlight) highlight).getHighlightSpots())
+          {
+            highlighter.addBackgroundHighlight(highlightSpot.getStartIndex(), highlightSpot.getEndIndex(),
+                                               new LineHighlightPainter(highlightSpot.getColor(), LineHighlightPainter.Mode.MARK_GIVEN));
+          }
+        }
       }
     }
     catch (BadLocationException e)
     {
-      throw new RuntimeException(e);
+      // exception is okay, can happen if text is not set yet. Don't draw the highlight, should be drawn later on anyways
     }
   }
 
   /**
-   * Make the newlines in the string uniform \n
+   * check if a only a thin line should be highlighted, instead of the whole line
    *
-   * @param pUnCleanString String that should be cleaned such that the newlines are always only \n
-   * @return String with only \n as newlines
+   * @param pChangeDelta Delta that the highlight is for
+   * @param pChangeSide  pChangeSide which side of a IChangeDelta should be used
+   * @return true if only a thin part of the line should be highlighted, false otherwise
    */
-  @NotNull
-  private static String _cleanString(@Nullable String pUnCleanString)
+  private static boolean _isUseThinLine(IChangeDelta pChangeDelta, EChangeSide pChangeSide)
   {
-    if (pUnCleanString != null)
-    {
-      if (pUnCleanString.contains("\n"))
-        pUnCleanString = pUnCleanString.replace("\r", "");
-      else
-        pUnCleanString = pUnCleanString.replace("\r", "\n");
-      return pUnCleanString;
-    }
-    return "";
+    return pChangeDelta.getEndLine(pChangeSide) == pChangeDelta.getStartLine(pChangeSide);
   }
 
   /**
    * class to store the diverse spots that should be highlighted after
-   * the IFileChangeChunks are inserted.
+   * the IChangeDeltas are inserted.
    */
   private static class _Highlight
   {
 
-    private final int startIndex;
-    private final int endOffset;
-    private final DefaultHighlighter.DefaultHighlightPainter painter;
+    private final _HighlightSpot highlightSpot;
+    private final LineHighlightPainter.Mode mode;
 
-    _Highlight(int startIndex, int endOffset, LineHighlightPainter painter)
+    _Highlight(_HighlightSpot pHighlightSpot, LineHighlightPainter.Mode pMode)
     {
-      this.startIndex = startIndex;
-      this.endOffset = endOffset;
-      this.painter = painter;
+      highlightSpot = pHighlightSpot;
+      mode = pMode;
     }
 
     int getStartIndex()
     {
-      return startIndex;
+      return highlightSpot.getStartIndex();
     }
 
     int getEndOffset()
     {
-      return endOffset;
+      return highlightSpot.getEndIndex();
     }
 
-    DefaultHighlighter.DefaultHighlightPainter getPainter()
+    public LineHighlightPainter.Mode getMode()
     {
-      return painter;
+      return mode;
+    }
+
+    public Color getColor()
+    {
+      return highlightSpot.getColor();
+    }
+  }
+
+  /**
+   * _Highlight that is used to store highlights that support word-based diff'ing
+   */
+  private static final class _MultiHighlight extends _Highlight
+  {
+    private final List<_HighlightSpot> highlightSpots;
+
+    public _MultiHighlight(_HighlightSpot pHighlightSpot, List<_HighlightSpot> pHighlightSpots, LineHighlightPainter.Mode pMode)
+    {
+      super(pHighlightSpot, pMode);
+      highlightSpots = pHighlightSpots;
+    }
+
+    public List<_HighlightSpot> getHighlightSpots()
+    {
+      return highlightSpots;
+    }
+  }
+
+  /**
+   * Represents an area between two indices that should be highlighted
+   */
+  private static final class _HighlightSpot
+  {
+    private final int startIndex;
+    private final int endIndex;
+    private final Color color;
+
+    private _HighlightSpot(int pStartIndex, int pEndIndex, Color pColor)
+    {
+      startIndex = pStartIndex;
+      endIndex = pEndIndex;
+      color = pColor;
+    }
+
+    public int getEndIndex()
+    {
+      return endIndex;
+    }
+
+    public int getStartIndex()
+    {
+      return startIndex;
+    }
+
+    public Color getColor()
+    {
+      return color;
     }
   }
 }

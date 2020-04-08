@@ -4,9 +4,9 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IFileChangeType;
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
@@ -124,10 +124,7 @@ class DiffToHeadAction extends AbstractTableAction
     logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path, pFileDiff.getEncoding(EChangeSide.NEW)));
     try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File(path), false), pFileDiff.getEncoding(EChangeSide.NEW)))
     {
-      StringBuilder fileDiffContents = new StringBuilder();
-      pFileDiff.getFileChanges().getChangeChunks().blockingFirst()
-          .getNewValue().forEach(pChangeChunk -> fileDiffContents.append(pChangeChunk.getLines(EChangeSide.NEW)));
-      writer.write(fileDiffContents.toString());
+      writer.write(pFileDiff.getText(EChangeSide.NEW));
     }
     catch (IOException pE)
     {

@@ -5,7 +5,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EResetType;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.Observable;
@@ -38,7 +40,7 @@ class DialogProviderImpl implements IDialogProvider
 
   @Override
   public @NotNull IMergeConflictDialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                     @NotNull List<IMergeDiff> pMergeConflictDiffs, boolean pOnlyConflicting, String... pDialogTitle)
+                                                                     @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting, String... pDialogTitle)
   {
     DialogResult<MergeConflictDialog, ?> result = null;
     try
@@ -70,14 +72,14 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IMergeConflictResolutionDialogResult showMergeConflictResolutionDialog(@NotNull IMergeDiff pMergeDiff)
+  public @NotNull IMergeConflictResolutionDialogResult showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff)
   {
     DialogResult<MergeConflictResolutionDialog, ?> result = null;
     try
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
                                           "Conflict resolution for file "
-                                              + pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath(),
+                                              + pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getFilePath(),
                                           List.of(EButtons.ACCEPT_CHANGES, EButtons.CANCEL).toArray(new EButtons[0]));
       return new MergeConflictResulutionDialogResultImpl<>(result);
     }

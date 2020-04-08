@@ -2,9 +2,9 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.ColorPicker;
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.diff.EChangeStatus;
+import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
@@ -12,7 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Position;
+import javax.swing.text.View;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -112,23 +114,20 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
    * @param pEditorPane       JEditorPane that contains the text of the IFileChangeChunks
    * @param pFileChangesEvent most recent IFileChangesEvent
    */
-  private void _calculateButtonViewCoordinates(@NotNull JEditorPane pEditorPane, IFileChangesEvent pFileChangesEvent)
+  private void _calculateButtonViewCoordinates(@NotNull JEditorPane pEditorPane, IDeltaTextChangeEvent pFileChangesEvent)
   {
     List<IconInfo> iconInfos = new ArrayList<>();
     BufferedImage iconImage = new BufferedImage(_getSuggestedWidth(), pEditorPane.getHeight(), BufferedImage.TYPE_INT_ARGB);
     try
     {
       View view = pEditorPane.getUI().getRootView(pEditorPane);
-      int lineNumber = 0;
-      for (IFileChangeChunk fileChange : pFileChangesEvent.getNewValue())
+      List<IChangeDelta> changeDeltas = pFileChangesEvent.getFileDiff() == null ? List.of() : pFileChangesEvent.getFileDiff().getChangeDeltas();
+      for (IChangeDelta fileChange : changeDeltas)
       {
         // Chunks with type SAME have no buttons since contents are equal
-        if (fileChange.getChangeType() != EChangeType.SAME)
+        if (fileChange.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
         {
-          Element lineElement = pEditorPane.getDocument().getDefaultRootElement().getElement(lineNumber);
-          if (lineElement == null)
-            throw new BadLocationException("lineElement for line was null", lineNumber);
-          int characterStartOffset = lineElement.getStartOffset();
+          int characterStartOffset = fileChange.getStartTextIndex(model.getChangeSide());
           int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
                                                  Position.Bias.Forward, new Rectangle()).getBounds().y;
           if (acceptIcon != null)
@@ -139,7 +138,6 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
             iconInfos.add(new IconInfo(discardIcon, yViewCoordinate, discardChangeIconXVal, fileChange));
           }
         }
-        lineNumber += (fileChange.getEnd(model.getChangeSide()) - fileChange.getStart(model.getChangeSide()));
       }
       iconInfoList = iconInfos;
       Graphics graphics = iconImage.getGraphics();

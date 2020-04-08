@@ -4,7 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import de.adito.git.api.IFileSystemUtil;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.icon.MissingIcon;
 import org.apache.commons.io.FilenameUtils;

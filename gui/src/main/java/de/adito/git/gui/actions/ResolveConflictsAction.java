@@ -4,7 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EResetType;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
@@ -52,7 +55,7 @@ class ResolveConflictsAction extends AbstractTableAction
 
   private void _resolveConflicts(IRepository pRepo) throws AditoGitException
   {
-    List<IMergeDiff> conflicts;
+    List<IMergeData> conflicts;
     try
     {
       conflicts = pRepo.getConflicts();

@@ -1,9 +1,9 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
@@ -36,7 +36,6 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   private final Disposable fileChangeDisposable;
   private final Disposable editorKitDisposable;
   private final ScrollbarMarkingsModel scrollbarMarkingsModel;
-  private int cachedListHash = 0;
 
   /**
    * @param pModel DiffPanelModel that defines what is done when inserting text/how the LineNumbers are retrieved
@@ -64,15 +63,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     editorPane.setEditable(false);
     diffPane = new DiffPane(editorPane);
     fileChangeDisposable = model.getFileChangesObservable()
-        .subscribe(pFileChangesEvent -> {
-          if (pFileChangesEvent.isUpdateUI())
-          {
-            if (cachedListHash != System.identityHashCode(pFileChangesEvent.getNewValue()))
-              editorPane.setText("");
-            cachedListHash = System.identityHashCode(pFileChangesEvent.getNewValue());
-            _textChanged(pFileChangesEvent);
-          }
-        });
+        .subscribe(this::_textChanged);
     editorKitDisposable = pEditorKitObservable.subscribe(pOptEditorKit
                                                              -> pOptEditorKit.ifPresent(pEditorKit -> SwingUtilities.invokeLater(() -> _setEditorKit(pEditorKit))));
     MarkedScrollbar markedScrollbar = new MarkedScrollbar();
@@ -117,7 +108,8 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    */
   public void moveCaretToNextChunk(JTextComponent pTextPane)
   {
-    IFileChangeChunk nextChunk = IDiffPaneUtil.getNextChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
+    IChangeDelta nextChunk = IDiffPaneUtil.getNextDelta(editorPane, model.getFileChangesObservable().blockingFirst().getFileDiff().getChangeDeltas(),
+                                                        model.getChangeSide());
     _moveCaretToChunk(pTextPane, nextChunk);
   }
 
@@ -128,8 +120,9 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    */
   public void moveCaretToPreviousChunk(JTextComponent pTextPane)
   {
-    IFileChangeChunk previousChunk = IDiffPaneUtil.getPreviousChunk(editorPane, model.getFileChangesObservable().blockingFirst().getNewValue(), model.getChangeSide());
-    _moveCaretToChunk(pTextPane, previousChunk);
+    IChangeDelta previousDelta = IDiffPaneUtil.getPreviousDelta(editorPane, model.getFileChangesObservable().blockingFirst().getFileDiff().getChangeDeltas(),
+                                                                model.getChangeSide());
+    _moveCaretToChunk(pTextPane, previousDelta);
   }
 
   /**
@@ -138,10 +131,10 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    * @param pTextPane textPane that displays the other side of the diff
    * @param pChunk    chunk that the caret should be moved to
    */
-  private void _moveCaretToChunk(JTextComponent pTextPane, IFileChangeChunk pChunk)
+  private void _moveCaretToChunk(JTextComponent pTextPane, IChangeDelta pChunk)
   {
-    IDiffPaneUtil.moveCaretToChunk(editorPane, pChunk, model.getChangeSide());
-    IDiffPaneUtil.moveCaretToChunk(pTextPane, pChunk, model.getChangeSide() == EChangeSide.NEW ? EChangeSide.OLD : EChangeSide.NEW);
+    IDiffPaneUtil.moveCaretToDelta(editorPane, pChunk, model.getChangeSide());
+    IDiffPaneUtil.moveCaretToDelta(pTextPane, pChunk, model.getChangeSide() == EChangeSide.NEW ? EChangeSide.OLD : EChangeSide.NEW);
     editorPane.requestFocus();
   }
 
@@ -163,11 +156,11 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     getScrollPane().getVerticalScrollBar().setValue(0);
   }
 
-  private void _textChanged(IFileChangesEvent pChangesEvent)
+  private void _textChanged(IDeltaTextChangeEvent pTextChangeEvent)
   {
     // insert the text from the event
     TextHighlightUtil.insertColoredText(editorPane,
-                                        pChangesEvent,
+                                        pTextChangeEvent,
                                         model.getChangeSide());
     SwingUtilities.invokeLater(() -> {
       editorPane.revalidate();

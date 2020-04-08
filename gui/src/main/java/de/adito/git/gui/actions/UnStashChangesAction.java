@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.DialogResult;
@@ -70,7 +70,7 @@ class UnStashChangesAction extends AbstractAction
   private void _executeUnstash(IRepository pRepo, DialogResult<?, String> pDialogResult)
   {
     progressFacade.executeInBackground("unStashing changes", pHandle -> {
-      List<IMergeDiff> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
+      List<IMergeData> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
       if (!stashConflicts.isEmpty())
       {
         IMergeConflictDialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),

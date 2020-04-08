@@ -1,9 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IFileContentInfo;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.data.diff.fuzzing.IRandomGenerator;
 import de.adito.git.impl.data.diff.fuzzing.ProbabilityEventGenerator;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -67,14 +65,20 @@ public class FileDiffImplFuzzyTest
     {
       Pair<String, String> versions = _createVersions(random);
       EditList editList = LineIndexDiffUtil.getChangedLines(versions.getLeft(), versions.getRight(), RawTextComparator.WS_IGNORE_TRAILING);
-      FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(null, "old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE, "filea", "fileb");
+      IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);
+      IDiffPathInfo diffPathInfo = new DiffPathInfoImpl(null, "filea", "fileb");
+      FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails, ELineEnding.UNIX);
       IFileContentInfo oldFileContent = new FileContentInfoImpl(versions::getLeft, () -> StandardCharsets.UTF_8);
       IFileContentInfo newFileContent = new FileContentInfoImpl(versions::getRight, () -> StandardCharsets.UTF_8);
       FileDiffImpl fileDiff = new FileDiffImpl(fileDiffHeader, editList, oldFileContent, newFileContent);
       List<Integer> shuffledIntegerList = _createShuffledIntegerList(fileDiff.getChangeDeltas().size());
-      shuffledIntegerList.forEach(pIndex -> fileDiff.acceptDelta(fileDiff.getChangeDeltas().get(pIndex)));
+      for (Integer pIndex : shuffledIntegerList)
+      {
+        fileDiff.revertDelta(fileDiff.getChangeDeltas().get(pIndex));
+      }
+      final int currentIndex = index;
       assertEquals(versions.getLeft(), fileDiff.getText(EChangeSide.NEW), () ->
-          _getFailInfoString(seed, versions, shuffledIntegerList, fileDiff.getText(EChangeSide.NEW)));
+          _getFailInfoString(seed, currentIndex, versions, shuffledIntegerList, fileDiff.getText(EChangeSide.NEW)));
     }
   }
 
@@ -87,9 +91,9 @@ public class FileDiffImplFuzzyTest
    * @param pResult           result of accepting all changeDeltas
    * @return Information about a single fuzz test
    */
-  private String _getFailInfoString(int pSeed, Pair<String, String> pVersions, List<Integer> pAcceptDeltaOrder, String pResult)
+  private String _getFailInfoString(int pSeed, int pIndex, Pair<String, String> pVersions, List<Integer> pAcceptDeltaOrder, String pResult)
   {
-    return "Seed: " + pSeed
+    return "Seed: " + pSeed + ", Index: " + pIndex
         + "\n----------------------------------\nVersions:\n" + pVersions.getLeft()
         + "\n.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--\n" + pVersions.getRight()
         + "\n#######################################\nAcceptance order:" + pAcceptDeltaOrder

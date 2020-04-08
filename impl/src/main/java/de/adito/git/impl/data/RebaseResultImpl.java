@@ -1,7 +1,7 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.data.IMergeDiff;
 import de.adito.git.api.data.IRebaseResult;
+import de.adito.git.api.data.diff.IMergeData;
 import org.eclipse.jgit.api.RebaseResult;
 
 import java.util.List;
@@ -14,21 +14,21 @@ import java.util.List;
 public class RebaseResultImpl implements IRebaseResult
 {
 
-  private List<IMergeDiff> conflicts;
+  private List<IMergeData> conflicts;
   private RebaseResult.Status status;
 
   /**
-   * @param pConflicts List with IMergeDiffs describing the conflicts
+   * @param pConflicts List with IMergeDatas describing the conflicts
    * @param pStatus    the status of the undertaken Rebase operation
    */
-  public RebaseResultImpl(List<IMergeDiff> pConflicts, RebaseResult.Status pStatus)
+  public RebaseResultImpl(List<IMergeData> pConflicts, RebaseResult.Status pStatus)
   {
     conflicts = pConflicts;
     status = pStatus;
   }
 
   @Override
-  public List<IMergeDiff> getMergeConflicts()
+  public List<IMergeData> getMergeConflicts()
   {
     return conflicts;
   }

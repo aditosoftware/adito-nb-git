@@ -1,6 +1,6 @@
 package de.adito.git.gui;
 
-import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.gui.tablemodels.StatusTableModel;
 
 import javax.swing.*;

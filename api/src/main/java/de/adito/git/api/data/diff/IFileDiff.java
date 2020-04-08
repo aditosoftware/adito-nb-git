@@ -1,6 +1,7 @@
 package de.adito.git.api.data.diff;
 
 import de.adito.git.api.IRepository;
+import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,12 +51,25 @@ public interface IFileDiff extends IFileChangeType
   void reset();
 
   /**
-   * Accepts the changes introduced by the given Delta
+   * @return Observable that fires events with information about changes that need to happen to keep a textdocument up to date with the diff data
+   */
+  Observable<IDeltaTextChangeEvent> getDiffTextChangeObservable();
+
+  /**
+   * Accepts the changes introduced by the given Delta (applies changes from NEW side to OLD side)
    *
    * @param pChangeDelta ChangeDelta to accept
    * @return Event describing the changes done to the new side of the diff
    */
-  IDeltaTextChangeEvent acceptDelta(IChangeDelta pChangeDelta);
+  List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta);
+
+  /**
+   * Reverts the changes introduced by the given Delta (applies changes from OLD side to NEW side)
+   *
+   * @param pChangeDelta ChangeDelta to accept
+   * @return Event describing the changes done to the new side of the diff
+   */
+  List<IDeltaTextChangeEvent> revertDelta(IChangeDelta pChangeDelta);
 
   /**
    * Discards the changes introduced by the given Delta
@@ -65,14 +79,14 @@ public interface IFileDiff extends IFileChangeType
   void discardDelta(IChangeDelta pChangeDelta);
 
   /**
-   * Incorporates the changes done in the DocumentEvent into this diff (Note: changes all deltas that are on an affected line to status "UNDEFINED"
+   * Incorporates the changes done in the DocumentEvent into this diff
    * The text should be filtered in such a way that it contains only \n as newlines (indices still have to match)
-   *
-   * @param pOffset offset from the start of the text to where the change begins
+   *  @param pOffset offset from the start of the text to where the change begins
    * @param pLength length of the changed block, 0 for insert
    * @param pText   inserted text, null for a removal operation. If this is an empty insert, use ""
+   * @param pChangeSide Side of the change that the text was inserted in
    */
-  void processTextEvent(int pOffset, int pLength, @Nullable String pText);
+  void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide);
 
   /**
    * Get the text for one side of this diff
@@ -81,6 +95,14 @@ public interface IFileDiff extends IFileChangeType
    * @return Text if the passed side, up-to-date if any deltas were accepted
    */
   String getText(EChangeSide pChangeSide);
+
+  /**
+   * Mark all changeDeltas as conflicting that clash with any of the changeDeltas from the other IFileDiff
+   * Intended direction of the changes here is always NEW -> OLD (so the old version of the text between the IFileDiffs should be the same)
+   *
+   * @param pOtherFileDiff IFileDiff for which to mark conflicting changes
+   */
+  void markConflicting(IFileDiff pOtherFileDiff);
 
   /**
    * checks if the IFileDiff matches the filePath, works with renames

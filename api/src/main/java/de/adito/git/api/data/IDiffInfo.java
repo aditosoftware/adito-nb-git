@@ -1,5 +1,6 @@
 package de.adito.git.api.data;
 
+import de.adito.git.api.data.diff.IFileChangeType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

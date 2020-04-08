@@ -1,7 +1,7 @@
 package de.adito.git.api.data.diff;
 
 /**
- * Represents which side of the conflict should be chosen for some of the operations in the IMergeDiff
+ * Represents which side of the conflict should be chosen for some of the operations in the IMergeData
  * YOURS: The "local" side of the conflict
  * THEIRS: The "remote" side of the conflict
  *

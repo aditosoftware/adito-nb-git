@@ -10,7 +10,7 @@ public enum EChangeStatus
   /**
    * Change was not accepted or discarded yet
    */
-  PEDNING,
+  PENDING,
   /**
    * Change has been accepted
    */

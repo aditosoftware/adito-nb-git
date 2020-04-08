@@ -2,7 +2,10 @@ package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.TextPaneUtil;
@@ -43,7 +46,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   private static final int THROTTLE_LATEST_TIMER = 500;
   private final Observable<Optional<IRepository>> repository;
   private final JTextComponent targetEditor;
-  private Observable<List<IFileChangeChunk>> chunkObservable;
+  private Observable<List<IChangeDelta>> chunkObservable;
   private final JViewport editorViewPort;
   private CompositeDisposable disposable = new CompositeDisposable();
   private File file;
@@ -115,7 +118,7 @@ class EditorColorizer extends JPanel implements IDiscardable
               EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
               // No changes if added or new, because the file can not be diffed -> not in index
               if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
-                return new ArrayList<IFileChangeChunk>();
+                return new ArrayList<IChangeDelta>();
               return repo.diff(pText, file);
             }
             catch (Exception pE)
@@ -123,7 +126,7 @@ class EditorColorizer extends JPanel implements IDiscardable
               // do nothing on error, the EditorColorizer should just show nothing in that case
             }
           }
-          return new ArrayList<IFileChangeChunk>();
+          return new ArrayList<IChangeDelta>();
         })
         .replay(1)
         .autoConnect(0, disposable::add)
@@ -152,7 +155,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     BufferedImage image = new BufferedImage(COLORIZER_WIDTH, Math.max(1, pHeight), BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = (Graphics2D) image.getGraphics();
     pChangeList.forEach(change -> {
-      if (change.changeChunk.getChangeType() == EChangeType.DELETE)
+      if (change.changeChunk.getChangeStatus().getChangeType() == EChangeType.DELETE)
       {
         int y = change.rectangle.y;
         g.drawImage(rightArrow.getImage(), 0, y, COLORIZER_WIDTH, y + COLORIZER_WIDTH, 0, 0, rightArrow.getIconWidth(), rightArrow.getIconHeight(), null);
@@ -169,13 +172,13 @@ class EditorColorizer extends JPanel implements IDiscardable
   /**
    * Shows a popup via the way they are normally shown: By sending a mouseEvent
    *
-   * @param pChangeChunk for which a ChunkWindowPopup should be shown
+   * @param pChangeDelta for which a ChunkWindowPopup should be shown
    */
-  void showPopupForChunk(IFileChangeChunk pChangeChunk) throws BadLocationException
+  void showPopupForDelta(IChangeDelta pChangeDelta) throws BadLocationException
   {
-    if (pChangeChunk != null)
+    if (pChangeDelta != null)
     {
-      int offset = targetEditor.getDocument().getDefaultRootElement().getElement(pChangeChunk.getStart(EChangeSide.NEW)).getStartOffset();
+      int offset = pChangeDelta.getStartTextIndex(EChangeSide.NEW);
       MouseEvent mouseEvent = new MouseEvent(this, 0, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, 0,
                                              targetEditor.getUI().getRootView(targetEditor)
                                                  .modelToView(offset, new Rectangle(), Position.Bias.Forward)
@@ -190,13 +193,13 @@ class EditorColorizer extends JPanel implements IDiscardable
 
 
   @NotNull
-  private List<_ChangeHolder> _calculateRectangles(JTextComponent pTarget, List<IFileChangeChunk> pChunkList)
+  private List<_ChangeHolder> _calculateRectangles(JTextComponent pTarget, List<IChangeDelta> pDeltaList)
   {
     List<EditorColorizer._ChangeHolder> newChangeList = new ArrayList<>();
     try
     {
       LineNumber[] lineNumberPositions = TextPaneUtil.calculateLineYPositions(pTarget, pTarget.getUI().getRootView(pTarget));
-      for (IFileChangeChunk chunk : pChunkList)
+      for (IChangeDelta chunk : pDeltaList)
       {
         _ChangeHolder changeHolder = _calculateRec(pTarget, chunk, lineNumberPositions);
         newChangeList.add(changeHolder);
@@ -215,20 +218,20 @@ class EditorColorizer extends JPanel implements IDiscardable
    * @param pLineNumberPositions Array with LineNumbers, giving the y Location of each line
    */
   @NotNull
-  private _ChangeHolder _calculateRec(JTextComponent pTarget, IFileChangeChunk pChange, LineNumber[] pLineNumberPositions)
+  private _ChangeHolder _calculateRec(JTextComponent pTarget, IChangeDelta pChange, LineNumber[] pLineNumberPositions)
   {
     int startLine = 0;
     int endLine = 0;
-    switch (pChange.getChangeType())
+    switch (pChange.getChangeStatus().getChangeType())
     {
       case MODIFY:
       case ADD:
-        startLine = pChange.getStart(EChangeSide.NEW);
-        endLine = pChange.getEnd(EChangeSide.NEW);
+        startLine = pChange.getStartLine(EChangeSide.NEW);
+        endLine = pChange.getEndLine(EChangeSide.NEW);
         break;
       case DELETE:
-        startLine = pChange.getEnd(EChangeSide.NEW);
-        endLine = pChange.getEnd(EChangeSide.NEW);
+        startLine = pChange.getEndLine(EChangeSide.NEW);
+        endLine = pChange.getEndLine(EChangeSide.NEW);
         break;
       default:
         break;
@@ -258,13 +261,13 @@ class EditorColorizer extends JPanel implements IDiscardable
   {
     final Rectangle rectangle;
     final Color color;
-    final IFileChangeChunk changeChunk;
+    final IChangeDelta changeChunk;
 
-    _ChangeHolder(Rectangle pRectangle, IFileChangeChunk pChangeChunk)
+    _ChangeHolder(Rectangle pRectangle, IChangeDelta pChangeDelta)
     {
       rectangle = pRectangle;
-      color = pChangeChunk.getChangeType().getDiffColor();
-      changeChunk = pChangeChunk;
+      color = pChangeDelta.getChangeStatus().getChangeType().getDiffColor();
+      changeChunk = pChangeDelta;
     }
   }
 

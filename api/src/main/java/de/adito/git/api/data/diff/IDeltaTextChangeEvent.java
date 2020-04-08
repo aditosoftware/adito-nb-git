@@ -1,5 +1,7 @@
 package de.adito.git.api.data.diff;
 
+import org.jetbrains.annotations.Nullable;
+
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -41,5 +43,14 @@ public interface IDeltaTextChangeEvent
    * @throws BadLocationException if the changeEvent cannot be inserted into the document (due to length or similar)
    */
   void apply(Document pDocument) throws BadLocationException;
+
+  @Nullable
+  EChangeSide getSide();
+
+  /**
+   * @return the fileDiff that triggered this event
+   */
+  @Nullable
+  IFileDiff getFileDiff();
 
 }

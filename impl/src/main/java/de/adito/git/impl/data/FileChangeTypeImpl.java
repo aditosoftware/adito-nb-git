@@ -1,8 +1,8 @@
 package de.adito.git.impl.data;
 
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

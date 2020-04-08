@@ -50,14 +50,18 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
   }
 
   @Override
-  public ILinePartChangeDelta applyOffset(int pTextOffset)
+  public ILinePartChangeDelta applyOffset(int pTextOffset, EChangeSide pChangeSide)
   {
-    return new LinePartChangeDeltaImpl(changeType, new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew));
+    int textOffsetOld = pChangeSide == EChangeSide.OLD ? pTextOffset : 0;
+    int textOffsetNew = pChangeSide == EChangeSide.NEW ? pTextOffset : 0;
+    return new LinePartChangeDeltaImpl(changeType, new ChangeDeltaTextOffsets(startTextIndexOld + textOffsetOld, endTextIndexOld + textOffsetOld,
+                                                                              startTextIndexNew + textOffsetNew, endTextIndexNew + textOffsetNew));
   }
 
   @Override
   public boolean isConflictingWith(ILinePartChangeDelta pLinePartChangeDelta)
   {
-    return pLinePartChangeDelta.getStartTextIndex(EChangeSide.OLD) < endTextIndexOld && pLinePartChangeDelta.getEndTextIndex(EChangeSide.OLD) > startTextIndexOld;
+    return (pLinePartChangeDelta.getStartTextIndex(EChangeSide.OLD) < endTextIndexOld && pLinePartChangeDelta.getEndTextIndex(EChangeSide.OLD) > startTextIndexOld)
+        || pLinePartChangeDelta.getStartTextIndex(EChangeSide.OLD) == endTextIndexOld && pLinePartChangeDelta.getEndTextIndex(EChangeSide.OLD) == startTextIndexOld;
   }
 }

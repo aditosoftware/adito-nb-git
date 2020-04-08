@@ -61,4 +61,43 @@ public interface IFileDiffHeader
   @Nullable
   String getAbsoluteFilePath();
 
+  IFileDiffHeader EMPTY_HEADER = new IFileDiffHeader()
+  {
+    @Override
+    public @NotNull String getId(@NotNull EChangeSide pSide)
+    {
+      return "";
+    }
+
+    @Override
+    public @NotNull EChangeType getChangeType()
+    {
+      return EChangeType.MODIFY;
+    }
+
+    @Override
+    public @NotNull EFileType getFileType(@NotNull EChangeSide pSide)
+    {
+      return EFileType.FILE;
+    }
+
+    @Override
+    public String getFilePath(@NotNull EChangeSide pChangeSide)
+    {
+      return "";
+    }
+
+    @Override
+    public String getFilePath()
+    {
+      return "";
+    }
+
+    @Override
+    public @Nullable String getAbsoluteFilePath()
+    {
+      return null;
+    }
+  };
+
 }

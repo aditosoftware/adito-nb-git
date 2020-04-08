@@ -5,7 +5,10 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EResetType;
+import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AlreadyUpToDateAditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
@@ -74,7 +77,7 @@ class MergeAction extends AbstractTableAction
         return;
       }
       pProgressHandle.setDescription("Merging branches");
-      List<IMergeDiff> mergeConflictDiffs = repository.merge(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch(),
+      List<IMergeData> mergeConflictDiffs = repository.merge(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch(),
                                                              pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {

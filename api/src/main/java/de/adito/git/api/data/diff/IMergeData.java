@@ -36,10 +36,8 @@ public interface IMergeData
    *
    * @param acceptedDelta the change that should be accepted and added to the fork-point commit
    * @param conflictSide  CONFLICT_SIDE from which the chunk originates
-   * @return Event describing the changes done to the new side of the diff, can be used to keep a text/editorPane in sync with the ForkPoint diff
    */
-  @NotNull
-  IDeltaTextChangeEvent acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide);
+  void acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide);
 
   /**
    * discards the specified changes by the given chunk
@@ -62,5 +60,10 @@ public interface IMergeData
    * @param offset the offset of the place of insertion from the beginning of the document
    */
   void modifyText(@Nullable String text, int length, int offset);
+
+  /**
+   * goes through the changes and marks all changes that conflict with a change from the other side as conflicting
+   */
+  void markConflicting();
 
 }

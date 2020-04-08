@@ -3,7 +3,11 @@ package de.adito.git.gui.dialogs;
 import com.google.common.collect.Multimap;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EResetType;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.Observable;
@@ -26,13 +30,13 @@ public interface IDialogProvider
    * Shows a dialog that shows a list of conflicting files and has options to solve those conflict
    *
    * @param pRepository         Observable with the current Repository
-   * @param pMergeConflictDiffs List of IMergeDiffs detailing the conflicting files
+   * @param pMergeConflictDiffs List of IMergeDatas detailing the conflicting files
    * @param pOnlyConflicting    true if only files with status conflicting should be shown
    * @param pDialogTitle        Optional title for the dialog, only the first passed String is used
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IMergeConflictDialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeDiff> pMergeConflictDiffs,
+  IMergeConflictDialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeData> pMergeConflictDiffs,
                                                      boolean pOnlyConflicting, String... pDialogTitle);
 
   /**
@@ -42,7 +46,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IMergeConflictResolutionDialogResult showMergeConflictResolutionDialog(@NotNull IMergeDiff pMergeDiff);
+  IMergeConflictResolutionDialogResult showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff);
 
   /**
    * Shows a dialog which show which changes happened to a file, based on the IFileDiffs

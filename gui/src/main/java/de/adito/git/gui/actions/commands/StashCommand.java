@@ -1,7 +1,7 @@
 package de.adito.git.gui.actions.commands;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
@@ -27,7 +27,7 @@ public class StashCommand
   public static void doUnStashing(IDialogProvider pDialogProvider, String pStashedCommitId, Observable<Optional<IRepository>> pRepository)
   {
     pRepository.blockingFirst().ifPresent(pRepo -> {
-      List<IMergeDiff> stashConflicts;
+      List<IMergeData> stashConflicts;
       try
       {
         stashConflicts = pRepo.unStashChanges(pStashedCommitId);

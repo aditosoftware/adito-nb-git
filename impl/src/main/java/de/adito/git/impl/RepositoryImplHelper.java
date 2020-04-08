@@ -3,9 +3,13 @@ package de.adito.git.impl;
 import com.google.common.collect.Iterators;
 import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
+import de.adito.git.impl.data.diff.MergeDataImpl;
 import de.adito.git.impl.revfilters.StashCommitFilter;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -215,12 +219,12 @@ public class RepositoryImplHelper
    * @param pConflicts     Strings of files that are in conflict
    * @param pStashCommitId id of the stashed commit that had a conflict
    * @param pDiffFn        BiFunction for diffing two commits
-   * @return List of IMergeDiff with the diffs of merge-base to the two heads
+   * @return List of IMergeData with the diffs of merge-base to the two heads
    * @throws IOException       JGit exception
    * @throws AditoGitException if no commit fitting the ID can be found
    */
   @NotNull
-  static List<IMergeDiff> getStashConflictMerge(@NotNull Git pGit, @NotNull Set<String> pConflicts, String pStashCommitId,
+  static List<IMergeData> getStashConflictMerge(@NotNull Git pGit, @NotNull Set<String> pConflicts, String pStashCommitId,
                                                 @NotNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFn)
       throws IOException, AditoGitException
   {
@@ -230,7 +234,7 @@ public class RepositoryImplHelper
     RevCommit headCommit = pGit.getRepository().parseCommit(pGit.getRepository().resolve(Constants.HEAD));
     RevCommit mergeBase = RepositoryImplHelper.getMergeBase(pGit, toUnstash,
                                                             headCommit);
-    List<IMergeDiff> mergeConflicts = new ArrayList<>();
+    List<IMergeData> mergeConflicts = new ArrayList<>();
     ICommit stashCommit = new CommitImpl(toUnstash);
     ICommit parentBranchCommit = new CommitImpl(headCommit);
     List<IFileDiff> parentDiffList = pDiffFn.apply(parentBranchCommit, new CommitImpl(mergeBase));
@@ -244,7 +248,7 @@ public class RepositoryImplHelper
         {
           if (toMergeDiff.getFileHeader().getFilePath().equals(parentDiff.getFileHeader().getFilePath()))
           {
-            mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
+            mergeConflicts.add(new MergeDataImpl(parentDiff, toMergeDiff));
           }
         }
       }
@@ -332,15 +336,15 @@ public class RepositoryImplHelper
    * @param pBranchToMerge Identifier for the branch that should be merged into the current one
    * @param pForkCommit    the commit where the branches of the two commits diverged
    * @param pConflicts     Set of Strings (filePaths) that give the files with conflicts that occurred during the merge
-   * @return List<IMergeDiff> describing the changes from the fork commit to each branch
+   * @return List<IMergeData> describing the changes from the fork commit to each branch
    * @throws AditoGitException if JGit encountered an error condition
    */
   @NotNull
-  static List<IMergeDiff> getMergeConflicts(@NotNull Git pGit, String pCurrentBranch, String pBranchToMerge,
+  static List<IMergeData> getMergeConflicts(@NotNull Git pGit, String pCurrentBranch, String pBranchToMerge,
                                             ICommit pForkCommit, Set<String> pConflicts,
                                             BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFunction) throws AditoGitException
   {
-    List<IMergeDiff> mergeConflicts = new ArrayList<>();
+    List<IMergeData> mergeConflicts = new ArrayList<>();
     ICommit parentBranchCommit;
     ICommit toMergeCommit;
     try
@@ -356,13 +360,15 @@ public class RepositoryImplHelper
     List<IFileDiff> toMergeDiffList = pDiffFunction.apply(toMergeCommit, pForkCommit);
     for (IFileDiff parentDiff : parentDiffList)
     {
-      if (parentDiff.getFileHeader().getChangeType() != EChangeType.COPY && pConflicts.stream().anyMatch(pConflictFile -> IFileDiff.isSameFile(pConflictFile, parentDiff)))
+      if (parentDiff.getFileHeader().getChangeType() != EChangeType.COPY && pConflicts
+          .stream()
+          .anyMatch(pConflictFile -> IFileDiff.isSameFile(pConflictFile, parentDiff)))
       {
         for (IFileDiff toMergeDiff : toMergeDiffList)
         {
           if (toMergeDiff.getFileHeader().getChangeType() != EChangeType.COPY && IFileDiff.isSameFile(toMergeDiff, parentDiff))
           {
-            mergeConflicts.add(new MergeDiffImpl(parentDiff, toMergeDiff));
+            mergeConflicts.add(new MergeDataImpl(parentDiff, toMergeDiff));
           }
         }
       }

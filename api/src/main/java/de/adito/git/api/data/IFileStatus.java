@@ -1,6 +1,10 @@
 package de.adito.git.api.data;
 
-import java.util.*;
+import de.adito.git.api.data.diff.IFileChangeType;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface that defines the methods that describe the current status of a git repository

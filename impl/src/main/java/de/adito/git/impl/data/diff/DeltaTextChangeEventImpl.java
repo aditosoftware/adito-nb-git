@@ -1,6 +1,9 @@
 package de.adito.git.impl.data.diff;
 
+import de.adito.git.api.data.diff.EChangeSide;
 import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
+import de.adito.git.api.data.diff.IFileDiff;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -14,12 +17,21 @@ public class DeltaTextChangeEventImpl implements IDeltaTextChangeEvent
   private final int offset;
   private final int length;
   private final String text;
+  private final IFileDiff fileDiff;
+  private final EChangeSide changeSide;
 
-  public DeltaTextChangeEventImpl(int pOffset, int pLength, String pText)
+  public DeltaTextChangeEventImpl(int pOffset, int pLength, String pText, IFileDiff pFileDiff)
+  {
+    this(pOffset, pLength, pText, pFileDiff, null);
+  }
+
+  public DeltaTextChangeEventImpl(int pOffset, int pLength, String pText, IFileDiff pFileDiff, EChangeSide pChangeSide)
   {
     offset = pOffset;
     length = pLength;
     text = pText;
+    fileDiff = pFileDiff;
+    changeSide = pChangeSide;
   }
 
   @Override
@@ -65,5 +77,19 @@ public class DeltaTextChangeEventImpl implements IDeltaTextChangeEvent
       }
       pDocument.insertString(offset, text, null);
     }
+  }
+
+  @Nullable
+  @Override
+  public EChangeSide getSide()
+  {
+    return changeSide;
+  }
+
+  @Nullable
+  @Override
+  public IFileDiff getFileDiff()
+  {
+    return fileDiff;
   }
 }

@@ -4,7 +4,8 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
@@ -37,13 +38,13 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final IDialogProvider dialogProvider;
   private IDialogDisplayer.IDescriptor isValidDescriptor;
   private IRepository repository;
-  private final Subject<List<IMergeDiff>> mergeConflictDiffs;
+  private final Subject<List<IMergeData>> mergeConflictDiffs;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final JTable mergeConflictTable = new JTable();
   private final JButton manualMergeButton = new JButton("Manual Merge");
   private final JButton acceptYoursButton = new JButton("Accept Yours");
   private final JButton acceptTheirsButton = new JButton("Accept Theirs");
-  private final Observable<Optional<List<IMergeDiff>>> selectedMergeDiffObservable;
+  private final Observable<Optional<List<IMergeData>>> selectedMergeDiffObservable;
   private final MergeDiffStatusModel mergeDiffStatusModel;
   private final Disposable disposable;
   private final Disposable selectionDisposable;
@@ -51,7 +52,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   @Inject
   MergeConflictDialog(IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeDiff> pMergeConflictDiffs, @Assisted boolean pOnlyConflicting)
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeData> pMergeConflictDiffs, @Assisted boolean pOnlyConflicting)
   {
     dialogProvider = pDialogProvider;
     isValidDescriptor = pIsValidDescriptor;
@@ -60,12 +61,12 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
     mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
     Observable<Optional<IFileStatus>> obs = repository.getStatus();
-    Observable<List<IMergeDiff>> mergeDiffListObservable = Observable
+    Observable<List<IMergeData>> mergeDiffListObservable = Observable
         .combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
             .filter(pMergeDiff -> !pOnlyConflicting || pStatus
                 .map(IFileStatus::getConflicting)
                 .orElse(Collections.emptySet())
-                .stream().anyMatch(pFilePath -> IFileDiff.isSameFile(pFilePath, pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS))))
+                .stream().anyMatch(pFilePath -> IFileDiff.isSameFile(pFilePath, pMergeDiff.getDiff(EConflictSide.YOURS))))
             .collect(Collectors.toList()));
     selectedMergeDiffObservable = Observable
         .combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
@@ -75,7 +76,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
             return Optional.empty();
             // if no element is selected (and at least one element is in the list, this follows from the if above)
           }
-          List<IMergeDiff> selectedMergeDiffs = new ArrayList<>();
+          List<IMergeData> selectedMergeDiffs = new ArrayList<>();
           for (Integer pSelectedRow : pSelectedRows)
           {
             if (pSelectedRow < pMergeDiffList.size())
@@ -100,8 +101,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
     manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable));
-    acceptYoursButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, IMergeDiff.CONFLICT_SIDE.YOURS));
-    acceptTheirsButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, IMergeDiff.CONFLICT_SIDE.THEIRS));
+    acceptYoursButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS));
+    acceptTheirsButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS));
     manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
@@ -123,27 +124,32 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   }
 
   /**
-   * @param pSelectedMergeDiffObservable Observable optional list (should be of size 1) of IMergeDiffs whose conflicts should be manually resolved
+   * @param pSelectedMergeDiffObservable Observable optional list (should be of size 1) of IMergeDatas whose conflicts should be manually resolved
    */
-  private void _doManualResolve(Observable<Optional<List<IMergeDiff>>> pSelectedMergeDiffObservable)
+  private void _doManualResolve(Observable<Optional<List<IMergeData>>> pSelectedMergeDiffObservable)
   {
-    Optional<List<IMergeDiff>> mergeDiffOptional = pSelectedMergeDiffObservable.blockingFirst();
-    mergeDiffOptional.ifPresent(iMergeDiffs -> {
-      if (iMergeDiffs.size() == 1 && dialogProvider.showMergeConflictResolutionDialog(iMergeDiffs.get(0)).isAcceptChanges())
-        _acceptManualVersion(iMergeDiffs.get(0));
+    Optional<List<IMergeData>> mergeDiffOptional = pSelectedMergeDiffObservable.blockingFirst();
+    mergeDiffOptional.ifPresent(pMergeDatas -> {
+      if (pMergeDatas.size() == 1)
+      {
+        if (dialogProvider.showMergeConflictResolutionDialog(pMergeDatas.get(0)).isAcceptChanges())
+          _acceptManualVersion(pMergeDatas.get(0));
+        else
+          pMergeDatas.get(0).reset();
+      }
     });
   }
 
   /**
-   * @param pSelectedMergeDiff Observable optional of the list of selected IMergeDiffs
-   * @param pConflictSide      Side of the IMergeDiffs that should be accepted
+   * @param pSelectedMergeDiff Observable optional of the list of selected IMergeDatas
+   * @param pConflictSide      Side of the IMergeDatas that should be accepted
    */
-  private void _acceptDefaultVersion(Observable<Optional<List<IMergeDiff>>> pSelectedMergeDiff, IMergeDiff.CONFLICT_SIDE pConflictSide)
+  private void _acceptDefaultVersion(Observable<Optional<List<IMergeData>>> pSelectedMergeDiff, EConflictSide pConflictSide)
   {
-    Optional<List<IMergeDiff>> mergeDiffOptional = pSelectedMergeDiff.blockingFirst();
+    Optional<List<IMergeData>> mergeDiffOptional = pSelectedMergeDiff.blockingFirst();
     if (mergeDiffOptional.isPresent())
     {
-      for (IMergeDiff selectedMergeDiff : mergeDiffOptional.get())
+      for (IMergeData selectedMergeDiff : mergeDiffOptional.get())
       {
         String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
         if (path != null)
@@ -174,54 +180,44 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
    * @param selectedMergeDiff the mergeDiff that should be resolved
    * @param pSelectedFile     File that this mergeDiff is for
    */
-  private void _saveVersion(IMergeDiff.CONFLICT_SIDE pConflictSide, IMergeDiff selectedMergeDiff, File pSelectedFile)
+  private void _saveVersion(EConflictSide pConflictSide, IMergeData selectedMergeDiff, File pSelectedFile)
   {
-    StringBuilder fileContents = new StringBuilder();
-    for (IFileChangeChunk changeChunk : selectedMergeDiff.getDiff(pConflictSide).getFileChanges().getChangeChunks().blockingFirst().getNewValue())
-    {
-      fileContents.append(changeChunk.getLines(EChangeSide.NEW));
-    }
+    String fileContents = selectedMergeDiff.getDiff(pConflictSide).getText(EChangeSide.OLD);
     logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", pSelectedFile.getAbsolutePath(),
                                                selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW)));
-    _writeToFile(fileContents.toString(), selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, pSelectedFile);
+    _writeToFile(fileContents, selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, pSelectedFile);
   }
 
   /**
-   * @param pMergeDiff IMergeDiff whose conflicts were resolved
+   * @param pMergeDiff IMergeData whose conflicts were resolved
    */
-  private void _acceptManualVersion(IMergeDiff pMergeDiff)
+  private void _acceptManualVersion(IMergeData pMergeDiff)
   {
-    String path = pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getAbsoluteFilePath();
+    String path = pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getAbsoluteFilePath();
     if (path != null)
     {
-      File selectedFile = new File(repository.getTopLevelDirectory(), pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getFilePath());
-      StringBuilder fileContents = new StringBuilder();
-      for (IFileChangeChunk changeChunk : pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileChanges()
-          .getChangeChunks().blockingFirst().getNewValue())
-      {
-        // use "OLD" side here since the fork-point is the final result in the manual version
-        fileContents.append(changeChunk.getLines(EChangeSide.OLD));
-      }
+      File selectedFile = new File(repository.getTopLevelDirectory(), pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getFilePath());
+      String fileContents = pMergeDiff.getDiff(EConflictSide.YOURS).getText(EChangeSide.NEW);
       logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path,
-                                                 pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getEncoding(EChangeSide.NEW)));
-      _writeToFile(fileContents.toString(), pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getEncoding(EChangeSide.OLD), pMergeDiff, selectedFile);
+                                                 pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.NEW)));
+      _writeToFile(fileContents, pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.OLD), pMergeDiff, selectedFile);
     }
   }
 
   /**
    * @param pFileContents      Contents that should be written to the file
    * @param pCharset           Charset used to write pFileContents to disk (gets transferred from String to byte array)
-   * @param pSelectedMergeDiff IMergeDiff that will get resolved by writing the contents to the file
+   * @param pSelectedMergeDiff IMergeData that will get resolved by writing the contents to the file
    * @param pSelectedFile      file which should be overridden with pFileContents
    */
-  private void _writeToFile(String pFileContents, Charset pCharset, IMergeDiff pSelectedMergeDiff, File pSelectedFile)
+  private void _writeToFile(String pFileContents, Charset pCharset, IMergeData pSelectedMergeDiff, File pSelectedFile)
   {
     if (!pSelectedFile.exists())
       pSelectedFile.getParentFile().mkdirs();
     try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pSelectedFile, false), pCharset))
     {
       writer.write(pFileContents);
-      List<IMergeDiff> mergeDiffs = mergeConflictDiffs.blockingFirst();
+      List<IMergeData> mergeDiffs = mergeConflictDiffs.blockingFirst();
       mergeDiffs.remove(pSelectedMergeDiff);
       mergeConflictDiffs.onNext(mergeDiffs);
     }

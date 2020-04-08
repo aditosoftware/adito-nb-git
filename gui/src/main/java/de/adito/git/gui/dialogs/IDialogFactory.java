@@ -3,7 +3,10 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -22,9 +25,9 @@ interface IDialogFactory
 {
 
   MergeConflictDialog createMergeConflictDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                                                Observable<Optional<IRepository>> pRepository, List<IMergeDiff> pMergeConflictDiffs, boolean pOnlyConflicting);
+                                                Observable<Optional<IRepository>> pRepository, List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting);
 
-  MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeDiff pMergeDiff);
+  MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeData pMergeDiff);
 
   CommitDialog createCommitDialog(@NotNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
                                   @NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,

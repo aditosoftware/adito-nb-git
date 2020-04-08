@@ -1,5 +1,7 @@
 package de.adito.git.api.data;
 
+import de.adito.git.api.data.diff.IMergeData;
+
 import java.util.List;
 
 /**
@@ -22,7 +24,7 @@ public interface IRebaseResult
   enum ResultType
   {FINISHED, ABORTED, UP_TO_DATE, STOPPED, FAILED, EXISTING_CONFLICTS, FAST_FORWARD}
 
-  List<IMergeDiff> getMergeConflicts();
+  List<IMergeData> getMergeConflicts();
 
   ResultType getResultType();
 

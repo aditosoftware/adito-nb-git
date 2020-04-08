@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.tree.models.ObservableTreeUpdater;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;

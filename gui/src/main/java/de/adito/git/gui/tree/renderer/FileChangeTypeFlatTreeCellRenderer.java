@@ -1,8 +1,8 @@
 package de.adito.git.gui.tree.renderer;
 
 import de.adito.git.api.IFileSystemUtil;
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 

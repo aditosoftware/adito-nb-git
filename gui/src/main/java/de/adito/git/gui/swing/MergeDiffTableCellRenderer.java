@@ -1,8 +1,6 @@
 package de.adito.git.gui.swing;
 
-import de.adito.git.api.data.EChangeSide;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IMergeDiff;
+import de.adito.git.api.data.diff.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -12,7 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Renderer that colors the columns of a table with IMergeDiffs according to the following schema:
+ * Renderer that colors the columns of a table with IMergeDatas according to the following schema:
  * FilePath/Name are colored white if the changeType is different for the two sides. If they are the same, they are colored the same way as the changeTypes
  * Columnm 3 and 4, containing the changeTypes for the YOURS and THEIRS version of the conflict are always colored according to their changeType
  *
@@ -26,7 +24,7 @@ public class MergeDiffTableCellRenderer extends DefaultTableCellRenderer
   @Override
   public Component getTableCellRendererComponent(JTable pTable, Object pValue, boolean pIsSelected, boolean pHasFocus, int pRowIndex, int pColumnIndex)
   {
-    IMergeDiff mergeDiff = (IMergeDiff) pValue;
+    IMergeData mergeDiff = (IMergeData) pValue;
     // Text in cells is always displayed as label
     JLabel label = new JLabel(_getStringRepresenation(mergeDiff, pColumnIndex));
     if (!pIsSelected)
@@ -43,18 +41,18 @@ public class MergeDiffTableCellRenderer extends DefaultTableCellRenderer
   /**
    * Determines the color with which the text for the given column should be in
    *
-   * @param pMergeDiff   IMergeDiff with informations about a conflicting file
+   * @param pMergeDiff   IMergeData with informations about a conflicting file
    * @param pColumnIndex index, determines which information is used to determine the color
    * @return Color to be used as foreground color for the given column
    */
-  private static Color _getForeground(IMergeDiff pMergeDiff, int pColumnIndex)
+  private static Color _getForeground(IMergeData pMergeDiff, int pColumnIndex)
   {
     if (pColumnIndex <= 1)
     {
-      if (pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getChangeType() ==
-          pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileHeader().getChangeType())
+      if (pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getChangeType() ==
+          pMergeDiff.getDiff(EConflictSide.THEIRS).getFileHeader().getChangeType())
       {
-        return pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getChangeType().getStatusColor();
+        return pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getChangeType().getStatusColor();
       }
       else
       {
@@ -63,23 +61,23 @@ public class MergeDiffTableCellRenderer extends DefaultTableCellRenderer
     }
     else if (pColumnIndex == 2)
     {
-      return pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.YOURS).getFileHeader().getChangeType().getStatusColor();
+      return pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getChangeType().getStatusColor();
     }
     else if (pColumnIndex == 3)
     {
-      return pMergeDiff.getDiff(IMergeDiff.CONFLICT_SIDE.THEIRS).getFileHeader().getChangeType().getStatusColor();
+      return pMergeDiff.getDiff(EConflictSide.THEIRS).getFileHeader().getChangeType().getStatusColor();
     }
     return null;
   }
 
   /**
-   * Builds the string representation of the IMergeDiff for the given column
+   * Builds the string representation of the IMergeData for the given column
    *
-   * @param pMergeDiff   IMergeDiff with informations about a conflicting file
-   * @param pColumnIndex index, determines which information of the IMergeDiff are packed into the string
-   * @return String representation of information about the IMergeDiff, dependend on the passed column
+   * @param pMergeDiff   IMergeData with informations about a conflicting file
+   * @param pColumnIndex index, determines which information of the IMergeData are packed into the string
+   * @return String representation of information about the IMergeData, dependend on the passed column
    */
-  private static String _getStringRepresenation(IMergeDiff pMergeDiff, int pColumnIndex)
+  private static String _getStringRepresenation(IMergeData pMergeDiff, int pColumnIndex)
   {
     Path path = Paths.get(pMergeDiff.getFilePath());
     if (pColumnIndex == 0)
@@ -92,11 +90,11 @@ public class MergeDiffTableCellRenderer extends DefaultTableCellRenderer
     }
     else if (pColumnIndex == 2)
     {
-      return _getChangeTypeDescription(pMergeDiff, IMergeDiff.CONFLICT_SIDE.YOURS);
+      return _getChangeTypeDescription(pMergeDiff, EConflictSide.YOURS);
     }
     else if (pColumnIndex == 3)
     {
-      return _getChangeTypeDescription(pMergeDiff, IMergeDiff.CONFLICT_SIDE.THEIRS);
+      return _getChangeTypeDescription(pMergeDiff, EConflictSide.THEIRS);
     }
     return "No Data";
   }
@@ -108,7 +106,7 @@ public class MergeDiffTableCellRenderer extends DefaultTableCellRenderer
    * @param pConflictSide which side of the mergeConflict should be used
    * @return Description of the changeType
    */
-  private static String _getChangeTypeDescription(IMergeDiff pMergeDiff, IMergeDiff.CONFLICT_SIDE pConflictSide)
+  private static String _getChangeTypeDescription(IMergeData pMergeDiff, EConflictSide pConflictSide)
   {
     EChangeType changeType = pMergeDiff.getDiff(pConflictSide).getFileHeader().getChangeType();
     if (changeType == EChangeType.RENAME)

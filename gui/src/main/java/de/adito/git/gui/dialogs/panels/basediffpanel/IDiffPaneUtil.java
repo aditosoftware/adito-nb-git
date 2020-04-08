@@ -2,7 +2,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import com.google.common.collect.Collections2;
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
 import de.adito.git.gui.rxjava.EditorKitChangeObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
@@ -34,18 +34,18 @@ public interface IDiffPaneUtil
    * retrieves the position of the next changed chunk, as seen from the current position of the caret
    *
    * @param pTextComponent JTextComponent that is currently focused and whose content the IFileChangeChunks of the pModel describe
-   * @param pChangeChunks  List of IFileChangeChunks
+   * @param pChangeDeltas  List of IChangeDelta
    * @param pChangeSide    which side of a IFileChangeChunk should be taken
    */
   @Nullable
-  static IFileChangeChunk getNextChunk(JTextComponent pTextComponent, List<IFileChangeChunk> pChangeChunks, EChangeSide pChangeSide)
+  static IChangeDelta getNextDelta(JTextComponent pTextComponent, List<IChangeDelta> pChangeDeltas, EChangeSide pChangeSide)
   {
     int caretLine = pTextComponent.getDocument().getDefaultRootElement().getElementIndex(pTextComponent.getCaret().getDot());
-    IFileChangeChunk nextChunk = null;
-    for (IFileChangeChunk changeChunk : pChangeChunks)
+    IChangeDelta nextChunk = null;
+    for (IChangeDelta changeChunk : pChangeDeltas)
     {
       nextChunk = changeChunk;
-      if (changeChunk.getChangeType() != EChangeType.SAME && changeChunk.getStart(pChangeSide) > caretLine)
+      if (changeChunk.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && changeChunk.getStartLine(pChangeSide) > caretLine)
       {
         break;
       }
@@ -56,21 +56,22 @@ public interface IDiffPaneUtil
   /**
    * retrieves the previous changed chunk, as seen from the current position of the caret
    *
-   * @param pTextComponent JTextComponent that is currently focused and whose content pChangeChunks describes
-   * @param pChangeChunks  List of IFileChangeChunks
+   * @param pTextComponent JTextComponent that is currently focused and whose content pChangeDeltas describes
+   * @param pChangeDeltas  List of IChangeDelta
    * @param pChangeSide    which side of a IFileChangeChunk should be taken
    */
   @Nullable
-  static IFileChangeChunk getPreviousChunk(JTextComponent pTextComponent, List<IFileChangeChunk> pChangeChunks, EChangeSide pChangeSide)
+  static IChangeDelta getPreviousDelta(JTextComponent pTextComponent, List<IChangeDelta> pChangeDeltas, EChangeSide pChangeSide)
   {
     int caretLine = pTextComponent.getDocument().getDefaultRootElement().getElementIndex(pTextComponent.getCaret().getDot());
-    IFileChangeChunk previousChunk = null;
-    for (int index = pChangeChunks.size() - 1; index >= 0; index--)
+    IChangeDelta previousChunk = null;
+    for (int index = pChangeDeltas.size() - 1; index >= 0; index--)
     {
-      if (pChangeChunks.get(index).getChangeType() != EChangeType.SAME && pChangeChunks.get(index).getEnd(pChangeSide) <= caretLine)
+      if (pChangeDeltas.get(index).getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && pChangeDeltas.get(index).getEndLine(pChangeSide) <= caretLine)
       {
-        previousChunk = pChangeChunks.get(index);
-        if (pChangeChunks.get(index).getStart(pChangeSide) != pChangeChunks.get(index).getEnd(pChangeSide) || caretLine > pChangeChunks.get(index).getEnd(pChangeSide))
+        previousChunk = pChangeDeltas.get(index);
+        if (pChangeDeltas.get(index).getStartLine(pChangeSide) != pChangeDeltas.get(index).getEndLine(pChangeSide)
+            || caretLine > pChangeDeltas.get(index).getEndLine(pChangeSide))
           break;
       }
     }
@@ -80,16 +81,15 @@ public interface IDiffPaneUtil
   /**
    * moves the caret to the position of the given changed chunk
    *
-   * @param pTextComponent JTextComponent that is currently focused and whose content pChangeChunks describes
-   * @param pMoveToChunk   The chunk that the caret should be moved to. If null, the caret is not moved at all
+   * @param pTextComponent JTextComponent that is currently focused and whose content pChangeDeltas describes
+   * @param pMoveToDelta   The delta that the caret should be moved to. If null, the caret is not moved at all
    * @param pChangeSide    which side of a IFileChangeChunk should be taken
    */
-  static void moveCaretToChunk(@NotNull JTextComponent pTextComponent, @Nullable IFileChangeChunk pMoveToChunk,
-                               EChangeSide pChangeSide)
+  static void moveCaretToDelta(@NotNull JTextComponent pTextComponent, @Nullable IChangeDelta pMoveToDelta, EChangeSide pChangeSide)
   {
-    if (pMoveToChunk == null)
+    if (pMoveToDelta == null)
       return;
-    int moveToElementStartLine = pMoveToChunk.getStart(pChangeSide);
+    int moveToElementStartLine = pMoveToDelta.getStartLine(pChangeSide);
     pTextComponent.getCaret().setDot(pTextComponent.getDocument().getDefaultRootElement().getElement(moveToElementStartLine).getStartOffset());
     pTextComponent.requestFocus();
   }
@@ -111,13 +111,14 @@ public interface IDiffPaneUtil
     Observable<Object> editorKitsObs = Observable.combineLatest(Observable.create(new EditorKitChangeObservable(pOldPane.getEditorPane())),
                                                                 Observable.create(new EditorKitChangeObservable(pCurrentPane.getEditorPane())), (o1, o2) -> o1);
     Observable<Object> editorViewChangeObs = Observable.merge(viewPortsObs, editorKitsObs);
-    Observable<Optional<IFileChangesEvent>> changesEventObservable = pFileDiffObs.switchMap(pFileDiffOpt -> pFileDiffOpt.map(pFDiff -> pFDiff.getFileChanges()
-        .getChangeChunks().map(Optional::of)).orElse(Observable.just(Optional.empty())));
-    Observable<Optional<IFileChangesEvent>> changeEventObs = Observable.combineLatest(editorViewChangeObs, changesEventObservable,
-                                                                                      (pObj, pChangeEvent) -> pChangeEvent)
+    Observable<Optional<List<IChangeDelta>>> changesEventObservable = pFileDiffObs
+        .switchMap(pFileDiffOpt -> pFileDiffOpt.map(pFDiff -> pFDiff.getDiffTextChangeObservable()
+            .map(pTextChangeEvent -> Optional.of(pFDiff.getChangeDeltas()))).orElse(Observable.just(Optional.empty())));
+    Observable<Optional<List<IChangeDelta>>> changeEventObs = Observable.combineLatest(editorViewChangeObs, changesEventObservable,
+                                                                                       (pObj, pChangeEvent) -> pChangeEvent)
         .replay(1)
         .autoConnect(0, disposables::add);
-    Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
+    Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
         getHeightMappings(pOldPane.getEditorPane(), pCurrentPane.getEditorPane(), pFileDiff);
     _syncPanes(pOldPane.getScrollPane(), pCurrentPane.getScrollPane(), refreshFunction, changeEventObs);
     _syncPanes(pCurrentPane.getScrollPane(), pOldPane.getScrollPane(), refreshFunction, changeEventObs);
@@ -135,8 +136,8 @@ public interface IDiffPaneUtil
    * @param pChangeEventObs   Observable that offers the latest version of the IFileChangesEvent describing the changes displayed in the scrollPanes
    */
   private static void _syncPanes(@NotNull JScrollPane pScrollPane, @NotNull JScrollPane pSecondScrollPane,
-                                 @NotNull Function<IFileChangesEvent, BiNavigateAbleMap<Integer, Integer>> pRefreshFunction,
-                                 @NotNull Observable<Optional<IFileChangesEvent>> pChangeEventObs)
+                                 @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshFunction,
+                                 @NotNull Observable<Optional<List<IChangeDelta>>> pChangeEventObs)
   {
     if (pScrollPane.getVerticalScrollBar().getModel() instanceof SynchronizedBoundedRangeModel)
     {
@@ -158,19 +159,21 @@ public interface IDiffPaneUtil
    * @return List of Mappings of the y values of the IFileChangeChunks in the IFileDiff
    */
   static BiNavigateAbleMap<Integer, Integer> getHeightMappings(JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent,
-                                                               IFileChangesEvent pChangesEvent)
+                                                               List<IChangeDelta> pChangesEvent)
   {
     BiNavigateAbleMap<Integer, Integer> heightMap = new BiNavigateAbleMap<>();
     // default entry: start is equal
     heightMap.put(0, 0);
     View oldEditorPaneView = pEditorPaneOld.getUI().getRootView(pEditorPaneOld);
     View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
-    for (IFileChangeChunk changeChunk : pChangesEvent.getNewValue())
+    for (IChangeDelta changeChunk : pChangesEvent)
     {
       try
       {
         heightMap.put(IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
                       IEditorUtils.getBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
+        heightMap.put(IEditorUtils.getEndBoundsForChunk(changeChunk, EChangeSide.OLD, pEditorPaneOld, oldEditorPaneView),
+                      IEditorUtils.getEndBoundsForChunk(changeChunk, EChangeSide.NEW, pEditorPaneCurrent, currentEditorPaneView));
       }
       catch (IllegalArgumentException iAE)
       {

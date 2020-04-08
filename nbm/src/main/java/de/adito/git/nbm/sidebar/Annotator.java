@@ -2,12 +2,14 @@ package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IBlame;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.rxjava.ScrollBarExtentObservable;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.TextPaneUtil;
-import de.adito.git.impl.data.FileChangesEventImpl;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
@@ -156,7 +158,7 @@ public class Annotator extends JPanel implements IDiscardable
         .startWith(Optional.of(Boolean.FALSE));
 
     // Observable to check the File changes between the latest version of the file on disk and the actual content of the file
-    Observable<List<IFileChangeChunk>> chunkObservable = Observable
+    Observable<List<IChangeDelta>> deltaObservable = Observable
         .combineLatest(pRepository, textObservable, isActive, (pRepoOpt, pText, pIsActive) -> {
           // only run the diff if the repo is present and the active flag is given
           if (pRepoOpt.isPresent() && pIsActive.orElse(false))
@@ -166,7 +168,7 @@ public class Annotator extends JPanel implements IDiscardable
             try
             {
               // TODO: try and get rid of the blockingfirst, possibly do switchMap
-              return repo.diffOffline(pText, pFile).getFileChanges().getChangeChunks().blockingFirst(new FileChangesEventImpl(false, List.of(), null)).getNewValue();
+              return repo.diffOffline(pText, pFile).getChangeDeltas();
             }
             catch (Exception pE)
             {
@@ -186,8 +188,8 @@ public class Annotator extends JPanel implements IDiscardable
         .filter(pVal -> pVal);
 
     // combine Observables to create an Observable of the BufferedImage, then subscribe and draw it each time it changes
-    disposables.add(Observable.combineLatest(pRepository, chunkObservable, isActive, triggerUpdate, (pRepoOpt, pChunks, pIsActive, pTriggerUpdate)
-        -> pRepoOpt.flatMap(pRepo -> _getBlameImage(pFile, pRepo, pChunks, pIsActive.orElse(false)))).doOnError(pThrowable -> _showImage(pTarget, null))
+    disposables.add(Observable.combineLatest(pRepository, deltaObservable, isActive, triggerUpdate, (pRepoOpt, pDeltas, pIsActive, pTriggerUpdate)
+        -> pRepoOpt.flatMap(pRepo -> _getBlameImage(pFile, pRepo, pDeltas, pIsActive.orElse(false)))).doOnError(pThrowable -> _showImage(pTarget, null))
                         .subscribe(pBufferedImageOpt -> _showImage(pTarget, pBufferedImageOpt.orElse(null))));
   }
 
@@ -219,11 +221,11 @@ public class Annotator extends JPanel implements IDiscardable
   /**
    * @param pFile     file of the editor, get the git blame for this
    * @param pRepo     repository used to retrieve the git blame
-   * @param pChunks   List with changed and unchanged chunks of the contents of the file
+   * @param pDeltas   List with changed and unchanged chunks of the contents of the file
    * @param pIsActive whether or not the Annotator is active
    * @return Optional with a BufferedImage of the git blame, or an empty Optional if the target height is 0 or the Annotator is inactive
    */
-  private Optional<BufferedImage> _getBlameImage(File pFile, IRepository pRepo, List<IFileChangeChunk> pChunks, Boolean pIsActive)
+  private Optional<BufferedImage> _getBlameImage(File pFile, IRepository pRepo, List<IChangeDelta> pDeltas, Boolean pIsActive)
   {
     // no need to calculate the Image if the Annotator is inactive or the height is 0 (aka Annotator is not shown)
     if (target.getHeight() <= 0 || !pIsActive)
@@ -232,18 +234,18 @@ public class Annotator extends JPanel implements IDiscardable
     {
       if (blame == null)
         pRepo.getBlame(pFile).ifPresent(pIBlame -> blame = pIBlame);
-      return blame == null ? Optional.empty() : Optional.of(_calculateImage(blame, pChunks));
+      return blame == null ? Optional.empty() : Optional.of(_calculateImage(blame, pDeltas));
     }
   }
 
   /**
    * @param pBlame  IBlame object containing the information about the authors of lines
-   * @param pChunks List of IFileChangeChunks describing the changes of the last saved version of the file to the version in the editor
+   * @param pDeltas List of IFileChangeChunks describing the changes of the last saved version of the file to the version in the editor
    * @return Optional of a BufferedImage, empty if not active, BufferedImage with the names of the authors and commit dates otherwise
    */
-  private BufferedImage _calculateImage(IBlame pBlame, List<IFileChangeChunk> pChunks)
+  private BufferedImage _calculateImage(IBlame pBlame, List<IChangeDelta> pDeltas)
   {
-    List<String> annotatedLines = _calculateStringList(pBlame, pChunks);
+    List<String> annotatedLines = _calculateStringList(pBlame, pDeltas);
     View view = target.getUI().getRootView(target);
     BufferedImage rawBlameImage = new BufferedImage(getPreferredSize().width, target.getHeight(), BufferedImage.TYPE_INT_ARGB);
     _updateColorsAndFont(target);
@@ -301,10 +303,10 @@ public class Annotator extends JPanel implements IDiscardable
    * Calculate the list of Strings to print in each line as annotations
    *
    * @param pBlame  the "blame" annotation of the file
-   * @param pChunks the chunks of the file
+   * @param pDeltas the deltas of the file
    * @return Returns a list which contains the annotations (with the new lines which has no annotations)
    */
-  private List<String> _calculateStringList(IBlame pBlame, List<IFileChangeChunk> pChunks)
+  private List<String> _calculateStringList(IBlame pBlame, List<IChangeDelta> pDeltas)
   {
     List<String> list = new ArrayList<>();
     for (int i = 0; i < pBlame.getLineCount(); i++)
@@ -328,21 +330,21 @@ public class Annotator extends JPanel implements IDiscardable
     }
     setPreferredSize(new Dimension(getFontMetrics(target.getFont()).stringWidth(longestName) + FREE_SPACE, 0));
 
-    //get all chunks to check the type
-    for (IFileChangeChunk chunk : pChunks)
+    //get all deltas to check the type
+    for (IChangeDelta delta : pDeltas)
     {
-      if (chunk.getChangeType() == EChangeType.ADD)
+      if (delta.getChangeStatus().getChangeType() == EChangeType.ADD)
       {
-        _addLines(chunk, list);
+        _addLines(delta, list);
       }
-      if (chunk.getChangeType() == EChangeType.DELETE)
+      if (delta.getChangeStatus().getChangeType() == EChangeType.DELETE)
       {
-        _deleteLines(chunk, list);
+        _deleteLines(delta, list);
       }
-      if (chunk.getChangeType() == EChangeType.MODIFY)
+      if (delta.getChangeStatus().getChangeType() == EChangeType.MODIFY)
       {
-        _deleteLines(chunk, list);
-        _addLines(chunk, list);
+        _deleteLines(delta, list);
+        _addLines(delta, list);
       }
     }
     return list;
@@ -351,27 +353,27 @@ public class Annotator extends JPanel implements IDiscardable
   /**
    * Add a new Line to the annotator
    *
-   * @param pChunk      the chunk to check the lines to add
+   * @param pDelta      the delta to check the lines to add
    * @param pStringList the string list to change the content
    */
-  private void _addLines(IFileChangeChunk pChunk, List<String> pStringList)
+  private void _addLines(IChangeDelta pDelta, List<String> pStringList)
   {
-    int linesToAdd = pChunk.getEnd(EChangeSide.NEW) - pChunk.getStart(EChangeSide.NEW);
+    int linesToAdd = pDelta.getEndLine(EChangeSide.NEW) - pDelta.getStartLine(EChangeSide.NEW);
     for (int i = 0; i < linesToAdd; i++)
-      pStringList.add(pChunk.getStart(EChangeSide.NEW), "");
+      pStringList.add(pDelta.getStartLine(EChangeSide.NEW), "");
   }
 
   /**
    * Delete one line of the annotator
    *
-   * @param pChunk      the chunk to check the lines to delete
+   * @param pDelta      the delta to check the lines to delete
    * @param pStringList the string list to change the content
    */
-  private void _deleteLines(IFileChangeChunk pChunk, List<String> pStringList)
+  private void _deleteLines(IChangeDelta pDelta, List<String> pStringList)
   {
-    int linesToDelete = pChunk.getEnd(EChangeSide.OLD) - pChunk.getStart(EChangeSide.OLD);
+    int linesToDelete = pDelta.getEndLine(EChangeSide.OLD) - pDelta.getStartLine(EChangeSide.OLD);
     for (int i = 0; i < linesToDelete; i++)
-      pStringList.remove(pChunk.getStart(EChangeSide.NEW));
+      pStringList.remove(pDelta.getStartLine(EChangeSide.NEW));
   }
 
   /**

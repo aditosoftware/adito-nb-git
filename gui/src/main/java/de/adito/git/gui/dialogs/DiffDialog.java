@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
@@ -171,9 +171,9 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
    */
   private void _setNotificationArea(IFileDiff pFileDiff)
   {
-    List<IFileChangeChunk> currentChangeChunks = pFileDiff.getFileChanges().getChangeChunks().blockingFirst().getNewValue();
-    if ((currentChangeChunks.size() == 1 && currentChangeChunks.get(0).getChangeType() == EChangeType.SAME)
-        || currentChangeChunks.stream().allMatch(pChunk -> pChunk.getChangeType() == EChangeType.SAME))
+    List<IChangeDelta> currentChangeDeltas = pFileDiff.getChangeDeltas();
+    if ((currentChangeDeltas.size() == 1 && currentChangeDeltas.get(0).getChangeStatus().getChangeType() == EChangeType.SAME)
+        || currentChangeDeltas.stream().allMatch(pDelta -> pDelta.getChangeStatus().getChangeType() == EChangeType.SAME))
     {
       add(notificationArea, BorderLayout.NORTH);
       notificationArea.setText("Files do not differ in actual content, trailing whitespaces may be different");

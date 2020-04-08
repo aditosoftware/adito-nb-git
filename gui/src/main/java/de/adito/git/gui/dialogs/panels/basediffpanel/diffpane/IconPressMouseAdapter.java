@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.diff.IChangeDelta;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -21,13 +21,13 @@ class IconPressMouseAdapter extends MouseAdapter
 {
 
   private final int iconWidth;
-  private final Consumer<IFileChangeChunk> doOnDiscard;
-  private final Consumer<IFileChangeChunk> doOnAccept;
+  private final Consumer<IChangeDelta> doOnDiscard;
+  private final Consumer<IChangeDelta> doOnAccept;
   private final Supplier<List<IconInfo>> iconInfoListSupplier;
   private final Supplier<Rectangle> viewArea;
   private final boolean isWestOrientation;
 
-  IconPressMouseAdapter(int pIconWidth, Consumer<IFileChangeChunk> pDoOnAccept, Consumer<IFileChangeChunk> pDoOnDiscard,
+  IconPressMouseAdapter(int pIconWidth, Consumer<IChangeDelta> pDoOnAccept, Consumer<IChangeDelta> pDoOnDiscard,
                         Supplier<List<IconInfo>> pIconInfoListSupplier, Supplier<Rectangle> pViewArea, boolean pIsWestOrientation)
   {
 
@@ -53,11 +53,11 @@ class IconPressMouseAdapter extends MouseAdapter
           // check if the discard or accept button was pressed, done via x coordinate of the click
           if (doOnDiscard != null && ((pEvent.getX() > iconWidth && isWestOrientation) || (pEvent.getX() < iconWidth && !isWestOrientation)))
           {
-            doOnDiscard.accept(iconInfo.getFileChangeChunk());
+            doOnDiscard.accept(iconInfo.getChangeDelta());
           }
           else
           {
-            doOnAccept.accept(iconInfo.getFileChangeChunk());
+            doOnAccept.accept(iconInfo.getChangeDelta());
           }
           break;
         }

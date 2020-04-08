@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import de.adito.git.api.data.IFileDiff;
+import de.adito.git.api.data.diff.IFileDiff;
 import org.jetbrains.annotations.NotNull;
 
 /**

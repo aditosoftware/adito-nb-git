@@ -2,8 +2,6 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.ColorPicker;
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.TextPaneUtil;
@@ -32,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsListener
 {
 
-  private final DiffPanelModel model;
   private final Disposable areaDisposable;
   private final Disposable sizeDisposable;
   private final Insets panelInsets = new Insets(0, 3, 0, 3);
@@ -41,6 +38,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   // lists with Objects that contain information about what to draw. Never modify these lists by themselves, only re-assign them
   private List<LineNumberColor> lineNumberColors = new ArrayList<>(); // all LineNumberColors for the file in the editor
   private BufferedImage lineNumImage = null;
+  private final JEditorPane editorPane;
   private final LineNumbersColorModel lineNumbersColorModel;
   private final BehaviorSubject<Object> lineNumChangedObs = BehaviorSubject.create();
   private int lineNumFacadeWidth;
@@ -55,11 +53,11 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   LineNumPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, @NotNull Observable<Rectangle> pDisplayedArea,
                Observable<Dimension> pViewPortSizeObs, @NotNull LineNumbersColorModel pLineNumbersColorModel)
   {
-    model = pModel;
+    editorPane = pEditorPane;
     lineNumbersColorModel = pLineNumbersColorModel;
     lineNumbersColorModel.addLazyListener(this);
     editorInsets = pEditorPane.getInsets();
-    lineNumFacadeWidth = _calculateLineWidth(pModel.getFileChangesObservable().blockingFirst());
+    lineNumFacadeWidth = _calculateLineWidth();
     setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
     setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
@@ -67,7 +65,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
         pModel.getFileChangesObservable(), pViewPortSizeObs, lineNumChangedObs, ((pFileChangesEvent, pDimension, pObj) -> pFileChangesEvent))
         .subscribe(
             pFileChangeEvent -> SwingUtilities.invokeLater(() -> {
-              lineNumFacadeWidth = _calculateLineWidth(pFileChangeEvent);
+              lineNumFacadeWidth = _calculateLineWidth();
               setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
               lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
               repaint();
@@ -151,22 +149,10 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   /**
    * calculate the width this panel must have to display all the lineNumbers, based on the highest lineNumber and the used font
    *
-   * @param pChangesEvent IFileChangesEvent with the latest list of IFileChangeChunks
    * @return the number of the last line
    */
-  private int _calculateLineWidth(@NotNull IFileChangesEvent pChangesEvent)
+  private int _calculateLineWidth()
   {
-    return getFontMetrics(getFont()).stringWidth(String.valueOf(_getLastLineNum(pChangesEvent)));
-  }
-
-  private int _getLastLineNum(IFileChangesEvent pChangesEvent)
-  {
-    // do a default value that should kinda fit all
-    if (pChangesEvent == null)
-      return 150;
-    List<IFileChangeChunk> changeChunks = pChangesEvent.getNewValue();
-    if (changeChunks.isEmpty())
-      return 0;
-    return changeChunks.get(changeChunks.size() - 1).getEnd(model.getChangeSide());
+    return getFontMetrics(getFont()).stringWidth(String.valueOf(editorPane.getDocument().getDefaultRootElement().getElementCount() - 1));
   }
 }

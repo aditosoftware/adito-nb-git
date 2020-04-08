@@ -1,7 +1,7 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.Observable;

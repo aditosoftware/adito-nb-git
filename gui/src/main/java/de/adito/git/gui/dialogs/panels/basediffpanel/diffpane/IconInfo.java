@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import de.adito.git.api.data.IFileChangeChunk;
+import de.adito.git.api.data.diff.IChangeDelta;
 
 import javax.swing.*;
 import java.awt.Rectangle;
@@ -20,13 +20,13 @@ class IconInfo
 
   private final ImageIcon imageIcon;
   private final Rectangle iconCoordinates;
-  private final IFileChangeChunk fileChangeChunk;
+  private final IChangeDelta changeDelta;
 
-  IconInfo(ImageIcon pImageIcon, int pYCoordinate, int pXCoordinate, IFileChangeChunk pFileChangeChunk)
+  IconInfo(ImageIcon pImageIcon, int pYCoordinate, int pXCoordinate, IChangeDelta pChangeDelta)
   {
     imageIcon = pImageIcon;
     iconCoordinates = new Rectangle(pXCoordinate, pYCoordinate, pImageIcon.getIconWidth(), pImageIcon.getIconHeight());
-    fileChangeChunk = pFileChangeChunk;
+    changeDelta = pChangeDelta;
   }
 
   /**
@@ -40,9 +40,9 @@ class IconInfo
   /**
    * @return the IFileChangeChunk connected to this IconInfo
    */
-  IFileChangeChunk getFileChangeChunk()
+  IChangeDelta getChangeDelta()
   {
-    return fileChangeChunk;
+    return changeDelta;
   }
 
   /**

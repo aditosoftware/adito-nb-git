@@ -1,9 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IFileDiffHeader;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.EnumMappings;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.jetbrains.annotations.NotNull;
@@ -17,33 +15,24 @@ import java.io.File;
 public class FileDiffHeaderImpl implements IFileDiffHeader
 {
 
-  private final File topLevelDirectory;
-  private final String oldId;
-  private final String newId;
-  private final EChangeType changeType;
-  private final EFileType oldFileType;
-  private final EFileType newFileType;
-  private final String oldFilePath;
-  private final String newFilePath;
 
-  public FileDiffHeaderImpl(@Nullable File pTopLevelDirectory, @NotNull String pOldId, @NotNull String pNewId, @NotNull EChangeType pChangeType,
-                            @NotNull EFileType pOldFileType, @NotNull EFileType pNewFileType, @NotNull String pOldFilePath, @NotNull String pNewFilePath)
+  private final IDiffPathInfo diffPathInfo;
+  private final IDiffDetails diffDetails;
+  private final ELineEnding lineEnding;
+
+  public FileDiffHeaderImpl(@NotNull IDiffPathInfo pDiffPathInfo, @NotNull IDiffDetails pDiffDetails, @NotNull ELineEnding pLineEnding)
   {
-    topLevelDirectory = pTopLevelDirectory;
-    oldId = pOldId;
-    newId = pNewId;
-    changeType = pChangeType;
-    oldFileType = pOldFileType;
-    newFileType = pNewFileType;
-    oldFilePath = pOldFilePath;
-    newFilePath = pNewFilePath;
+    diffPathInfo = pDiffPathInfo;
+    diffDetails = pDiffDetails;
+    lineEnding = pLineEnding;
   }
 
-  public FileDiffHeaderImpl(@NotNull DiffEntry pDiffEntry, @Nullable File pTopLevelDirectory)
+  public FileDiffHeaderImpl(@NotNull DiffEntry pDiffEntry, @Nullable File pTopLevelDirectory, @NotNull ELineEnding pLineEnding)
   {
-    // TODO revert EChangeType to EnumMappings.toEChangeType(pDiffEntry.getChangeType());
-    this(pTopLevelDirectory, pDiffEntry.getOldId().toString(), pDiffEntry.getNewId().toString(), EChangeType.CHANGED, EnumMappings.toEFileType(pDiffEntry.getOldMode()),
-         EnumMappings.toEFileType(pDiffEntry.getNewMode()), pDiffEntry.getOldPath(), pDiffEntry.getNewPath());
+    this(new DiffPathInfoImpl(pTopLevelDirectory, pDiffEntry.getOldPath(), pDiffEntry.getNewPath()),
+         new DiffDetailsImpl(pDiffEntry.getOldId().toString(), pDiffEntry.getNewId().toString(), EnumMappings.toEChangeType(pDiffEntry.getChangeType()),
+                             EnumMappings.toEFileType(pDiffEntry.getOldMode()), EnumMappings.toEFileType(pDiffEntry.getNewMode())),
+         pLineEnding);
   }
 
   /**
@@ -53,7 +42,7 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   @Override
   public String getId(@NotNull EChangeSide pSide)
   {
-    return pSide == EChangeSide.NEW ? newId : oldId;
+    return diffDetails.getId(pSide);
   }
 
   /**
@@ -63,7 +52,7 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   @Override
   public EChangeType getChangeType()
   {
-    return changeType;
+    return diffDetails.getChangeType();
   }
 
   /**
@@ -73,7 +62,7 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   @Override
   public EFileType getFileType(@NotNull EChangeSide pSide)
   {
-    return pSide == EChangeSide.NEW ? newFileType : oldFileType;
+    return diffDetails.getFileType(pSide);
   }
 
   /**
@@ -83,14 +72,14 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   @Override
   public String getFilePath(@NotNull EChangeSide pSide)
   {
-    return pSide == EChangeSide.NEW ? newFilePath : oldFilePath;
+    return diffPathInfo.getFilePath(pSide);
   }
 
   @NotNull
   @Override
   public String getFilePath()
   {
-    if (changeType == EChangeType.DELETE)
+    if (diffDetails.getChangeType() == EChangeType.DELETE)
       return getFilePath(EChangeSide.OLD);
     return getFilePath(EChangeSide.NEW);
   }
@@ -99,11 +88,11 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   @Override
   public String getAbsoluteFilePath()
   {
-    if (topLevelDirectory == null)
+    if (diffPathInfo.getTopLevelDirectory() == null)
       return null;
 
     String path = getFilePath();
-    return new File(topLevelDirectory, path).toPath().toAbsolutePath().toString();
+    return new File(diffPathInfo.getTopLevelDirectory(), path).toPath().toAbsolutePath().toString();
   }
 
 }

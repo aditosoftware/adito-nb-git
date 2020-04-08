@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import de.adito.git.api.data.IFileChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

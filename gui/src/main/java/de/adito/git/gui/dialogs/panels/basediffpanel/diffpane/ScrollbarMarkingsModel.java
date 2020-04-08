@@ -1,15 +1,18 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.EChangeType;
-import de.adito.git.api.data.IFileChangeChunk;
-import de.adito.git.api.data.IFileChangesEvent;
+import de.adito.git.api.data.diff.EChangeStatus;
+import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Position;
+import javax.swing.text.View;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -29,43 +32,37 @@ public class ScrollbarMarkingsModel implements IDiscardable
   public ScrollbarMarkingsModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull MarkedScrollbar pMarkedScrollbar)
   {
     disposable = pModel.getFileChangesObservable().subscribe(
-        pFileChangesEvent -> SwingUtilities.invokeLater(() -> pMarkedScrollbar.setMarkings(_getMarkings(pModel, pFileChangesEvent, pEditorPane))));
+        pFileChangesEvent -> SwingUtilities.invokeLater(() -> pMarkedScrollbar.setMarkings(_getMarkings(pModel, pFileChangesEvent.getFileDiff(), pEditorPane))));
     pMarkedScrollbar.addComponentListener(new _ScrollBarResizeListener(pModel, pEditorPane, pMarkedScrollbar));
   }
 
   /**
-   * @param pModel            DiffPanelModel that contains Functions to get the start/endLine of a IFileChangeChunk
-   * @param pFileChangesEvent IFileChangesEvent that has the latest IFileChangeChunks
-   * @param pEditorPane       JEditorPane displaying the IFileChangeChunks
+   * @param pModel      DiffPanelModel that contains Functions to get the start/endLine of a IFileChangeChunk
+   * @param pEditorPane JEditorPane displaying the IFileChangeChunks
    * @return List with ScrollbarMarkings, indicating at which position in the view Coordinate system the areas to mark are
    */
   @NotNull
-  private List<ScrollbarMarking> _getMarkings(@NotNull DiffPanelModel pModel, @NotNull IFileChangesEvent pFileChangesEvent,
-                                              @NotNull JEditorPane pEditorPane)
+  private List<ScrollbarMarking> _getMarkings(@NotNull DiffPanelModel pModel, @Nullable IFileDiff pFileDiff, @NotNull JEditorPane pEditorPane)
   {
     List<ScrollbarMarking> markings = new ArrayList<>();
     View view = pEditorPane.getUI().getRootView(pEditorPane);
-    Element rootElement = pEditorPane.getDocument().getDefaultRootElement();
     // there can be parity lines in the Chunks, so we cannot use the start/endLine of the chunk directly. Instead we have to keep track of the lines
-    int startLine = 0;
-    for (IFileChangeChunk changeChunk : pFileChangesEvent.getNewValue())
+    for (IChangeDelta changeDelta : pFileDiff == null ? List.<IChangeDelta>of() : pFileDiff.getChangeDeltas())
     {
-      int numLines = (changeChunk.getEnd(pModel.getChangeSide()) - changeChunk.getStart(pModel.getChangeSide()));
-      if (changeChunk.getChangeType() != EChangeType.SAME)
+      if (changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
       {
-        int startOffset = rootElement.getElement(Math.min(rootElement.getElementCount() - 1, startLine)).getStartOffset();
-        int endOffset = rootElement.getElement(Math.min(rootElement.getElementCount() - 1, startLine + numLines)).getEndOffset();
+        int startOffset = changeDelta.getStartTextIndex(pModel.getChangeSide());
+        int endOffset = changeDelta.getEndTextIndex(pModel.getChangeSide());
         try
         {
           Rectangle bounds = view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
-          markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeChunk.getChangeType().getDiffColor()));
+          markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeDelta.getChangeStatus().getChangeType().getDiffColor()));
         }
         catch (BadLocationException pE)
         {
           throw new RuntimeException(pE);
         }
       }
-      startLine += numLines;
     }
     return markings;
   }
@@ -96,7 +93,7 @@ public class ScrollbarMarkingsModel implements IDiscardable
     @Override
     public void componentResized(ComponentEvent pEvent)
     {
-      markedScrollbar.setMarkings(_getMarkings(model, model.getFileChangesObservable().blockingFirst(), editorPane));
+      markedScrollbar.setMarkings(_getMarkings(model, model.getFileChangesObservable().blockingFirst().getFileDiff(), editorPane));
     }
   }
 }

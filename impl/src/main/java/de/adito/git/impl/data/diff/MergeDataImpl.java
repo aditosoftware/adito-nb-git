@@ -3,6 +3,8 @@ package de.adito.git.impl.data.diff;
 import de.adito.git.api.data.diff.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
  * @author m.kaspera, 06.03.2020
  */
@@ -46,26 +48,28 @@ public class MergeDataImpl implements IMergeData
     return conflictSide == EConflictSide.YOURS ? yourSideDiff : theirSideDiff;
   }
 
-  @NotNull
   @Override
-  public IDeltaTextChangeEvent acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide)
+  public void acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide)
   {
     if (acceptedDelta.getChangeStatus().getChangeStatus() == EChangeStatus.UNDEFINED)
     {
       throw new IllegalArgumentException("Cannot accept a delta of state UNDEFINED");
     }
-    IDeltaTextChangeEvent deltaTextChangeEvent;
+    List<IDeltaTextChangeEvent> deltaTextChangeEvents;
     if (conflictSide == EConflictSide.YOURS)
     {
-      deltaTextChangeEvent = yourSideDiff.acceptDelta(acceptedDelta);
-      theirSideDiff.processTextEvent(deltaTextChangeEvent.getOffset(), deltaTextChangeEvent.getLength(), deltaTextChangeEvent.getText());
+      deltaTextChangeEvents = yourSideDiff.acceptDelta(acceptedDelta);
+      deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> theirSideDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
+                                                                                            pDeltaTextChangeEvent.getLength(),
+                                                                                            pDeltaTextChangeEvent.getText(), EChangeSide.OLD));
     }
     else
     {
-      deltaTextChangeEvent = theirSideDiff.acceptDelta(acceptedDelta);
-      yourSideDiff.processTextEvent(deltaTextChangeEvent.getOffset(), deltaTextChangeEvent.getLength(), deltaTextChangeEvent.getText());
+      deltaTextChangeEvents = theirSideDiff.acceptDelta(acceptedDelta);
+      deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> yourSideDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
+                                                                                           pDeltaTextChangeEvent.getLength(),
+                                                                                           pDeltaTextChangeEvent.getText(), EChangeSide.OLD));
     }
-    return deltaTextChangeEvent;
   }
 
   @Override
@@ -89,13 +93,20 @@ public class MergeDataImpl implements IMergeData
   {
     if (text == null)
     {
-      yourSideDiff.processTextEvent(offset, length, null);
-      theirSideDiff.processTextEvent(offset, length, null);
+      yourSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD);
+      theirSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD);
     }
     else
     {
-      yourSideDiff.processTextEvent(offset, length, text);
-      theirSideDiff.processTextEvent(offset, length, text);
+      yourSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD);
+      theirSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD);
     }
+  }
+
+  @Override
+  public void markConflicting()
+  {
+    theirSideDiff.markConflicting(yourSideDiff);
+    yourSideDiff.markConflicting(theirSideDiff);
   }
 }

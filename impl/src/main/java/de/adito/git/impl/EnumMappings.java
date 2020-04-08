@@ -1,7 +1,10 @@
 package de.adito.git.impl;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EFileType;
+import de.adito.git.api.data.EPushResult;
+import de.adito.git.api.data.ITrackingRefUpdate;
+import de.adito.git.api.data.diff.EChangeType;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.lib.FileMode;
@@ -78,29 +81,6 @@ public class EnumMappings
   }
 
   /**
-   * @param pEChangeType {@link EChangeType} to translate to {@link org.eclipse.jgit.diff.DiffEntry.ChangeType}
-   * @return translated {@link org.eclipse.jgit.diff.DiffEntry.ChangeType}
-   */
-  public static DiffEntry.ChangeType fromEChangeType(@NotNull EChangeType pEChangeType)
-  {
-    switch (pEChangeType)
-    {
-      case MODIFY:
-        return DiffEntry.ChangeType.MODIFY;
-      case ADD:
-        return DiffEntry.ChangeType.ADD;
-      case DELETE:
-        return DiffEntry.ChangeType.DELETE;
-      case RENAME:
-        return DiffEntry.ChangeType.RENAME;
-      case COPY:
-        return DiffEntry.ChangeType.COPY;
-      default:
-        return null;
-    }
-  }
-
-  /**
    * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
    * @return translated {@link EChangeType}
    */
@@ -116,27 +96,6 @@ public class EnumMappings
         return EChangeType.MODIFY;
       case EMPTY:
         return EChangeType.SAME;
-      default:
-        return null;
-    }
-  }
-
-  /**
-   * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
-   * @return translated {@link EChangeType}
-   */
-  public static Edit.Type typeFromEChangeType(@NotNull EChangeType pChangeType)
-  {
-    switch (pChangeType)
-    {
-      case ADD:
-        return Edit.Type.INSERT;
-      case DELETE:
-        return Edit.Type.DELETE;
-      case MODIFY:
-        return Edit.Type.REPLACE;
-      case SAME:
-        return Edit.Type.EMPTY;
       default:
         return null;
     }
@@ -164,31 +123,6 @@ public class EnumMappings
       // {@see org.eclipse.jgit.lib.FileMode}
       case 0100755:
         return EFileType.EXECUTABLE_FILE;
-      default:
-        return null;
-    }
-  }
-
-  /**
-   * @param pFileType {@link EFileType} to translate to {@link FileMode}
-   * @return translated {@link FileMode}
-   */
-  public static FileMode fromEFileType(@NotNull EFileType pFileType)
-  {
-    switch (pFileType)
-    {
-      case TREE:
-        return FileMode.TREE;
-      case FILE:
-        return FileMode.REGULAR_FILE;
-      case EXECUTABLE_FILE:
-        return FileMode.EXECUTABLE_FILE;
-      case GITLINK:
-        return FileMode.GITLINK;
-      case MISSING:
-        return FileMode.MISSING;
-      case SYMLINK:
-        return FileMode.SYMLINK;
       default:
         return null;
     }

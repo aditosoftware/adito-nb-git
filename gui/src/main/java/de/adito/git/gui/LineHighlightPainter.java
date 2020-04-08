@@ -31,7 +31,11 @@ public class LineHighlightPainter extends DefaultHighlighter.DefaultHighlightPai
     /**
      * Highlight a part of the line in the given Color and use a lighter version of the color to mark the rest of the line
      */
-    MARK_PART
+    MARK_PART,
+    /**
+     * Highlight only the given area
+     */
+    MARK_GIVEN
   }
 
   /**
@@ -63,9 +67,11 @@ public class LineHighlightPainter extends DefaultHighlighter.DefaultHighlightPai
         if (mode == Mode.MARK_PART)
         {
           // draw whole line in bright background
-          pGraphics.setColor(LineHighlightPainter._darken(color));
           pGraphics.fillRect(pComponent.getInsets().left, p0.y, pComponent.getWidth(), p0.height);
-
+        }
+        else if (mode == Mode.MARK_GIVEN)
+        {
+          pGraphics.fillRect(p0.x, p0.y, p1.x - p0.x, p1.y + p1.height - p0.y);
         }
         else
         {
@@ -156,32 +162,5 @@ public class LineHighlightPainter extends DefaultHighlighter.DefaultHighlightPai
     }
 
     return r;
-  }
-
-  /**
-   * @param pColor Color to get in a bit darker
-   * @return Color whose brightness value is scaled down by an algorithm
-   */
-  private static Color _darken(Color pColor)
-  {
-    // some random factor that seemed to work well in tests, same goes for the algorithm
-    float factor = 0.9f;
-    float[] hsbValues = new float[3];
-    Color.RGBtoHSB(pColor.getRed(), pColor.getGreen(), pColor.getBlue(), hsbValues);
-    if (hsbValues[2] == 0)
-    {
-      // equation as-is without the multiplication with 0 that would result if you insert 0
-      hsbValues[2] = 0.5f * factor;
-    }
-    else if (hsbValues[2] == 0.5f)
-    {
-      // equation as-is without the multiplication with 0 that would result if you insert 0.5
-      hsbValues[2] = factor * hsbValues[2];
-    }
-    else
-    {
-      hsbValues[2] = Math.abs(0.5f - hsbValues[2]) * factor * hsbValues[2];
-    }
-    return Color.getHSBColor(hsbValues[0], hsbValues[1], hsbValues[2]);
   }
 }

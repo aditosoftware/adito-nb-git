@@ -1,7 +1,10 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.EStageState;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.IndexDiff;
 
