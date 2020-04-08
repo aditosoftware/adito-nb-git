@@ -151,6 +151,9 @@ public class ChangeDeltaImplTest
     assertFalse(fileDiff1.getChangeDeltas().get(1).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
   }
 
+  /**
+   * Tests if the _validateLines method correctly changes the editList such that the false editList given is corrected
+   */
   @Test
   void testFixEditList()
   {
@@ -168,6 +171,9 @@ public class ChangeDeltaImplTest
     assertEquals(editList.get(4), edits.get(2));
   }
 
+  /**
+   * Tests if the _getUnmodifiedLines method finds the correct unmodified lines
+   */
   @Test
   void testGetUnmodifedLines()
   {
