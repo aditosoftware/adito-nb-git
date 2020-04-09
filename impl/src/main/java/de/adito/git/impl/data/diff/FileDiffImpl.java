@@ -140,7 +140,8 @@ public class FileDiffImpl implements IFileDiff
         String changedSideString = pChangeSide == EChangeSide.NEW ? newVersion : oldVersion;
         String appliedSideString = pChangeSide == EChangeSide.NEW ? oldVersion : newVersion;
         boolean isPointChange = (isChangeNewVersion && deltaChangeType == EChangeType.ADD) || (!isChangeNewVersion && deltaChangeType == EChangeType.DELETE);
-        boolean isPointChangeAtEOL = Util.safeIsCharAt(appliedSideString, appliedEndTextIndex - 1, '\n') && Util.safeIsCharAt(changedSideString, changedEndTextIndex - 1, '\n')
+        boolean isPointChangeAtEOL = Util.safeIsCharAt(appliedSideString, appliedEndTextIndex - 1, '\n')
+            && Util.safeIsCharAt(changedSideString, changedEndTextIndex - 1, '\n')
             && ((deltaChangeType == EChangeType.ADD && isChangeNewVersion) || (deltaChangeType == EChangeType.DELETE && !isChangeNewVersion));
         // get the text before the changed lines
         // the if statement here may be true if e.g. the last line does not have a newline, yet the other side has modified or added lines beyond that
@@ -157,15 +158,11 @@ public class FileDiffImpl implements IFileDiff
             startIndex = Math.max(0, startIndex - 1);
           prefix = changedSideString.substring(0, startIndex);
         }
-
         // calculate the changed text. ADD and DELETE have a special treatment here, because they are changes that cover only a point on one side of the change (e.g. an
         // insert happens between characters, doesnt affect the characters around it). To make highlighting easier, the indices of the ChangeDelta do not cover that
         // behaviour -> special treatment here
         if (isPointChange)
           infix = "";
-          //else if (isChangeNewVersion && deltaChangeType == EChangeType.DELETE && Util.safeIsCharAt(appliedSideString, appliedStartTextIndex - 1, '\n')
-          //&& pChangeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY && !Util.safeIsCharAt(changedSideString, changedStartTextIndex -1, '\n'))
-          //  infix += appliedSideString.substring(appliedStartTextIndex - 1, appliedEndTextIndex);
         else
           infix += appliedSideString.substring(appliedStartTextIndex, appliedEndTextIndex);
         int postFixStartIndex;
@@ -206,7 +203,7 @@ public class FileDiffImpl implements IFileDiff
     }
     else
     {
-      deltaTextChangeEvents.add(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.NEW));
+      deltaTextChangeEvents.add(new DeltaTextChangeEventImpl(0, 0, "", this, pChangeSide));
     }
     _checkInitialObservableState();
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> diffTextChangeObservable.onNext(pDeltaTextChangeEvent));
@@ -223,6 +220,8 @@ public class FileDiffImpl implements IFileDiff
       changeDeltas.set(deltaIndex, changeDelta.discardChange());
     }
     _checkInitialObservableState();
+    // empty change on both, to notify both sides to adjust the highlights
+    diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.OLD));
     diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.NEW));
   }
 
@@ -262,7 +261,7 @@ public class FileDiffImpl implements IFileDiff
     }
     _checkInitialObservableState();
     // signal an empty change for UI updates, this method should be called in response to an update in a document or similar, not the other way round
-    diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.NEW));
+    diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, pChangeSide));
   }
 
   /**

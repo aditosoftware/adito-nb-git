@@ -30,6 +30,8 @@ public class ColorPicker
   public static final Color DIFF_MODIFIED_SECONDARY = _getColor("nb.diff.secondary.changed.color");
   public static final Color DIFF_ADDED_SECONDARY = _getColor("nb.diff.secondary.added.color");
   public static final Color DIFF_DELETED_SECONDARY = _getColor("nb.diff.secondary.deleted.color");
+  public static final Color DIFF_CONFLICTING = _getColor("nb.diff.conflicted.color");
+  public static final Color DIFF_CONFLICTING_SECONDARY = _getColor("nb.diff.secondary.conflicted.color");
 
   private static Map<String, Color> defaultColors;
 
@@ -73,7 +75,9 @@ public class ColorPicker
         Map.entry("nb.diff.unresolved.color", new Color(130, 30, 30)),
         Map.entry("List.selectionBackground", new Color(52, 152, 219)),
         Map.entry("diff.line.num", new Color(0xff888888, true)),
-        Map.entry("diff.background", new Color(0xff313335, true))
+        Map.entry("diff.background", new Color(0xff313335, true)),
+        Map.entry("nb.diff.conflicted.color", new Color(100, 30, 30)),
+        Map.entry("nb.diff.secondary.conflicted.color", new Color(65, 43, 43))
     );
   }
 

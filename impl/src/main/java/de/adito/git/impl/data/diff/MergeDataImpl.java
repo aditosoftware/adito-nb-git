@@ -76,9 +76,15 @@ public class MergeDataImpl implements IMergeData
   public void discardChange(@NotNull IChangeDelta discardedDelta, @NotNull EConflictSide conflictSide)
   {
     if (conflictSide == EConflictSide.YOURS)
+    {
       yourSideDiff.discardDelta(discardedDelta);
+      theirSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD);
+    }
     else
+    {
       theirSideDiff.discardDelta(discardedDelta);
+      yourSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD);
+    }
   }
 
   @Override

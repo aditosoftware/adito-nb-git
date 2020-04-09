@@ -56,7 +56,7 @@ public enum EChangeType
   /**
    * file is in a conflicting state towards (e.g what you get if you modify file that was modified by someone else in the meantime)
    */
-  CONFLICTING(ColorPicker.VERSIONING_CONFLICTING, ColorPicker.DIFF_UNRESOLVED, ColorPicker.DIFF_UNRESOLVED),
+  CONFLICTING(ColorPicker.VERSIONING_CONFLICTING, ColorPicker.DIFF_CONFLICTING, ColorPicker.DIFF_CONFLICTING_SECONDARY),
 
   /**
    * Stayed the same, only used for LineChanges
