@@ -49,16 +49,22 @@ public class TextHighlightUtil
    */
   public static void insertColoredText(JEditorPane pEditorPane, IDeltaTextChangeEvent pYourChangeEvent, IDeltaTextChangeEvent pTheirChangeEvent, EChangeSide pChangeSide)
   {
-    if (pYourChangeEvent.getSide() != pChangeSide)
+    IDeltaTextChangeEvent realChangeEvent = _getRealEvent(pYourChangeEvent, pTheirChangeEvent);
+    if (realChangeEvent.getSide() != pChangeSide)
       return;
-    List<IChangeDelta> yourChangeDeltas = pYourChangeEvent.getFileDiff() == null ? List.of() : pYourChangeEvent.getFileDiff().getChangeDeltas();
-    List<IChangeDelta> theirChangeDeltas = pTheirChangeEvent.getFileDiff() == null ? List.of() : pTheirChangeEvent.getFileDiff().getChangeDeltas();
-    _insertColoredText(pEditorPane, pYourChangeEvent, () -> {
-                         List<_Highlight> highlightSpots = _getHighlightSpots(yourChangeDeltas, pChangeSide, true);
-                         highlightSpots.addAll(_getHighlightSpots(theirChangeDeltas, pChangeSide, true));
-                         return highlightSpots;
-                       }
+    List<IChangeDelta> changeDeltas = new ArrayList<>();
+    changeDeltas.addAll(pYourChangeEvent.getFileDiff() == null ? List.of() : pYourChangeEvent.getFileDiff().getChangeDeltas());
+    changeDeltas.addAll(pTheirChangeEvent.getFileDiff() == null ? List.of() : pTheirChangeEvent.getFileDiff().getChangeDeltas());
+    _insertColoredText(pEditorPane, realChangeEvent, () -> _getHighlightSpots(changeDeltas, pChangeSide, true)
     );
+  }
+
+  private static IDeltaTextChangeEvent _getRealEvent(IDeltaTextChangeEvent pYourChangeEvent, IDeltaTextChangeEvent pTheirChangeEvent)
+  {
+    if ((pYourChangeEvent.getText() == null || pYourChangeEvent.getText().isEmpty()) && pYourChangeEvent.getOffset() == 0 && pYourChangeEvent.getLength() == 0)
+      return pTheirChangeEvent;
+    else
+      return pYourChangeEvent;
   }
 
   /**
@@ -70,16 +76,22 @@ public class TextHighlightUtil
   private static List<_Highlight> _getHighlightSpots(List<IChangeDelta> pFileChangeChunks, EChangeSide pChangeSide, boolean pIsMarkWords)
   {
     List<_Highlight> highlightSpots = new ArrayList<>();
+    List<_Highlight> pendingHighlightSpots = new ArrayList<>();
     for (IChangeDelta changeDelta : pFileChangeChunks)
     {
       if (pIsMarkWords && changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING
           && changeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY)
       {
-        highlightSpots.add(_getWordsHighlight(changeDelta, pChangeSide));
+        pendingHighlightSpots.add(_getWordsHighlight(changeDelta, pChangeSide));
       }
       else
+      {
+        if (changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
+          pendingHighlightSpots.add(_getLineHighlight(changeDelta, pChangeSide));
         highlightSpots.add(_getLineHighlight(changeDelta, pChangeSide));
+      }
     }
+    highlightSpots.addAll(pendingHighlightSpots);
     return highlightSpots;
   }
 
