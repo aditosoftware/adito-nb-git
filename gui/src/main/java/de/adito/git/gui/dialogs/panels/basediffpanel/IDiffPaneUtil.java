@@ -120,8 +120,8 @@ public interface IDiffPaneUtil
         .autoConnect(0, disposables::add);
     Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> refreshFunction = pFileDiff ->
         getHeightMappings(pOldPane.getEditorPane(), pCurrentPane.getEditorPane(), pFileDiff);
-    _syncPanes(pOldPane.getScrollPane(), pCurrentPane.getScrollPane(), refreshFunction, changeEventObs);
-    _syncPanes(pCurrentPane.getScrollPane(), pOldPane.getScrollPane(), refreshFunction, changeEventObs);
+    _syncPanes(pOldPane.getScrollPane(), pCurrentPane.getScrollPane(), refreshFunction, changeEventObs, false);
+    _syncPanes(pCurrentPane.getScrollPane(), pOldPane.getScrollPane(), refreshFunction, changeEventObs, true);
     return new ScrollBarCoupling((SynchronizedBoundedRangeModel) pOldPane.getScrollPane().getVerticalScrollBar().getModel(), pModel1Key,
                                  (SynchronizedBoundedRangeModel) pCurrentPane.getScrollPane().getVerticalScrollBar().getModel(), pModel2Key, disposables);
   }
@@ -130,24 +130,26 @@ public interface IDiffPaneUtil
    * Initializes and sets a SynchronizedBoundedRangeModel to pScrollPane. That model is already coupled with pSecondScrollPane.
    * If the model of pScrollPane is already a SynchronizedBoundedRangeModel, adds the seconds ScrollBar to that model
    *
-   * @param pScrollPane       JScrollPane whose model should be set or coupled with pSecondScrollPane
-   * @param pSecondScrollPane JScrollPane that should be coupled to pScrollPane
-   * @param pRefreshFunction  Function that refreshes the heightMappings for the SynchronizedBoundedRangeModel
-   * @param pChangeEventObs   Observable that offers the latest version of the IFileChangesEvent describing the changes displayed in the scrollPanes
+   * @param pScrollPane        JScrollPane whose model should be set or coupled with pSecondScrollPane
+   * @param pSecondScrollPane  JScrollPane that should be coupled to pScrollPane
+   * @param pRefreshFunction   Function that refreshes the heightMappings for the SynchronizedBoundedRangeModel
+   * @param pChangeEventObs    Observable that offers the latest version of the IFileChangesEvent describing the changes displayed in the scrollPanes
+   * @param pUseInverseMapping Determines if the scrollPane uses the inverse of the height mappings. When combining two scrollPanes, one should have true here, the other
+   *                           false
    */
   private static void _syncPanes(@NotNull JScrollPane pScrollPane, @NotNull JScrollPane pSecondScrollPane,
                                  @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshFunction,
-                                 @NotNull Observable<Optional<List<IChangeDelta>>> pChangeEventObs)
+                                 @NotNull Observable<Optional<List<IChangeDelta>>> pChangeEventObs, boolean pUseInverseMapping)
   {
     if (pScrollPane.getVerticalScrollBar().getModel() instanceof SynchronizedBoundedRangeModel)
     {
       ((SynchronizedBoundedRangeModel) pScrollPane.getVerticalScrollBar().getModel())
-          .addCoupledScrollbar(pSecondScrollPane.getVerticalScrollBar(), pRefreshFunction, pChangeEventObs, false);
+          .addCoupledScrollbar(pSecondScrollPane.getVerticalScrollBar(), pRefreshFunction, pChangeEventObs, pUseInverseMapping);
     }
     else
     {
       SynchronizedBoundedRangeModel scrollBarOldModel = new SynchronizedBoundedRangeModel(pSecondScrollPane.getVerticalScrollBar(), pRefreshFunction,
-                                                                                          pChangeEventObs, false);
+                                                                                          pChangeEventObs, pUseInverseMapping);
       pScrollPane.getVerticalScrollBar().setModel(scrollBarOldModel);
     }
   }
@@ -155,18 +157,18 @@ public interface IDiffPaneUtil
   /**
    * @param pEditorPaneOld     pEditorPane that contains the text of the IFileDiff with side OLD
    * @param pEditorPaneCurrent pEditorPane that contains the text of the IFileDiff with side NEW
-   * @param pChangesEvent      IFileDiff with the information about the changes displayed in the editorPanes
+   * @param pChangeDeltas      IFileDiff with the information about the changes displayed in the editorPanes
    * @return List of Mappings of the y values of the IFileChangeChunks in the IFileDiff
    */
   static BiNavigateAbleMap<Integer, Integer> getHeightMappings(JEditorPane pEditorPaneOld, JEditorPane pEditorPaneCurrent,
-                                                               List<IChangeDelta> pChangesEvent)
+                                                               List<IChangeDelta> pChangeDeltas)
   {
     BiNavigateAbleMap<Integer, Integer> heightMap = new BiNavigateAbleMap<>();
     // default entry: start is equal
     heightMap.put(0, 0);
     View oldEditorPaneView = pEditorPaneOld.getUI().getRootView(pEditorPaneOld);
     View currentEditorPaneView = pEditorPaneCurrent.getUI().getRootView(pEditorPaneCurrent);
-    for (IChangeDelta changeChunk : pChangesEvent)
+    for (IChangeDelta changeChunk : pChangeDeltas)
     {
       try
       {
