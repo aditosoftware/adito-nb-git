@@ -107,12 +107,18 @@ public class MergePanel extends JPanel implements IDiscardable
     yoursPaneWrapper = new DiffPaneWrapper(yoursModel, editorKitObservable);
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     yoursPaneWrapper.getScrollPane().setLayout(new LeftSideVSBScrollPaneLayout());
+
+    // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
+    LineNumbersColorModel temp = yoursPaneWrapper.getPane().createLineNumberColorModel(yoursModel, 1);
     // index 0 because the lineNumPanel is of the left-most panel, and thus to the left to the ChoiceButtonPanel
-    lineNumColorModels[0] = yoursPaneWrapper.getPane().addLineNumPanel(yoursModel, BorderLayout.EAST, 0);
+    lineNumColorModels[0] = yoursPaneWrapper.getPane().createLineNumberColorModel(yoursModel, 0);
     lineNumColorModels[1] = leftForkPointLineNumColorModel;
-    yoursPaneWrapper.getPane().addChoiceButtonPanel(yoursModel, acceptYoursIcon, discardIcon,
-                                                    lineNumColorModels,
+
+    yoursPaneWrapper.getPane().addChoiceButtonPanel(yoursModel, acceptYoursIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumColorModels[0]},
                                                     BorderLayout.EAST);
+    yoursPaneWrapper.getPane().addLineNumPanel(lineNumColorModels[0], yoursModel, BorderLayout.EAST);
+    yoursPaneWrapper.getPane().addChoiceButtonPanel(yoursModel, null, null,
+                                                    lineNumColorModels, BorderLayout.EAST);
   }
 
   private void _initTheirsPanel()
@@ -123,12 +129,18 @@ public class MergePanel extends JPanel implements IDiscardable
         .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.THEIRS));
     theirsPaneWrapper = new DiffPaneWrapper(theirsModel, editorKitObservable);
     theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
+
+    // Neccessary for the right ChoiceButtonPanel, but should not be added to the Layout
+    LineNumbersColorModel temp = theirsPaneWrapper.getPane().createLineNumberColorModel(theirsModel, 0);
     // index 1 because the lineNumPanel is of the right-most panel, and thus to the right to the ChoiceButtonPanel
-    lineNumPanels[1] = theirsPaneWrapper.getPane().addLineNumPanel(theirsModel, BorderLayout.WEST, 1);
+    lineNumPanels[1] = theirsPaneWrapper.getPane().createLineNumberColorModel(theirsModel, 1);
     lineNumPanels[0] = rightForkPointLineNumColorModel;
-    theirsPaneWrapper.getPane().addChoiceButtonPanel(theirsModel, acceptTheirsIcon, discardIcon,
-                                                     lineNumPanels,
-                                                     BorderLayout.WEST);
+
+    theirsPaneWrapper.getPane().addChoiceButtonPanel(theirsModel, acceptTheirsIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumPanels[1]},
+                                                    BorderLayout.WEST);
+    theirsPaneWrapper.getPane().addLineNumPanel(lineNumPanels[1], theirsModel, BorderLayout.WEST);
+    theirsPaneWrapper.getPane().addChoiceButtonPanel(theirsModel, null, null,
+                                                     lineNumPanels, BorderLayout.WEST);
   }
 
   private void _initForkPointPanel()

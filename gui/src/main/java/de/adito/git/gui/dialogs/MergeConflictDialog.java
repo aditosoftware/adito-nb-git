@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
@@ -132,8 +133,13 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeDiffOptional.ifPresent(pMergeDatas -> {
       if (pMergeDatas.size() == 1)
       {
-        if (dialogProvider.showMergeConflictResolutionDialog(pMergeDatas.get(0)).isAcceptChanges())
+        IMergeConflictResolutionDialogResult<?, ?> result = dialogProvider.showMergeConflictResolutionDialog(pMergeDatas.get(0));
+        if (result.isAcceptChanges())
           _acceptManualVersion(pMergeDatas.get(0));
+        else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_YOURS))
+          _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS);
+        else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_THEIRS))
+          _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS);
         else
           pMergeDatas.get(0).reset();
       }

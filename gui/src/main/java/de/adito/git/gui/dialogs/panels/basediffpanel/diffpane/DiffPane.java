@@ -76,12 +76,38 @@ public class DiffPane extends JPanel implements IDiscardable
    */
   public LineNumbersColorModel addLineNumPanel(DiffPanelModel pModel, String pLineOrientation, int pModelNumber)
   {
-    LineNumbersColorModel lineNumbersColorModel = new LineNumbersColorModel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable,
-                                                                            pModelNumber);
-    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable, lineNumbersColorModel);
+    LineNumbersColorModel lineNumbersColorModel = createLineNumberColorModel(pModel, pModelNumber);
+    addLineNumPanel(lineNumbersColorModel, pModel, pLineOrientation);
+    return lineNumbersColorModel;
+  }
+
+  /**
+   * Only creates the LineNumbersColorModel, it does not be added to the Layout.
+   *
+   * @param pModel       DiffPanelModel with the Observable list of fileChangeChunks
+   * @param pModelNumber number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
+   * @return the new LineNumbersColorModel
+   * @see #addLineNumPanel(DiffPanelModel, String, int)
+   */
+  public LineNumbersColorModel createLineNumberColorModel(DiffPanelModel pModel, int pModelNumber)
+  {
+    return new LineNumbersColorModel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable,
+                                     pModelNumber);
+  }
+
+  /**
+   * Adds the LineNumbersColorModel to the Layout. Therefore a LineNumPanel is created.
+   *
+   * @param pLineNumbersColorModel the LineNumbersColorModel, which should be added
+   * @param pModel                 DiffPanelModel with the Observable list of fileChangeChunks
+   * @param pLineOrientation       String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
+   *                               Defaults to BorderLayout.EAST if another String is passed
+   */
+  public void addLineNumPanel(LineNumbersColorModel pLineNumbersColorModel, DiffPanelModel pModel, String pLineOrientation)
+  {
+    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable, pLineNumbersColorModel);
     discardables.add(lineNumPanel);
     add(lineNumPanel, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
-    return lineNumbersColorModel;
   }
 
   /**

@@ -129,7 +129,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
         {
           int characterStartOffset = fileChange.getStartTextIndex(model.getChangeSide());
           int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
-                                                 Position.Bias.Forward, new Rectangle()).getBounds().y;
+                                                 Position.Bias.Forward, new Rectangle()).getBounds().y + 2;
           if (acceptIcon != null)
             iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate, acceptChangeIconXVal, fileChange));
           // discardIcon == null -> only accept button should be used (case DiffPanel)
