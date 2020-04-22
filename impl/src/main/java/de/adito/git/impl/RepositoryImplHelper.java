@@ -3,18 +3,18 @@ package de.adito.git.impl;
 import com.google.common.collect.Iterators;
 import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.*;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IFileDiff;
-import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
+import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.data.diff.MergeDataImpl;
 import de.adito.git.impl.revfilters.StashCommitFilter;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
@@ -248,7 +248,7 @@ public class RepositoryImplHelper
         {
           if (toMergeDiff.getFileHeader().getFilePath().equals(parentDiff.getFileHeader().getFilePath()))
           {
-            mergeConflicts.add(new MergeDataImpl(parentDiff, toMergeDiff));
+            mergeConflicts.add(_createMergeData(parentDiff, toMergeDiff));
           }
         }
       }
@@ -368,12 +368,37 @@ public class RepositoryImplHelper
         {
           if (toMergeDiff.getFileHeader().getChangeType() != EChangeType.COPY && IFileDiff.isSameFile(toMergeDiff, parentDiff))
           {
-            mergeConflicts.add(new MergeDataImpl(parentDiff, toMergeDiff));
+            mergeConflicts.add(_createMergeData(parentDiff, toMergeDiff));
           }
         }
       }
     }
     return mergeConflicts;
+  }
+
+  /**
+   * Takes the editLists of the two given IFileDiffs and combines them such that two conflicting deltas reference the same lines in the fork-point version
+   *
+   * @param pParentDiff  IFileDiff from current to fork-point
+   * @param pToMergeDiff IFileDiff from branch to merge to fork-point
+   * @return IMergeData constructed from the IFileDiffs
+   */
+  private static IMergeData _createMergeData(IFileDiff pParentDiff, IFileDiff pToMergeDiff)
+  {
+    if (pParentDiff instanceof FileDiffImpl && pToMergeDiff instanceof FileDiffImpl)
+    {
+      EditList parentEditList = ((FileDiffImpl) pParentDiff).getEditList();
+      EditList toMergeEditList = ((FileDiffImpl) pToMergeDiff).getEditList();
+      MergeDataImpl.adjustEditListForMerge(parentEditList, toMergeEditList);
+      return new MergeDataImpl(new FileDiffImpl(pParentDiff.getFileHeader(), parentEditList,
+                                                pParentDiff.getFileContentInfo(EChangeSide.OLD), pParentDiff.getFileContentInfo(EChangeSide.NEW)),
+                               new FileDiffImpl(pToMergeDiff.getFileHeader(), toMergeEditList,
+                                                pToMergeDiff.getFileContentInfo(EChangeSide.OLD), pToMergeDiff.getFileContentInfo(EChangeSide.NEW)));
+    }
+    else
+    {
+      return new MergeDataImpl(pParentDiff, pToMergeDiff);
+    }
   }
 
   /**

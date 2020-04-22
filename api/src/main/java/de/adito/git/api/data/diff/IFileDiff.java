@@ -25,6 +25,14 @@ public interface IFileDiff extends IFileChangeType
   IFileDiffHeader getFileHeader();
 
   /**
+   * returns the IFileContentInfo of the specified side
+   *
+   * @param pChangeSide the contentInfo for which side of the change should be taken
+   * @return IFileContentInfo
+   */
+  IFileContentInfo getFileContentInfo(EChangeSide pChangeSide);
+
+  /**
    * returns the encoding used to convert the fileContents, as String, to a byte array or vice versa
    *
    * @param pChangeSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected

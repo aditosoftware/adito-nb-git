@@ -49,6 +49,22 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
+  public IFileContentInfo getFileContentInfo(EChangeSide pChangeSide)
+  {
+    return pChangeSide == EChangeSide.NEW ? newFileContentInfo : originalFileContentInfo;
+  }
+
+  /**
+   * Returns the EditList used to determine the indices for this FileDiff
+   *
+   * @return EditList used to determine the indices for this FileDiff
+   */
+  public EditList getEditList()
+  {
+    return editList;
+  }
+
+  @Override
   public Charset getEncoding(@NotNull EChangeSide pChangeSide)
   {
     return pChangeSide == EChangeSide.NEW ? newFileContentInfo.getEncoding().get() : originalFileContentInfo.getEncoding().get();
