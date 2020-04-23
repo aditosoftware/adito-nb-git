@@ -602,8 +602,7 @@ public class RepositoryImpl implements IRepository
                 : getFileContents(getFileVersion(pCompareTo.getId(), diff.getOldPath()));
             IFileContentInfo newFileContent = VOID_PATH.equals(diff.getNewPath()) ? emptyContentInfo
                 : getFileContents(getFileVersion(pOriginal.getId(), diff.getNewPath()));
-            // TODO find out real line ending instead of using default UNIX
-            listDiffImpl.add(new FileDiffImpl(new FileDiffHeaderImpl(diff, tld, ELineEnding.UNIX), fileHeader.getHunks().get(0).toEditList(),
+            listDiffImpl.add(new FileDiffImpl(new FileDiffHeaderImpl(diff, tld), fileHeader.getHunks().get(0).toEditList(),
                                               oldFileContent, newFileContent));
           }
           if (pWriteTo != null)
@@ -670,8 +669,7 @@ public class RepositoryImpl implements IRepository
               : getFileContents(getFileVersion(ObjectId.toString(compareWithId), diffEntry.getOldPath()));
           IFileContentInfo newFileContents = VOID_PATH.equals(diffEntry.getNewPath()) ? new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8)
               : new FileContentInfoImpl(Suppliers.memoize(() -> _getFileContent(diffEntry.getNewPath())), fileSystemUtil);
-          // TODO find out real line ending instead of using default UNIX
-          returnList.add(new FileDiffImpl(new FileDiffHeaderImpl(diffEntry, getTopLevelDirectory(), ELineEnding.UNIX), fileHeader.getHunks().get(0).toEditList(),
+          returnList.add(new FileDiffImpl(new FileDiffHeaderImpl(diffEntry, getTopLevelDirectory()), fileHeader.getHunks().get(0).toEditList(),
                                           oldFileContents, newFileContents));
         }
       }

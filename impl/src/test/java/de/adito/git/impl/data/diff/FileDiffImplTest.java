@@ -992,7 +992,7 @@ public class FileDiffImplTest
   {
     IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);
     IDiffPathInfo diffPathInfo1 = new DiffPathInfoImpl(null, "filea", "fileb");
-    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo1, diffDetails, ELineEnding.UNIX);
+    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo1, diffDetails);
     IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     IFileContentInfo newFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     FileDiffImpl fileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, newFileContent);
@@ -1001,7 +1001,7 @@ public class FileDiffImplTest
     assertNull(fileDiff.getFileHeader().getAbsoluteFilePath());
     // set up a new fileDiffHeader that has a topLevel folder set
     IDiffPathInfo diffPathInfo2 = new DiffPathInfoImpl(new File("C:/test"), "filea", "fileb");
-    fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails, ELineEnding.UNIX);
+    fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails);
     oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     newFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     fileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, newFileContent);

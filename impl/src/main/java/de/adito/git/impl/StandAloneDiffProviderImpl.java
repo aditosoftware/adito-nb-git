@@ -5,7 +5,6 @@ import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.IStandAloneDiffProvider;
 import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.ELineEnding;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.impl.data.diff.*;
 import org.eclipse.jgit.diff.*;
@@ -42,10 +41,8 @@ public class StandAloneDiffProviderImpl implements IStandAloneDiffProvider
 
     EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, fileContents, currentFileContents);
     String fictionalFile = new File(new File(""), SOME_TEMP_FILE_NAME).getPath();
-    // TODO instead of passing UNIX lineending, determine the real lineendings used
     return new FileDiffImpl(new FileDiffHeaderImpl(new DiffPathInfoImpl(null, fictionalFile, fictionalFile),
-                                                   new DiffDetailsImpl("1", "2", EChangeType.MODIFY, EFileType.FILE, EFileType.FILE),
-                                                   ELineEnding.UNIX),
+                                                   new DiffDetailsImpl("1", "2", EChangeType.MODIFY, EFileType.FILE, EFileType.FILE)),
                             linesChanged,
                             new FileContentInfoImpl(() -> pVersion1, fileSystemUtil),
                             new FileContentInfoImpl(() -> pVersion2, fileSystemUtil));

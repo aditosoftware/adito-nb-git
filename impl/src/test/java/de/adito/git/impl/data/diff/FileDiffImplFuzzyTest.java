@@ -1,7 +1,9 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.diff.*;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileContentInfo;
 import de.adito.git.impl.data.diff.fuzzing.IRandomGenerator;
 import de.adito.git.impl.data.diff.fuzzing.ProbabilityEventGenerator;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -67,7 +69,7 @@ public class FileDiffImplFuzzyTest
       EditList editList = LineIndexDiffUtil.getChangedLines(versions.getLeft(), versions.getRight(), RawTextComparator.WS_IGNORE_TRAILING);
       IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);
       IDiffPathInfo diffPathInfo = new DiffPathInfoImpl(null, "filea", "fileb");
-      FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails, ELineEnding.UNIX);
+      FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails);
       IFileContentInfo oldFileContent = new FileContentInfoImpl(versions::getLeft, () -> StandardCharsets.UTF_8);
       IFileContentInfo newFileContent = new FileContentInfoImpl(versions::getRight, () -> StandardCharsets.UTF_8);
       FileDiffImpl fileDiff = new FileDiffImpl(fileDiffHeader, editList, oldFileContent, newFileContent);

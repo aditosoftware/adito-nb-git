@@ -1,7 +1,9 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.diff.*;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileContentInfo;
+import de.adito.git.api.data.diff.IFileDiff;
 import org.eclipse.jgit.diff.EditList;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +27,7 @@ class TestUtil
   {
     IDiffPathInfo diffPathInfo = new DiffPathInfoImpl(null, "filea", "fileb");
     IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);
-    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails, ELineEnding.UNIX);
+    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails);
     IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> pOldVersion, () -> StandardCharsets.UTF_8);
     IFileContentInfo newFileContent = new FileContentInfoImpl(() -> pNewVersion, () -> StandardCharsets.UTF_8);
     return new FileDiffImpl(fileDiffHeader, pEditList, oldFileContent, newFileContent);

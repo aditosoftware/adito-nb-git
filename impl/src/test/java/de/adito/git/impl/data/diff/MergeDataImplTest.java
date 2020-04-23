@@ -337,7 +337,7 @@ public class MergeDataImplTest
   {
     IDiffPathInfo diffPathInfo = new DiffPathInfoImpl(null, "filea", "filea");
     IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);
-    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails, ELineEnding.UNIX);
+    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails);
     IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     IFileDiff yourFileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, oldFileContent);
     IFileDiff theirDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, oldFileContent);
@@ -355,8 +355,8 @@ public class MergeDataImplTest
     IDiffPathInfo diffPathInfo2 = new DiffPathInfoImpl(null, "filea", "fileb");
     IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);
     IDiffDetails diffDetails2 = new DiffDetailsImpl("old", "new", EChangeType.RENAME, EFileType.FILE, EFileType.FILE);
-    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails, ELineEnding.UNIX);
-    FileDiffHeaderImpl theirfileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails2, ELineEnding.UNIX);
+    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails);
+    FileDiffHeaderImpl theirfileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails2);
     IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     IFileDiff yourFileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, oldFileContent);
     IFileDiff theirDiff = new FileDiffImpl(theirfileDiffHeader, new EditList(), oldFileContent, oldFileContent);
@@ -374,8 +374,8 @@ public class MergeDataImplTest
     IDiffPathInfo diffPathInfo2 = new DiffPathInfoImpl(null, "filea", "fileb");
     IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.RENAME, EFileType.FILE, EFileType.FILE);
     IDiffDetails diffDetails2 = new DiffDetailsImpl("old", "new", EChangeType.RENAME, EFileType.FILE, EFileType.FILE);
-    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails, ELineEnding.UNIX);
-    FileDiffHeaderImpl theirfileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails2, ELineEnding.UNIX);
+    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails);
+    FileDiffHeaderImpl theirfileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails2);
     IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     IFileDiff yourFileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, oldFileContent);
     IFileDiff theirDiff = new FileDiffImpl(theirfileDiffHeader, new EditList(), oldFileContent, oldFileContent);
@@ -393,8 +393,8 @@ public class MergeDataImplTest
     IDiffPathInfo diffPathInfo2 = new DiffPathInfoImpl(null, "filea", "filec");
     IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.RENAME, EFileType.FILE, EFileType.FILE);
     IDiffDetails diffDetails2 = new DiffDetailsImpl("old", "new", EChangeType.RENAME, EFileType.FILE, EFileType.FILE);
-    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails, ELineEnding.UNIX);
-    FileDiffHeaderImpl theirfileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails2, ELineEnding.UNIX);
+    FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails);
+    FileDiffHeaderImpl theirfileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails2);
     IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     IFileDiff yourFileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, oldFileContent);
     IFileDiff theirDiff = new FileDiffImpl(theirfileDiffHeader, new EditList(), oldFileContent, oldFileContent);

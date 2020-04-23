@@ -1,7 +1,9 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.EFileType;
-import de.adito.git.api.data.diff.*;
+import de.adito.git.api.data.diff.EChangeSide;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileDiffHeader;
 import de.adito.git.impl.EnumMappings;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.jetbrains.annotations.NotNull;
@@ -18,21 +20,18 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
 
   private final IDiffPathInfo diffPathInfo;
   private final IDiffDetails diffDetails;
-  private final ELineEnding lineEnding;
 
-  public FileDiffHeaderImpl(@NotNull IDiffPathInfo pDiffPathInfo, @NotNull IDiffDetails pDiffDetails, @NotNull ELineEnding pLineEnding)
+  public FileDiffHeaderImpl(@NotNull IDiffPathInfo pDiffPathInfo, @NotNull IDiffDetails pDiffDetails)
   {
     diffPathInfo = pDiffPathInfo;
     diffDetails = pDiffDetails;
-    lineEnding = pLineEnding;
   }
 
-  public FileDiffHeaderImpl(@NotNull DiffEntry pDiffEntry, @Nullable File pTopLevelDirectory, @NotNull ELineEnding pLineEnding)
+  public FileDiffHeaderImpl(@NotNull DiffEntry pDiffEntry, @Nullable File pTopLevelDirectory)
   {
     this(new DiffPathInfoImpl(pTopLevelDirectory, pDiffEntry.getOldPath(), pDiffEntry.getNewPath()),
          new DiffDetailsImpl(pDiffEntry.getOldId().toString(), pDiffEntry.getNewId().toString(), EnumMappings.toEChangeType(pDiffEntry.getChangeType()),
-                             EnumMappings.toEFileType(pDiffEntry.getOldMode()), EnumMappings.toEFileType(pDiffEntry.getNewMode())),
-         pLineEnding);
+                             EnumMappings.toEFileType(pDiffEntry.getOldMode()), EnumMappings.toEFileType(pDiffEntry.getNewMode())));
   }
 
   /**
