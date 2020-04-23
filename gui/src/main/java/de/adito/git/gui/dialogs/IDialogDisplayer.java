@@ -44,7 +44,9 @@ public interface IDialogDisplayer
     UNSTASH("Unstash commit"),
     CREATE_NEW_BRANCH("Create new branch"),
     KEEP_TRACKING("Keep tracking the selected branch"),
-    MERGE_REMOTE("Merge remote into current");
+    MERGE_REMOTE("Merge remote into current"),
+    ACCEPT_YOURS("Accept Left"),
+    ACCEPT_THEIRS("Accept Right");
 
     private final String text;
 

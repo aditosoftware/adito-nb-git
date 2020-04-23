@@ -55,11 +55,19 @@ public class DiffPanel extends JPanel implements IDiscardable
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
         .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
+
+   // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
+    LineNumbersColorModel temp = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel, -1);
+
     // old version is to the left, so index 0
-    LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPane().addLineNumPanel(oldDiffPanelModel, BorderLayout.EAST, 0);
+    LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel, 0);
     lineNumbersColorModels[0] = leftLineColorsModel;
-    oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, lineNumbersColorModels,
+
+    oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, new LineNumbersColorModel[]{temp, leftLineColorsModel},
                                                       BorderLayout.EAST);
+    oldVersionDiffPane.getPane().addLineNumPanel(leftLineColorsModel, oldDiffPanelModel, BorderLayout.EAST);
+    oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, null, null, lineNumbersColorModels, BorderLayout.EAST);
+
     JScrollPane oldVersionScrollPane = oldVersionDiffPane.getScrollPane();
     oldVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     oldVersionScrollPane.setLayout(new LeftSideVSBScrollPaneLayout());

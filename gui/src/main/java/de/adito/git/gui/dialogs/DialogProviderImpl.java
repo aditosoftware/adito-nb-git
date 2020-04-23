@@ -80,7 +80,7 @@ class DialogProviderImpl implements IDialogProvider
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
                                           "Conflict resolution for file "
                                               + pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getFilePath(),
-                                          List.of(EButtons.ACCEPT_CHANGES, EButtons.CANCEL).toArray(new EButtons[0]));
+                                          List.of(EButtons.ACCEPT_CHANGES, EButtons.ACCEPT_YOURS, EButtons.ACCEPT_THEIRS, EButtons.CANCEL).toArray(new EButtons[0]));
       return new MergeConflictResulutionDialogResultImpl<>(result);
     }
     finally
