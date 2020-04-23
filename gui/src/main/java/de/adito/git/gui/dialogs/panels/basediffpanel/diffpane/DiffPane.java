@@ -70,7 +70,7 @@ public class DiffPane extends JPanel implements IDiscardable
   /**
    * @param pModel           DiffPanelModel with the Observable list of fileChangeChunks
    * @param pLineOrientation String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
-   *                         Defaults to BorderLayout.EAST if another String is passed
+   *                         Defaults to BorderLayout.WEST if another String is passed
    * @param pModelNumber     number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
    * @return LineNumbersColorModel describing the
    */
@@ -101,7 +101,7 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pLineNumbersColorModel the LineNumbersColorModel, which should be added
    * @param pModel                 DiffPanelModel with the Observable list of fileChangeChunks
    * @param pLineOrientation       String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
-   *                               Defaults to BorderLayout.EAST if another String is passed
+   *                               Defaults to BorderLayout.WEST if another String is passed
    */
   public void addLineNumPanel(LineNumbersColorModel pLineNumbersColorModel, DiffPanelModel pModel, String pLineOrientation)
   {
