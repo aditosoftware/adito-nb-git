@@ -141,7 +141,6 @@ public class FileDiffImpl implements IFileDiff
     {
       boolean isChangeNewVersion = pApplyingSide == EChangeSide.OLD;
       int textDifference = 0;
-      int lineDifference = 0;
       for (ILinePartChangeDelta linePartChangeDelta : pChangeDelta.getLinePartChanges())
       {
         String prefix;
@@ -208,11 +207,10 @@ public class FileDiffImpl implements IFileDiff
         deltaTextChangeEvents.add(new DeltaTextChangeEventImpl(startIndex, textEventRemovalLength, infix, this, pChangeSide));
         // calculate index differences for the following deltas
         textDifference += infix.length() - textEventRemovalLength;
-        lineDifference += (pChangeDelta.getEndLine(pApplyingSide) - pChangeDelta.getStartLine(pApplyingSide))
-            - (pChangeDelta.getEndLine(pChangeSide) - pChangeDelta.getStartLine(pChangeSide));
       }
 
-
+      int lineDifference = (pChangeDelta.getEndLine(pApplyingSide) - pChangeDelta.getStartLine(pApplyingSide))
+          - (pChangeDelta.getEndLine(pChangeSide) - pChangeDelta.getStartLine(pChangeSide));
       // exchange delta with updated delta, then propagate additional characters/lines to all deltas that occur later on in the file
       changeDeltas.set(deltaIndex, changeDeltas.get(deltaIndex).acceptChange(pChangeSide));
       _applyOffsetToFollowingDeltas(deltaIndex, textDifference, lineDifference, pChangeSide);
