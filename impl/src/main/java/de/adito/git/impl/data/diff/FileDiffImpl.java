@@ -368,18 +368,25 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public void markConflicting(IFileDiff pOtherFileDiff)
+  public List<ConflictPair> markConflicting(IFileDiff pOtherFileDiff)
   {
+    List<ConflictPair> conflictPairs = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
       reset();
     for (int index = 0; index < changeDeltas.size(); index++)
     {
       IChangeDelta changeDelta = changeDeltas.get(index);
-      if (pOtherFileDiff.getChangeDeltas().stream().anyMatch(pChangeDelta -> pChangeDelta.isConflictingWith(changeDelta)))
+      for (int otherDiffIndex = 0; otherDiffIndex < pOtherFileDiff.getChangeDeltas().size(); otherDiffIndex++)
       {
-        changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus().getChangeStatus(), EChangeType.CONFLICTING)));
+        if (pOtherFileDiff.getChangeDeltas().get(otherDiffIndex).isConflictingWith(changeDelta))
+        {
+          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus().getChangeStatus(), EChangeType.CONFLICTING)));
+          conflictPairs.add(new ConflictPair(index, otherDiffIndex));
+          break;
+        }
       }
     }
+    return conflictPairs;
   }
 
   @Override

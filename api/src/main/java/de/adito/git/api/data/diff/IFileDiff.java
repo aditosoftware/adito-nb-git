@@ -1,6 +1,7 @@
 package de.adito.git.api.data.diff;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.impl.data.diff.ConflictPair;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,8 +110,9 @@ public interface IFileDiff extends IFileChangeType
    * Intended direction of the changes here is always NEW -> OLD (so the old version of the text between the IFileDiffs should be the same)
    *
    * @param pOtherFileDiff IFileDiff for which to mark conflicting changes
+   * @return List of conflictPairs, denoting the indices of the list of deltas of both diffs that are conflicting
    */
-  void markConflicting(IFileDiff pOtherFileDiff);
+  List<ConflictPair> markConflicting(IFileDiff pOtherFileDiff);
 
   /**
    * checks if the IFileDiff matches the filePath, works with renames

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author m.kaspera, 06.03.2020
@@ -16,6 +17,7 @@ public class MergeDataImpl implements IMergeData
 
   private final IFileDiff yourSideDiff;
   private final IFileDiff theirSideDiff;
+  private List<ConflictPair> conflictPairs;
 
   public MergeDataImpl(IFileDiff pYourSideDiff, IFileDiff pTheirSideDiff)
   {
@@ -58,21 +60,54 @@ public class MergeDataImpl implements IMergeData
     {
       throw new IllegalArgumentException("Cannot accept a delta of state UNDEFINED");
     }
-    List<IDeltaTextChangeEvent> deltaTextChangeEvents;
     if (conflictSide == EConflictSide.YOURS)
     {
-      deltaTextChangeEvents = yourSideDiff.acceptDelta(acceptedDelta);
-      deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> theirSideDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
-                                                                                            pDeltaTextChangeEvent.getLength(),
-                                                                                            pDeltaTextChangeEvent.getText(), EChangeSide.OLD));
+      _isConflictingCounterPartAccepted(acceptedDelta, yourSideDiff, theirSideDiff, conflictSide);
+      _acceptDelta(acceptedDelta, yourSideDiff, theirSideDiff);
     }
     else
     {
-      deltaTextChangeEvents = theirSideDiff.acceptDelta(acceptedDelta);
-      deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> yourSideDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
-                                                                                           pDeltaTextChangeEvent.getLength(),
-                                                                                           pDeltaTextChangeEvent.getText(), EChangeSide.OLD));
+      _isConflictingCounterPartAccepted(acceptedDelta, theirSideDiff, yourSideDiff, conflictSide);
+      _acceptDelta(acceptedDelta, theirSideDiff, yourSideDiff);
     }
+  }
+
+  /**
+   * Accepts the given delta and applies the returned IDeltaTextChangeEvent to pOtherDiff
+   *
+   * @param acceptedDelta Delta to accept
+   * @param pAcceptedDiff IFileDiff that contains the Delta to accept
+   * @param pOtherDiff    IFileDiff that doesn't contain the Delta to accept, has to also change due to the effects of the applied delta
+   */
+  private void _acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff)
+  {
+    List<IDeltaTextChangeEvent> deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta);
+    deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
+                                                                                       pDeltaTextChangeEvent.getLength(),
+                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD));
+  }
+
+  /**
+   * checks if the given changeDelta is part of a conflictPair and the other part of the conflictPair is accepted
+   *
+   * @param acceptedDelta Delta to accept
+   * @param pAcceptedDiff IFileDiff that contains the Delta to accept
+   * @param pOtherDiff    Opposite side of pAcceptedDiff
+   * @param pConflictSide Side of the conflict that has the accepted delta
+   * @return true if the changeDelta is part of a conflictPair and the other side has status ACCEPTED, false otherwise
+   */
+  private boolean _isConflictingCounterPartAccepted(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff,
+                                                    EConflictSide pConflictSide)
+  {
+    int deltaIndex = pAcceptedDiff.getChangeDeltas().indexOf(acceptedDelta);
+    if (conflictPairs != null)
+    {
+      Optional<ConflictPair> conflictPairOpt = conflictPairs.stream().filter(pConflictPair -> pConflictPair.getIndexOfSide(pConflictSide) == deltaIndex).findFirst();
+      return conflictPairOpt.isPresent() && pOtherDiff.getChangeDeltas()
+          .get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide)))
+          .getChangeStatus().getChangeStatus() == EChangeStatus.ACCEPTED;
+    }
+    return false;
   }
 
   @Override
@@ -116,7 +151,7 @@ public class MergeDataImpl implements IMergeData
   public void markConflicting()
   {
     theirSideDiff.markConflicting(yourSideDiff);
-    yourSideDiff.markConflicting(theirSideDiff);
+    conflictPairs = yourSideDiff.markConflicting(theirSideDiff);
   }
 
   /**

@@ -17,5 +17,18 @@ public enum EConflictSide
   /**
    * The "remote" side of the conflict
    */
-  THEIRS
+  THEIRS;
+
+  /**
+   * inverts the given ConflictSide
+   *
+   * @param pConflictSide EConflictSide
+   * @return opposite side of the given one
+   */
+  public static EConflictSide getOpposite(EConflictSide pConflictSide)
+  {
+    if (pConflictSide == YOURS)
+      return THEIRS;
+    return YOURS;
+  }
 }
