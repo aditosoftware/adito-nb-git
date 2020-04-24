@@ -26,18 +26,18 @@ public class FileContentInfoImpl implements IFileContentInfo
   {
     byte[] bytes = pBytes.get();
     encoding = Suppliers.memoize(() -> Util.getEncoding(bytes, pFileSystemUtil));
-    fileContent = Suppliers.memoize(() -> new String(bytes, encoding.get()));
+    fileContent = Suppliers.memoize(() -> _cleanString(new String(bytes, encoding.get())));
   }
 
   public FileContentInfoImpl(Supplier<String> pFileContent, Supplier<Charset> pEncoding)
   {
-    fileContent = pFileContent;
+    fileContent = Suppliers.memoize(() -> _cleanString(pFileContent.get()));
     encoding = pEncoding;
   }
 
   public Supplier<String> getFileContent()
   {
-    return () -> _cleanString(fileContent.get());
+    return fileContent;
   }
 
   @Override
