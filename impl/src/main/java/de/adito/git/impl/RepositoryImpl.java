@@ -14,6 +14,7 @@ import de.adito.git.impl.data.diff.FileContentInfoImpl;
 import de.adito.git.impl.data.diff.FileDiffHeaderImpl;
 import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.ssh.ISshProvider;
+import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
@@ -552,7 +553,7 @@ public class RepositoryImpl implements IRepository
     RawText headFileContents = new RawText(fileContents.getFileContent().get().getBytes());
     RawText currentFileContents = new RawText(pFileContents.getBytes());
 
-    EditList linesChanged = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, headFileContents, currentFileContents);
+    EditList linesChanged = new HistogramDiff().diff(GitRawTextComparator.CURRENT.getValue(), headFileContents, currentFileContents);
     return new FileDiffImpl(IFileDiffHeader.EMPTY_HEADER, linesChanged, new FileContentInfoImpl(() -> pFileContents, () -> StandardCharsets.UTF_8), fileContents)
         .getChangeDeltas();
   }
@@ -636,7 +637,7 @@ public class RepositoryImpl implements IRepository
       // Use the DiffFormatter to retrieve a list of changes
       DiffFormatter diffFormatter = new DiffFormatter(pWriteTo == null ? DisabledOutputStream.INSTANCE : pWriteTo);
       diffFormatter.setRepository(git.getRepository());
-      diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_TRAILING);
+      diffFormatter.setDiffComparator(GitRawTextComparator.CURRENT.getValue());
       List<TreeFilter> pathFilters = new ArrayList<>();
       if (pFilesToDiff != null)
       {

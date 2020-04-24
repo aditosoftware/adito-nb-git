@@ -5,10 +5,12 @@ import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.diff.ELineEnding;
 import de.adito.git.api.data.diff.IFileContentInfo;
 import de.adito.git.impl.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -43,7 +45,7 @@ public class FileContentInfoImpl implements IFileContentInfo
   @Override
   public Supplier<ELineEnding> getLineEnding()
   {
-    return null;
+    return this::_findLineEnding;
   }
 
   public Supplier<Charset> getEncoding()
@@ -69,5 +71,31 @@ public class FileContentInfoImpl implements IFileContentInfo
       return pUnCleanString;
     }
     return "";
+  }
+
+  /**
+   * Returns the LineEnding, which is most often found in the fileContent.
+   *
+   * @return the LineEnding, which is most often found
+   */
+  private ELineEnding _findLineEnding()
+  {
+    String content = fileContent.get();
+
+    int windows = StringUtils.countMatches(content, ELineEnding.WINDOWS.getLineEnding());
+
+    // The Windows-LineEndings are also found here, eg. occurs the \n from Unix also in the Windows-LineEnding. So the count of Windows-LineEndings
+    // must be subtracted.
+    int unix = StringUtils.countMatches(content, ELineEnding.UNIX.getLineEnding()) - windows;
+    int mac = StringUtils.countMatches(content, ELineEnding.MAC.getLineEnding()) - windows;
+
+    int max = Math.max(windows, Math.max(unix, mac));
+
+    if (max == windows)
+      return ELineEnding.WINDOWS;
+    else if (max == unix)
+      return ELineEnding.UNIX;
+    else
+      return ELineEnding.MAC;
   }
 }

@@ -32,7 +32,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
 
   private final Disposable areaDisposable;
   private final Disposable sizeDisposable;
-  private final Insets panelInsets = new Insets(0, 3, 0, 3);
+  private final Insets panelInsets = new Insets(0, 0, 0, 0);
   private final Insets editorInsets;
   private Rectangle cachedViewRectangle = new Rectangle();
   // lists with Objects that contain information about what to draw. Never modify these lists by themselves, only re-assign them
@@ -134,7 +134,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
       graphics.setColor(ColorPicker.DIFF_LINE_NUM);
       for (LineNumber lineNumber : lineNums)
       {
-        graphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate(),
+        graphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate() + 2,
                             lineNumber.getYCoordinate() + graphics.getFontMetrics().getAscent() - editorInsets.top + 2);
       }
       return image;
@@ -153,6 +153,6 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
    */
   private int _calculateLineWidth()
   {
-    return getFontMetrics(getFont()).stringWidth(String.valueOf(editorPane.getDocument().getDefaultRootElement().getElementCount() - 1)) + 1;
+    return getFontMetrics(getFont()).stringWidth(String.valueOf(editorPane.getDocument().getDefaultRootElement().getElementCount() - 1)) + 7;
   }
 }

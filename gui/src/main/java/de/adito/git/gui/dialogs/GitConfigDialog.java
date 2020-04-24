@@ -9,11 +9,12 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
-import de.adito.git.gui.Constants;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.NewRemotePanel;
 import de.adito.git.gui.dialogs.panels.RemotePanel;
 import de.adito.git.impl.data.FileChangeTypeImpl;
+import de.adito.git.impl.util.GitRawTextComparator;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,11 +23,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import java.awt.BorderLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -133,6 +134,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
   {
 
     private JComboBox<Level> logLevelBox;
+    private JComboBox<GitRawTextComparator> rawTextComparatorBox;
 
     GlobalSettingsPanel()
     {
@@ -148,12 +150,20 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
       otherSettingsPanel.add(new JLabel("Log level:"), BorderLayout.WEST);
       otherSettingsPanel.add(logLevelBox, BorderLayout.EAST);
       add(otherSettingsPanel, BorderLayout.CENTER);
+
+      rawTextComparatorBox = new JComboBox<>(new Vector<>(GitRawTextComparator.INSTANCES));
+      rawTextComparatorBox.setSelectedItem(GitRawTextComparator.CURRENT);
+      JPanel comparatorPanel = new JPanel(new BorderLayout());
+      comparatorPanel.add(new JLabel("Whitespace and Line-Endings:"), BorderLayout.WEST);
+      comparatorPanel.add(rawTextComparatorBox, BorderLayout.EAST);
+      add(comparatorPanel, BorderLayout.SOUTH);
     }
 
     public Multimap<String, Object> getInformation()
     {
       Multimap<String, Object> settingsMap = HashMultimap.create();
       settingsMap.put(Constants.LOG_LEVEL_SETTINGS_KEY, logLevelBox.getSelectedItem());
+      settingsMap.put(Constants.RAW_TEXT_COMPARATOR_SETTINGS_KEY, rawTextComparatorBox.getSelectedItem().toString());
       return settingsMap;
     }
   }

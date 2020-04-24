@@ -70,7 +70,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
     setPreferredSize(new Dimension(_getSuggestedWidth(), 1));
     setBackground(ColorPicker.DIFF_BACKGROUND);
     acceptChangeIconXVal = BorderLayout.WEST.equals(pOrientation) || pDiscardIcon == null ? 0 : pDiscardIcon.getIconWidth();
-    discardChangeIconXVal = BorderLayout.WEST.equals(pOrientation) ? acceptIconWidth : 0;
+    discardChangeIconXVal = BorderLayout.WEST.equals(pOrientation) ? acceptIconWidth : 2;
     addMouseListener(new IconPressMouseAdapter(acceptIconWidth, pModel.getDoOnAccept(), pModel.getDoOnDiscard(), () -> iconInfoList, () -> cachedViewRectangle,
                                                BorderLayout.WEST.equals(pOrientation)));
     pLineNumColorModels[0].addEagerListener(this);

@@ -56,6 +56,7 @@ public class Constants
   //Settings map keys
   public static final String SSH_KEY_KEY = "sshKey";
   public static final String LOG_LEVEL_SETTINGS_KEY = "gitLogLevel";
+  public static final String RAW_TEXT_COMPARATOR_SETTINGS_KEY = "rawTextComparator";
   public static final String TREE_VIEW_TYPE_KEY = "git.settings.tree.view";
   public static final String TREE_VIEW_FLAT = "flat";
   public static final String TREE_VIEW_HIERARCHICAL = "hierarchical";
