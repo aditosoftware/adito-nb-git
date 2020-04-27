@@ -427,6 +427,15 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
+  public IChangeDelta appendChange()
+  {
+    Edit changedEdit = new Edit(startLineIndexOld, endLineIndexOld + (endLineIndexNew - startLineIndexNew), startLineIndexNew, endLineIndexNew);
+    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeStatus.getChangeType()),
+                               new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld + (endLineIndexNew - startLineIndexNew), startTextIndexNew, endTextIndexNew),
+                               textVersionProvider, linePartChangeDeltas);
+  }
+
+  @Override
   public IChangeDelta discardChange()
   {
     Edit changedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, endLineIndexNew);

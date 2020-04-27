@@ -10,6 +10,19 @@ public enum EChangeSide
 
   NEW,
 
-  OLD
+  OLD;
+
+  /**
+   * inverts the given EChangeSide
+   *
+   * @param pChangeSide EChangeSide
+   * @return opposite side of the given one
+   */
+  static EChangeSide invert(EChangeSide pChangeSide)
+  {
+    if (pChangeSide == NEW)
+      return OLD;
+    return NEW;
+  }
 
 }

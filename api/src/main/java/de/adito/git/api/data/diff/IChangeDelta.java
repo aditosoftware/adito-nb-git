@@ -190,6 +190,13 @@ public interface IChangeDelta
   IChangeDelta acceptChange(EChangeSide pChangedSide);
 
   /**
+   * Appends the changes of the NEW side to the OLD side and returns a new IChangeDelta with the changed attributes
+   *
+   * @return new IChangeDelta
+   */
+  IChangeDelta appendChange();
+
+  /**
    * Discards the Changes of this delta and returns a new IChangeDelta with the changed attributes
    *
    * @return new IChangeDelta

@@ -62,13 +62,11 @@ public class MergeDataImpl implements IMergeData
     }
     if (conflictSide == EConflictSide.YOURS)
     {
-      _isConflictingCounterPartAccepted(acceptedDelta, yourSideDiff, theirSideDiff, conflictSide);
-      _acceptDelta(acceptedDelta, yourSideDiff, theirSideDiff);
+      _acceptDelta(acceptedDelta, yourSideDiff, theirSideDiff, conflictSide);
     }
     else
     {
-      _isConflictingCounterPartAccepted(acceptedDelta, theirSideDiff, yourSideDiff, conflictSide);
-      _acceptDelta(acceptedDelta, theirSideDiff, yourSideDiff);
+      _acceptDelta(acceptedDelta, theirSideDiff, yourSideDiff, conflictSide);
     }
   }
 
@@ -79,12 +77,23 @@ public class MergeDataImpl implements IMergeData
    * @param pAcceptedDiff IFileDiff that contains the Delta to accept
    * @param pOtherDiff    IFileDiff that doesn't contain the Delta to accept, has to also change due to the effects of the applied delta
    */
-  private void _acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff)
+  private void _acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide)
   {
-    List<IDeltaTextChangeEvent> deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta);
+    List<IDeltaTextChangeEvent> deltaTextChangeEvents;
+    boolean trySnapToDelta;
+    if (_isConflictingCounterPartAccepted(acceptedDelta, pAcceptedDiff, pOtherDiff, pConflictSide))
+    {
+      deltaTextChangeEvents = List.of(pAcceptedDiff.appendDeltaText(acceptedDelta));
+      trySnapToDelta = true;
+    }
+    else
+    {
+      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta);
+      trySnapToDelta = false;
+    }
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
                                                                                        pDeltaTextChangeEvent.getLength(),
-                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD));
+                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD, trySnapToDelta));
   }
 
   /**
@@ -116,12 +125,12 @@ public class MergeDataImpl implements IMergeData
     if (conflictSide == EConflictSide.YOURS)
     {
       yourSideDiff.discardDelta(discardedDelta);
-      theirSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD);
+      theirSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false);
     }
     else
     {
       theirSideDiff.discardDelta(discardedDelta);
-      yourSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD);
+      yourSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false);
     }
   }
 
@@ -137,13 +146,13 @@ public class MergeDataImpl implements IMergeData
   {
     if (text == null)
     {
-      yourSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD);
-      theirSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD);
+      yourSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD, false);
+      theirSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD, false);
     }
     else
     {
-      yourSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD);
-      theirSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD);
+      yourSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD, false);
+      theirSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD, false);
     }
   }
 
@@ -188,6 +197,8 @@ public class MergeDataImpl implements IMergeData
     {
       Edit currentEdit;
       Edit nextEdit;
+      // the loop counter is not updated on each loop, but only if the edit was not changed -> this way, several adjacent edits may be combined/folded into one with
+      // only a single loop
       for (int index = 0; index < pEditList.size() - 1; )
       {
         currentEdit = pEditList.get(index);

@@ -15,6 +15,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /**
  * @author m.kaspera, 24.02.2020
@@ -121,6 +122,37 @@ public class FileDiffImpl implements IFileDiff
   public List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta)
   {
     return _appyDelta(pChangeDelta, EChangeSide.NEW, EChangeSide.OLD);
+  }
+
+  @Nullable
+  @Override
+  public IDeltaTextChangeEvent appendDeltaText(IChangeDelta pChangeDelta)
+  {
+    DeltaTextChangeEventImpl deltaTextChangeEvent;
+    if (oldVersion == null || newVersion == null)
+    {
+      reset();
+    }
+    int deltaIndex = changeDeltas.indexOf(pChangeDelta);
+    if (deltaIndex != -1)
+    {
+      String prefix = oldVersion.substring(0, pChangeDelta.getEndTextIndex(EChangeSide.OLD));
+      String infix = newVersion.substring(pChangeDelta.getStartTextIndex(EChangeSide.NEW), pChangeDelta.getEndTextIndex(EChangeSide.NEW));
+      String postfix = oldVersion.substring(pChangeDelta.getEndTextIndex(EChangeSide.OLD));
+      oldVersion = prefix + infix + postfix;
+      deltaTextChangeEvent = new DeltaTextChangeEventImpl(pChangeDelta.getEndTextIndex(EChangeSide.OLD), 0, infix, this, EChangeSide.OLD);
+      int lineDifference = pChangeDelta.getEndLine(EChangeSide.NEW) - pChangeDelta.getStartLine(EChangeSide.NEW);
+      // exchange delta with updated delta, then propagate additional characters/lines to all deltas that occur later on in the file
+      changeDeltas.set(deltaIndex, changeDeltas.get(deltaIndex).appendChange());
+      _applyOffsetToFollowingDeltas(deltaIndex, infix.length(), lineDifference, EChangeSide.OLD);
+    }
+    else
+    {
+      deltaTextChangeEvent = new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.OLD);
+    }
+    _checkInitialObservableState();
+    diffTextChangeObservable.onNext(deltaTextChangeEvent);
+    return deltaTextChangeEvent;
   }
 
   @Override
@@ -240,7 +272,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide)
+  public void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide, boolean pTrySnapToDelta)
   {
     if (newVersion == null || oldVersion == null)
       reset();
@@ -267,7 +299,7 @@ public class FileDiffImpl implements IFileDiff
           oldVersion = prefix + postfix;
       }
       String postfix = pChangeSide == EChangeSide.NEW ? newVersion.substring(pOffset) : oldVersion.substring(pOffset);
-      _processInsertEvent(pOffset, pText, pChangeSide, affectedDelta);
+      _processInsertEvent(pOffset, pText, pChangeSide, affectedDelta, pTrySnapToDelta);
       if (pChangeSide == EChangeSide.NEW)
         newVersion = prefix + pText + postfix;
       else
@@ -285,15 +317,20 @@ public class FileDiffImpl implements IFileDiff
    *                       If the delta is e.g. a one-line change and the line is replaced by the modify operation, the delta should still span that line.
    *                       The argument is -1 if not a modify operation or no delta was affected
    */
-  private void _processInsertEvent(int pOffset, @NotNull String pText, EChangeSide pChangeSide, int pModifiedDelta)
+  private void _processInsertEvent(int pOffset, @NotNull String pText, EChangeSide pChangeSide, int pModifiedDelta, boolean pTrySnapToDelta)
   {
     int lineOffset;
     lineOffset = pText.split("\n", -1).length - 1;
+    BiPredicate<Integer, IChangeDelta> eval;
+    if (pTrySnapToDelta)
+      eval = (pOffsetEval, pChunk) -> pOffsetEval <= pChunk.getEndTextIndex(pChangeSide);
+    else
+      eval = (pOffsetEval, pChunk) -> pOffsetEval < pChunk.getEndTextIndex(pChangeSide);
 
     for (int index = 0; index < getChangeDeltas().size(); index++)
     {
       IChangeDelta currentDelta = changeDeltas.get(index);
-      if (pOffset < currentDelta.getEndTextIndex(pChangeSide) || (pModifiedDelta == index) && pOffset == currentDelta.getEndTextIndex(pChangeSide))
+      if (eval.test(pOffset, currentDelta) || (pModifiedDelta == index) && pOffset == currentDelta.getEndTextIndex(pChangeSide))
       {
         if (pOffset >= currentDelta.getStartTextIndex(pChangeSide))
         {

@@ -68,9 +68,18 @@ public interface IFileDiff extends IFileChangeType
    * Accepts the changes introduced by the given Delta (applies changes from NEW side to OLD side)
    *
    * @param pChangeDelta ChangeDelta to accept
-   * @return Event describing the changes done to the new side of the diff
+   * @return Event describing the changes done to the old side of the diff
    */
   List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta);
+
+  /**
+   * Inserts the text on the NEW side at the end of the OLD side without removing the OLD text
+   * this is the behaviour you want in case of a conflicting delta whose conflicting delta was already accepted
+   *
+   * @param pChangeDelta Delta whose text should be inserted
+   * @return Event describing the changes done to the old side of the diff
+   */
+  IDeltaTextChangeEvent appendDeltaText(IChangeDelta pChangeDelta);
 
   /**
    * Reverts the changes introduced by the given Delta (applies changes from OLD side to NEW side)
@@ -90,12 +99,14 @@ public interface IFileDiff extends IFileChangeType
   /**
    * Incorporates the changes done in the DocumentEvent into this diff
    * The text should be filtered in such a way that it contains only \n as newlines (indices still have to match)
-   *  @param pOffset offset from the start of the text to where the change begins
-   * @param pLength length of the changed block, 0 for insert
-   * @param pText   inserted text, null for a removal operation. If this is an empty insert, use ""
-   * @param pChangeSide Side of the change that the text was inserted in
+   *
+   * @param pOffset         offset from the start of the text to where the change begins
+   * @param pLength         length of the changed block, 0 for insert
+   * @param pText           inserted text, null for a removal operation. If this is an empty insert, use ""
+   * @param pChangeSide     Side of the change that the text was inserted in
+   * @param pTrySnapToDelta If true and the text is added at the endIndex of a delta, the added text is considered part of the delta
    */
-  void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide);
+  void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide, boolean pTrySnapToDelta);
 
   /**
    * Get the text for one side of this diff
