@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
-import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -45,7 +44,7 @@ public class FileContentInfoImpl implements IFileContentInfo
   @Override
   public Supplier<ELineEnding> getLineEnding()
   {
-    return this::_findLineEnding;
+    return Suppliers.memoize(this::_findLineEnding);
   }
 
   public Supplier<Charset> getEncoding()
@@ -84,8 +83,7 @@ public class FileContentInfoImpl implements IFileContentInfo
 
     int windows = StringUtils.countMatches(content, ELineEnding.WINDOWS.getLineEnding());
 
-    // The Windows-LineEndings are also found here, eg. occurs the \n from Unix also in the Windows-LineEnding. So the count of Windows-LineEndings
-    // must be subtracted.
+    // The windows line-endings are also found here, so they have to be subtracted.
     int unix = StringUtils.countMatches(content, ELineEnding.UNIX.getLineEnding()) - windows;
     int mac = StringUtils.countMatches(content, ELineEnding.MAC.getLineEnding()) - windows;
 

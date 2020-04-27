@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * In addition to the RawTextComparator can in this class a display-Value be stored.
+ * In addition to the {@linkplain RawTextComparator} in this class a display-Value can be stored.
  *
  * @author s.seemann, 23.04.2020
  */
@@ -22,11 +22,11 @@ public class GitRawTextComparator
   static
   {
     INSTANCES = new ArrayList<>(5);
-    INSTANCES.add(new GitRawTextComparator("DEFAULT", RawTextComparator.DEFAULT));
-    INSTANCES.add(new GitRawTextComparator("IGNORE ALL", RawTextComparator.WS_IGNORE_ALL));
-    INSTANCES.add(new GitRawTextComparator("IGNORE CHANGE", RawTextComparator.WS_IGNORE_CHANGE));
-    INSTANCES.add(new GitRawTextComparator("IGNORE LEADING", RawTextComparator.WS_IGNORE_LEADING));
-    INSTANCES.add(new GitRawTextComparator("IGNORE TRAILING", RawTextComparator.WS_IGNORE_TRAILING));
+    INSTANCES.add(new GitRawTextComparator("No special treatment", RawTextComparator.DEFAULT));
+    INSTANCES.add(new GitRawTextComparator("Ignore all whitespaces", RawTextComparator.WS_IGNORE_ALL));
+    INSTANCES.add(new GitRawTextComparator("Ignore whitespaces between characters", RawTextComparator.WS_IGNORE_CHANGE));
+    INSTANCES.add(new GitRawTextComparator("Ignore leading whitespaces", RawTextComparator.WS_IGNORE_LEADING));
+    INSTANCES.add(new GitRawTextComparator("Ignore trailing whitespaces", RawTextComparator.WS_IGNORE_TRAILING));
 
     if (CURRENT == null)
       CURRENT = INSTANCES.get(0);
@@ -50,7 +50,7 @@ public class GitRawTextComparator
   }
 
   /**
-   * Parses the display value into a GitRawTextComparator. If there isn't no one, null is returned.
+   * Parses the display value into a GitRawTextComparator. If there isn't one, null is returned.
    *
    * @param pDisplayValue the display value
    * @return null or the GitRawTextComparator found
@@ -68,7 +68,7 @@ public class GitRawTextComparator
   }
 
   /**
-   * Sets the current active RawTextComparator.The Selection can be changed in the GitConfigDialog. If nothing is set, the default one is returned.
+   * Sets the current active RawTextComparator.The Selection can be changed in the GitConfigDialog. If nothing is set, the default is returned.
    *
    * @param pComparator The display value of the current active RawTextComparator
    */
@@ -78,7 +78,7 @@ public class GitRawTextComparator
 
     if (setComparator == null)
       CURRENT = INSTANCES.get(0);
-
-    CURRENT = setComparator;
+    else
+      CURRENT = setComparator;
   }
 }
