@@ -22,18 +22,21 @@ public class FileContentInfoImpl implements IFileContentInfo
 
   private final Supplier<String> fileContent;
   private final Supplier<Charset> encoding;
+  private final Supplier<ELineEnding> lineEnding;
 
   public FileContentInfoImpl(Supplier<byte[]> pBytes, IFileSystemUtil pFileSystemUtil)
   {
     byte[] bytes = pBytes.get();
     encoding = Suppliers.memoize(() -> Util.getEncoding(bytes, pFileSystemUtil));
     fileContent = Suppliers.memoize(() -> new String(bytes, encoding.get()));
+    lineEnding = Suppliers.memoize(this::_findLineEnding);
   }
 
   public FileContentInfoImpl(Supplier<String> pFileContent, Supplier<Charset> pEncoding)
   {
     fileContent = pFileContent;
     encoding = pEncoding;
+    lineEnding = Suppliers.memoize(this::_findLineEnding);
   }
 
   public Supplier<String> getFileContent()
@@ -44,7 +47,7 @@ public class FileContentInfoImpl implements IFileContentInfo
   @Override
   public Supplier<ELineEnding> getLineEnding()
   {
-    return Suppliers.memoize(this::_findLineEnding);
+    return lineEnding;
   }
 
   public Supplier<Charset> getEncoding()
