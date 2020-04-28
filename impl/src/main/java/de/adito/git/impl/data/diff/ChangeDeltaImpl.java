@@ -168,16 +168,31 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public boolean isConflictingWith(IChangeDelta pOtherChangeDelta)
+  public EConflictType isConflictingWith(IChangeDelta pOtherChangeDelta)
   {
+    EConflictType conflictType;
     if (pOtherChangeDelta.getStartTextIndex(EChangeSide.OLD) < endTextIndexOld && pOtherChangeDelta.getEndTextIndex(EChangeSide.OLD) > startTextIndexOld)
     {
-      return pOtherChangeDelta.getLinePartChanges()
+      if (isSameChange(pOtherChangeDelta))
+      {
+        conflictType = EConflictType.SAME;
+      }
+      else if (pOtherChangeDelta.getLinePartChanges()
           .stream().anyMatch(pLinePartChangeDelta -> getLinePartChanges()
-              .stream().anyMatch(pOwnLinePartChangeDelta -> pOwnLinePartChangeDelta.isConflictingWith(pLinePartChangeDelta) && !isSameChange(pOtherChangeDelta)));
+              .stream().anyMatch(pOwnLinePartChangeDelta -> pOwnLinePartChangeDelta.isConflictingWith(pLinePartChangeDelta))))
+      {
+        conflictType = EConflictType.CONFLICTING;
+      }
+      else
+      {
+        conflictType = EConflictType.RESOLVABLE;
+      }
     }
     else
-      return false;
+    {
+      conflictType = EConflictType.NONE;
+    }
+    return conflictType;
   }
 
   @Override

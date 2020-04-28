@@ -81,7 +81,15 @@ public class MergeDataImpl implements IMergeData
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents;
     boolean trySnapToDelta;
-    if (_isConflictingCounterPartAccepted(acceptedDelta, pAcceptedDiff, pOtherDiff, pConflictSide))
+    Optional<ConflictPair> conflictPairOpt = _getConflictPair(acceptedDelta, pAcceptedDiff, pConflictSide);
+    if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.SAME)
+    {
+      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta);
+      trySnapToDelta = false;
+      pOtherDiff.discardDelta(pOtherDiff.getChangeDeltas().get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide))));
+    }
+    else if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.CONFLICTING &&
+        _isConflictingCounterPartAccepted(conflictPairOpt.get(), pOtherDiff, pConflictSide))
     {
       deltaTextChangeEvents = List.of(pAcceptedDiff.appendDeltaText(acceptedDelta));
       trySnapToDelta = true;
@@ -97,26 +105,29 @@ public class MergeDataImpl implements IMergeData
   }
 
   /**
-   * checks if the given changeDelta is part of a conflictPair and the other part of the conflictPair is accepted
+   * checks if the other part of the conflictPair is accepted
    *
-   * @param acceptedDelta Delta to accept
-   * @param pAcceptedDiff IFileDiff that contains the Delta to accept
+   * @param pConflictPair ConflictPair giving the index of the chunk to check
    * @param pOtherDiff    Opposite side of pAcceptedDiff
    * @param pConflictSide Side of the conflict that has the accepted delta
    * @return true if the changeDelta is part of a conflictPair and the other side has status ACCEPTED, false otherwise
    */
-  private boolean _isConflictingCounterPartAccepted(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff,
+  private boolean _isConflictingCounterPartAccepted(@NotNull ConflictPair pConflictPair, @NotNull IFileDiff pOtherDiff,
                                                     EConflictSide pConflictSide)
+  {
+    return pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)))
+        .getChangeStatus().getChangeStatus() == EChangeStatus.ACCEPTED;
+
+  }
+
+  private Optional<ConflictPair> _getConflictPair(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, EConflictSide pConflictSide)
   {
     int deltaIndex = pAcceptedDiff.getChangeDeltas().indexOf(acceptedDelta);
     if (conflictPairs != null)
     {
-      Optional<ConflictPair> conflictPairOpt = conflictPairs.stream().filter(pConflictPair -> pConflictPair.getIndexOfSide(pConflictSide) == deltaIndex).findFirst();
-      return conflictPairOpt.isPresent() && pOtherDiff.getChangeDeltas()
-          .get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide)))
-          .getChangeStatus().getChangeStatus() == EChangeStatus.ACCEPTED;
+      return conflictPairs.stream().filter(pConflictPair -> pConflictPair.getIndexOfSide(pConflictSide) == deltaIndex).findFirst();
     }
-    return false;
+    return Optional.empty();
   }
 
   @Override

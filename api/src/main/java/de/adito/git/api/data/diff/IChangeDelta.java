@@ -1,5 +1,7 @@
 package de.adito.git.api.data.diff;
 
+import de.adito.git.impl.data.diff.EConflictType;
+
 import java.util.List;
 
 /**
@@ -161,9 +163,9 @@ public interface IChangeDelta
    * Checks wether this delta is in conflict with another delta (affects same indizes)
    *
    * @param pOtherChangeDelta the other IChangeDelta
-   * @return true if the changes overlap, false otherwise
+   * @return EConflictType denoting the type of conflict the deltas have. Can also be NONE, indicating there is no conflict
    */
-  boolean isConflictingWith(IChangeDelta pOtherChangeDelta);
+  EConflictType isConflictingWith(IChangeDelta pOtherChangeDelta);
 
   /**
    * get the text of one side of this delta

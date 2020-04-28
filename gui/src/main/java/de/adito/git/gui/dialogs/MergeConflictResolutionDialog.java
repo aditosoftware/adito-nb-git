@@ -15,7 +15,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.util.List;
 
 import static de.adito.git.gui.Constants.ACCEPT_CHANGE_THEIRS_ICON;
 import static de.adito.git.gui.Constants.ACCEPT_CHANGE_YOURS_ICON;
@@ -161,14 +160,9 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
      */
     private void _acceptSide(EConflictSide pConflictSide)
     {
-      EConflictSide theirSide = pConflictSide == EConflictSide.YOURS ? EConflictSide.THEIRS : EConflictSide.YOURS;
-      List<IChangeDelta> theirChanges = mergeDiff.getDiff(theirSide).getChangeDeltas();
-      // TODO assume CONFLICTING state has been set, and use that state to determine if changes are accpeted or not
       for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
       {
-        boolean isConflicting = theirChanges.stream().anyMatch(pTheirChange -> pTheirChange.isConflictingWith(changeDelta));
-        if (changeDelta.getChangeStatus().getChangeType() != EChangeType.SAME && changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING
-            && !isConflicting)
+        if (changeDelta.getChangeStatus().getChangeType() != EChangeType.CONFLICTING)
         {
           mergeDiff.acceptDelta(changeDelta, pConflictSide);
         }
@@ -183,12 +177,9 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
      */
     private boolean _containsNonConflicting(EConflictSide pConflictSide)
     {
-      EConflictSide theirSide = pConflictSide == EConflictSide.YOURS ? EConflictSide.THEIRS : EConflictSide.YOURS;
-      List<IChangeDelta> theirChanges = mergeDiff.getDiff(theirSide).getChangeDeltas();
       for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
       {
-        boolean isConflicting = theirChanges.stream().anyMatch(pTheirChange -> pTheirChange.isConflictingWith(changeDelta));
-        if (changeDelta.getChangeStatus().getChangeType() != EChangeType.SAME && !isConflicting)
+        if (changeDelta.getChangeStatus().getChangeType() == EChangeType.CONFLICTING)
         {
           // one changeDelta that can be accepted and that is not conflicting exists -> Action is enabled
           return true;

@@ -10,14 +10,16 @@ import de.adito.git.api.data.diff.EConflictSide;
 public class ConflictPair
 {
 
-  int indexYours;
-  int indexTheirs;
+  private final int indexYours;
+  private final int indexTheirs;
+  private final EConflictType type;
 
 
-  ConflictPair(int pIndexYours, int pIndexTheirs)
+  ConflictPair(int pIndexYours, int pIndexTheirs, EConflictType pType)
   {
     indexYours = pIndexYours;
     indexTheirs = pIndexTheirs;
+    type = pType;
   }
 
   /**
@@ -33,5 +35,13 @@ public class ConflictPair
       return indexYours;
     }
     return indexTheirs;
+  }
+
+  /**
+   * @return Type of conflict the both deltas have
+   */
+  public EConflictType getType()
+  {
+    return type;
   }
 }

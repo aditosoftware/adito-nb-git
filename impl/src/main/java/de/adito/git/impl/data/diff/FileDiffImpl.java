@@ -415,10 +415,16 @@ public class FileDiffImpl implements IFileDiff
       IChangeDelta changeDelta = changeDeltas.get(index);
       for (int otherDiffIndex = 0; otherDiffIndex < pOtherFileDiff.getChangeDeltas().size(); otherDiffIndex++)
       {
-        if (pOtherFileDiff.getChangeDeltas().get(otherDiffIndex).isConflictingWith(changeDelta))
+        EConflictType conflictType = pOtherFileDiff.getChangeDeltas().get(otherDiffIndex).isConflictingWith(changeDelta);
+        if (conflictType == EConflictType.CONFLICTING)
         {
           changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus().getChangeStatus(), EChangeType.CONFLICTING)));
-          conflictPairs.add(new ConflictPair(index, otherDiffIndex));
+          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.CONFLICTING));
+          break;
+        }
+        else if (conflictType == EConflictType.SAME)
+        {
+          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.SAME));
           break;
         }
       }

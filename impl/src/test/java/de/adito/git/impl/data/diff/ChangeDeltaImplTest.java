@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * JUnit tests for the ChangeDeltaImpl of the IChangeDelta interface
@@ -33,7 +31,7 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hellou there, this is a test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertFalse(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.RESOLVABLE, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
   }
 
   /**
@@ -49,7 +47,7 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, t'is a test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertFalse(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.RESOLVABLE, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
   }
 
   /**
@@ -65,7 +63,7 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, t'is some test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertTrue(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.CONFLICTING, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
   }
 
   /**
@@ -81,8 +79,8 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some Words\nNo use taking a rest\nWe are not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertFalse(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
-    assertFalse(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
+    assertEquals(EConflictType.RESOLVABLE, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.NONE, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
   }
 
   /**
@@ -98,7 +96,7 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some Words\nNo use taking a stop\nWe are not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertTrue(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.CONFLICTING, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
   }
 
   /**
@@ -114,8 +112,8 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some Words\nNo use taking a rest\nWe are not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertFalse(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
-    assertFalse(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
+    assertEquals(EConflictType.RESOLVABLE, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.NONE, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
   }
 
   /**
@@ -131,7 +129,7 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "hello there, this is a test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertTrue(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.CONFLICTING, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
   }
 
   /**
@@ -147,8 +145,8 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is test\nSo here are some words\nNo use taking a rest\nWe are not creating a turd";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    assertTrue(fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
-    assertFalse(fileDiff1.getChangeDeltas().get(1).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
+    assertEquals(EConflictType.CONFLICTING, fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0)));
+    assertEquals(EConflictType.SAME, fileDiff1.getChangeDeltas().get(1).isConflictingWith(fileDiff2.getChangeDeltas().get(1)));
   }
 
   /**
