@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.*;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -121,7 +122,7 @@ public class LineNumbersColorModel implements IDiscardable
       List<IChangeDelta> changeDeltas = pFileChangesEvent.getFileDiff() == null ? List.of() : pFileChangesEvent.getFileDiff().getChangeDeltas();
       for (IChangeDelta fileChange : changeDeltas)
       {
-        if (fileChange.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
+        if (fileChange.getChangeStatus().getChangeStatus() != EChangeStatus.UNDEFINED)
         {
           int numLines = fileChange.getEndLine(model.getChangeSide()) - fileChange.getStartLine(model.getChangeSide());
           if (fileChange.getStartLine(model.getChangeSide()) <= pEditorPane.getDocument().getDefaultRootElement().getElementCount())
@@ -178,8 +179,13 @@ public class LineNumbersColorModel implements IDiscardable
         bounds = pView.modelToView(startingLineElement.getStartOffset(), Position.Bias.Forward,
                                    endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle()).getBounds();
       }
+      Color diffColor;
+      if (pFileChange.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
+        diffColor = pFileChange.getChangeStatus().getChangeType().getDiffColor();
+      else
+        diffColor = pFileChange.getChangeStatus().getChangeType().getSecondaryDiffColor();
       // adjust coordinates from view to viewPort coordinates
-      return new LineNumberColor(pFileChange.getChangeStatus().getChangeType().getDiffColor(), bounds);
+      return new LineNumberColor(diffColor, bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
         pLineCounter + pNumLines - 1);
