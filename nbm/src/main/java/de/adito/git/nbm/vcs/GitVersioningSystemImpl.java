@@ -8,6 +8,7 @@ import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
+import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.disposables.Disposable;
@@ -42,6 +43,9 @@ public class GitVersioningSystemImpl extends VersioningSystem implements IDiscar
     // central place that gets called early, so set the log level for the git module here
     String logLevel = NbPreferences.forModule(IPrefStore.class).get(Constants.LOG_LEVEL_SETTINGS_KEY, null);
     Logger.getLogger("de.adito.git").setLevel(logLevel != null ? Level.parse(logLevel) : Level.INFO);
+
+    GitRawTextComparator.setCurrent(NbPreferences.forModule(IPrefStore.class).get(Constants.RAW_TEXT_COMPARATOR_SETTINGS_KEY, null));
+
     annotationsDisposable = RepositoryCache.getInstance().repositories()
         .switchMap(pRepoList -> pRepoList.stream()
             .map(IRepository::getStatus)

@@ -10,6 +10,7 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IGitConfigDialogResult;
 import de.adito.git.impl.data.SSHKeyDetails;
+import de.adito.git.impl.util.GitRawTextComparator;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -73,6 +74,14 @@ class GitConfigAction extends AbstractTableAction
           if (h instanceof FileHandler)
             h.setLevel(setLevel);
         }
+      }
+
+      Iterator<Object> comparatorIter = dialogResult.getInformation().get(Constants.RAW_TEXT_COMPARATOR_SETTINGS_KEY).iterator();
+      if(comparatorIter.hasNext())
+      {
+        Object currentComparator = comparatorIter.next();
+        prefStore.put(Constants.RAW_TEXT_COMPARATOR_SETTINGS_KEY, currentComparator.toString());
+        GitRawTextComparator.setCurrent(currentComparator.toString());
       }
     }
   }
