@@ -80,15 +80,15 @@ public class TextHighlightUtil
     for (IChangeDelta changeDelta : pFileChangeChunks)
     {
       if (pIsMarkWords && changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING
-          && changeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY)
+          && (changeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY || changeDelta.getChangeStatus().getChangeType() == EChangeType.CONFLICTING))
       {
-        pendingHighlightSpots.add(_getWordsHighlight(changeDelta, pChangeSide));
+        _getWordsHighlight(changeDelta, pChangeSide, highlightSpots, pendingHighlightSpots);
       }
       else
       {
         if (changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
-          pendingHighlightSpots.add(_getLineHighlight(changeDelta, pChangeSide));
-        highlightSpots.add(_getLineHighlight(changeDelta, pChangeSide));
+          _getLineHighlight(changeDelta, pChangeSide, pendingHighlightSpots);
+        _getLineHighlight(changeDelta, pChangeSide, highlightSpots);
       }
     }
     highlightSpots.addAll(pendingHighlightSpots);
@@ -100,9 +100,9 @@ public class TextHighlightUtil
    *
    * @param changeDelta IChangeDelta for which the _Highlight object should be created
    * @param pChangeSide which side of a IChangeDelta should be used
-   * @return _Highlight object for the IChangeDelta
+   * @param pHighlights List of _Highlights that the line highlight should be added to
    */
-  private static _Highlight _getLineHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide)
+  private static void _getLineHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide, List<_Highlight> pHighlights)
   {
     int startOffset = changeDelta.getStartTextIndex(pChangeSide);
     int endOffset = changeDelta.getEndTextIndex(pChangeSide);
@@ -110,35 +110,36 @@ public class TextHighlightUtil
       endOffset -= 1;
     Color highlightColor = changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING ? changeDelta.getChangeStatus().getChangeType().getDiffColor()
         : changeDelta.getChangeStatus().getChangeType().getSecondaryDiffColor();
-    return new _Highlight(new _HighlightSpot(startOffset, endOffset, highlightColor),
-                          _isUseThinLine(changeDelta, pChangeSide) ? LineHighlightPainter.Mode.THIN_LINE : LineHighlightPainter.Mode.WHOLE_LINE);
+    pHighlights.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, highlightColor),
+                                   _isUseThinLine(changeDelta, pChangeSide) ? LineHighlightPainter.Mode.THIN_LINE : LineHighlightPainter.Mode.WHOLE_LINE));
   }
 
   /**
    * Get the _Highlight for the given IChangeDelta. The highlight here marks the whole change in a background color and separately highlights the
    * differences on a word-basis
    *
-   * @param changeDelta IChangeDelta for which the _Highlight object should be created
-   * @param pChangeSide which side of a IChangeDelta should be used
-   * @return _Highlight object for the IChangeDelta
+   * @param changeDelta            IChangeDelta for which the _Highlight object should be created
+   * @param pChangeSide            which side of a IChangeDelta should be used
+   * @param pHighlightSpots        List of _Highlights to which to add all secondary highlights (drawn first)
+   * @param pPendingHighlightSpots List of _Highlights to which to add all primary highlights (drawn second -> in foreground)
    */
-  private static _Highlight _getWordsHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide)
+  private static void _getWordsHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide, List<_Highlight> pHighlightSpots, List<_Highlight> pPendingHighlightSpots)
   {
-    List<_HighlightSpot> highlightSpots = new ArrayList<>();
     for (ILinePartChangeDelta linePartChangeDelta : changeDelta.getLinePartChanges())
     {
       int startOffset = linePartChangeDelta.getStartTextIndex(pChangeSide);
       int endOffset = linePartChangeDelta.getEndTextIndex(pChangeSide);
       if (startOffset < endOffset)
         endOffset -= 1;
-      highlightSpots.add(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getDiffColor()));
+      pPendingHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getDiffColor()),
+                                                LineHighlightPainter.Mode.MARK_GIVEN));
     }
     int startOffset = changeDelta.getStartTextIndex(pChangeSide);
     int endOffset = changeDelta.getEndTextIndex(pChangeSide);
     if (startOffset < endOffset)
       endOffset -= 1;
-    return new _MultiHighlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getSecondaryDiffColor()),
-                               highlightSpots, LineHighlightPainter.Mode.MARK_PART);
+    pHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getSecondaryDiffColor()),
+                                       LineHighlightPainter.Mode.WHOLE_LINE));
   }
 
   /**
@@ -177,14 +178,6 @@ public class TextHighlightUtil
       for (_Highlight highlight : pHighlightSpots)
       {
         highlighter.addBackgroundHighlight(highlight.getStartIndex(), highlight.getEndOffset(), new LineHighlightPainter(highlight.getColor(), highlight.getMode()));
-        if (highlight instanceof _MultiHighlight)
-        {
-          for (_HighlightSpot highlightSpot : ((_MultiHighlight) highlight).getHighlightSpots())
-          {
-            highlighter.addBackgroundHighlight(highlightSpot.getStartIndex(), highlightSpot.getEndIndex(),
-                                               new LineHighlightPainter(highlightSpot.getColor(), LineHighlightPainter.Mode.MARK_GIVEN));
-          }
-        }
       }
     }
     catch (BadLocationException e)
@@ -239,25 +232,6 @@ public class TextHighlightUtil
     public Color getColor()
     {
       return highlightSpot.getColor();
-    }
-  }
-
-  /**
-   * _Highlight that is used to store highlights that support word-based diff'ing
-   */
-  private static final class _MultiHighlight extends _Highlight
-  {
-    private final List<_HighlightSpot> highlightSpots;
-
-    public _MultiHighlight(_HighlightSpot pHighlightSpot, List<_HighlightSpot> pHighlightSpots, LineHighlightPainter.Mode pMode)
-    {
-      super(pHighlightSpot, pMode);
-      highlightSpots = pHighlightSpots;
-    }
-
-    public List<_HighlightSpot> getHighlightSpots()
-    {
-      return highlightSpots;
     }
   }
 
