@@ -294,33 +294,36 @@ public final class ChangeDeltaImpl implements IChangeDelta
     int numNewlines = StringUtils.countMatches(pReplacedVersion, "\n");
     int index = 0;
     int currentEditIndex = 0;
-    while (index < numNewlines)
+    if (!pEditList.isEmpty())
     {
-      Edit currentEdit = pEditList.get(currentEditIndex);
-      // index is still smaller than start of the next changed part
-      if (index < pEditSideInfo.getStart(currentEdit))
+      while (index < numNewlines)
       {
-        unmodifiedLines.add(index);
-        index++;
-      }
-      // index is part of the change (represents a modified line)
-      else if (index >= pEditSideInfo.getStart(currentEdit) && index < pEditSideInfo.getEnd(currentEdit))
-      {
-        index++;
-      }
-      else
-      {
-        if (currentEditIndex + 1 < pEditList.size())
+        Edit currentEdit = pEditList.get(currentEditIndex);
+        // index is still smaller than start of the next changed part
+        if (index < pEditSideInfo.getStart(currentEdit))
         {
-          if (_isPointChange(pEditSideInfo, currentEdit) && pEditSideInfo.getEnd(currentEdit) == index)
-            index++;
-          currentEditIndex++;
+          unmodifiedLines.add(index);
+          index++;
+        }
+        // index is part of the change (represents a modified line)
+        else if (index >= pEditSideInfo.getStart(currentEdit) && index < pEditSideInfo.getEnd(currentEdit))
+        {
+          index++;
         }
         else
         {
-          if (!_isPointChange(pEditSideInfo, currentEdit))
-            unmodifiedLines.add(index);
-          index++;
+          if (currentEditIndex + 1 < pEditList.size())
+          {
+            if (_isPointChange(pEditSideInfo, currentEdit) && pEditSideInfo.getEnd(currentEdit) == index)
+              index++;
+            currentEditIndex++;
+          }
+          else
+          {
+            if (!_isPointChange(pEditSideInfo, currentEdit))
+              unmodifiedLines.add(index);
+            index++;
+          }
         }
       }
     }
