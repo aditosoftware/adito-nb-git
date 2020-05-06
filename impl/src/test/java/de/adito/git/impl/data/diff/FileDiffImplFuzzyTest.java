@@ -76,7 +76,7 @@ public class FileDiffImplFuzzyTest
       List<Integer> shuffledIntegerList = _createShuffledIntegerList(fileDiff.getChangeDeltas().size());
       for (Integer pIndex : shuffledIntegerList)
       {
-        fileDiff.revertDelta(fileDiff.getChangeDeltas().get(pIndex));
+        fileDiff.revertDelta(fileDiff.getChangeDeltas().get(pIndex), true);
       }
       final int currentIndex = index;
       assertEquals(versions.getLeft(), fileDiff.getText(EChangeSide.NEW), () ->

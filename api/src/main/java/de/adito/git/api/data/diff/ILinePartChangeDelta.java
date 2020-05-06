@@ -33,6 +33,7 @@ public interface ILinePartChangeDelta
    * applies the given offset to the stored offsets of this delta
    *
    * @param pTextOffset offset for the text indices
+   * @param pChangeSide Determines the side that the offset is added to
    * @return IChangeDelta that has its values updated with the given offsets
    */
   ILinePartChangeDelta applyOffset(int pTextOffset, EChangeSide pChangeSide);
@@ -45,4 +46,15 @@ public interface ILinePartChangeDelta
    */
   boolean isConflictingWith(ILinePartChangeDelta pLinePartChangeDelta);
 
+  /**
+   * Creates a new ILinePartChangeDelta based on the current one and the TextEvent. The start and endIndices of the new ILinePartChangeDelta are offset
+   * based on the effects of the TextEvent
+   *
+   * @param pOffset     This is the startIndex of the text event
+   * @param pLength     length of the text event, with pIsInsert determining if the given number of characters was added or subtracted
+   * @param pIsInsert   true if an the text event was an insert, false if it was a delete event. Changes the meaning of the pLength parameter
+   * @param pChangeSide The EChangeSide on which the text event happened
+   * @return ILinePartChangeDelta that has the effects of the TextEvent incorporated
+   */
+  ILinePartChangeDelta processTextEvent(int pOffset, int pLength, boolean pIsInsert, EChangeSide pChangeSide);
 }

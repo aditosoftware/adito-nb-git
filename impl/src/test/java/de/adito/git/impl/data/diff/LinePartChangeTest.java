@@ -128,7 +128,7 @@ public class LinePartChangeTest
     String changedLines = "Hellou who is there\nThis is some text\nfor testing the functionality\n";
     IFileDiff fileDiff = _createFileDiff(LineIndexDiffUtil.getChangedLines(originalLines, changedLines, RawTextComparator.DEFAULT), originalLines, changedLines);
     _testResult(List.of(new MutablePair<>("testing\n", "testing the functionality\n")), fileDiff, 1);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     _testResult(List.of(new MutablePair<>("testing\n", "testing the functionality\n")), fileDiff, 1);
   }
 
@@ -142,7 +142,7 @@ public class LinePartChangeTest
     String changedLines = "Hello there\nThis is some text\nfor testing the functionality\n";
     IFileDiff fileDiff = _createFileDiff(LineIndexDiffUtil.getChangedLines(originalLines, changedLines, RawTextComparator.DEFAULT), originalLines, changedLines);
     _testResult(List.of(new MutablePair<>("testing\n", "testing the functionality\n")), fileDiff, 1);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     _testResult(List.of(new MutablePair<>("testing\n", "testing the functionality\n")), fileDiff, 1);
   }
 
@@ -156,7 +156,7 @@ public class LinePartChangeTest
     String changedLines = "Hellou there\nThis is some text\nfor testing the functionality\n";
     IFileDiff fileDiff = _createFileDiff(LineIndexDiffUtil.getChangedLines(originalLines, changedLines, RawTextComparator.DEFAULT), originalLines, changedLines);
     _testResult(List.of(new MutablePair<>("Hello ", "Hellou ")), fileDiff, 0);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     _testResult(List.of(), fileDiff, 0);
   }
 

@@ -84,19 +84,24 @@ public class MergeDataImpl implements IMergeData
     Optional<ConflictPair> conflictPairOpt = _getConflictPair(acceptedDelta, pAcceptedDiff, pConflictSide);
     if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.SAME)
     {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta);
+      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false);
       trySnapToDelta = false;
       pOtherDiff.discardDelta(pOtherDiff.getChangeDeltas().get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide))));
     }
     else if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.CONFLICTING &&
-        _isConflictingCounterPartAccepted(conflictPairOpt.get(), pOtherDiff, pConflictSide))
+        _isCounterPartAccepted(conflictPairOpt.get(), pOtherDiff, pConflictSide))
     {
       deltaTextChangeEvents = List.of(pAcceptedDiff.appendDeltaText(acceptedDelta));
       trySnapToDelta = true;
     }
+    else if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.RESOLVABLE)
+    {
+      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, true);
+      trySnapToDelta = false;
+    }
     else
     {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta);
+      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false);
       trySnapToDelta = false;
     }
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
@@ -112,8 +117,8 @@ public class MergeDataImpl implements IMergeData
    * @param pConflictSide Side of the conflict that has the accepted delta
    * @return true if the changeDelta is part of a conflictPair and the other side has status ACCEPTED, false otherwise
    */
-  private boolean _isConflictingCounterPartAccepted(@NotNull ConflictPair pConflictPair, @NotNull IFileDiff pOtherDiff,
-                                                    EConflictSide pConflictSide)
+  private boolean _isCounterPartAccepted(@NotNull ConflictPair pConflictPair, @NotNull IFileDiff pOtherDiff,
+                                         EConflictSide pConflictSide)
   {
     return pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)))
         .getChangeStatus().getChangeStatus() == EChangeStatus.ACCEPTED;

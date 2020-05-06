@@ -67,10 +67,12 @@ public interface IFileDiff extends IFileChangeType
   /**
    * Accepts the changes introduced by the given Delta (applies changes from NEW side to OLD side)
    *
-   * @param pChangeDelta ChangeDelta to accept
+   * @param pChangeDelta         ChangeDelta to accept
+   * @param pUseWordBasedResolve true if the delta should be accepted by using the word-differences, based on the original values (does not override new additions),
+   *                             false if the text in the delta should match the original text of the delta
    * @return Event describing the changes done to the old side of the diff
    */
-  List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta);
+  List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve);
 
   /**
    * Inserts the text on the NEW side at the end of the OLD side without removing the OLD text
@@ -84,10 +86,12 @@ public interface IFileDiff extends IFileChangeType
   /**
    * Reverts the changes introduced by the given Delta (applies changes from OLD side to NEW side)
    *
-   * @param pChangeDelta ChangeDelta to accept
+   * @param pChangeDelta         ChangeDelta to accept
+   * @param pUseWordBasedResolve true if the revert operation should use fine-grained changed based on invdividual word changes, or false if chunks of
+   *                             a whole line should be utilized
    * @return Event describing the changes done to the new side of the diff
    */
-  List<IDeltaTextChangeEvent> revertDelta(IChangeDelta pChangeDelta);
+  List<IDeltaTextChangeEvent> revertDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve);
 
   /**
    * Discards the changes introduced by the given Delta

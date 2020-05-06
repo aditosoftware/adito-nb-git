@@ -53,7 +53,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
-        .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta)));
+        .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta, true)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
 
    // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout

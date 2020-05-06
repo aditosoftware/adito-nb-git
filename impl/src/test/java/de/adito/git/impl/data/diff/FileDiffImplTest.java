@@ -241,7 +241,7 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
     List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
-    fileDiff.revertDelta(changeDeltas.get(0));
+    fileDiff.revertDelta(changeDeltas.get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -258,7 +258,7 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
     List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
-    fileDiff.revertDelta(changeDeltas.get(0));
+    fileDiff.revertDelta(changeDeltas.get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -281,8 +281,8 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
     List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
-    fileDiff.revertDelta(changeDeltas.get(0));
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1));
+    fileDiff.revertDelta(changeDeltas.get(0), true);
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -297,7 +297,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 3, 1, 1));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -315,7 +315,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 2, 1, 1));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -330,7 +330,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(0, 3, 0, 0));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -345,7 +345,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 1, 1, 2));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -361,7 +361,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(0, 0, 0, 1));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -377,8 +377,8 @@ public class FileDiffImplTest
     editList.add(new Edit(0, 0, 0, 1));
     editList.add(new Edit(1, 1, 2, 3));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -394,8 +394,8 @@ public class FileDiffImplTest
     editList.add(new Edit(0, 0, 0, 1));
     editList.add(new Edit(1, 1, 2, 3));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1));
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1), true);
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -414,7 +414,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 1, 1, 2));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
   }
 
@@ -437,7 +437,7 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
     List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(changeDeltas.get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(changeDeltas.get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -458,7 +458,7 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
     List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
-    List<IDeltaTextChangeEvent> deltaTextChangeEvents = fileDiff.revertDelta(changeDeltas.get(0));
+    List<IDeltaTextChangeEvent> deltaTextChangeEvents = fileDiff.revertDelta(changeDeltas.get(0), true);
     String firstChangeApplied = deltaTextChangeEvents.get(0).apply(newVersion);
     assertEquals(oldVersion, firstChangeApplied);
     Document document = new DefaultStyledDocument();
@@ -486,8 +486,8 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     assertEquals(EChangeType.CHANGED, fileDiff.getChangeType());
     List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
-    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.revertDelta(changeDeltas.get(0)).get(0);
-    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.revertDelta(changeDeltas.get(0), true).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent2.apply(deltaTextChangeEvent1.apply(newVersion)));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -507,7 +507,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 3, 1, 1));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -529,7 +529,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 2, 1, 1));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -548,7 +548,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(0, 3, 0, 0));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -567,7 +567,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 1, 1, 2));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -586,7 +586,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(2, 2, 2, 3));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -606,7 +606,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(0, 0, 0, 1));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -626,8 +626,8 @@ public class FileDiffImplTest
     editList.add(new Edit(0, 0, 0, 1));
     editList.add(new Edit(1, 1, 2, 3));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
-    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent2.apply(deltaTextChangeEvent1.apply(newVersion)));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -648,8 +648,8 @@ public class FileDiffImplTest
     editList.add(new Edit(0, 0, 0, 1));
     editList.add(new Edit(1, 1, 2, 3));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1)).get(0);
-    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent1 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(1), true).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent2 = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent2.apply(deltaTextChangeEvent1.apply(newVersion)));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -673,7 +673,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 1, 1, 2));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0)).get(0);
+    IDeltaTextChangeEvent deltaTextChangeEvent = fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true).get(0);
     assertEquals(oldVersion, deltaTextChangeEvent.apply(newVersion));
     Document document = new DefaultStyledDocument();
     document.insertString(0, newVersion, null);
@@ -699,7 +699,7 @@ public class FileDiffImplTest
     EditList editList = new EditList();
     editList.add(new Edit(1, 1, 1, 2));
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
-    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0));
+    fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
     assertEquals(EChangeStatus.ACCEPTED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
     fileDiff.reset();

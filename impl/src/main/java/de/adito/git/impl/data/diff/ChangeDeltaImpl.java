@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -115,7 +116,7 @@ public final class ChangeDeltaImpl implements IChangeDelta
     Edit modifiedEdit;
     int startTextIndex = pChangeSide == EChangeSide.NEW ? startTextIndexNew : startTextIndexOld;
     int endTextIndex = pChangeSide == EChangeSide.NEW ? endTextIndexNew : endTextIndexOld;
-    IChangeStatus modifiedChangeStatus = new ChangeStatusImpl(changeStatus.getChangeStatus(), changeStatus.getChangeType());//EChangeStatus.UNDEFINED
+    IChangeStatus modifiedChangeStatus = new ChangeStatusImpl(changeStatus.getChangeStatus(), changeStatus.getChangeType());
     ChangeDeltaTextOffsets modifiedChangeDeltaOffsets;
     if (pIsInsert)
     {
@@ -156,7 +157,90 @@ public final class ChangeDeltaImpl implements IChangeDelta
         }
       }
     }
-    return new ChangeDeltaImpl(modifiedEdit, modifiedChangeStatus, modifiedChangeDeltaOffsets, textVersionProvider, null);
+    if (linePartChangeDeltas == null)
+      getLinePartChanges();
+    if (pIsInsert)
+      _processInsertEvent(pOffset, pLength, pChangeSide);
+    else
+      _processDeleteEvent(pOffset, -pLength, pChangeSide);
+    return new ChangeDeltaImpl(modifiedEdit, modifiedChangeStatus, modifiedChangeDeltaOffsets, textVersionProvider, linePartChangeDeltas);
+  }
+
+  /**
+   * @param pOffset index of the insertion event
+   */
+  private void _processInsertEvent(int pOffset, int pLength, EChangeSide pChangeSide)
+  {
+    BiPredicate<Integer, ILinePartChangeDelta> eval;
+    eval = (pOffsetEval, pChunk) -> pOffsetEval < pChunk.getEndTextIndex(pChangeSide);
+
+    for (int index = 0; index < linePartChangeDeltas.size(); index++)
+    {
+      ILinePartChangeDelta currentLinePartChangeDelta = linePartChangeDeltas.get(index);
+      if (eval.test(pOffset, currentLinePartChangeDelta))
+      {
+        if (pOffset >= currentLinePartChangeDelta.getStartTextIndex(pChangeSide))
+        {
+          // see IChangeDelta.processTextEvent case INSERT 3
+          linePartChangeDeltas.set(index, currentLinePartChangeDelta.processTextEvent(pOffset, pLength, true, pChangeSide));
+          _applyOffsetToFollowingDeltas(index, pLength, pChangeSide);
+        }
+        else
+        {
+          // see IChangeDelta.processTextEvent case INSERT 1
+          _applyOffsetToFollowingDeltas(index - 1, pLength, pChangeSide);
+        }
+        break;
+      }
+    }
+  }
+
+  /**
+   * @param pOffset index of the start of the delete event (first deleted character)
+   * @param pLength number of deleted characters
+   */
+  private int _processDeleteEvent(int pOffset, int pLength, EChangeSide pChangeSide)
+  {
+    int affectedIndex = -1;
+    for (int index = 0; index < linePartChangeDeltas.size(); index++)
+    {
+      ILinePartChangeDelta currentLinePartChangeDelta = linePartChangeDeltas.get(index);
+      if (pOffset < currentLinePartChangeDelta.getEndTextIndex(pChangeSide))
+      {
+        // check if the event may affect a delta that comes after this one
+        boolean isChangeBiggerThanDelta = pOffset + pLength > currentLinePartChangeDelta.getEndTextIndex(pChangeSide);
+        if (pOffset + pLength < currentLinePartChangeDelta.getStartTextIndex(pChangeSide))
+        {
+          // see IChangeDelta.processTextEvent case DELETE 5
+          linePartChangeDeltas.set(index, currentLinePartChangeDelta.applyOffset(-pLength, pChangeSide));
+        }
+        else
+        {
+          linePartChangeDeltas.set(index, currentLinePartChangeDelta.processTextEvent(pOffset, -pLength, false, pChangeSide));
+        }
+        affectedIndex = index;
+        if (!isChangeBiggerThanDelta)
+        {
+          _applyOffsetToFollowingDeltas(index, -pLength, pChangeSide);
+          break;
+        }
+      }
+    }
+    return affectedIndex;
+  }
+
+  /**
+   * applies the given text and lineoffsets to the deltas for indices after pDeltaIndex
+   *
+   * @param pDeltaIndex     index for the list of deltas, given index is exclusive
+   * @param pTextDifference offset that will be added to the textOffsets
+   */
+  private void _applyOffsetToFollowingDeltas(int pDeltaIndex, int pTextDifference, EChangeSide pChangeSide)
+  {
+    for (int index = pDeltaIndex + 1; index < linePartChangeDeltas.size(); index++)
+    {
+      linePartChangeDeltas.set(index, linePartChangeDeltas.get(index).applyOffset(pTextDifference, pChangeSide));
+    }
   }
 
   @Override
@@ -423,22 +507,22 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public IChangeDelta acceptChange(EChangeSide pChangedSide)
+  public IChangeDelta acceptChange(EChangeSide pChangedSide, boolean pUseWordBasedResolve)
   {
     // Cannot use the TextEventIndexUpdater here because the indices rely on the other side for their result
     Edit changedEdit;
     ChangeDeltaTextOffsets newChangeDeltaTextOffsets;
+    int lengthDifference = pUseWordBasedResolve ? getLengthDifferenceWords(pChangedSide) : getLengthDifference(pChangedSide);
     if (pChangedSide == EChangeSide.NEW)
     {
       changedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, startLineIndexNew + (endLineIndexOld - startLineIndexOld));
-      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew,
-                                                             startTextIndexNew + (endTextIndexOld - startTextIndexOld));
+      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew + lengthDifference);
     }
     else
     {
       changedEdit = new Edit(startLineIndexOld, startLineIndexOld + (endLineIndexNew - startLineIndexNew), startLineIndexNew, endLineIndexNew);
-      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, startTextIndexOld + (endTextIndexNew - startTextIndexNew), startTextIndexNew,
-                                                             endTextIndexNew);
+      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld + lengthDifference, startTextIndexNew, endTextIndexNew);
+
     }
     return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeStatus.getChangeType()), newChangeDeltaTextOffsets,
                                textVersionProvider, linePartChangeDeltas);
@@ -494,6 +578,24 @@ public final class ChangeDeltaImpl implements IChangeDelta
                         startTextIndexOld, endTextIndexOld);
   }
 
+  private int getLengthDifferenceWords(EChangeSide pChangeSide)
+  {
+    int textLengthDiff = 0;
+    for (ILinePartChangeDelta linePartChangeDelta : getLinePartChanges())
+    {
+      textLengthDiff += (linePartChangeDelta.getEndTextIndex(EChangeSide.invert(pChangeSide)) - linePartChangeDelta.getStartTextIndex(EChangeSide.invert(pChangeSide))
+          - (linePartChangeDelta.getEndTextIndex(pChangeSide) - linePartChangeDelta.getStartTextIndex(pChangeSide)));
+    }
+    return textLengthDiff;
+  }
+
+  private int getLengthDifference(EChangeSide pChangeSide)
+  {
+    return getEndTextIndex(EChangeSide.invert(pChangeSide)) - getStartTextIndex(EChangeSide.invert(pChangeSide))
+        - (getEndTextIndex(pChangeSide) - getStartTextIndex(pChangeSide));
+  }
+
+
   /**
    * Offers functions that change the start and endindices of a given changeSide
    */
@@ -516,7 +618,7 @@ public final class ChangeDeltaImpl implements IChangeDelta
     }
 
     /**
-     * Applies the given Functions to the start- and endTextIndices of the specified side and returns the result as edit
+     * Applies the given Functions to the start- and endTextIndices of the specified side and returns the result as ChangeDeltaTextOffsets
      *
      * @param pChangeSide           Which side should have its indices updated
      * @param pStartTextIndexUpdate Function to apply to the startIndex

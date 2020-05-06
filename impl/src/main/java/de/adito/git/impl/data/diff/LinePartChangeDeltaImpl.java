@@ -5,6 +5,8 @@ import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.ILinePartChangeDelta;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 /**
  * @author m.kaspera, 02.03.2020
  */
@@ -63,5 +65,64 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
   {
     return (pLinePartChangeDelta.getStartTextIndex(EChangeSide.OLD) < endTextIndexOld && pLinePartChangeDelta.getEndTextIndex(EChangeSide.OLD) > startTextIndexOld)
         || pLinePartChangeDelta.getStartTextIndex(EChangeSide.OLD) == endTextIndexOld && pLinePartChangeDelta.getEndTextIndex(EChangeSide.OLD) == startTextIndexOld;
+  }
+
+  @Override
+  public ILinePartChangeDelta processTextEvent(int pOffset, int pLength, boolean pIsInsert, EChangeSide pChangeSide)
+  {
+    int startTextIndex = pChangeSide == EChangeSide.NEW ? startTextIndexNew : startTextIndexOld;
+    int endTextIndex = pChangeSide == EChangeSide.NEW ? endTextIndexNew : endTextIndexOld;
+    ChangeDeltaTextOffsets modifiedChangeDeltaOffsets;
+    if (pIsInsert)
+    {
+      modifiedChangeDeltaOffsets = updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex, pEndTextIndex -> pEndTextIndex + pLength);
+    }
+    else
+    {
+      if (pOffset < startTextIndex)
+      {
+        if (pOffset + -pLength < endTextIndex)
+        {
+          // case DELETE 1
+          modifiedChangeDeltaOffsets = updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex + (pOffset - pStartTextIndex),
+                                                         pEndTextIndex -> pEndTextIndex + pLength);
+        }
+        else
+        {
+          // case DELETE 2
+          modifiedChangeDeltaOffsets = updateTextIndizes(pChangeSide, pStartTextIndex -> pOffset, pEndTextIndex -> pOffset);
+        }
+      }
+      else
+      {
+        if (pOffset + -pLength <= endTextIndex)
+        {
+          // case DELETE 3/7
+          modifiedChangeDeltaOffsets = updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex, pEndTextIndex -> pEndTextIndex + pLength);
+        }
+        else
+        {
+          // case DELETE 4
+          modifiedChangeDeltaOffsets = updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex, pEndTextIndex -> pEndTextIndex - (pEndTextIndex - pOffset));
+        }
+      }
+    }
+    return new LinePartChangeDeltaImpl(changeType, modifiedChangeDeltaOffsets);
+  }
+
+  /**
+   * Applies the given Functions to the start- and endTextIndices of the specified side and returns the result as ChangeDeltaTextOffsets
+   *
+   * @param pChangeSide           Which side should have its indices updated
+   * @param pStartTextIndexUpdate Function to apply to the startIndex
+   * @param pEndTextIndexUpdate   Function to apply to the endIndex
+   * @return ChangeDeltaTextOffsets with updated indices
+   */
+  private ChangeDeltaTextOffsets updateTextIndizes(EChangeSide pChangeSide, Function<Integer, Integer> pStartTextIndexUpdate,
+                                                   Function<Integer, Integer> pEndTextIndexUpdate)
+  {
+    if (pChangeSide == EChangeSide.NEW)
+      return new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, pStartTextIndexUpdate.apply(startTextIndexNew), pEndTextIndexUpdate.apply(endTextIndexNew));
+    return new ChangeDeltaTextOffsets(pStartTextIndexUpdate.apply(startTextIndexOld), pEndTextIndexUpdate.apply(endTextIndexOld), startTextIndexNew, endTextIndexNew);
   }
 }

@@ -119,9 +119,11 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta)
+  public List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve)
   {
-    return _appyDelta(pChangeDelta, EChangeSide.NEW, EChangeSide.OLD);
+    if (pUseWordBasedResolve)
+      return _applyDeltaParts(pChangeDelta, EChangeSide.NEW, EChangeSide.OLD);
+    else return _applyDelta(pChangeDelta, EChangeSide.NEW, EChangeSide.OLD);
   }
 
   @Nullable
@@ -156,12 +158,14 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public List<IDeltaTextChangeEvent> revertDelta(IChangeDelta pChangeDelta)
+  public List<IDeltaTextChangeEvent> revertDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve)
   {
-    return _appyDelta(pChangeDelta, EChangeSide.OLD, EChangeSide.NEW);
+    if (pUseWordBasedResolve)
+      return _applyDeltaParts(pChangeDelta, EChangeSide.OLD, EChangeSide.NEW);
+    return _applyDelta(pChangeDelta, EChangeSide.OLD, EChangeSide.NEW);
   }
 
-  private List<IDeltaTextChangeEvent> _appyDelta(IChangeDelta pChangeDelta, EChangeSide pApplyingSide, EChangeSide pChangeSide)
+  private List<IDeltaTextChangeEvent> _applyDeltaParts(IChangeDelta pChangeDelta, EChangeSide pApplyingSide, EChangeSide pChangeSide)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
@@ -171,9 +175,10 @@ public class FileDiffImpl implements IFileDiff
     int deltaIndex = changeDeltas.indexOf(pChangeDelta);
     if (deltaIndex != -1)
     {
+      IChangeDelta changedDelta = changeDeltas.get(deltaIndex);
       boolean isChangeNewVersion = pApplyingSide == EChangeSide.OLD;
       int textDifference = 0;
-      for (ILinePartChangeDelta linePartChangeDelta : pChangeDelta.getLinePartChanges())
+      for (ILinePartChangeDelta linePartChangeDelta : changedDelta.getLinePartChanges())
       {
         String prefix;
         String infix = "";
@@ -244,7 +249,7 @@ public class FileDiffImpl implements IFileDiff
       int lineDifference = (pChangeDelta.getEndLine(pApplyingSide) - pChangeDelta.getStartLine(pApplyingSide))
           - (pChangeDelta.getEndLine(pChangeSide) - pChangeDelta.getStartLine(pChangeSide));
       // exchange delta with updated delta, then propagate additional characters/lines to all deltas that occur later on in the file
-      changeDeltas.set(deltaIndex, changeDeltas.get(deltaIndex).acceptChange(pChangeSide));
+      changeDeltas.set(deltaIndex, changedDelta.acceptChange(pChangeSide, true));
       _applyOffsetToFollowingDeltas(deltaIndex, textDifference, lineDifference, pChangeSide);
     }
     else
@@ -254,6 +259,98 @@ public class FileDiffImpl implements IFileDiff
     _checkInitialObservableState();
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> diffTextChangeObservable.onNext(pDeltaTextChangeEvent));
     return deltaTextChangeEvents;
+  }
+
+  private List<IDeltaTextChangeEvent> _applyDelta(IChangeDelta pChangeDelta, EChangeSide pApplyingSide, EChangeSide pChangeSide)
+  {
+    if (oldVersion == null || newVersion == null)
+    {
+      reset();
+    }
+    IDeltaTextChangeEvent changeEvent;
+    int deltaIndex = changeDeltas.indexOf(pChangeDelta);
+    if (deltaIndex != -1)
+    {
+      boolean isChangeNewVersion = pApplyingSide == EChangeSide.OLD;
+      int textDifference = 0;
+      String prefix;
+      String infix = "";
+      int changedSideLength = pChangeSide == EChangeSide.NEW ? newVersion.length() : oldVersion.length();
+      int appliedStartTextIndex = changeDeltas.get(deltaIndex).getStartTextIndex(pApplyingSide);
+      int appliedEndTextIndex = changeDeltas.get(deltaIndex).getEndTextIndex(pApplyingSide);
+      int changedStartTextIndex = changeDeltas.get(deltaIndex).getStartTextIndex(pChangeSide) + textDifference;
+      int changedEndTextIndex = changeDeltas.get(deltaIndex).getEndTextIndex(pChangeSide) + textDifference;
+      int startIndex;
+      EChangeType deltaChangeType = changeDeltas.get(deltaIndex).getChangeStatus().getChangeType();
+      String changedSideString = pChangeSide == EChangeSide.NEW ? newVersion : oldVersion;
+      String appliedSideString = pChangeSide == EChangeSide.NEW ? oldVersion : newVersion;
+      boolean isPointChange = (isChangeNewVersion && deltaChangeType == EChangeType.ADD) || (!isChangeNewVersion && deltaChangeType == EChangeType.DELETE);
+      boolean isPointChangeAtEOL = Util.safeIsCharAt(appliedSideString, appliedEndTextIndex - 1, '\n')
+          && Util.safeIsCharAt(changedSideString, changedEndTextIndex - 1, '\n')
+          && ((deltaChangeType == EChangeType.ADD && isChangeNewVersion) || (deltaChangeType == EChangeType.DELETE && !isChangeNewVersion));
+      // get the text before the changed lines
+      // the if statement here may be true if e.g. the last line does not have a newline, yet the other side has modified or added lines beyond that
+      if (changedSideLength < changedStartTextIndex)
+      {
+        prefix = changedSideString;
+        infix = "\n";
+        startIndex = changedSideLength;
+      }
+      else
+      {
+        startIndex = Math.max(0, changedStartTextIndex);
+        if (isPointChangeAtEOL)
+          startIndex = Math.max(0, startIndex - 1);
+        prefix = changedSideString.substring(0, startIndex);
+      }
+      // calculate the changed text. ADD and DELETE have a special treatment here, because they are changes that cover only a point on one side of the change (e.g. an
+      // insert happens between characters, doesnt affect the characters around it). To make highlighting easier, the indices of the ChangeDelta do not cover that
+      // behaviour -> special treatment here
+      if (isPointChange)
+        infix = "";
+      else
+        infix += appliedSideString.substring(appliedStartTextIndex, appliedEndTextIndex);
+      int postFixStartIndex;
+      int textEventRemovalLength;
+      if ((!isChangeNewVersion && deltaChangeType == EChangeType.ADD) || (isChangeNewVersion && deltaChangeType == EChangeType.DELETE))
+      {
+        postFixStartIndex = Math.min(changedSideLength, changedStartTextIndex);
+        textEventRemovalLength = 0;
+      }
+      else if (isPointChangeAtEOL)
+      {
+        postFixStartIndex = Math.min(changedSideLength, changedEndTextIndex - 1);
+        textEventRemovalLength = changedEndTextIndex - changedStartTextIndex;
+      }
+      else
+      {
+        postFixStartIndex = Math.min(changedSideLength, changedEndTextIndex);
+        textEventRemovalLength = changedEndTextIndex - changedStartTextIndex;
+      }
+      String postFix = changedSideString.substring(postFixStartIndex);
+
+      // build new version from sum of prefix + infix + postfix
+      if (isChangeNewVersion)
+        newVersion = prefix + infix + postFix;
+      else
+        oldVersion = prefix + infix + postFix;
+      changeEvent = new DeltaTextChangeEventImpl(startIndex, textEventRemovalLength, infix, this, pChangeSide);
+      // calculate index differences for the following deltas
+      textDifference += infix.length() - textEventRemovalLength;
+
+      int lineDifference = (pChangeDelta.getEndLine(pApplyingSide) - pChangeDelta.getStartLine(pApplyingSide))
+          - (pChangeDelta.getEndLine(pChangeSide) - pChangeDelta.getStartLine(pChangeSide));
+      // exchange delta with updated delta, then propagate additional characters/lines to all deltas that occur later on in the file
+      changeDeltas.set(deltaIndex, changeDeltas.get(deltaIndex).acceptChange(pChangeSide, false));
+      _applyOffsetToFollowingDeltas(deltaIndex, textDifference, lineDifference, pChangeSide);
+    }
+    else
+    {
+      changeEvent = new DeltaTextChangeEventImpl(0, 0, "", this, pChangeSide);
+    }
+    _checkInitialObservableState();
+    diffTextChangeObservable.onNext(changeEvent);
+    return List.of(changeEvent);
   }
 
   @Override
@@ -420,6 +517,11 @@ public class FileDiffImpl implements IFileDiff
         {
           changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus().getChangeStatus(), EChangeType.CONFLICTING)));
           conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.CONFLICTING));
+          break;
+        }
+        else if (conflictType == EConflictType.RESOLVABLE)
+        {
+          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.RESOLVABLE));
           break;
         }
         else if (conflictType == EConflictType.SAME)

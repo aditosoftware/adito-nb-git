@@ -133,20 +133,6 @@ public class MergeDataImplTest
                  mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
   }
 
-  @Test
-  void testAcceptDeleteAfterChange()
-  {
-    String originalVersion = "Hello there, this is a test\nSo here are some words\nNo use taking a rest\nWe're not creating any turds";
-    String yourVersion = "Hello there, this is a test\nSo here are some additional words\nNo use taking a break\nWe're not creating any turds";
-    String theirVersion = "Hello there, this is a test\nNo use taking a rest\nWe're not creating any turds";
-    IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
-    assertEquals(originalVersion, mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
-    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
-    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
-    assertEquals(mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
-    assertEquals("Hello there, this is a test\nNo use taking a break\nWe're not creating any turds",
-                 mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
-  }
 
   @Test
   void testAcceptDeleteAfterInsert()
@@ -181,7 +167,8 @@ public class MergeDataImplTest
   }
 
   /**
-   * tests if accepting a MODIFIED change with conflicting DELETE change results in the expected result
+   * tests if accepting a MODIFIED change with conflicting DELETE change results in the expected result -> same as with only YOURS accepted, since
+   * changes are conflicting and therefore the DELETE is appended -> does nothing
    */
   @Test
   void testAcceptDeltaModifyDelete()
@@ -190,11 +177,12 @@ public class MergeDataImplTest
     String yourVersion = "Hello there, this is a test\nSo here are several words\nNo use taking a break\nWe're not creating any turds";
     String theirVersion = "Hello there, this is a test\nNo use taking a rest\nWe're not creating any turds";
     IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
+    mergeData.markConflicting();
     assertEquals(originalVersion, mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
     assertEquals(mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
-    assertEquals("Hello there, this is a test\nNo use taking a break\nWe're not creating any turds", mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
+    assertEquals(yourVersion, mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
   }
 
   /**
