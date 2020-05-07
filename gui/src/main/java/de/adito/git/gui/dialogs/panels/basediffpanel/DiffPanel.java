@@ -6,6 +6,7 @@ import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
+import de.adito.git.gui.dialogs.TextComparatorInfoPanel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
@@ -76,10 +77,29 @@ public class DiffPanel extends JPanel implements IDiscardable
     mainSplitPane.setResizeWeight(0.5);
     setBorder(new JScrollPane().getBorder());
     add(mainSplitPane, BorderLayout.CENTER);
-    add(_initToolBar(pIconLoader), BorderLayout.NORTH);
+    JPanel optionsPanel = _getOptionsPanel(pIconLoader);
+    add(optionsPanel, BorderLayout.NORTH);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
     differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null, pFileDiffObs);
+  }
+
+  /**
+   * creates the Panel with the Toolbar and Options
+   *
+   * @param pIconLoader IconLoader for the Toolbar icons
+   * @return JPanel with the aforementioned elements
+   */
+  @NotNull
+  private JPanel _getOptionsPanel(IIconLoader pIconLoader)
+  {
+    JPanel optionsPanel = new JPanel(new BorderLayout());
+    JToolBar toolBar = _initToolBar(pIconLoader);
+    optionsPanel.add(toolBar, BorderLayout.WEST);
+    optionsPanel.add(new TextComparatorInfoPanel(), BorderLayout.EAST);
+    optionsPanel.setBorder(toolBar.getBorder());
+    toolBar.setBorder(null);
+    return optionsPanel;
   }
 
   @Override

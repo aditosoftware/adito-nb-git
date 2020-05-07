@@ -52,7 +52,13 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
 
     JPanel diffPanel = new JPanel(new BorderLayout());
     diffPanel.add(mergePanel, BorderLayout.CENTER);
-    diffPanel.add(_initToolbar(pIconLoader), BorderLayout.NORTH);
+    JPanel optionsPanel = new JPanel(new BorderLayout());
+    JToolBar toolBar = _initToolbar(pIconLoader);
+    optionsPanel.add(toolBar, BorderLayout.WEST);
+    optionsPanel.add(new TextComparatorInfoPanel(), BorderLayout.EAST);
+    optionsPanel.setBorder(toolBar.getBorder());
+    toolBar.setBorder(null);
+    diffPanel.add(optionsPanel, BorderLayout.NORTH);
     diffPanel.setPreferredSize(new Dimension(1600, 900));
     add(diffPanel, BorderLayout.CENTER);
   }
