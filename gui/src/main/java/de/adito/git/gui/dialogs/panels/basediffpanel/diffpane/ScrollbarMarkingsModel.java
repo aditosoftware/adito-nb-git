@@ -49,14 +49,14 @@ public class ScrollbarMarkingsModel implements IDiscardable
     // there can be parity lines in the Chunks, so we cannot use the start/endLine of the chunk directly. Instead we have to keep track of the lines
     for (IChangeDelta changeDelta : pFileDiff == null ? List.<IChangeDelta>of() : pFileDiff.getChangeDeltas())
     {
-      if (changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
+      if (changeDelta.getChangeStatus() == EChangeStatus.PENDING)
       {
         int startOffset = changeDelta.getStartTextIndex(pModel.getChangeSide());
         int endOffset = changeDelta.getEndTextIndex(pModel.getChangeSide());
         try
         {
           Rectangle bounds = view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
-          markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeDelta.getChangeStatus().getChangeType().getDiffColor()));
+          markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeDelta.getChangeType().getDiffColor()));
         }
         catch (BadLocationException pE)
         {

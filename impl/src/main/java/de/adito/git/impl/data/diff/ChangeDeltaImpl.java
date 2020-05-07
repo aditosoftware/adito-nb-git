@@ -64,9 +64,9 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public IChangeStatus getChangeStatus()
+  public EChangeStatus getChangeStatus()
   {
-    return changeStatus;
+    return changeStatus.getChangeStatus();
   }
 
   @Override
@@ -79,6 +79,12 @@ public final class ChangeDeltaImpl implements IChangeDelta
   public int getEndLine(EChangeSide pChangeSide)
   {
     return pChangeSide == EChangeSide.NEW ? endLineIndexNew : endLineIndexOld;
+  }
+
+  @Override
+  public EChangeType getChangeType()
+  {
+    return changeStatus.getChangeType();
   }
 
   @Override
@@ -101,7 +107,7 @@ public final class ChangeDeltaImpl implements IChangeDelta
     int lineOffsetNew = pChangeSide == EChangeSide.NEW ? pLineOffset : 0;
     int textOffsetNew = pChangeSide == EChangeSide.NEW ? pTextOffset : 0;
     Edit changedEdit = new Edit(startLineIndexOld + lineOffsetOld, endLineIndexOld + lineOffsetOld, startLineIndexNew + lineOffsetNew, endLineIndexNew + lineOffsetNew);
-    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(getChangeStatus().getChangeStatus(), getChangeStatus().getChangeType()),
+    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(getChangeStatus(), getChangeType()),
                                new ChangeDeltaTextOffsets(startTextIndexOld + textOffsetOld, endTextIndexOld + textOffsetOld,
                                                           startTextIndexNew + textOffsetNew, endTextIndexNew + textOffsetNew),
                                textVersionProvider,

@@ -155,7 +155,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     BufferedImage image = new BufferedImage(COLORIZER_WIDTH, Math.max(1, pHeight), BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = (Graphics2D) image.getGraphics();
     pChangeList.forEach(change -> {
-      if (change.changeChunk.getChangeStatus().getChangeType() == EChangeType.DELETE)
+      if (change.changeChunk.getChangeType() == EChangeType.DELETE)
       {
         int y = change.rectangle.y;
         g.drawImage(rightArrow.getImage(), 0, y, COLORIZER_WIDTH, y + COLORIZER_WIDTH, 0, 0, rightArrow.getIconWidth(), rightArrow.getIconHeight(), null);
@@ -222,7 +222,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   {
     int startLine = 0;
     int endLine = 0;
-    switch (pChange.getChangeStatus().getChangeType())
+    switch (pChange.getChangeType())
     {
       case MODIFY:
       case ADD:
@@ -266,7 +266,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     _ChangeHolder(Rectangle pRectangle, IChangeDelta pChangeDelta)
     {
       rectangle = pRectangle;
-      color = pChangeDelta.getChangeStatus().getChangeType().getDiffColor();
+      color = pChangeDelta.getChangeType().getDiffColor();
       changeChunk = pChangeDelta;
     }
   }

@@ -198,7 +198,7 @@ public class MergeDataImplTest
     assertEquals(originalVersion, mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
     mergeData.discardChange(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
     assertEquals(mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
-    assertEquals(EChangeStatus.DISCARDED, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.DISCARDED, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus());
     assertEquals(originalVersion, mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
     assertEquals(mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
@@ -220,8 +220,8 @@ public class MergeDataImplTest
     assertNotEquals(originalVersion, mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.NEW));
     mergeData.reset();
     assertEquals(originalVersion, mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
-    assertEquals(EChangeStatus.PENDING, mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
-    assertEquals(EChangeStatus.PENDING, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.PENDING, mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0).getChangeStatus());
+    assertEquals(EChangeStatus.PENDING, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus());
   }
 
   /**

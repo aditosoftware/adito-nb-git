@@ -79,14 +79,14 @@ public class TextHighlightUtil
     List<_Highlight> pendingHighlightSpots = new ArrayList<>();
     for (IChangeDelta changeDelta : pFileChangeChunks)
     {
-      if (pIsMarkWords && changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING
-          && (changeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY || changeDelta.getChangeStatus().getChangeType() == EChangeType.CONFLICTING))
+      if (pIsMarkWords && changeDelta.getChangeStatus() == EChangeStatus.PENDING
+          && (changeDelta.getChangeType() == EChangeType.MODIFY || changeDelta.getChangeType() == EChangeType.CONFLICTING))
       {
         _getWordsHighlight(changeDelta, pChangeSide, highlightSpots, pendingHighlightSpots);
       }
       else
       {
-        if (changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
+        if (changeDelta.getChangeStatus() == EChangeStatus.PENDING)
           _getLineHighlight(changeDelta, pChangeSide, pendingHighlightSpots);
         _getLineHighlight(changeDelta, pChangeSide, highlightSpots);
       }
@@ -108,8 +108,8 @@ public class TextHighlightUtil
     int endOffset = changeDelta.getEndTextIndex(pChangeSide);
     if (startOffset < endOffset)
       endOffset -= 1;
-    Color highlightColor = changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING ? changeDelta.getChangeStatus().getChangeType().getDiffColor()
-        : changeDelta.getChangeStatus().getChangeType().getSecondaryDiffColor();
+    Color highlightColor = changeDelta.getChangeStatus() == EChangeStatus.PENDING ? changeDelta.getChangeType().getDiffColor()
+        : changeDelta.getChangeType().getSecondaryDiffColor();
     pHighlights.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, highlightColor),
                                    _isUseThinLine(changeDelta, pChangeSide) ? LineHighlightPainter.Mode.THIN_LINE : LineHighlightPainter.Mode.WHOLE_LINE));
   }
@@ -131,14 +131,14 @@ public class TextHighlightUtil
       int endOffset = linePartChangeDelta.getEndTextIndex(pChangeSide);
       if (startOffset < endOffset)
         endOffset -= 1;
-      pPendingHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getDiffColor()),
+      pPendingHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeType().getDiffColor()),
                                                 LineHighlightPainter.Mode.MARK_GIVEN));
     }
     int startOffset = changeDelta.getStartTextIndex(pChangeSide);
     int endOffset = changeDelta.getEndTextIndex(pChangeSide);
     if (startOffset < endOffset)
       endOffset -= 1;
-    pHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeStatus().getChangeType().getSecondaryDiffColor()),
+    pHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getChangeType().getSecondaryDiffColor()),
                                        LineHighlightPainter.Mode.WHOLE_LINE));
   }
 

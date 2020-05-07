@@ -42,7 +42,7 @@ public interface IFileChanges
       {
         encounteredCurrentChunk = true;
       }
-      else if (changeChunk.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && encounteredCurrentChunk)
+      else if (changeChunk.getChangeStatus() == EChangeStatus.PENDING && encounteredCurrentChunk)
       {
         nextChunk = changeChunk;
         break;
@@ -69,7 +69,7 @@ public interface IFileChanges
       {
         encounteredCurrentChunk = true;
       }
-      else if (pChangeDeltas.get(index).getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && encounteredCurrentChunk)
+      else if (pChangeDeltas.get(index).getChangeStatus() == EChangeStatus.PENDING && encounteredCurrentChunk)
       {
         previousChunk = pChangeDeltas.get(index);
         break;

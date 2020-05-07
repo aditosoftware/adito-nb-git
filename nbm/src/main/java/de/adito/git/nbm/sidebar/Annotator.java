@@ -333,15 +333,15 @@ public class Annotator extends JPanel implements IDiscardable
     //get all deltas to check the type
     for (IChangeDelta delta : pDeltas)
     {
-      if (delta.getChangeStatus().getChangeType() == EChangeType.ADD)
+      if (delta.getChangeType() == EChangeType.ADD)
       {
         _addLines(delta, list);
       }
-      if (delta.getChangeStatus().getChangeType() == EChangeType.DELETE)
+      if (delta.getChangeType() == EChangeType.DELETE)
       {
         _deleteLines(delta, list);
       }
-      if (delta.getChangeStatus().getChangeType() == EChangeType.MODIFY)
+      if (delta.getChangeType() == EChangeType.MODIFY)
       {
         _deleteLines(delta, list);
         _addLines(delta, list);

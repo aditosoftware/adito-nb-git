@@ -9,13 +9,15 @@ import java.util.List;
  *
  * @author m.kaspera, 20.02.2020
  */
-public interface IChangeDelta
+public interface IChangeDelta extends IDelta
 {
 
   /**
-   * @return the type of change that occurred
+   * gives information about whether the change was already accepted/discarded or is still pending
+   *
+   * @return EChangeStatus of the change
    */
-  IChangeStatus getChangeStatus();
+  EChangeStatus getChangeStatus();
 
   /**
    * get the number of the first line that is affected by this change

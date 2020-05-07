@@ -45,7 +45,7 @@ public interface IDiffPaneUtil
     for (IChangeDelta changeChunk : pChangeDeltas)
     {
       nextChunk = changeChunk;
-      if (changeChunk.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && changeChunk.getStartLine(pChangeSide) > caretLine)
+      if (changeChunk.getChangeStatus() == EChangeStatus.PENDING && changeChunk.getStartLine(pChangeSide) > caretLine)
       {
         break;
       }
@@ -67,7 +67,7 @@ public interface IDiffPaneUtil
     IChangeDelta previousChunk = null;
     for (int index = pChangeDeltas.size() - 1; index >= 0; index--)
     {
-      if (pChangeDeltas.get(index).getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && pChangeDeltas.get(index).getEndLine(pChangeSide) <= caretLine)
+      if (pChangeDeltas.get(index).getChangeStatus() == EChangeStatus.PENDING && pChangeDeltas.get(index).getEndLine(pChangeSide) <= caretLine)
       {
         previousChunk = pChangeDeltas.get(index);
         if (pChangeDeltas.get(index).getStartLine(pChangeSide) != pChangeDeltas.get(index).getEndLine(pChangeSide)

@@ -56,7 +56,7 @@ public class MergeDataImpl implements IMergeData
   @Override
   public void acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide)
   {
-    if (acceptedDelta.getChangeStatus().getChangeStatus() == EChangeStatus.UNDEFINED)
+    if (acceptedDelta.getChangeStatus() == EChangeStatus.UNDEFINED)
     {
       throw new IllegalArgumentException("Cannot accept a delta of state UNDEFINED");
     }
@@ -121,7 +121,7 @@ public class MergeDataImpl implements IMergeData
                                          EConflictSide pConflictSide)
   {
     return pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)))
-        .getChangeStatus().getChangeStatus() == EChangeStatus.ACCEPTED;
+        .getChangeStatus() == EChangeStatus.ACCEPTED;
 
   }
 

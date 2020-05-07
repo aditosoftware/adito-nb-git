@@ -110,7 +110,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   {
     for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
     {
-      if (changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING && changeDelta.getChangeStatus().getChangeType() != EChangeType.CONFLICTING)
+      if (changeDelta.getChangeStatus() == EChangeStatus.PENDING && changeDelta.getChangeType() != EChangeType.CONFLICTING)
       {
         mergeDiff.acceptDelta(changeDelta, pConflictSide);
       }
@@ -157,7 +157,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
       _acceptSide(EConflictSide.THEIRS);
     }
 
-    // TODO find a way to re-evaluate isEnabled if a delta is accepted
+    // TODO find a way to re-evaluate isEnabled if a delta is accepted without too much of a performance drain if e.g. all non-conflicting changes are accepted
     @Override
     public boolean isEnabled()
     {
@@ -184,7 +184,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     {
       for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
       {
-        if (changeDelta.getChangeStatus().getChangeType() != EChangeType.CONFLICTING && changeDelta.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
+        if (changeDelta.getChangeType() != EChangeType.CONFLICTING && changeDelta.getChangeStatus() == EChangeStatus.PENDING)
         {
           // one changeDelta that can be accepted and that is not conflicting exists -> Action is enabled
           return true;

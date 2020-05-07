@@ -248,7 +248,7 @@ class ChunkPopupWindow extends JWindow
     {
       builder.append(lines[index]).append("\n");
     }
-    if (pChangeDelta.getChangeStatus().getChangeType() == EChangeType.MODIFY)
+    if (pChangeDelta.getChangeType() == EChangeType.MODIFY)
       builder.deleteCharAt(builder.lastIndexOf("\n"));
     return builder.toString();
   }

@@ -5,29 +5,8 @@ package de.adito.git.api.data.diff;
  *
  * @author m.kaspera, 27.02.2020
  */
-public interface ILinePartChangeDelta
+public interface ILinePartChangeDelta extends IDelta
 {
-
-  /**
-   * @return Type of change that happened to the line part
-   */
-  EChangeType getChangeType();
-
-  /**
-   * Get the index of the first character of this delta, the index should be the same as in a document containing all changeDeltas of a fileChange
-   *
-   * @param pChangeSide which side of the change should be taken
-   * @return index of the first character of this delta as seen for the whole file
-   */
-  int getStartTextIndex(EChangeSide pChangeSide);
-
-  /**
-   * Get the index of the last character of this delta, the index should be the same as in a document containing all changeDeltas of a fileChange
-   *
-   * @param pChangeSide which side of the change should be taken
-   * @return index of the last character  of this delta as seen for the whole file
-   */
-  int getEndTextIndex(EChangeSide pChangeSide);
 
   /**
    * applies the given offset to the stored offsets of this delta

@@ -125,7 +125,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
       for (IChangeDelta fileChange : changeDeltas)
       {
         // Chunks with type SAME have no buttons since contents are equal
-        if (fileChange.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
+        if (fileChange.getChangeStatus() == EChangeStatus.PENDING)
         {
           int characterStartOffset = fileChange.getStartTextIndex(model.getChangeSide());
           int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,

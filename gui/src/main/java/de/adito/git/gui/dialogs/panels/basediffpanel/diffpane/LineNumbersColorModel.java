@@ -122,7 +122,7 @@ public class LineNumbersColorModel implements IDiscardable
       List<IChangeDelta> changeDeltas = pFileChangesEvent.getFileDiff() == null ? List.of() : pFileChangesEvent.getFileDiff().getChangeDeltas();
       for (IChangeDelta fileChange : changeDeltas)
       {
-        if (fileChange.getChangeStatus().getChangeStatus() != EChangeStatus.UNDEFINED)
+        if (fileChange.getChangeStatus() != EChangeStatus.UNDEFINED)
         {
           int numLines = fileChange.getEndLine(model.getChangeSide()) - fileChange.getStartLine(model.getChangeSide());
           if (fileChange.getStartLine(model.getChangeSide()) <= pEditorPane.getDocument().getDefaultRootElement().getElementCount())
@@ -180,10 +180,10 @@ public class LineNumbersColorModel implements IDiscardable
                                    endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle()).getBounds();
       }
       Color diffColor;
-      if (pFileChange.getChangeStatus().getChangeStatus() == EChangeStatus.PENDING)
-        diffColor = pFileChange.getChangeStatus().getChangeType().getDiffColor();
+      if (pFileChange.getChangeStatus() == EChangeStatus.PENDING)
+        diffColor = pFileChange.getChangeType().getDiffColor();
       else
-        diffColor = pFileChange.getChangeStatus().getChangeType().getSecondaryDiffColor();
+        diffColor = pFileChange.getChangeType().getSecondaryDiffColor();
       // adjust coordinates from view to viewPort coordinates
       return new LineNumberColor(diffColor, bounds);
     }

@@ -701,11 +701,11 @@ public class FileDiffImplTest
     IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
     fileDiff.revertDelta(fileDiff.getChangeDeltas().get(0), true);
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.NEW));
-    assertEquals(EChangeStatus.ACCEPTED, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.ACCEPTED, fileDiff.getChangeDeltas().get(0).getChangeStatus());
     fileDiff.reset();
     assertEquals(oldVersion, fileDiff.getText(EChangeSide.OLD));
     assertEquals(newVersion, fileDiff.getText(EChangeSide.NEW));
-    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus());
   }
 
   /*
@@ -731,7 +731,7 @@ public class FileDiffImplTest
                                                                             fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
     assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                                 fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
-    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus());
   }
 
   /**
@@ -753,7 +753,7 @@ public class FileDiffImplTest
                                                                             fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
     assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                                 fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
-    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus());
   }
 
   /**
@@ -913,7 +913,7 @@ public class FileDiffImplTest
                                                                             fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
     assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                                 fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
-    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus());
   }
 
   /**
@@ -956,7 +956,7 @@ public class FileDiffImplTest
                                                                             fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
     assertEquals(secondChunkBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                                 fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW)));
-    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus().getChangeStatus());
+    assertEquals(EChangeStatus.PENDING, fileDiff.getChangeDeltas().get(0).getChangeStatus());
     _checkLineEndings(fileDiff.getChangeDeltas().get(0), firstDeltaEdit, 1, 1);
     _checkLineEndings(fileDiff.getChangeDeltas().get(1), secondDeltaEdit, 1, 1);
   }
@@ -1037,7 +1037,7 @@ public class FileDiffImplTest
   private void _checkChangeDelta(IChangeDelta pChangeDelta, EChangeType pChangeType, Edit pEdit, int pOldTextStartIndex, int pOldTextEndIndex,
                                  int pNewTextStartIndex, int pNewTextEndIndex)
   {
-    assertEquals(pChangeType, pChangeDelta.getChangeStatus().getChangeType());
+    assertEquals(pChangeType, pChangeDelta.getChangeType());
     assertEquals(pEdit.getBeginA(), pChangeDelta.getStartLine(EChangeSide.OLD));
     assertEquals(pEdit.getEndA(), pChangeDelta.getEndLine(EChangeSide.OLD));
     assertEquals(pOldTextStartIndex, pChangeDelta.getStartTextIndex(EChangeSide.OLD));
