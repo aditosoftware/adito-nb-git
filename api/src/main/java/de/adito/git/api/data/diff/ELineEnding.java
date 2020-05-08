@@ -26,4 +26,19 @@ public enum ELineEnding
   {
     return lineEnding;
   }
+
+  /**
+   * transforms the lineEnding given as string to one present in this enum, returns UNIX if none matches
+   *
+   * @param pLineEnding LineEnding as string
+   * @return ELineEnding matching one of the lineEndings of this enum, or UNIX as default
+   */
+  public static ELineEnding getLineEnding(String pLineEnding)
+  {
+    if (pLineEnding.equals(WINDOWS.getLineEnding()))
+      return WINDOWS;
+    else if (pLineEnding.equals(MAC.getLineEnding()))
+      return MAC;
+    return UNIX;
+  }
 }

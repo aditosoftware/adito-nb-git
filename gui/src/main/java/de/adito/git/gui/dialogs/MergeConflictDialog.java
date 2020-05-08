@@ -206,7 +206,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       String fileContents = pMergeDiff.getDiff(EConflictSide.YOURS).getText(EChangeSide.NEW);
       logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path,
                                                  pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.NEW)));
-      _writeToFile(fileContents, pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.OLD), pMergeDiff, selectedFile);
+      _writeToFile(_adjustLineEndings(fileContents, pMergeDiff), pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.OLD), pMergeDiff, selectedFile);
     }
   }
 
@@ -239,6 +239,44 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     {
       throw new RuntimeException(pE);
     }
+  }
+
+  /**
+   * replaces all lineEndings with those determined by the MergeData
+   *
+   * @param pFileContent content for which to change the newlines
+   * @param pMergeData   IMergeData containing the FileContentInfos used to determine the used lineEndings
+   * @return String with changed newlines
+   */
+  private static String _adjustLineEndings(String pFileContent, IMergeData pMergeData)
+  {
+    ELineEnding lineEnding = _getLineEnding(pMergeData);
+    if (lineEnding == ELineEnding.UNIX)
+    {
+      return pFileContent.replaceAll("\r\n", ELineEnding.UNIX.getLineEnding()).replaceAll("\r", ELineEnding.UNIX.getLineEnding());
+    }
+    else if (lineEnding == ELineEnding.WINDOWS)
+    {
+      return pFileContent.replaceAll("\r(?!\n)", ELineEnding.WINDOWS.getLineEnding()).replaceAll("(?<!\r)\n", ELineEnding.WINDOWS.getLineEnding());
+    }
+    else return pFileContent.replaceAll("\r\n", ELineEnding.MAC.getLineEnding()).replaceAll("\n", ELineEnding.MAC.getLineEnding());
+  }
+
+  /**
+   * Determines the lineEnding to use by checking the two NEW versions of the ConflictSides, if those have the same lineEnding then that lineEnding is used.
+   * Otherwise the lineEnding used by the sytem is returned
+   *
+   * @param pMergeData IMergeData containing the FileContentInfos used to determine the used lineEndings
+   * @return LineEnding
+   */
+  private static ELineEnding _getLineEnding(IMergeData pMergeData)
+  {
+    if (pMergeData.getDiff(EConflictSide.THEIRS).getFileContentInfo(EChangeSide.NEW).getLineEnding().get()
+        == pMergeData.getDiff(EConflictSide.YOURS).getFileContentInfo(EChangeSide.NEW).getLineEnding().get())
+    {
+      return pMergeData.getDiff(EConflictSide.THEIRS).getFileContentInfo(EChangeSide.NEW).getLineEnding().get();
+    }
+    else return ELineEnding.getLineEnding(System.lineSeparator());
   }
 
   @Override
