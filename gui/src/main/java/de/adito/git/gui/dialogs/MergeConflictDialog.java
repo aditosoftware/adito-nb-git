@@ -248,7 +248,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
    * @param pMergeData   IMergeData containing the FileContentInfos used to determine the used lineEndings
    * @return String with changed newlines
    */
-  private static String _adjustLineEndings(String pFileContent, IMergeData pMergeData)
+  static String _adjustLineEndings(String pFileContent, IMergeData pMergeData)
   {
     ELineEnding lineEnding = _getLineEnding(pMergeData);
     if (lineEnding == ELineEnding.UNIX)
