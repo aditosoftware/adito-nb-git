@@ -52,11 +52,12 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
 
     JPanel diffPanel = new JPanel(new BorderLayout());
     diffPanel.add(mergePanel, BorderLayout.CENTER);
-    JPanel optionsPanel = new JPanel(new BorderLayout());
+    JPanel optionsPanel = new JPanel(new BorderLayout(0, 7));
     JToolBar toolBar = _initToolbar(pIconLoader);
     optionsPanel.add(toolBar, BorderLayout.WEST);
     optionsPanel.add(new TextComparatorInfoPanel(), BorderLayout.EAST);
-    optionsPanel.setBorder(toolBar.getBorder());
+    optionsPanel.add(new JSeparator(), BorderLayout.SOUTH);
+    optionsPanel.setBorder(null);
     toolBar.setBorder(null);
     diffPanel.add(optionsPanel, BorderLayout.NORTH);
     diffPanel.setPreferredSize(new Dimension(1600, 900));
@@ -72,7 +73,10 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     // Merge-Panel-Actions (Next | Previous)
     mergePanel.getActions().stream()
         .map(JButton::new)
-        .forEach(toolbar::add);
+        .forEach(comp -> {
+          toolbar.add(comp);
+          toolbar.add(Box.createHorizontalStrut(3));
+        });
 
     for (Component component : toolbar.getComponents())
     {
@@ -80,10 +84,13 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     }
 
     toolbar.addSeparator();
+    toolbar.add(Box.createHorizontalStrut(3));
 
     // Our Actions
     toolbar.add(new JButton(new _AcceptAllActionImpl(EConflictSide.YOURS, pIconLoader)));
+    toolbar.add(Box.createHorizontalStrut(3));
     toolbar.add(new JButton(new _AcceptNonConflictingChangesAction(pIconLoader)));
+    toolbar.add(Box.createHorizontalStrut(3));
     toolbar.add(new JButton(new _AcceptAllActionImpl(EConflictSide.THEIRS, pIconLoader)));
 
     return toolbar;
