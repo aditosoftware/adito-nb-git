@@ -21,6 +21,7 @@ public class FileContentInfoImpl implements IFileContentInfo
 {
 
   private final Supplier<String> fileContent;
+  private final Supplier<String> originalFileContent;
   private final Supplier<Charset> encoding;
   private final Supplier<ELineEnding> lineEnding;
 
@@ -28,6 +29,7 @@ public class FileContentInfoImpl implements IFileContentInfo
   {
     byte[] bytes = pBytes.get();
     encoding = Suppliers.memoize(() -> Util.getEncoding(bytes, pFileSystemUtil));
+    originalFileContent = () -> new String(bytes, encoding.get());
     fileContent = Suppliers.memoize(() -> _cleanString(new String(bytes, encoding.get())));
     lineEnding = Suppliers.memoize(this::_findLineEnding);
   }
@@ -35,6 +37,7 @@ public class FileContentInfoImpl implements IFileContentInfo
   public FileContentInfoImpl(Supplier<String> pFileContent, Supplier<Charset> pEncoding)
   {
     fileContent = Suppliers.memoize(() -> _cleanString(pFileContent.get()));
+    originalFileContent = pFileContent;
     encoding = pEncoding;
     lineEnding = Suppliers.memoize(this::_findLineEnding);
   }
@@ -82,7 +85,7 @@ public class FileContentInfoImpl implements IFileContentInfo
    */
   private ELineEnding _findLineEnding()
   {
-    String content = fileContent.get();
+    String content = originalFileContent.get();
 
     int windows = StringUtils.countMatches(content, ELineEnding.WINDOWS.getLineEnding());
 
