@@ -119,11 +119,11 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve)
+  public List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents)
   {
     if (pUseWordBasedResolve)
-      return _applyDeltaParts(pChangeDelta, EChangeSide.NEW);
-    else return _applyDelta(pChangeDelta, EChangeSide.NEW);
+      return _applyDeltaParts(pChangeDelta, EChangeSide.NEW, pCreateTextEvents);
+    else return _applyDelta(pChangeDelta, EChangeSide.NEW, pCreateTextEvents);
   }
 
   @Nullable
@@ -161,11 +161,11 @@ public class FileDiffImpl implements IFileDiff
   public List<IDeltaTextChangeEvent> revertDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve)
   {
     if (pUseWordBasedResolve)
-      return _applyDeltaParts(pChangeDelta, EChangeSide.OLD);
-    return _applyDelta(pChangeDelta, EChangeSide.OLD);
+      return _applyDeltaParts(pChangeDelta, EChangeSide.OLD, true);
+    return _applyDelta(pChangeDelta, EChangeSide.OLD, true);
   }
 
-  private List<IDeltaTextChangeEvent> _applyDeltaParts(IChangeDelta pChangeDelta, EChangeSide pApplyingSide)
+  private List<IDeltaTextChangeEvent> _applyDeltaParts(IChangeDelta pChangeDelta, EChangeSide pApplyingSide, boolean pCreateTextEvents)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
@@ -193,11 +193,14 @@ public class FileDiffImpl implements IFileDiff
       deltaTextChangeEvents.add(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
     }
     _checkInitialObservableState();
-    deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> diffTextChangeObservable.onNext(pDeltaTextChangeEvent));
+    if (pCreateTextEvents)
+      deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> diffTextChangeObservable.onNext(pDeltaTextChangeEvent));
+    else
+      diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
     return deltaTextChangeEvents;
   }
 
-  private List<IDeltaTextChangeEvent> _applyDelta(IChangeDelta pChangeDelta, EChangeSide pApplyingSide)
+  private List<IDeltaTextChangeEvent> _applyDelta(IChangeDelta pChangeDelta, EChangeSide pApplyingSide, boolean pCreateTextEvents)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
@@ -223,7 +226,10 @@ public class FileDiffImpl implements IFileDiff
     }
     _checkInitialObservableState();
     // there's only ever one element in the list here, so we can do get(0) instead of a foreach
-    diffTextChangeObservable.onNext(deltaTextChangeEvents.get(0));
+    if (pCreateTextEvents)
+      diffTextChangeObservable.onNext(deltaTextChangeEvents.get(0));
+    else
+      diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
     return deltaTextChangeEvents;
   }
 

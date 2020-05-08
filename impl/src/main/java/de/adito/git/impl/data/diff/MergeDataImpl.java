@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author m.kaspera, 06.03.2020
@@ -80,33 +81,31 @@ public class MergeDataImpl implements IMergeData
   private void _acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents;
-    boolean trySnapToDelta;
+    AtomicBoolean trySnapToDelta = new AtomicBoolean(false);
     Optional<ConflictPair> conflictPairOpt = _getConflictPair(acceptedDelta, pAcceptedDiff, pConflictSide);
     if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.SAME)
     {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false);
-      trySnapToDelta = false;
-      pOtherDiff.discardDelta(pOtherDiff.getChangeDeltas().get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide))));
+      pAcceptedDiff.acceptDelta(acceptedDelta, false, true);
+      pOtherDiff.acceptDelta(pOtherDiff.getChangeDeltas().get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide))), false, false);
+      deltaTextChangeEvents = List.of();
     }
     else if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.CONFLICTING &&
         _isCounterPartAccepted(conflictPairOpt.get(), pOtherDiff, pConflictSide))
     {
       deltaTextChangeEvents = List.of(pAcceptedDiff.appendDeltaText(acceptedDelta));
-      trySnapToDelta = true;
+      trySnapToDelta.getAndSet(true);
     }
     else if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.RESOLVABLE)
     {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, true);
-      trySnapToDelta = false;
+      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, true, true);
     }
     else
     {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false);
-      trySnapToDelta = false;
+      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false, true);
     }
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
                                                                                        pDeltaTextChangeEvent.getLength(),
-                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD, trySnapToDelta));
+                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD, trySnapToDelta.get()));
   }
 
   /**

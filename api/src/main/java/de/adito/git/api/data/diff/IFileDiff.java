@@ -70,9 +70,10 @@ public interface IFileDiff extends IFileChangeType
    * @param pChangeDelta         ChangeDelta to accept
    * @param pUseWordBasedResolve true if the delta should be accepted by using the word-differences, based on the original values (does not override new additions),
    *                             false if the text in the delta should match the original text of the delta
+   * @param pCreateTextEvents    true if TextEvents should be created for the changes imparted due to accepting the delta, false if none should be created
    * @return Event describing the changes done to the old side of the diff
    */
-  List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve);
+  List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents);
 
   /**
    * Inserts the text on the NEW side at the end of the OLD side without removing the OLD text
