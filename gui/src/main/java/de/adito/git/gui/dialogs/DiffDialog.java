@@ -92,6 +92,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 
     // Tree on which to select which IFileDiff is displayed in the DiffPanel
     fileTree.getTree().getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    JScrollPane fileTreeScrollPane = new JScrollPane(fileTree.getTree());
     // pSelectedRows[0] because with SINGLE_SELECTION only one row can be selected
     Observable<Optional<IFileDiff>> fileDiffObservable = fileTree.getSelectionObservable()
         .map(pSelectedPaths -> pSelectedPaths.map(pChangeTypes -> pChangeTypes.isEmpty() ? null : (IFileDiff) pChangeTypes.get(0)))
@@ -130,6 +131,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
                                               iconLoader.getIcon(Constants.SWITCH_TREE_VIEW_FLAT))
                       .getButton());
       searchPanel.add(toolBar, BorderLayout.NORTH);
+      searchPanel.add(fileTreeScrollPane, BorderLayout.CENTER);
       // add table and DiffPanel to the SplitPane
       JSplitPane diffToListSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, diffPanel, searchPanel);
       diffToListSplitPane.setResizeWeight(1);
