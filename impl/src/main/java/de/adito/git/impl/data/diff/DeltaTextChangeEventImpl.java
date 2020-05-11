@@ -19,6 +19,7 @@ public class DeltaTextChangeEventImpl implements IDeltaTextChangeEvent
   private final String text;
   private final IFileDiff fileDiff;
   private final EChangeSide changeSide;
+  private final boolean isInitFlag;
 
   public DeltaTextChangeEventImpl(int pOffset, int pLength, String pText, IFileDiff pFileDiff)
   {
@@ -27,11 +28,17 @@ public class DeltaTextChangeEventImpl implements IDeltaTextChangeEvent
 
   public DeltaTextChangeEventImpl(int pOffset, int pLength, String pText, IFileDiff pFileDiff, EChangeSide pChangeSide)
   {
+    this(pOffset, pLength, pText, pFileDiff, pChangeSide, false);
+  }
+
+  public DeltaTextChangeEventImpl(int pOffset, int pLength, String pText, IFileDiff pFileDiff, EChangeSide pChangeSide, boolean pIsInitFlag)
+  {
     offset = pOffset;
     length = pLength;
     text = pText;
     fileDiff = pFileDiff;
     changeSide = pChangeSide;
+    isInitFlag = pIsInitFlag;
   }
 
   @Override
@@ -91,5 +98,11 @@ public class DeltaTextChangeEventImpl implements IDeltaTextChangeEvent
   public IFileDiff getFileDiff()
   {
     return fileDiff;
+  }
+
+  @Override
+  public boolean isInit()
+  {
+    return isInitFlag;
   }
 }

@@ -121,8 +121,8 @@ public class FileDiffImpl implements IFileDiff
   {
     if (!initialObservableStateSet)
     {
-      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, originalFileContentInfo.getFileContent().get(), this, EChangeSide.OLD));
-      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, newFileContentInfo.getFileContent().get(), this, EChangeSide.NEW));
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, originalFileContentInfo.getFileContent().get(), this, EChangeSide.OLD, true));
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, newFileContentInfo.getFileContent().get(), this, EChangeSide.NEW, true));
       initialObservableStateSet = true;
     }
   }

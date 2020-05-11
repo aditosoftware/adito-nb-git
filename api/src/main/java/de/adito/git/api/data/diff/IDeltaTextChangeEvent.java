@@ -53,4 +53,11 @@ public interface IDeltaTextChangeEvent
   @Nullable
   IFileDiff getFileDiff();
 
+  /**
+   * If this is true, the TextChangeEvent marks a new File or Diff, which means that the current Text in the Editor should be discarded
+   *
+   * @return true if the  TextChangeEvent marks a new File or Diff. Default value is false
+   */
+  boolean isInit();
+
 }

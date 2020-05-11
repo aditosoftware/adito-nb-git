@@ -158,6 +158,8 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
 
   private void _textChanged(IDeltaTextChangeEvent pTextChangeEvent)
   {
+    if (pTextChangeEvent.getSide() == model.getChangeSide() && pTextChangeEvent.isInit())
+      editorPane.setText("");
     // insert the text from the event
     TextHighlightUtil.insertColoredText(editorPane,
                                         pTextChangeEvent,
