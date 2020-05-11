@@ -4,6 +4,7 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.EnumMappings;
 import de.adito.git.impl.Util;
 import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.ReplaySubject;
 import io.reactivex.subjects.Subject;
 import org.eclipse.jgit.diff.Edit;
@@ -23,7 +24,7 @@ import java.util.function.BiPredicate;
 public class FileDiffImpl implements IFileDiff
 {
 
-  private Subject<IDeltaTextChangeEvent> diffTextChangeObservable = ReplaySubject.create();
+  private final BehaviorSubject<Subject<IDeltaTextChangeEvent>> diffTextChangeObservable = BehaviorSubject.createDefault(ReplaySubject.create());
   private final IFileDiffHeader fileDiffHeader;
   private final EditList editList;
   private final IFileContentInfo originalFileContentInfo;
@@ -90,10 +91,8 @@ public class FileDiffImpl implements IFileDiff
   @Override
   public void reset()
   {
-    oldVersion = originalFileContentInfo.getFileContent().get();
-    newVersion = newFileContentInfo.getFileContent().get();
-    _initChangeDeltas();
-    diffTextChangeObservable = ReplaySubject.create();
+    _loadFileContent();
+    diffTextChangeObservable.onNext(ReplaySubject.create());
     initialObservableStateSet = false;
     _checkInitialObservableState();
   }
@@ -102,7 +101,17 @@ public class FileDiffImpl implements IFileDiff
   public Observable<IDeltaTextChangeEvent> getDiffTextChangeObservable()
   {
     _checkInitialObservableState();
-    return diffTextChangeObservable;
+    return diffTextChangeObservable.switchMap(pIDeltaTextChangeEventSubject -> pIDeltaTextChangeEventSubject);
+  }
+
+  /**
+   * load the initial file content strings for old and newVersion and initialize the deltas
+   */
+  private void _loadFileContent()
+  {
+    oldVersion = originalFileContentInfo.getFileContent().get();
+    newVersion = newFileContentInfo.getFileContent().get();
+    _initChangeDeltas();
   }
 
   /**
@@ -112,10 +121,20 @@ public class FileDiffImpl implements IFileDiff
   {
     if (!initialObservableStateSet)
     {
-      diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, originalFileContentInfo.getFileContent().get(), this, EChangeSide.OLD));
-      diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, newFileContentInfo.getFileContent().get(), this, EChangeSide.NEW));
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, originalFileContentInfo.getFileContent().get(), this, EChangeSide.OLD));
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, newFileContentInfo.getFileContent().get(), this, EChangeSide.NEW));
       initialObservableStateSet = true;
     }
+  }
+
+  /**
+   * adds the IDeltaTextChangeEvent as next element to the diffTextChangeObservable
+   *
+   * @param pDeltaTextChangeEvent IDeltaTextChangeEvent that should be fired
+   */
+  private void _fireTextChangeEvent(IDeltaTextChangeEvent pDeltaTextChangeEvent)
+  {
+    diffTextChangeObservable.getValue().onNext(pDeltaTextChangeEvent);
   }
 
   @Override
@@ -133,7 +152,7 @@ public class FileDiffImpl implements IFileDiff
     DeltaTextChangeEventImpl deltaTextChangeEvent;
     if (oldVersion == null || newVersion == null)
     {
-      reset();
+      _loadFileContent();
     }
     int deltaIndex = changeDeltas.indexOf(pChangeDelta);
     if (deltaIndex != -1)
@@ -152,8 +171,7 @@ public class FileDiffImpl implements IFileDiff
     {
       deltaTextChangeEvent = new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.OLD);
     }
-    _checkInitialObservableState();
-    diffTextChangeObservable.onNext(deltaTextChangeEvent);
+    _fireTextChangeEvent(deltaTextChangeEvent);
     return deltaTextChangeEvent;
   }
 
@@ -170,7 +188,7 @@ public class FileDiffImpl implements IFileDiff
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
     {
-      reset();
+      _loadFileContent();
     }
     int deltaIndex = changeDeltas.indexOf(pChangeDelta);
     if (deltaIndex != -1)
@@ -192,11 +210,10 @@ public class FileDiffImpl implements IFileDiff
     {
       deltaTextChangeEvents.add(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
     }
-    _checkInitialObservableState();
     if (pCreateTextEvents)
-      deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> diffTextChangeObservable.onNext(pDeltaTextChangeEvent));
+      deltaTextChangeEvents.forEach(this::_fireTextChangeEvent);
     else
-      diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
     return deltaTextChangeEvents;
   }
 
@@ -205,7 +222,7 @@ public class FileDiffImpl implements IFileDiff
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
     {
-      reset();
+      _loadFileContent();
     }
     int deltaIndex = changeDeltas.indexOf(pChangeDelta);
     if (deltaIndex != -1)
@@ -224,12 +241,11 @@ public class FileDiffImpl implements IFileDiff
     {
       deltaTextChangeEvents.add(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
     }
-    _checkInitialObservableState();
     // there's only ever one element in the list here, so we can do get(0) instead of a foreach
     if (pCreateTextEvents)
-      diffTextChangeObservable.onNext(deltaTextChangeEvents.get(0));
+      _fireTextChangeEvent(deltaTextChangeEvents.get(0));
     else
-      diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.invert(pApplyingSide)));
     return deltaTextChangeEvents;
   }
 
@@ -335,17 +351,16 @@ public class FileDiffImpl implements IFileDiff
       IChangeDelta changeDelta = changeDeltas.get(deltaIndex);
       changeDeltas.set(deltaIndex, changeDelta.discardChange());
     }
-    _checkInitialObservableState();
     // empty change on both, to notify both sides to adjust the highlights
-    diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.OLD));
-    diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.NEW));
+    _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.OLD));
+    _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.NEW));
   }
 
   @Override
   public void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide, boolean pTrySnapToDelta)
   {
     if (newVersion == null || oldVersion == null)
-      reset();
+      _loadFileContent();
     String prefix = pChangeSide == EChangeSide.NEW ? newVersion.substring(0, pOffset) : oldVersion.substring(0, pOffset);
     if (pText == null)
     {
@@ -375,9 +390,8 @@ public class FileDiffImpl implements IFileDiff
       else
         oldVersion = prefix + pText + postfix;
     }
-    _checkInitialObservableState();
     // signal an empty change for UI updates, this method should be called in response to an update in a document or similar, not the other way round
-    diffTextChangeObservable.onNext(new DeltaTextChangeEventImpl(0, 0, "", this, pChangeSide));
+    _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, pChangeSide));
   }
 
   /**
@@ -470,7 +484,7 @@ public class FileDiffImpl implements IFileDiff
   public String getText(EChangeSide pChangeSide)
   {
     if (oldVersion == null || newVersion == null)
-      reset();
+      _loadFileContent();
     return pChangeSide == EChangeSide.NEW ? newVersion : oldVersion;
   }
 
@@ -479,7 +493,7 @@ public class FileDiffImpl implements IFileDiff
   {
     List<ConflictPair> conflictPairs = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
-      reset();
+      _loadFileContent();
     for (int index = 0; index < changeDeltas.size(); index++)
     {
       IChangeDelta changeDelta = changeDeltas.get(index);

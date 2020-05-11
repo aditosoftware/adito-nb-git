@@ -16,7 +16,7 @@ import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -52,7 +52,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final JPanel searchPanel = new JPanel(new BorderLayout());
   private final ObservableTreeUpdater<IFileChangeType> treeUpdater;
   private DiffPanel diffPanel;
-  private Disposable disposable;
+  private CompositeDisposable disposables = new CompositeDisposable();
   private List<IFileDiff> diffs;
 
   @Inject
@@ -94,11 +94,13 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     fileTree.getTree().getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     // pSelectedRows[0] because with SINGLE_SELECTION only one row can be selected
     Observable<Optional<IFileDiff>> fileDiffObservable = fileTree.getSelectionObservable()
-        .map(pSelectedPaths -> pSelectedPaths.map(pChangeTypes -> pChangeTypes.isEmpty() ? null : (IFileDiff) pChangeTypes.get(0)));
+        .map(pSelectedPaths -> pSelectedPaths.map(pChangeTypes -> pChangeTypes.isEmpty() ? null : (IFileDiff) pChangeTypes.get(0)))
+        .replay(1)
+        .autoConnect(0, disposables::add);
     Observable<Optional<EditorKit>> editorKitObservable = fileDiffObservable
         .map(pFileDiff -> Optional.of(pFileDiff
-            .map(pFDiff -> pFDiff.getFileHeader().getAbsoluteFilePath())
-            .map(editorKitProvider::getEditorKit)
+                                          .map(pFDiff -> pFDiff.getFileHeader().getAbsoluteFilePath())
+                                          .map(editorKitProvider::getEditorKit)
                                           .orElseGet(() -> editorKitProvider.getEditorKitForContentType("text/plain"))));
 
     diffPanel = new DiffPanel(pIconLoader, fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
@@ -106,7 +108,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEnabled(false);
     notificationArea.setForeground(ColorPicker.INFO_TEXT);
-    disposable = fileDiffObservable.subscribe(pFileDiff -> {
+    disposables.add(fileDiffObservable.subscribe(pFileDiff -> {
       if (pFileDiff.isPresent())
       {
         _setNotificationArea(pFileDiff.get());
@@ -115,7 +117,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       {
         notificationArea.setText("");
       }
-    });
+    }));
     if (diffs.size() > 1 && showFileTree)
     {
       JToolBar toolBar = new JToolBar();
@@ -188,7 +190,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   @Override
   public void discard()
   {
-    disposable.dispose();
+    disposables.dispose();
     diffPanel.discard();
     fileTree.discard();
     treeUpdater.discard();

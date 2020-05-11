@@ -12,6 +12,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.data.diff.DeltaTextChangeEventImpl;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +32,8 @@ public class DiffPanel extends JPanel implements IDiscardable
 
   private final DiffPaneWrapper currentVersionDiffPane;
   private final DiffPaneWrapper oldVersionDiffPane;
-  private IDiffPaneUtil.ScrollBarCoupling differentialScrollBarCoupling;
+  private final IDiffPaneUtil.ScrollBarCoupling differentialScrollBarCoupling;
+  private final CompositeDisposable disposables = new CompositeDisposable();
 
   /**
    * @param pIconLoader          IIconLoader for loading Icons
@@ -42,9 +44,12 @@ public class DiffPanel extends JPanel implements IDiscardable
   public DiffPanel(IIconLoader pIconLoader, @NotNull Observable<Optional<IFileDiff>> pFileDiffObs,
                    @Nullable ImageIcon pAcceptIcon, Observable<Optional<EditorKit>> pEditorKitObservable)
   {
-    Observable<IDeltaTextChangeEvent> changesEventObservable = pFileDiffObs.switchMap(pFileDiff -> pFileDiff
-        .map(IFileDiff::getDiffTextChangeObservable)
-        .orElse(Observable.just(new DeltaTextChangeEventImpl(0, 0, "", null))));
+    Observable<IDeltaTextChangeEvent> changesEventObservable = pFileDiffObs
+        .switchMap(pFileDiff -> pFileDiff
+            .map(IFileDiff::getDiffTextChangeObservable)
+            .orElse(Observable.just(new DeltaTextChangeEventImpl(0, 0, "", null))))
+        .replay()
+        .autoConnect(2, disposables::add);
     LineNumbersColorModel[] lineNumbersColorModels = new LineNumbersColorModel[2];
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.NEW);
     currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);
@@ -57,7 +62,7 @@ public class DiffPanel extends JPanel implements IDiscardable
         .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta, true)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
 
-   // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
+    // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
     LineNumbersColorModel temp = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel, -1);
 
     // old version is to the left, so index 0
@@ -108,6 +113,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     currentVersionDiffPane.discard();
     oldVersionDiffPane.discard();
     differentialScrollBarCoupling.discard();
+    disposables.dispose();
   }
 
   private JToolBar _initToolBar(IIconLoader pIconLoader)
