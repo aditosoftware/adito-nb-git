@@ -6,6 +6,11 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.1</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: adito.version file located at the wrong location</li>
+  </ul>
   <p style="font-weight: bold;">v.1.4.0</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
