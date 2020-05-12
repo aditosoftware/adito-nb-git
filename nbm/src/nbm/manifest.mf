@@ -6,6 +6,26 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.0</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>Reworked the Diff and Merge Dialogs
+      <ul>
+        <li>The conflict resolution dialog for one file now has the dialog options "Accept Yours" and "Accept Theirs"</li>
+        <li>The used whitespace treatment is shown in both the Diff and Merge Dialogs</li>
+        <li>Diff and Merge now show changes on a word-basis instead of only line-based. This is represented by using two different shades of color: A brighter one for the lines, a darker one for the individual changed words</li>
+        <li>Because of the word-based resolution on changes, some changes that were conflicts in a Merge can now be resolved</li>
+        <li>Conflicting changes are now calculated such that the conflicting changes affect the same lines in the fork-point</li>
+        <li>Accepting both sides of a conflict now results in the second accepted side being appended after the first side, instead of overwriting it</li>
+        <li>If there are two changes that are identical (one from each side), accepting one automatically sets the other as accepted as well. Those changes are not marked as conflicting</li>
+        <li>Improved the visuals of the Merge and Diff dialog</li>
+      </ul>
+    </li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The whitespace treatment used for diffs and merges can be set in the git settings</li>
+  </ul>
   <p style="font-weight: bold;">v.1.3.11</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
