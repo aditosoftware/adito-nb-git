@@ -41,6 +41,12 @@ abstract class AbstractRepositoryTopComponent extends TopComponent
         .subscribe(pRepoName -> SwingUtilities.invokeLater(() -> setDisplayName(getTopComponentName() + " - " + pRepoName)));
   }
 
+  @Override
+  public int getPersistenceType()
+  {
+    return PERSISTENCE_NEVER;
+  }
+
   /**
    * initializes Lookup with the current Project, or an empty lookup if none can be found
    *
