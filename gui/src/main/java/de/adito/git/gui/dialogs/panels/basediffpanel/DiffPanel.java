@@ -86,7 +86,10 @@ public class DiffPanel extends JPanel implements IDiscardable
     add(optionsPanel, BorderLayout.NORTH);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
-    differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null, pFileDiffObs);
+    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(oldVersionDiffPane.getEditorPane(),
+                                                                                                                currentVersionDiffPane.getEditorPane());
+    differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null, mouseFirstActionObservableWrapper.getObservable(),
+                                                              pFileDiffObs);
   }
 
   /**

@@ -44,8 +44,8 @@ public class MergePanel extends JPanel implements IDiscardable
   private final ImageIcon acceptTheirsIcon;
   private final ImageIcon discardIcon;
   private final Subject<Optional<EditorKit>> editorKitObservable;
-  private IDiffPaneUtil.ScrollBarCoupling yoursCoupling;
-  private IDiffPaneUtil.ScrollBarCoupling theirsCoupling;
+  private final IDiffPaneUtil.ScrollBarCoupling yoursCoupling;
+  private final IDiffPaneUtil.ScrollBarCoupling theirsCoupling;
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
@@ -65,10 +65,13 @@ public class MergePanel extends JPanel implements IDiscardable
     _initYoursPanel();
     _initTheirsPanel();
     _initGui();
+    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(yoursPaneWrapper.getEditorPane(),
+                                                                                                                forkPointPaneWrapper.getEditorPane(),
+                                                                                                                theirsPaneWrapper.getEditorPane());
     yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, yoursPaneWrapper, "yoursPane",
-                                              Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.YOURS))));
+                                              mouseFirstActionObservableWrapper.getObservable(), Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.YOURS))));
     theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, theirsPaneWrapper, "theirsPane",
-                                               Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.THEIRS))));
+                                               mouseFirstActionObservableWrapper.getObservable(), Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.THEIRS))));
     editorKitObservable.onNext(Optional.of(Optional.ofNullable(pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getAbsoluteFilePath())
                                                .map(pEditorKitProvider::getEditorKit)
                                                .orElseGet(() -> pEditorKitProvider.getEditorKitForContentType("text/plain"))));

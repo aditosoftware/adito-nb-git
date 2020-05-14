@@ -102,15 +102,16 @@ public interface IDiffPaneUtil
    * @param pFileDiffObs Observable that has the current FileDiff
    */
   static ScrollBarCoupling synchronize(@NotNull IPaneWrapper pOldPane, @Nullable String pModel1Key, @NotNull IPaneWrapper pCurrentPane, @Nullable String pModel2Key,
-                                       Observable<Optional<IFileDiff>> pFileDiffObs)
+                                       Observable<Optional<Object>> pStartHeightCalculations, Observable<Optional<IFileDiff>> pFileDiffObs)
   {
     CompositeDisposable disposables = new CompositeDisposable();
     Observable<Dimension> viewPort1SizeObs = Observable.create(new ViewPortSizeObservable(pOldPane.getScrollPane().getViewport()));
     Observable<Dimension> viewPort2SizeObs = Observable.create(new ViewPortSizeObservable(pCurrentPane.getScrollPane().getViewport()));
     Observable<Object> viewPortsObs = Observable.zip(viewPort1SizeObs, viewPort2SizeObs, (pSize1, pSize2) -> new Object());
+    Observable<Object> viewPortCompletionObs = Observable.combineLatest(viewPortsObs, pStartHeightCalculations, (pViewPort, pObj) -> pViewPort);
     Observable<Object> editorKitsObs = Observable.combineLatest(Observable.create(new EditorKitChangeObservable(pOldPane.getEditorPane())),
                                                                 Observable.create(new EditorKitChangeObservable(pCurrentPane.getEditorPane())), (o1, o2) -> o1);
-    Observable<Object> editorViewChangeObs = Observable.merge(viewPortsObs, editorKitsObs);
+    Observable<Object> editorViewChangeObs = Observable.merge(viewPortCompletionObs, editorKitsObs);
     Observable<Optional<List<IChangeDelta>>> changesEventObservable = pFileDiffObs
         .switchMap(pFileDiffOpt -> pFileDiffOpt.map(pFDiff -> pFDiff.getDiffTextChangeObservable()
             .map(pTextChangeEvent -> Optional.of(pFDiff.getChangeDeltas()))).orElse(Observable.just(Optional.empty())));
