@@ -9,6 +9,7 @@ import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
+import org.openide.windows.Mode;
 import org.openide.windows.WindowManager;
 
 import javax.annotation.Nullable;
@@ -64,6 +65,8 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
   protected void componentClosed()
   {
     super.componentClosed();
-    prefStore.put(CommitHistoryTopComponent.class.getName(), WindowManager.getDefault().findMode(this).getName());
+    Mode mode = WindowManager.getDefault().findMode(this);
+    if (mode != null)
+      prefStore.put(CommitHistoryTopComponent.class.getName(), mode.getName());
   }
 }

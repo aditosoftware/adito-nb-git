@@ -8,6 +8,7 @@ import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
+import org.openide.windows.Mode;
 import org.openide.windows.WindowManager;
 
 import java.awt.BorderLayout;
@@ -49,7 +50,9 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent
   protected void componentClosed()
   {
     super.componentClosed();
-    prefStore.put(StatusWindowTopComponent.class.getName(), WindowManager.getDefault().findMode(this).getName());
+    Mode mode = WindowManager.getDefault().findMode(this);
+    if (mode != null)
+      prefStore.put(StatusWindowTopComponent.class.getName(), mode.getName());
   }
 
 }
