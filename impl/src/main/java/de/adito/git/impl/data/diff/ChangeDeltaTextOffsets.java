@@ -5,7 +5,7 @@ package de.adito.git.impl.data.diff;
  *
  * @author m.kaspera, 27.02.2020
  */
-public final class ChangeDeltaTextOffsets
+final class ChangeDeltaTextOffsets
 {
 
   private final int startIndexOriginal;

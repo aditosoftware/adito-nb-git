@@ -188,12 +188,11 @@ public interface IChangeDelta extends IDelta
   /**
    * Accepts the changes in this delta and returns a new IChangeDelta with the changed attributes
    *
-   * @param pChangedSide         Side that is changed by accepting the change
-   * @param pUseWordBasedResolve true if the delta should be accepted by using the word-differences, based on the original values (does not override new additions),
-   *                             *                             false if the text in the delta should match the original text of the delta
+   * @param pChangedSide   Side that is changed by accepting the change
+   * @param pOffsetsChange IOffsetsChange giving the text- and lineOffset for the the endIndizes of the delta
    * @return new IChangeDelta
    */
-  IChangeDelta acceptChange(EChangeSide pChangedSide, boolean pUseWordBasedResolve);
+  IChangeDelta acceptChange(EChangeSide pChangedSide, IOffsetsChange pOffsetsChange);
 
   /**
    * Appends the changes of the NEW side to the OLD side and returns a new IChangeDelta with the changed attributes

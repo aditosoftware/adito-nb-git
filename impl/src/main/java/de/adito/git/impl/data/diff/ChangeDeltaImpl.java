@@ -513,21 +513,25 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public IChangeDelta acceptChange(EChangeSide pChangedSide, boolean pUseWordBasedResolve)
+  public IChangeDelta acceptChange(EChangeSide pChangedSide, IOffsetsChange pOffsetsChange)
   {
     // Cannot use the TextEventIndexUpdater here because the indices rely on the other side for their result
     Edit changedEdit;
     ChangeDeltaTextOffsets newChangeDeltaTextOffsets;
-    int lengthDifference = pUseWordBasedResolve ? getLengthDifferenceWords(pChangedSide) : getLengthDifference(pChangedSide);
+    int endTextOffsetNew;
+    if (changeStatus.getChangeType() == EChangeType.ADD || changeStatus.getChangeType() == EChangeType.DELETE)
+      endTextOffsetNew = getStartTextIndex(pChangedSide) + (getEndTextIndex(EChangeSide.invert(pChangedSide)) - getStartTextIndex(EChangeSide.invert(pChangedSide)));
+    else
+      endTextOffsetNew = getEndTextIndex(pChangedSide) + pOffsetsChange.getTextOffset();
     if (pChangedSide == EChangeSide.NEW)
     {
-      changedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, startLineIndexNew + (endLineIndexOld - startLineIndexOld));
-      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew + lengthDifference);
+      changedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, endLineIndexNew + pOffsetsChange.getLineOffset());
+      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextOffsetNew);
     }
     else
     {
-      changedEdit = new Edit(startLineIndexOld, startLineIndexOld + (endLineIndexNew - startLineIndexNew), startLineIndexNew, endLineIndexNew);
-      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld + lengthDifference, startTextIndexNew, endTextIndexNew);
+      changedEdit = new Edit(startLineIndexOld, endLineIndexOld + pOffsetsChange.getLineOffset(), startLineIndexNew, endLineIndexNew);
+      newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextOffsetNew, startTextIndexNew, endTextIndexNew);
 
     }
     return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeStatus.getChangeType()), newChangeDeltaTextOffsets,
@@ -583,24 +587,6 @@ public final class ChangeDeltaImpl implements IChangeDelta
     return Objects.hash(changeStatus, startLineIndexNew, endLineIndexNew, startTextIndexNew, endTextIndexNew, startLineIndexOld, endLineIndexOld,
                         startTextIndexOld, endTextIndexOld);
   }
-
-  private int getLengthDifferenceWords(EChangeSide pChangeSide)
-  {
-    int textLengthDiff = 0;
-    for (ILinePartChangeDelta linePartChangeDelta : getLinePartChanges())
-    {
-      textLengthDiff += (linePartChangeDelta.getEndTextIndex(EChangeSide.invert(pChangeSide)) - linePartChangeDelta.getStartTextIndex(EChangeSide.invert(pChangeSide))
-          - (linePartChangeDelta.getEndTextIndex(pChangeSide) - linePartChangeDelta.getStartTextIndex(pChangeSide)));
-    }
-    return textLengthDiff;
-  }
-
-  private int getLengthDifference(EChangeSide pChangeSide)
-  {
-    return getEndTextIndex(EChangeSide.invert(pChangeSide)) - getStartTextIndex(EChangeSide.invert(pChangeSide))
-        - (getEndTextIndex(pChangeSide) - getStartTextIndex(pChangeSide));
-  }
-
 
   /**
    * Offers functions that change the start and endindices of a given changeSide

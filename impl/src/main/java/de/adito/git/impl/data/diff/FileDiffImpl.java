@@ -194,17 +194,15 @@ public class FileDiffImpl implements IFileDiff
     if (deltaIndex != -1)
     {
       IChangeDelta changedDelta = changeDeltas.get(deltaIndex);
-      int textDifference = 0;
+      IOffsetsChange offsetsChange = new OffsetsChange(0, 0);
       for (IDelta linePartChangeDelta : changedDelta.getLinePartChanges())
       {
-        textDifference = _updateTextWithDelta(linePartChangeDelta, deltaTextChangeEvents, pApplyingSide, textDifference);
+        offsetsChange = _updateTextWithDelta(linePartChangeDelta, deltaTextChangeEvents, pApplyingSide, offsetsChange);
       }
 
-      int lineDifference = (pChangeDelta.getEndLine(pApplyingSide) - pChangeDelta.getStartLine(pApplyingSide))
-          - (pChangeDelta.getEndLine(EChangeSide.invert(pApplyingSide)) - pChangeDelta.getStartLine(EChangeSide.invert(pApplyingSide)));
       // exchange delta with updated delta, then propagate additional characters/lines to all deltas that occur later on in the file
-      changeDeltas.set(deltaIndex, changedDelta.acceptChange(EChangeSide.invert(pApplyingSide), true));
-      _applyOffsetToFollowingDeltas(deltaIndex, textDifference, lineDifference, EChangeSide.invert(pApplyingSide));
+      changeDeltas.set(deltaIndex, changedDelta.acceptChange(EChangeSide.invert(pApplyingSide), offsetsChange));
+      _applyOffsetToFollowingDeltas(deltaIndex, offsetsChange.getTextOffset(), offsetsChange.getLineOffset(), EChangeSide.invert(pApplyingSide));
     }
     else
     {
@@ -228,14 +226,14 @@ public class FileDiffImpl implements IFileDiff
     if (deltaIndex != -1)
     {
       IDelta changeDelta = changeDeltas.get(deltaIndex);
-      int textDifference = 0;
-      textDifference = _updateTextWithDelta(changeDelta, deltaTextChangeEvents, pApplyingSide, textDifference);
+      IOffsetsChange offsetsChange = new OffsetsChange(0, 0);
+      offsetsChange = _updateTextWithDelta(changeDelta, deltaTextChangeEvents, pApplyingSide, offsetsChange);
 
       int lineDifference = (pChangeDelta.getEndLine(pApplyingSide) - pChangeDelta.getStartLine(pApplyingSide))
           - (pChangeDelta.getEndLine(EChangeSide.invert(pApplyingSide)) - pChangeDelta.getStartLine(EChangeSide.invert(pApplyingSide)));
       // exchange delta with updated delta, then propagate additional characters/lines to all deltas that occur later on in the file
-      changeDeltas.set(deltaIndex, changeDeltas.get(deltaIndex).acceptChange(EChangeSide.invert(pApplyingSide), false));
-      _applyOffsetToFollowingDeltas(deltaIndex, textDifference, lineDifference, EChangeSide.invert(pApplyingSide));
+      changeDeltas.set(deltaIndex, changeDeltas.get(deltaIndex).acceptChange(EChangeSide.invert(pApplyingSide), offsetsChange));
+      _applyOffsetToFollowingDeltas(deltaIndex, offsetsChange.getTextOffset(), lineDifference, EChangeSide.invert(pApplyingSide));
     }
     else
     {
@@ -254,25 +252,28 @@ public class FileDiffImpl implements IFileDiff
    * @param pChangeDelta           The Delta that should be applied
    * @param pDeltaTextChangeEvents List of IDeltaTextChangeEvent, an IDeltaTextChangeEvent describing the changes that happen due to the Delta is added to this list
    * @param pApplyingSide          EChangeSide that was accepted and should be applied to the other side
-   * @param pTextDifference        number of characters that were removed/added so far in case several deltas are combined in one operation. 0 otherwise.
+   * @param pOffsetsChange         number of characters and newlines that were removed/added so far in case several deltas are combined in one operation.
    *                               Influences the return value
    * @return number of characters that were removed or added (negative in case of removal) plus pTextDifference
    */
-  private int _updateTextWithDelta(IDelta pChangeDelta, List<IDeltaTextChangeEvent> pDeltaTextChangeEvents, EChangeSide pApplyingSide, int pTextDifference)
+  private IOffsetsChange _updateTextWithDelta(IDelta pChangeDelta, List<IDeltaTextChangeEvent> pDeltaTextChangeEvents, EChangeSide pApplyingSide,
+                                              IOffsetsChange pOffsetsChange)
   {
     String prefix;
     String infix = "";
+    String replacedText;
     boolean isChangeNewVersion = pApplyingSide == EChangeSide.OLD;
     int changedSideLength = EChangeSide.invert(pApplyingSide) == EChangeSide.NEW ? newVersion.length() : oldVersion.length();
     int appliedStartTextIndex = pChangeDelta.getStartTextIndex(pApplyingSide);
     int appliedEndTextIndex = pChangeDelta.getEndTextIndex(pApplyingSide);
-    int changedStartTextIndex = pChangeDelta.getStartTextIndex(EChangeSide.invert(pApplyingSide)) + pTextDifference;
-    int changedEndTextIndex = pChangeDelta.getEndTextIndex(EChangeSide.invert(pApplyingSide)) + pTextDifference;
+    int changedStartTextIndex = pChangeDelta.getStartTextIndex(EChangeSide.invert(pApplyingSide)) + pOffsetsChange.getTextOffset();
+    int changedEndTextIndex = pChangeDelta.getEndTextIndex(EChangeSide.invert(pApplyingSide)) + pOffsetsChange.getTextOffset();
     int startIndex;
     EChangeType deltaChangeType = pChangeDelta.getChangeType();
     String changedSideString = EChangeSide.invert(pApplyingSide) == EChangeSide.NEW ? newVersion : oldVersion;
     String appliedSideString = EChangeSide.invert(pApplyingSide) == EChangeSide.NEW ? oldVersion : newVersion;
     boolean isPointChange = (isChangeNewVersion && deltaChangeType == EChangeType.ADD) || (!isChangeNewVersion && deltaChangeType == EChangeType.DELETE);
+    boolean isPointChangeReverse = (!isChangeNewVersion && deltaChangeType == EChangeType.ADD) || (isChangeNewVersion && deltaChangeType == EChangeType.DELETE);
     boolean isPointChangeAtEOL = safeIsNewlines(appliedEndTextIndex - 1, appliedSideString, changedEndTextIndex - 1, changedSideString)
         && ((deltaChangeType == EChangeType.ADD && isChangeNewVersion) || (deltaChangeType == EChangeType.DELETE && !isChangeNewVersion));
     // get the text before the changed lines
@@ -297,6 +298,10 @@ public class FileDiffImpl implements IFileDiff
       infix = "";
     else
       infix += appliedSideString.substring(appliedStartTextIndex, appliedEndTextIndex);
+    if (isPointChangeReverse)
+      replacedText = "";
+    else
+      replacedText = changedSideString.substring(changedStartTextIndex, changedEndTextIndex);
     int postFixStartIndex;
     int textEventRemovalLength;
     if ((!isChangeNewVersion && deltaChangeType == EChangeType.ADD) || (isChangeNewVersion && deltaChangeType == EChangeType.DELETE))
@@ -323,8 +328,8 @@ public class FileDiffImpl implements IFileDiff
       oldVersion = prefix + infix + postFix;
     pDeltaTextChangeEvents.add(new DeltaTextChangeEventImpl(startIndex, textEventRemovalLength, infix, this, EChangeSide.invert(pApplyingSide)));
     // calculate index differences for the following deltas
-    pTextDifference += infix.length() - textEventRemovalLength;
-    return pTextDifference;
+    int lineEndingDiff = (infix.split("\n", -1).length - 1) - (replacedText.split("\n", -1).length - 1);
+    return pOffsetsChange.combineWith(infix.length() - textEventRemovalLength, lineEndingDiff);
   }
 
   /**
