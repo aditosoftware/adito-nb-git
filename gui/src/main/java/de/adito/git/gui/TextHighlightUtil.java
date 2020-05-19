@@ -125,17 +125,31 @@ public class TextHighlightUtil
   {
     for (ILinePartChangeDelta linePartChangeDelta : changeDelta.getLinePartChanges())
     {
-      int startOffset = linePartChangeDelta.getStartTextIndex(pChangeSide);
-      int endOffset = linePartChangeDelta.getEndTextIndex(pChangeSide);
-      if (startOffset < endOffset)
-        endOffset -= 1;
-      pPendingHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getDiffColor()), LineHighlightPainter.Mode.MARK_GIVEN));
+      if (_isMarkDelta(pChangeSide, linePartChangeDelta))
+      {
+        int startOffset = linePartChangeDelta.getStartTextIndex(pChangeSide);
+        int endOffset = linePartChangeDelta.getEndTextIndex(pChangeSide);
+        if (startOffset < endOffset)
+          endOffset -= 1;
+        pPendingHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getDiffColor()), LineHighlightPainter.Mode.MARK_GIVEN));
+      }
     }
     int startOffset = changeDelta.getStartTextIndex(pChangeSide);
     int endOffset = changeDelta.getEndTextIndex(pChangeSide);
     if (startOffset < endOffset)
       endOffset -= 1;
     pHighlightSpots.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, changeDelta.getSecondaryDiffColor()), LineHighlightPainter.Mode.WHOLE_LINE));
+  }
+
+  /**
+   * @param pChangeSide         EChangeSide for which the markings should be determined
+   * @param linePartChangeDelta ILinePartChangeDelta for which to evaluate if it is drawn
+   * @return true if the delta should be marked, false if the delta on the passed changeSide should not be drawn because it is the "empty" side of an ADD or DELETE
+   */
+  private static boolean _isMarkDelta(EChangeSide pChangeSide, ILinePartChangeDelta linePartChangeDelta)
+  {
+    return !((linePartChangeDelta.getChangeType() == EChangeType.ADD && pChangeSide == EChangeSide.OLD)
+        || (linePartChangeDelta.getChangeType() == EChangeType.DELETE && pChangeSide == EChangeSide.NEW));
   }
 
   /**
