@@ -79,15 +79,19 @@ public class TextHighlightUtil
     List<_Highlight> pendingHighlightSpots = new ArrayList<>();
     for (IChangeDelta changeDelta : pFileChangeChunks)
     {
-      if (pIsMarkWords && changeDelta.getChangeStatus() == EChangeStatus.PENDING && (changeDelta.getChangeType() == EChangeType.MODIFY))
+      if (changeDelta.getChangeType() == EChangeType.DELETE && changeDelta.getEndTextIndex(EChangeSide.OLD) == changeDelta.getText(EChangeSide.OLD).length())
+      {
+        _getLineHighlight(changeDelta, pChangeSide, false, highlightSpots);
+      }
+      else if (pIsMarkWords && changeDelta.getChangeStatus() == EChangeStatus.PENDING && (changeDelta.getChangeType() == EChangeType.MODIFY))
       {
         _getWordsHighlight(changeDelta, pChangeSide, highlightSpots, pendingHighlightSpots);
       }
       else
       {
         if (changeDelta.getChangeStatus() == EChangeStatus.PENDING)
-          _getLineHighlight(changeDelta, pChangeSide, pendingHighlightSpots);
-        _getLineHighlight(changeDelta, pChangeSide, highlightSpots);
+          _getLineHighlight(changeDelta, pChangeSide, true, pendingHighlightSpots);
+        _getLineHighlight(changeDelta, pChangeSide, true, highlightSpots);
       }
     }
     highlightSpots.addAll(pendingHighlightSpots);
@@ -101,13 +105,13 @@ public class TextHighlightUtil
    * @param pChangeSide which side of a IChangeDelta should be used
    * @param pHighlights List of _Highlights that the line highlight should be added to
    */
-  private static void _getLineHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide, List<_Highlight> pHighlights)
+  private static void _getLineHighlight(IChangeDelta changeDelta, EChangeSide pChangeSide, boolean pUsePrimaryDiffColor, List<_Highlight> pHighlights)
   {
     int startOffset = changeDelta.getStartTextIndex(pChangeSide);
     int endOffset = changeDelta.getEndTextIndex(pChangeSide);
     if (startOffset < endOffset)
       endOffset -= 1;
-    Color highlightColor = changeDelta.getDiffColor();
+    Color highlightColor = pUsePrimaryDiffColor ? changeDelta.getDiffColor() : changeDelta.getSecondaryDiffColor();
     pHighlights.add(new _Highlight(new _HighlightSpot(startOffset, endOffset, highlightColor),
                                    _isUseThinLine(changeDelta, pChangeSide) ? LineHighlightPainter.Mode.THIN_LINE : LineHighlightPainter.Mode.WHOLE_LINE));
   }
