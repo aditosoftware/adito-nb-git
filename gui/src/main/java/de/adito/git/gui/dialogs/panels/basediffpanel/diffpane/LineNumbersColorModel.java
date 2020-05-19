@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.*;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -179,13 +178,8 @@ public class LineNumbersColorModel implements IDiscardable
         bounds = pView.modelToView(startingLineElement.getStartOffset(), Position.Bias.Forward,
                                    endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle()).getBounds();
       }
-      Color diffColor;
-      if (pFileChange.getChangeStatus() == EChangeStatus.PENDING)
-        diffColor = pFileChange.getChangeType().getDiffColor();
-      else
-        diffColor = pFileChange.getChangeType().getSecondaryDiffColor();
       // adjust coordinates from view to viewPort coordinates
-      return new LineNumberColor(diffColor, bounds);
+      return new LineNumberColor(pFileChange.getDiffColor(), bounds);
     }
     throw new BadLocationException("could not find Element for provided lines", startingLineElement == null ? pLineCounter :
         pLineCounter + pNumLines - 1);

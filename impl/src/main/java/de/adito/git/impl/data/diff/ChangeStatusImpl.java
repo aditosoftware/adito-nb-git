@@ -15,17 +15,25 @@ public class ChangeStatusImpl implements IChangeStatus
 
   private final EChangeStatus changeStatus;
   private final EChangeType changeType;
+  private final EConflictType conflictType;
 
-  public ChangeStatusImpl(@NotNull EChangeStatus pChangeStatus, @NotNull EChangeType pChangeType)
+  public ChangeStatusImpl(@NotNull EChangeStatus pChangeStatus, @NotNull EChangeType pChangeType, @NotNull EConflictType pConflictType)
   {
     changeStatus = pChangeStatus;
     changeType = pChangeType;
+    conflictType = pConflictType;
   }
 
   @NotNull
   public EChangeType getChangeType()
   {
     return changeType;
+  }
+
+  @Override
+  public EConflictType getConflictType()
+  {
+    return conflictType;
   }
 
   @NotNull
@@ -41,7 +49,8 @@ public class ChangeStatusImpl implements IChangeStatus
     if (pO == null || getClass() != pO.getClass()) return false;
     ChangeStatusImpl that = (ChangeStatusImpl) pO;
     return changeStatus == that.changeStatus &&
-        changeType == that.changeType;
+        changeType == that.changeType &&
+        conflictType == that.conflictType;
   }
 
   @Override

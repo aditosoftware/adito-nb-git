@@ -9,6 +9,7 @@ import org.eclipse.jgit.diff.RawTextComparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -82,9 +83,15 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public EChangeType getChangeType()
+  public @NotNull EChangeType getChangeType()
   {
     return changeStatus.getChangeType();
+  }
+
+  @Override
+  public @NotNull EConflictType getConflictType()
+  {
+    return changeStatus.getConflictType();
   }
 
   @Override
@@ -100,6 +107,20 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
+  @NotNull
+  public Color getDiffColor()
+  {
+    return changeStatus.getDiffColor();
+  }
+
+  @Override
+  @NotNull
+  public Color getSecondaryDiffColor()
+  {
+    return changeStatus.getSecondaryDiffColor();
+  }
+
+  @Override
   public IChangeDelta applyOffset(int pLineOffset, int pTextOffset, EChangeSide pChangeSide)
   {
     int lineOffsetOld = pChangeSide == EChangeSide.OLD ? pLineOffset : 0;
@@ -107,7 +128,7 @@ public final class ChangeDeltaImpl implements IChangeDelta
     int lineOffsetNew = pChangeSide == EChangeSide.NEW ? pLineOffset : 0;
     int textOffsetNew = pChangeSide == EChangeSide.NEW ? pTextOffset : 0;
     Edit changedEdit = new Edit(startLineIndexOld + lineOffsetOld, endLineIndexOld + lineOffsetOld, startLineIndexNew + lineOffsetNew, endLineIndexNew + lineOffsetNew);
-    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(getChangeStatus(), getChangeType()),
+    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(getChangeStatus(), getChangeType(), getConflictType()),
                                new ChangeDeltaTextOffsets(startTextIndexOld + textOffsetOld, endTextIndexOld + textOffsetOld,
                                                           startTextIndexNew + textOffsetNew, endTextIndexNew + textOffsetNew),
                                textVersionProvider,
@@ -122,12 +143,19 @@ public final class ChangeDeltaImpl implements IChangeDelta
     Edit modifiedEdit;
     int startTextIndex = pChangeSide == EChangeSide.NEW ? startTextIndexNew : startTextIndexOld;
     int endTextIndex = pChangeSide == EChangeSide.NEW ? endTextIndexNew : endTextIndexOld;
-    IChangeStatus modifiedChangeStatus = new ChangeStatusImpl(changeStatus.getChangeStatus(), changeStatus.getChangeType());
+    IChangeStatus modifiedChangeStatus = new ChangeStatusImpl(changeStatus.getChangeStatus(), changeStatus.getChangeType(), changeStatus.getConflictType());
     ChangeDeltaTextOffsets modifiedChangeDeltaOffsets;
     if (pIsInsert)
     {
       modifiedEdit = textEventIndexUpdater.updateLineIndizes(pChangeSide, pStartLineIndex -> pStartLineIndex, pEndLineIndex -> pEndLineIndex + pNumNewlines);
-      modifiedChangeDeltaOffsets = textEventIndexUpdater.updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex, pEndTextIndex -> pEndTextIndex + pLength);
+      if (getChangeType() == EChangeType.ADD && pChangeSide == EChangeSide.OLD && getChangeStatus() == EChangeStatus.PENDING)
+        modifiedChangeDeltaOffsets = textEventIndexUpdater.updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex,
+                                                                             pEndTextIndex -> pEndTextIndex + pLength - (endTextIndexOld - startTextIndexOld));
+      else if (getChangeType() == EChangeType.DELETE && pChangeSide == EChangeSide.NEW && getChangeStatus() == EChangeStatus.PENDING)
+        modifiedChangeDeltaOffsets = textEventIndexUpdater.updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex,
+                                                                             pEndTextIndex -> pEndTextIndex + pLength - (endLineIndexNew - startTextIndexNew));
+      else
+        modifiedChangeDeltaOffsets = textEventIndexUpdater.updateTextIndizes(pChangeSide, pStartTextIndex -> pStartTextIndex, pEndTextIndex -> pEndTextIndex + pLength);
     }
     else
     {
@@ -534,15 +562,15 @@ public final class ChangeDeltaImpl implements IChangeDelta
       newChangeDeltaTextOffsets = new ChangeDeltaTextOffsets(startTextIndexOld, endTextOffsetNew, startTextIndexNew, endTextIndexNew);
 
     }
-    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeStatus.getChangeType()), newChangeDeltaTextOffsets,
-                               textVersionProvider, linePartChangeDeltas);
+    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeStatus.getChangeType(), changeStatus.getConflictType()),
+                               newChangeDeltaTextOffsets, textVersionProvider, linePartChangeDeltas);
   }
 
   @Override
   public IChangeDelta appendChange()
   {
     Edit changedEdit = new Edit(startLineIndexOld, endLineIndexOld + (endLineIndexNew - startLineIndexNew), startLineIndexNew, endLineIndexNew);
-    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeStatus.getChangeType()),
+    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeStatus.getChangeType(), changeStatus.getConflictType()),
                                new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld + (endLineIndexNew - startLineIndexNew), startTextIndexNew, endTextIndexNew),
                                textVersionProvider, linePartChangeDeltas);
   }
@@ -551,7 +579,7 @@ public final class ChangeDeltaImpl implements IChangeDelta
   public IChangeDelta discardChange()
   {
     Edit changedEdit = new Edit(startLineIndexOld, endLineIndexOld, startLineIndexNew, endLineIndexNew);
-    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.DISCARDED, changeStatus.getChangeType()),
+    return new ChangeDeltaImpl(changedEdit, new ChangeStatusImpl(EChangeStatus.DISCARDED, changeStatus.getChangeType(), changeStatus.getConflictType()),
                                new ChangeDeltaTextOffsets(startTextIndexOld, endTextIndexOld, startTextIndexNew, endTextIndexNew),
                                textVersionProvider, linePartChangeDeltas);
   }

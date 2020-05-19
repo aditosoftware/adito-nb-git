@@ -5,6 +5,7 @@ import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.ILinePartChangeDelta;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.Color;
 import java.util.function.Function;
 
 /**
@@ -34,9 +35,17 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
   }
 
   @Override
+  @NotNull
   public EChangeType getChangeType()
   {
     return changeType;
+  }
+
+  @Override
+  @NotNull
+  public EConflictType getConflictType()
+  {
+    return EConflictType.NONE;
   }
 
   @Override
@@ -49,6 +58,20 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
   public int getEndTextIndex(EChangeSide pChangeSide)
   {
     return pChangeSide == EChangeSide.NEW ? endTextIndexNew : endTextIndexOld;
+  }
+
+  @Override
+  @NotNull
+  public Color getDiffColor()
+  {
+    return changeType.getDiffColor();
+  }
+
+  @Override
+  @NotNull
+  public Color getSecondaryDiffColor()
+  {
+    return changeType.getSecondaryDiffColor();
   }
 
   @Override

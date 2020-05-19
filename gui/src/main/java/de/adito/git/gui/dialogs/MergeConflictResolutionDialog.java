@@ -8,6 +8,7 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.impl.data.diff.EConflictType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -123,7 +124,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   {
     for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
     {
-      if (changeDelta.getChangeStatus() == EChangeStatus.PENDING && changeDelta.getChangeType() != EChangeType.CONFLICTING)
+      if (changeDelta.getChangeStatus() == EChangeStatus.PENDING && changeDelta.getConflictType() != EConflictType.CONFLICTING)
       {
         mergeDiff.acceptDelta(changeDelta, pConflictSide);
       }
@@ -197,7 +198,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     {
       for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
       {
-        if (changeDelta.getChangeType() != EChangeType.CONFLICTING && changeDelta.getChangeStatus() == EChangeStatus.PENDING)
+        if (changeDelta.getConflictType() != EConflictType.CONFLICTING && changeDelta.getChangeStatus() == EChangeStatus.PENDING)
         {
           // one changeDelta that can be accepted and that is not conflicting exists -> Action is enabled
           return true;

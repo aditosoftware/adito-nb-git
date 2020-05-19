@@ -507,7 +507,7 @@ public class FileDiffImpl implements IFileDiff
         EConflictType conflictType = pOtherFileDiff.getChangeDeltas().get(otherDiffIndex).isConflictingWith(changeDelta);
         if (conflictType == EConflictType.CONFLICTING)
         {
-          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus(), EChangeType.CONFLICTING)));
+          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus(), changeDelta.getChangeType(), conflictType)));
           conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.CONFLICTING));
           break;
         }
@@ -582,7 +582,7 @@ public class FileDiffImpl implements IFileDiff
     @Override
     public IChangeDelta createDelta(@NotNull Edit pEdit, @NotNull ChangeDeltaTextOffsets pDeltaTextOffsets)
     {
-      return new ChangeDeltaImpl(pEdit, new ChangeStatusImpl(EChangeStatus.PENDING, EnumMappings.toChangeType(pEdit.getType())),
+      return new ChangeDeltaImpl(pEdit, new ChangeStatusImpl(EChangeStatus.PENDING, EnumMappings.toChangeType(pEdit.getType()), EConflictType.NONE),
                                  pDeltaTextOffsets, FileDiffImpl.this::getText);
     }
   }
