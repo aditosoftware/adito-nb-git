@@ -64,45 +64,83 @@ public class LineHighlightPainter extends DefaultHighlighter.DefaultHighlightPai
       // start and end are in the same line, so only color that particular line
       if (p0.y == p1.y)
       {
-        if (mode == Mode.MARK_PART)
-        {
-          // draw whole line in bright background
-          pGraphics.fillRect(pComponent.getInsets().left, p0.y, pComponent.getWidth(), p0.height);
-        }
-        else if (mode == Mode.MARK_GIVEN)
-        {
-          pGraphics.fillRect(p0.x, p0.y, p1.x - p0.x, p1.y + p1.height - p0.y);
-        }
-        else
-        {
-          int height = p0.height;
-          // only need a line with 1px if Mode.THIN_LINE
-          if (mode == Mode.THIN_LINE)
-          {
-            height = THIN_LINE_HEIGHT;
-            // center the line between the two text lines
-            p0.y = p0.y - THIN_LINE_HEIGHT / 2;
-          }
-          pGraphics.fillRect(pComponent.getInsets().left, p0.y, pComponent.getWidth(), height);
-        }
+        _paintSingleLine(pGraphics, pComponent, p0, p1);
       }
       else
       {
-        // height of the rectangle to draw is from the top of p0 to the bottom of p1
-        int height = (p1.y + p1.height) - p0.y;
-        // only need a line with THIN_LINE_HEIGHT if Mode.THIN_LINE
-        if (mode == Mode.THIN_LINE)
-        {
-          height = THIN_LINE_HEIGHT;
-          // center the line between the two text lines
-          p0.y = p0.y - THIN_LINE_HEIGHT / 2;
-        }
-        pGraphics.fillRect(pComponent.getInsets().left, p0.y, pComponent.getWidth(), height);
+        _paintMultiLine(pGraphics, pComponent, p0, p1);
       }
     }
     catch (BadLocationException pE)
     {
       // can't render
+    }
+  }
+
+  /**
+   * marks a given text part if the text part spans more than one line
+   *
+   * @param pGraphics  Graphics Object used to draw
+   * @param pComponent TextComponent to mark text on
+   * @param p0         Rectangle around the first character
+   * @param p1         Rectangle around the last character
+   */
+  private void _paintMultiLine(Graphics pGraphics, JTextComponent pComponent, Rectangle p0, Rectangle p1)
+  {
+    // height of the rectangle to draw is from the top of p0 to the bottom of p1
+    int height = (p1.y + p1.height) - p0.y;
+    if (mode == Mode.MARK_GIVEN)
+    {
+      pGraphics.fillRect(p0.x, p0.y, pComponent.getWidth(), p0.height);
+      pGraphics.fillRect(pComponent.getInsets().left, p1.y, p1.x + p1.width, p1.height);
+      if (p0.x + p0.height < p1.y)
+      {
+        pGraphics.fillRect(pComponent.getInsets().left, p0.y + p0.height, pComponent.getWidth(), p1.y - (p0.y + p0.height));
+      }
+    }
+    else
+    {
+      // only need a line with THIN_LINE_HEIGHT if Mode.THIN_LINE
+      if (mode == Mode.THIN_LINE)
+      {
+        height = THIN_LINE_HEIGHT;
+        // center the line between the two text lines
+        p0.y = p0.y - THIN_LINE_HEIGHT / 2;
+      }
+      pGraphics.fillRect(pComponent.getInsets().left, p0.y, pComponent.getWidth(), height);
+    }
+  }
+
+  /**
+   * marks a given text part of a single line
+   *
+   * @param pGraphics  Graphics Object used to draw
+   * @param pComponent TextComponent to mark text on
+   * @param p0         Rectangle around the first character
+   * @param p1         Rectangle around the last character
+   */
+  private void _paintSingleLine(Graphics pGraphics, JTextComponent pComponent, Rectangle p0, Rectangle p1)
+  {
+    if (mode == Mode.MARK_PART)
+    {
+      // draw whole line in bright background
+      pGraphics.fillRect(pComponent.getInsets().left, p0.y, pComponent.getWidth(), p0.height);
+    }
+    else if (mode == Mode.MARK_GIVEN)
+    {
+      pGraphics.fillRect(p0.x, p0.y, p1.x - p0.x, p1.y + p1.height - p0.y);
+    }
+    else
+    {
+      int height = p0.height;
+      // only need a line with 1px if Mode.THIN_LINE
+      if (mode == Mode.THIN_LINE)
+      {
+        height = THIN_LINE_HEIGHT;
+        // center the line between the two text lines
+        p0.y = p0.y - THIN_LINE_HEIGHT / 2;
+      }
+      pGraphics.fillRect(pComponent.getInsets().left, p0.y, pComponent.getWidth(), height);
     }
   }
 
