@@ -56,7 +56,7 @@ public class ScrollbarMarkingsModel implements IDiscardable
         try
         {
           Rectangle bounds = view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
-          markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeDelta.getChangeType().getDiffColor()));
+          markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeDelta.getDiffColor()));
         }
         catch (BadLocationException pE)
         {
