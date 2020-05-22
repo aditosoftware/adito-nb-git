@@ -48,4 +48,33 @@ public class StandAloneDiffProviderImpl implements IStandAloneDiffProvider
                             new FileContentInfoImpl(() -> pVersion2, fileSystemUtil));
   }
 
+  /**
+   * Diffs two strings and finds the differences
+   *
+   * @param pVersion1 String to be compared to pVersion2
+   * @param pVersion2 String to be compared to pVersion1
+   * @return EditList with changed lines between version 1 and 2
+   */
+  @NotNull
+  public static EditList getChangedLines(@NotNull String pVersion1, @NotNull String pVersion2)
+  {
+    return getChangedLines(pVersion1.getBytes(), pVersion2.getBytes());
+  }
+
+  /**
+   * Diffs the contents of two byte arrays and finds the differences
+   *
+   * @param pVersion1 String to be compared to pVersion2
+   * @param pVersion2 String to be compared to pVersion1
+   * @return EditList with changed lines between version 1 and 2
+   */
+  @NotNull
+  public static EditList getChangedLines(@NotNull byte[] pVersion1, @NotNull byte[] pVersion2)
+  {
+    RawText fileContents = new RawText(pVersion1);
+    RawText currentFileContents = new RawText(pVersion2);
+
+    return new HistogramDiff().diff(RawTextComparator.WS_IGNORE_TRAILING, fileContents, currentFileContents);
+  }
+
 }
