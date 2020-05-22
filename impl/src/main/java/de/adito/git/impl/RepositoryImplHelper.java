@@ -7,14 +7,13 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.*;
+import de.adito.git.impl.data.diff.FileContentInfoImpl;
 import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.data.diff.MergeDataImpl;
 import de.adito.git.impl.revfilters.StashCommitFilter;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.diff.EditList;
+import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
@@ -387,6 +386,10 @@ public class RepositoryImplHelper
   {
     if (pParentDiff instanceof FileDiffImpl && pToMergeDiff instanceof FileDiffImpl)
     {
+      if (pParentDiff.getFileHeader().getChangeType() == EChangeType.ADD && pToMergeDiff.getFileHeader().getChangeType() == EChangeType.ADD)
+      {
+        return _createBothAddedMergeData(pParentDiff, pToMergeDiff);
+      }
       EditList parentEditList = ((FileDiffImpl) pParentDiff).getEditList();
       EditList toMergeEditList = ((FileDiffImpl) pToMergeDiff).getEditList();
       MergeDataImpl.adjustEditListForMerge(parentEditList, toMergeEditList);
@@ -399,6 +402,50 @@ public class RepositoryImplHelper
     {
       return new MergeDataImpl(pParentDiff, pToMergeDiff);
     }
+  }
+
+  /**
+   * Builds a basic text that contains the lines that are the same in both NEW text sides, and uses that text as the OLD version in the merge
+   * Should be used if both files have type ADD, because else there is only one big chunk from nothing to the new text in the merge dialog
+   *
+   * @param pParentDiff  IFileDiff from current to fork-point
+   * @param pToMergeDiff IFileDiff from branch to merge to fork-point
+   * @return created IMergeData with the artifical OLD text
+   */
+  @NotNull
+  private static IMergeData _createBothAddedMergeData(IFileDiff pParentDiff, IFileDiff pToMergeDiff)
+  {
+    EditList changedLines = StandAloneDiffProviderImpl.getChangedLines(pParentDiff.getFileContentInfo(EChangeSide.NEW).getFileContent().get(),
+                                                                       pToMergeDiff.getFileContentInfo(EChangeSide.NEW).getFileContent().get());
+    List<String> lines = new ArrayList<>(Arrays.asList(pParentDiff.getFileContentInfo(EChangeSide.NEW).getFileContent().get().split("\n", -1)));
+    HashSet<Integer> contestedLines = new HashSet<>();
+    for (Edit edit : changedLines)
+    {
+      for (int index = edit.getBeginA(); index < edit.getEndA(); index++)
+      {
+        contestedLines.add(index);
+      }
+      if (edit.getEndA() == edit.getBeginA())
+        contestedLines.add(edit.getEndA());
+    }
+
+    StringBuilder artificalOldVersion = new StringBuilder();
+    for (int index = 0; index < lines.size(); index++)
+    {
+      if (!contestedLines.contains(index))
+        artificalOldVersion.append(lines.get(index)).append("\n");
+    }
+    String artificialOldVersionStr = artificalOldVersion.delete(artificalOldVersion.length() - 1, artificalOldVersion.length()).toString();
+    EditList parentEditList = StandAloneDiffProviderImpl.getChangedLines(artificialOldVersionStr,
+                                                                         pParentDiff.getFileContentInfo(EChangeSide.NEW).getFileContent().get());
+    EditList toMergeEditList = StandAloneDiffProviderImpl.getChangedLines(artificialOldVersionStr,
+                                                                          pToMergeDiff.getFileContentInfo(EChangeSide.NEW).getFileContent().get());
+    IFileContentInfo oldParentFCI = new FileContentInfoImpl(() -> artificialOldVersionStr, pParentDiff.getFileContentInfo(EChangeSide.OLD).getEncoding());
+    IFileContentInfo oldToMergeFCI = new FileContentInfoImpl(() -> artificialOldVersionStr, pToMergeDiff.getFileContentInfo(EChangeSide.OLD).getEncoding());
+    return new MergeDataImpl(new FileDiffImpl(pParentDiff.getFileHeader(), parentEditList,
+                                              oldParentFCI, pParentDiff.getFileContentInfo(EChangeSide.NEW)),
+                             new FileDiffImpl(pToMergeDiff.getFileHeader(), toMergeEditList,
+                                              oldToMergeFCI, pToMergeDiff.getFileContentInfo(EChangeSide.NEW)));
   }
 
   /**
