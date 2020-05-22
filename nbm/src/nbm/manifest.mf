@@ -6,6 +6,23 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.2</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>If a file was added to both branches or commits in a merge with different content, the plugin now creates an artificial text for the fork-point that contains the lines that both versions have in common</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The mechanism determining the scrolling behaviour in a merge or diff now re-calculates the heights on the first scroll or mouseevent - this should make it so that the scrolling actually works as intended</li>
+    <li>If a file was DELETED on one branch and MODIFIED on another, the DELETE change is now only marked as background highlight, this makes it easier to spot the changed done on the MODIFIED side</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>The "OK" button in the merge dialog is only enabled if all conflicts were resolved</li>
+    <li>If a part of a MODIFY change stretches more than one line, only the actually changed words are highlighted instead of the whole lines</li>
+    <li>Fixed several bugs with ADD or DELETE type changes in merge conflicts</li>
+    <li>Fixed the first pull failing when connecting to a new remote and using HTTPS as auth method</li>
+  </ul>
   <p style="font-weight: bold;">v.1.4.1</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
   <ul>
