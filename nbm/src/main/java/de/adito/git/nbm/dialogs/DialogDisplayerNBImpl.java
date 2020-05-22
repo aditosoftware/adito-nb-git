@@ -36,9 +36,16 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
   @Override
   public <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier, String pTitle, EButtons[] pButtons)
   {
-    DialogDescriptor dialogDescriptor = new DialogDescriptor(null, pTitle, true, pButtons,
-                                                             pButtons[0], DialogDescriptor.BOTTOM_ALIGN, null, null);
-    S content = pDialogContentSupplier.apply(dialogDescriptor::setValid);
+    Object[] descriptorButtons = new Object[pButtons.length];
+    System.arraycopy(pButtons, 0, descriptorButtons, 0, pButtons.length);
+
+    JButton defaultButton = new JButton(pButtons[0].toString());
+    descriptorButtons[0] = defaultButton;
+
+    DialogDescriptor dialogDescriptor = new DialogDescriptor(null, pTitle, true, descriptorButtons,
+                                                             descriptorButtons[0], DialogDescriptor.BOTTOM_ALIGN, null, null);
+    S content = pDialogContentSupplier.apply(defaultButton::setEnabled);
+
     JPanel borderPane = new JPanel(new BorderLayout());
     borderPane.add(content, BorderLayout.CENTER);
     borderPane.setBorder(new EmptyBorder(7, 7, 0, 7));
@@ -48,12 +55,16 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     dialog.setMinimumSize(new Dimension(250, 50));
     dialog.pack();
     dialog.setVisible(true);
+
     Object pressedButtonObject = dialogDescriptor.getValue();
     EButtons pressedButton;
-    if (pressedButtonObject instanceof EButtons)
+    if (pressedButtonObject.equals(defaultButton))
+      pressedButton = pButtons[0];
+    else if (pressedButtonObject instanceof EButtons)
       pressedButton = (EButtons) pressedButtonObject;
     else
       pressedButton = EButtons.ESCAPE;
+
     return new DialogResult<>(content, pressedButton, content.getMessage(), content.getInformation());
   }
 
