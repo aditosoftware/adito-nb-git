@@ -273,7 +273,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public Map<String, EPushResult> push(boolean pIsPushTags, @Nullable String pRemoteName) throws GitTransportFailureException
+  public Map<String, EPushResult> push(boolean pIsPushTags, @Nullable String pRemoteName) throws GitTransportFailureException, PushRejectedOtherReasonException
   {
     logger.log(Level.INFO, "git push {0}", pIsPushTags ? "--tags" : "");
     Map<String, EPushResult> resultMap = new HashMap<>();
@@ -293,7 +293,10 @@ public class RepositoryImpl implements IRepository
         {
           if (remoteRefUpdate.getStatus() != RemoteRefUpdate.Status.OK && remoteRefUpdate.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE)
           {
-            resultMap.put(remoteRefUpdate.getRemoteName(), EnumMappings.toPushResult(remoteRefUpdate.getStatus()));
+            EPushResult remoteRefUpdateResult = EnumMappings.toPushResult(remoteRefUpdate.getStatus());
+            if (remoteRefUpdateResult == EPushResult.REJECTED_OTHER_REASON)
+              throw new PushRejectedOtherReasonException(remoteRefUpdate.getMessage());
+            resultMap.put(remoteRefUpdate.getRemoteName(), remoteRefUpdateResult);
           }
         }
       }

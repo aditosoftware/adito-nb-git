@@ -9,6 +9,7 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.GitTransportFailureException;
+import de.adito.git.api.exception.PushRejectedOtherReasonException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -168,6 +169,11 @@ class PushAction extends AbstractAction
       }
       logger.log(Level.SEVERE, pE, () -> "failed to push to remote");
     }
+    catch (PushRejectedOtherReasonException pE)
+    {
+      notifyUtil.notify(pE, "Push failed with status: Rejected other reason. A possible cause can be pushing to a protected branch with insufficient permissions.\n" +
+          "Detailed message: " + pE.getMessage(), false);
+    }
     catch (AditoGitException pE)
     {
       String errorMessage = "Error while finding un-pushed commits";
@@ -212,6 +218,7 @@ class PushAction extends AbstractAction
         .blockingFirst()
         .orElseThrow(() -> new RuntimeException("no valid repository found"))
         .push(pIsPushTags, pRemoteName);
+
     if (!failedPushResults.isEmpty())
     {
       StringBuilder infoText = new StringBuilder();
