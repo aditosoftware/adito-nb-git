@@ -65,8 +65,18 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
     //noinspection StatusLineElement only exists once
     disposable = RepositoryUtility.getRepositoryObservable()
         .switchMap(pRepo -> pRepo.isPresent() ? pRepo.get().getRepositoryState() : Observable.just(Optional.<IRepositoryState>empty()))
-        .subscribe(pRepoState -> label.setText(pRepoState.map(pState -> pState.getCurrentBranch().getSimpleName()
-            + (pState.getState() != IRepository.State.SAFE ? pState.getState() : "")).orElse("<no branch>")));
+        .subscribe(pRepoState -> label.setText(pRepoState.map(this::_getDisplayValue).orElse("<no branch>")));
+  }
+
+  /**
+   * Creates the displayed value for the current branch. If the current state is anything other than SAFE, the state is appended to the name of the branch
+   *
+   * @param pRepositoryState RepositoryState for which to create the display string
+   * @return String with name of the branch and state of the repo, if the state is not equal to SAFE
+   */
+  private String _getDisplayValue(IRepositoryState pRepositoryState)
+  {
+    return pRepositoryState.getCurrentBranch().getSimpleName() + (pRepositoryState.getState() != IRepository.State.SAFE ? " - " + pRepositoryState.getState() : "");
   }
 
   private void _initPopup()
