@@ -120,4 +120,7 @@ interface IActionFactory
                                       @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
   ApplyPatchAction createApplyPatchAction(@NotNull Observable<Optional<IRepository>> pRepository);
+
+  MarkResolvedAction createMarkResolvedAction(@NotNull Observable<Optional<IRepository>> pRepository,
+                                              @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 }

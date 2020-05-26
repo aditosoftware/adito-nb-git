@@ -335,4 +335,11 @@ class ActionProvider implements IActionProvider
     return actionFactory.createApplyPatchAction(pRepository);
   }
 
+  @Override
+  public Action getMarkResolvedAction(@NotNull Observable<Optional<IRepository>> pRepository,
+                                      @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  {
+    return actionFactory.createMarkResolvedAction(pRepository, pSelectedFilesObservable);
+  }
+
 }

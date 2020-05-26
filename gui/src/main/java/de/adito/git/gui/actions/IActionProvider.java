@@ -337,4 +337,13 @@ public interface IActionProvider
    * @return Action whose actionPerformed method displays a dialog with a fileChooser and then applies the patch found in the selected file
    */
   Action getApplyPatchAction(@NotNull Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * Action for marking conflicting files as resolved
+   *
+   * @param pRepository              Observable with the current Repository
+   * @param pSelectedFilesObservable Observable with the files the user has selected at the moment
+   * @return Action whose actionPerformed method marks all selected conflicting files as resolved
+   */
+  Action getMarkResolvedAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 }
