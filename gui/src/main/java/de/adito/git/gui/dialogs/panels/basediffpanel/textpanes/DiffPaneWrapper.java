@@ -1,9 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.IChangeDelta;
-import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
@@ -36,6 +34,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   private final Disposable fileChangeDisposable;
   private final Disposable editorKitDisposable;
   private final ScrollbarMarkingsModel scrollbarMarkingsModel;
+  private IFileDiff currentFileDiff;
 
   /**
    * @param pModel DiffPanelModel that defines what is done when inserting text/how the LineNumbers are retrieved
@@ -63,7 +62,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     editorPane.setEditable(false);
     diffPane = new DiffPane(editorPane);
     fileChangeDisposable = model.getFileChangesObservable()
-        .subscribe(this::_textChanged);
+        .subscribe(this::_fileDiffObservableUpdated);
     editorKitDisposable = pEditorKitObservable.subscribe(pOptEditorKit
                                                              -> pOptEditorKit.ifPresent(pEditorKit -> SwingUtilities.invokeLater(() -> _setEditorKit(pEditorKit))));
     MarkedScrollbar markedScrollbar = new MarkedScrollbar();
@@ -108,8 +107,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    */
   public void moveCaretToNextChunk(JTextComponent pTextPane)
   {
-    IChangeDelta nextChunk = IDiffPaneUtil.getNextDelta(editorPane, model.getFileChangesObservable().blockingFirst().getFileDiff().getChangeDeltas(),
-                                                        model.getChangeSide());
+    IChangeDelta nextChunk = IDiffPaneUtil.getNextDelta(editorPane, currentFileDiff.getChangeDeltas(), model.getChangeSide());
     _moveCaretToChunk(pTextPane, nextChunk);
   }
 
@@ -120,8 +118,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    */
   public void moveCaretToPreviousChunk(JTextComponent pTextPane)
   {
-    IChangeDelta previousDelta = IDiffPaneUtil.getPreviousDelta(editorPane, model.getFileChangesObservable().blockingFirst().getFileDiff().getChangeDeltas(),
-                                                                model.getChangeSide());
+    IChangeDelta previousDelta = IDiffPaneUtil.getPreviousDelta(editorPane, currentFileDiff.getChangeDeltas(), model.getChangeSide());
     _moveCaretToChunk(pTextPane, previousDelta);
   }
 
@@ -154,6 +151,12 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     editorPane.setText(currentText);
     editorPane.setCaretPosition(0);
     getScrollPane().getVerticalScrollBar().setValue(0);
+  }
+
+  private void _fileDiffObservableUpdated(IDeltaTextChangeEvent pTextChangeEvent)
+  {
+    currentFileDiff = pTextChangeEvent.getFileDiff();
+    _textChanged(pTextChangeEvent);
   }
 
   private void _textChanged(IDeltaTextChangeEvent pTextChangeEvent)
