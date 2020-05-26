@@ -36,8 +36,8 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IMergeConflictDialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeData> pMergeConflictDiffs,
-                                                     boolean pOnlyConflicting, String... pDialogTitle);
+  IMergeConflictDialogResult<?, ?> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeData> pMergeConflictDiffs,
+                                                           boolean pOnlyConflicting, String... pDialogTitle);
 
   /**
    * Shows a dialog with a three-way merge based on the information from pMergeDiff
@@ -46,7 +46,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IMergeConflictResolutionDialogResult showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff);
+  IMergeConflictResolutionDialogResult<?, ?> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff);
 
   /**
    * Shows a dialog which show which changes happened to a file, based on the IFileDiffs

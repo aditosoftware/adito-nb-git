@@ -25,6 +25,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 /**
  * PullAction to pull from one branch.
@@ -42,6 +43,7 @@ class PullAction extends AbstractAction
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private final ISaveUtil saveUtil;
+  private boolean doUnstash = true;
 
   /**
    * The PullAction is an action to pull all commits from one branch. If no branch is chosen take an empty string for the master branch.
@@ -144,13 +146,17 @@ class PullAction extends AbstractAction
     }
     finally
     {
-      String stashedCommitId = prefStore.get(STASH_ID_KEY);
-      if (stashedCommitId != null)
+      if (doUnstash)
       {
-        pProgressHandle.setDescription("Un-stashing changes");
-        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
-        prefStore.put(STASH_ID_KEY, null);
+        String stashedCommitId = prefStore.get(STASH_ID_KEY);
+        if (stashedCommitId != null)
+        {
+          pProgressHandle.setDescription("Un-stashing changes");
+          StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
+          prefStore.put(STASH_ID_KEY, null);
+        }
       }
+      doUnstash = true;
     }
   }
 
@@ -163,13 +169,28 @@ class PullAction extends AbstractAction
    */
   private boolean _handleConflictDialog(IRepository pRepo, List<IMergeData> pMergeConflicts) throws AditoGitException
   {
-    IMergeConflictDialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
-    if (!dialogResult.isFinishMerge())
+    IMergeConflictDialogResult<?, ?> dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
+    IUserPromptDialogResult<?, ?> promptDialogResult = null;
+    if (dialogResult.isFinishMerge())
+    {
+      return false;
+    }
+    else if (!dialogResult.isAbortMerge())
+    {
+      promptDialogResult = dialogProvider.showMessageDialog(ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSaveStateQuestion"),
+                                                            List.of(IDialogDisplayer.EButtons.SAVE, IDialogDisplayer.EButtons.ABORT),
+                                                            List.of(IDialogDisplayer.EButtons.SAVE));
+      if (promptDialogResult.isOkay())
+      {
+        doUnstash = false;
+        notifyUtil.notify("Saved merge state", ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSavedStateMessage"), false);
+      }
+    }
+    if (dialogResult.isAbortMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
     {
       _abortRebase(pRepo);
-      return true;
     }
-    return false;
+    return true;
   }
 
   /**

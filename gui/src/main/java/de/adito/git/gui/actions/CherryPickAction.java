@@ -13,17 +13,17 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.commands.StashCommand;
+import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera, 11.02.2019
@@ -129,9 +129,10 @@ class CherryPickAction extends AbstractTableAction
       ICherryPickResult cherryPickResult = pRepo.cherryPick(pCommitsToPick);
       if (!cherryPickResult.getConflicts().isEmpty())
       {
-        IMergeConflictDialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),
-                                                                                           cherryPickResult.getConflicts(), true,
-                                                                                           "Cherry Pick conflicts");
+        IMergeConflictDialogResult<?, ?> conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),
+                                                                                                 cherryPickResult.getConflicts(), true,
+                                                                                                 "Cherry Pick conflicts");
+        IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (conflictResult.isFinishMerge())
         {
           Observable<Optional<List<IFileChangeType>>> changedFilesObs = pRepo.getStatus()
@@ -139,10 +140,19 @@ class CherryPickAction extends AbstractTableAction
           actionProvider.getCommitAction(Observable.just(Optional.of(pRepo)), changedFilesObs, cherryPickResult.getCherryPickHead().getMessage())
               .actionPerformed(null);
         }
-        else
+        else if (!conflictResult.isAbortMerge())
         {
-          pRepo.reset(pRepo.getCommit(null).getId(), EResetType.HARD);
-          notifyUtil.notify(ACTION_NAME, "Aborting cherry pick by resetting to current HEAD", false);
+          promptDialogResult = dialogProvider.showMessageDialog(ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSaveStateQuestion"),
+                                                                List.of(IDialogDisplayer.EButtons.SAVE, IDialogDisplayer.EButtons.ABORT),
+                                                                List.of(IDialogDisplayer.EButtons.SAVE));
+          if (promptDialogResult.isOkay())
+          {
+            notifyUtil.notify("Saved merge state", ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSavedStateMessage"), false);
+          }
+        }
+        if (conflictResult.isAbortMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
+        {
+          _abortCherryPick(pRepo);
         }
       }
       else
@@ -154,6 +164,12 @@ class CherryPickAction extends AbstractTableAction
     {
       notifyUtil.notify(pE, "Error during Cherry Pick. ", false);
     }
+  }
+
+  private void _abortCherryPick(IRepository pRepo) throws AditoGitException
+  {
+    pRepo.reset(pRepo.getCommit(null).getId(), EResetType.HARD);
+    notifyUtil.notify(ACTION_NAME, "Aborting cherry pick by resetting to current HEAD", false);
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<ICommit>>> pSelectedCommitObservable)

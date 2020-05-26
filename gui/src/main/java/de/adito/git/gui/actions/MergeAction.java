@@ -15,13 +15,16 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
+import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
+import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 /**
  * @author m.kaspera 24.10.2018
@@ -69,6 +72,7 @@ class MergeAction extends AbstractTableAction
   {
     saveUtil.saveUnsavedFiles();
     IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+    boolean unstashChanges = true;
     try
     {
       if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false)
@@ -81,8 +85,21 @@ class MergeAction extends AbstractTableAction
                                                              pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        IMergeConflictDialogResult dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs, true);
-        if (!dialogResult.isFinishMerge())
+        IMergeConflictDialogResult<?, ?> dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs, true);
+        IUserPromptDialogResult<?, ?> promptDialogResult = null;
+        if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
+        {
+          promptDialogResult = dialogProvider.showMessageDialog(ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSaveStateQuestion"),
+                                                                List.of(IDialogDisplayer.EButtons.SAVE, IDialogDisplayer.EButtons.ABORT),
+                                                                List.of(IDialogDisplayer.EButtons.SAVE));
+          if (promptDialogResult.isOkay())
+          {
+            unstashChanges = false;
+            notifyUtil.notify("Saved merge state", ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSavedStateMessage"), false);
+            return;
+          }
+        }
+        if (!dialogResult.isFinishMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
         {
           pProgressHandle.setDescription("Aborting merge");
           repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
@@ -100,18 +117,23 @@ class MergeAction extends AbstractTableAction
     }
     finally
     {
+      _performUnstash(pProgressHandle, repository, unstashChanges);
+    }
+  }
+
+  private void _performUnstash(IProgressHandle pProgressHandle, IRepository pRepository, boolean pUnstashChanges)
+  {
+    String stashedCommitId = prefStore.get(STASH_ID_KEY);
+    if (stashedCommitId != null && pUnstashChanges)
+    {
       pProgressHandle.setDescription("Un-stashing saved uncommitted local changes");
-      String stashedCommitId = prefStore.get(STASH_ID_KEY);
-      if (stashedCommitId != null)
+      try
       {
-        try
-        {
-          StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(repository)));
-        }
-        finally
-        {
-          prefStore.put(STASH_ID_KEY, null);
-        }
+        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(pRepository)));
+      }
+      finally
+      {
+        prefStore.put(STASH_ID_KEY, null);
       }
     }
   }

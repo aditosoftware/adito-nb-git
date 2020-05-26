@@ -39,8 +39,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IMergeConflictDialogResult showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                     @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting, String... pDialogTitle)
+  public @NotNull IMergeConflictDialogResult<MergeConflictDialog, ?> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                                             @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting,
+                                                                                             String... pDialogTitle)
   {
     DialogResult<MergeConflictDialog, ?> result = null;
     try
@@ -69,10 +70,16 @@ class DialogProviderImpl implements IDialogProvider
     {
       return selectedButton == EButtons.OK;
     }
+
+    @Override
+    public boolean isAbortMerge()
+    {
+      return selectedButton == EButtons.ABORT;
+    }
   }
 
   @Override
-  public @NotNull IMergeConflictResolutionDialogResult showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff)
+  public @NotNull IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, ?> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff)
   {
     DialogResult<MergeConflictResolutionDialog, ?> result = null;
     try
@@ -336,7 +343,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public IUserPromptDialogResult showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons, @NotNull List<EButtons> pOkayButtons)
+  public IUserPromptDialogResult<?, ?> showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons, @NotNull List<EButtons> pOkayButtons)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            dialogFactory.createNotificationDialog(pMessage),

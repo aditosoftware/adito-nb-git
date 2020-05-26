@@ -9,4 +9,6 @@ public
 interface IMergeConflictDialogResult<S, T> extends IDialogResult<S, T>
 {
   boolean isFinishMerge();
+
+  boolean isAbortMerge();
 }
