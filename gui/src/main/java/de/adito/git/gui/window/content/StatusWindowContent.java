@@ -138,6 +138,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     popupMenu.add(applyPatchAction);
     popupMenu.addSeparator();
     popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
+    popupMenu.add(actionProvider.getMarkResolvedAction(repository, selectionObservable));
     statusTree.getTree().addMouseListener(new PopupMouseListener(popupMenu));
     statusTree.getTree().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
     statusTree.getTree().getActionMap().put(STANDARD_ACTION_STRING, openFileAction);
