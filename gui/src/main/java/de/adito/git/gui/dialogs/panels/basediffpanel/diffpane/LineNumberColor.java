@@ -10,8 +10,8 @@ import java.awt.Rectangle;
  */
 class LineNumberColor
 {
-  private Color color;
-  private Rectangle coloredArea;
+  private final Color color;
+  private final Rectangle coloredArea;
 
   LineNumberColor(Color pColor, Rectangle pColoredArea)
   {

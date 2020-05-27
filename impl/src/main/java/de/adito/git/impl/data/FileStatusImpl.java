@@ -18,8 +18,8 @@ import java.util.*;
 public class FileStatusImpl implements IFileStatus
 {
 
-  private Status status;
-  private File gitDirectory;
+  private final Status status;
+  private final File gitDirectory;
   private List<IFileChangeType> uncommittedFiles;
 
   public FileStatusImpl(Status pStatus, File pGitDirectory)

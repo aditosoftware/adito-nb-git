@@ -35,9 +35,9 @@ class DiffToHeadAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final INotifyUtil notifyUtil;
   private final Boolean isAsync;
-  private Observable<Optional<IRepository>> repository;
-  private IDialogProvider dialogProvider;
-  private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
+  private final Observable<Optional<IRepository>> repository;
+  private final IDialogProvider dialogProvider;
+  private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
   DiffToHeadAction(IIconLoader pIconLoader, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil,

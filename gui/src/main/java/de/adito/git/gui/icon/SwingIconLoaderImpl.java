@@ -15,7 +15,7 @@ import java.net.URL;
 public class SwingIconLoaderImpl implements IIconLoader
 {
 
-  private Image defaultIcon = icon2Image(MissingIcon.get16x16());
+  private final Image defaultIcon = icon2Image(MissingIcon.get16x16());
 
   /**
    * {@inheritDoc}

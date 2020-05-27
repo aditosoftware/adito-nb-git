@@ -14,8 +14,8 @@ import java.util.List;
 public class RebaseResultImpl implements IRebaseResult
 {
 
-  private List<IMergeData> conflicts;
-  private RebaseResult.Status status;
+  private final List<IMergeData> conflicts;
+  private final RebaseResult.Status status;
 
   /**
    * @param pConflicts List with IMergeDatas describing the conflicts

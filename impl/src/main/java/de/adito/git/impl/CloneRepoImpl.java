@@ -128,7 +128,7 @@ public class CloneRepoImpl implements ICloneRepo
     }
   }
 
-  private class _ProgressMonitor implements ProgressMonitor
+  private static class _ProgressMonitor implements ProgressMonitor
   {
     private final IProgressHandle progressHandle;
     private int counter;

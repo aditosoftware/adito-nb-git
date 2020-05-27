@@ -11,6 +11,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,7 +53,7 @@ public class RevertCommitsAction extends AbstractTableAction
   public void actionPerformed(ActionEvent e)
   {
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
-    IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+    IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
     if (!repo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
       progressFacade.executeInBackground(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
         try

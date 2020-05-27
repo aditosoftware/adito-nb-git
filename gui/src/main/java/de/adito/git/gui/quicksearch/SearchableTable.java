@@ -18,7 +18,7 @@ import javax.swing.table.TableModel;
 public class SearchableTable extends JTable implements IDiscardable
 {
 
-  private KeyForwardAdapter keyForwardAdapter;
+  private final KeyForwardAdapter keyForwardAdapter;
 
   public SearchableTable(JPanel pView)
   {

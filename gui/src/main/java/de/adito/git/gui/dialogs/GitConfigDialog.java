@@ -9,7 +9,7 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
-import de.adito.git.gui.*;
+import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.NewRemotePanel;
 import de.adito.git.gui.dialogs.panels.RemotePanel;
@@ -23,11 +23,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,8 +41,8 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
   private static final Border DEFAULT_MARGIN_BORDER = new EmptyBorder(15, 15, 0, 0);
   private static final Border DEFAULT_PANEL_BORDERS = new EmptyBorder(15, 15, 0, 15);
   private NewRemotePanel addRemotePanel;
-  private List<RemotePanel> remoteSettingsPanels = new ArrayList<>();
-  private GlobalSettingsPanel globalSettingsPanel;
+  private final List<RemotePanel> remoteSettingsPanels = new ArrayList<>();
+  private final GlobalSettingsPanel globalSettingsPanel;
 
   @Inject
   public GitConfigDialog(IActionProvider pActionProvider, IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
@@ -133,8 +133,8 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
   private static class GlobalSettingsPanel extends JPanel
   {
 
-    private JComboBox<Level> logLevelBox;
-    private JComboBox<GitRawTextComparator> rawTextComparatorBox;
+    private final JComboBox<Level> logLevelBox;
+    private final JComboBox<GitRawTextComparator> rawTextComparatorBox;
 
     GlobalSettingsPanel()
     {

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.impl.Util;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.Observable;
@@ -31,7 +32,7 @@ class NewBranchDialog extends AditoBaseDialog<Boolean>
   private final JTextField textField = new JTextField();
   private final JCheckBox checkbox = new JCheckBox();
   private final HashSet<String> branchMap = new HashSet<>();
-  private IDialogDisplayer.IDescriptor isValidDescriptor;
+  private final IDialogDisplayer.IDescriptor isValidDescriptor;
 
   /**
    * @param pRepository The repository where the new branch has to be
@@ -42,7 +43,7 @@ class NewBranchDialog extends AditoBaseDialog<Boolean>
   {
     isValidDescriptor = pIsValidDescriptor;
     isValidDescriptor.setValid(false);
-    branchList = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"))
+    branchList = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")))
         .getBranches().blockingFirst().orElse(Collections.emptyList());
     checkbox.setSelected(true);
     textField.setPreferredSize(new Dimension(200, 24));
@@ -111,8 +112,8 @@ class NewBranchDialog extends AditoBaseDialog<Boolean>
    */
   private class _DocumentListener implements DocumentListener
   {
-    private HashSet<String> branchMap;
-    private JLabel alreadyExistsLabel;
+    private final HashSet<String> branchMap;
+    private final JLabel alreadyExistsLabel;
 
     private _DocumentListener(HashSet<String> pBranchMap, JLabel pAlreadyExists)
     {

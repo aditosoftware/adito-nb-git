@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class CommitImpl implements ICommit
 {
 
-  private RevCommit revCommit;
+  private final RevCommit revCommit;
   private List<ICommit> parents = null;
   public static final ICommit VOID_COMMIT = VoidCommit.getInstance();
 

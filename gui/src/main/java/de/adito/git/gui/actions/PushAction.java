@@ -16,6 +16,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IChangeTrackedBranchDialogResult;
 import de.adito.git.gui.dialogs.results.IPushDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +43,8 @@ class PushAction extends AbstractAction
   private final Logger logger = Logger.getLogger(PushAction.class.getName());
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
-  private Observable<Optional<IRepository>> repository;
-  private IDialogProvider dialogProvider;
+  private final Observable<Optional<IRepository>> repository;
+  private final IDialogProvider dialogProvider;
 
   /**
    * @param pRepository The repository to push
@@ -107,7 +108,7 @@ class PushAction extends AbstractAction
    * @param pRemoteNameParam array used to get the name of the selected remote out of the async call
    * @return List of unpushed commits, or null if any error occurs while determining the unpushed commits
    */
-  @Nullable
+  @NotNull
   private List<ICommit> _determineUnpushedCommits(@NotNull IRepository pRepo, @Nullable IRepositoryState pRepoState, String[] pRemoteNameParam)
   {
     String remoteName = (pRepoState != null && pRepoState.getRemotes().size() == 1) ? pRepoState.getRemotes().get(0) : null;
@@ -118,7 +119,7 @@ class PushAction extends AbstractAction
       remoteName = (String) result.getInformation();
     }
     pRemoteNameParam[0] = remoteName;
-    if (_handleNonMatchingTrackedBranch(pRepo, pRepoState)) return null;
+    if (_handleNonMatchingTrackedBranch(pRepo, pRepoState)) return List.of();
     try
     {
       return pRepo.getUnPushedCommits();
@@ -127,7 +128,7 @@ class PushAction extends AbstractAction
     {
       String errorMessage = "Error while finding un-pushed commits";
       notifyUtil.notify(pE, errorMessage + ". ", false);
-      return null;
+      return List.of();
     }
   }
 
@@ -148,7 +149,8 @@ class PushAction extends AbstractAction
       {
         pHandle.setDescription("Pushing");
         _doPush(pDialogResult.getInformation(), pRemoteName);
-        if (pRepo.getRepositoryState().blockingFirst().map(pRepoState -> pRepoState.getCurrentRemoteTrackedBranch() == null).orElse(false) && pRemoteName != null)
+        if (pRepo.getRepositoryState().blockingFirst().map(pRepoState -> pRepoState.getCurrentRemoteTrackedBranch() == null).orElse(false) && pRemoteName != null
+            && repoState != null)
         {
 
           pRepo.getConfig().establishTrackingRelationship(repoState.getCurrentBranch().getSimpleName(), repoState.getCurrentBranch().getName(), pRemoteName);
@@ -216,7 +218,7 @@ class PushAction extends AbstractAction
   {
     Map<String, EPushResult> failedPushResults = repository
         .blockingFirst()
-        .orElseThrow(() -> new RuntimeException("no valid repository found"))
+        .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")))
         .push(pIsPushTags, pRemoteName);
 
     if (!failedPushResults.isEmpty())

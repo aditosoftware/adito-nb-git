@@ -28,9 +28,9 @@ import java.util.stream.Collectors;
 abstract class NBAction extends NodeAction
 {
 
-  private static Observable<Optional<IRepository>> repositoryObservable = RepositoryUtility.getRepositoryObservable();
+  private static final Observable<Optional<IRepository>> repositoryObservable = RepositoryUtility.getRepositoryObservable();
   private Observable<Optional<Boolean>> isEnabledObservable = null;
-  private BehaviorSubject<Object> doEnableUpdate = BehaviorSubject.createDefault(new Object());
+  private final BehaviorSubject<Object> doEnableUpdate = BehaviorSubject.createDefault(new Object());
   // for caching the nodes that are passed when enabled is called by netbeans, these are usually more up-to-date than the ones retrieved by
   // TopComponent.getRegistry.getXXX()
   Node[] lastActivated = new Node[0];

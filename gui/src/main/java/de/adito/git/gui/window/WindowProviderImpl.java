@@ -5,6 +5,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.IUserPreferences;
 import de.adito.git.api.data.ICommitFilter;
 import de.adito.git.gui.window.content.IWindowContentProvider;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,7 @@ class WindowProviderImpl implements IWindowProvider
   {
     try
     {
-      IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException("No valid repository found"));
+      IRepository repo = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
       HistoryTableManager historyTableManager = new HistoryTableManager(repo, userPreferences);
       _showInFrame(factory.createCommitHistoryWindowContent(pRepository, historyTableManager.getTableModel(),
                                                             historyTableManager.getLoadMoreRunnable(), historyTableManager.getFilterChangedConsumer(), pCommitFilter));

@@ -1,12 +1,16 @@
 package de.adito.git.nbm.progress;
 
 import com.google.inject.Singleton;
-import de.adito.git.api.progress.*;
-import org.jetbrains.annotations.*;
+import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.api.progress.IProgressHandle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.progress.ProgressHandle;
-import org.openide.util.*;
+import org.openide.util.NbBundle;
+import org.openide.util.RequestProcessor;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 /**
  * @author w.glanzer, 13.12.2018
@@ -79,7 +83,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
   private static class _NetBeansHandle implements IProgressHandle
   {
     private final ProgressHandle handle;
-    private String displayName;
+    private final String displayName;
     private boolean inProgress = false;
 
     _NetBeansHandle(@Nullable String pDisplayName, @NotNull ProgressHandle pHandle)

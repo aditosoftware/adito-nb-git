@@ -23,7 +23,7 @@ public class CloneWizardVisualPanel1 extends JPanel
   private JButton locationBrowseButton;
   private JButton sshDataBrowserButton;
   private JPasswordField sshKeyPassField;
-  private NBPrefStore preferences;
+  private final NBPrefStore preferences;
 
   CloneWizardVisualPanel1()
   {

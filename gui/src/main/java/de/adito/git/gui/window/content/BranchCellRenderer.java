@@ -18,7 +18,7 @@ import static de.adito.git.gui.Constants.CARET_RIGHT;
  */
 class BranchCellRenderer extends JPanel implements ListCellRenderer<IBranch>
 {
-  private JLabel leftLabel = new JLabel();
+  private final JLabel leftLabel = new JLabel();
   private static final int LIST_SPACING_TOP_BOTTOM = 2;
   private static final int LIST_ELEMENTS_OFFSET_LEFT = 18;
   private final Color backgroundColor = getBackground();

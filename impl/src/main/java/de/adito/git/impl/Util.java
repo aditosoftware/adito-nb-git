@@ -7,6 +7,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
 /**
  * @author a.arnold
@@ -47,6 +49,39 @@ public class Util
     String base = pGit.getRepository().getDirectory().getParent();
     String path = pFile.getAbsolutePath();
     return new File(base).toURI().relativize(new File(path).toURI()).getPath();
+  }
+
+  /**
+   * Retrieve a value for the key and class from a resource bundle named "Bundle"
+   *
+   * @param pClass Class, determines the package in which the ResourceBundle searches for the bundle
+   * @param pKey   Key that should be used for retrieving the resource from the bundle
+   * @return the string for the given key
+   * @throws NullPointerException     if <code>pKey</code> or <code>pClass</code> is <code>null</code>
+   * @throws MissingResourceException if no object for the given key can be found, or no bundle can be found in the package determined by the class
+   * @throws ClassCastException       if the object found for the given key is not a string
+   */
+  @NotNull
+  public static String getResource(@NotNull Class<?> pClass, @NotNull String pKey)
+  {
+    return getResource(pClass, "Bundle", pKey);
+  }
+
+  /**
+   * Retrieve a value for the key and class from the given resource bundle
+   *
+   * @param pClass      class, determines the package in which the ResourceBundle searches for the bundle
+   * @param pBundleName Name of the bundle
+   * @param pKey        Key that should be used for retrieving the resource from the bundle
+   * @return the string for the given key
+   * @throws NullPointerException     if <code>pKey</code> or <code>pBundleName</code> is <code>null</code>
+   * @throws MissingResourceException if no object for the given key can be found, or if no bundle can be found for the name/package
+   * @throws ClassCastException       if the object found for the given key is not a string
+   */
+  @NotNull
+  public static String getResource(@NotNull Class<?> pClass, @NotNull String pBundleName, @NotNull String pKey)
+  {
+    return ResourceBundle.getBundle(pClass.getPackageName() + "." + pBundleName).getString(pKey);
   }
 
   /**

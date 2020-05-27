@@ -19,12 +19,12 @@ import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
 /**
  * @author m.kaspera 24.10.2018
@@ -39,7 +39,7 @@ class MergeAction extends AbstractTableAction
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
-  private Observable<Optional<IBranch>> targetBranch;
+  private final Observable<Optional<IBranch>> targetBranch;
 
   @Inject
   MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil, INotifyUtil pNotifyUtil,
@@ -71,7 +71,7 @@ class MergeAction extends AbstractTableAction
   private void _doMerge(IProgressHandle pProgressHandle, IBranch pSelectedBranch) throws AditoGitException
   {
     saveUtil.saveUnsavedFiles();
-    IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+    IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
     boolean unstashChanges = true;
     try
     {
@@ -89,13 +89,13 @@ class MergeAction extends AbstractTableAction
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
         {
-          promptDialogResult = dialogProvider.showMessageDialog(ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSaveStateQuestion"),
+          promptDialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
                                                                 List.of(IDialogDisplayer.EButtons.SAVE, IDialogDisplayer.EButtons.ABORT),
                                                                 List.of(IDialogDisplayer.EButtons.SAVE));
           if (promptDialogResult.isOkay())
           {
             unstashChanges = false;
-            notifyUtil.notify("Saved merge state", ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSavedStateMessage"), false);
+            notifyUtil.notify("Saved merge state", Util.getResource(this.getClass(), "mergeSavedStateMsg"), false);
             return;
           }
         }
@@ -113,7 +113,8 @@ class MergeAction extends AbstractTableAction
     }
     catch (AlreadyUpToDateAditoGitException pE)
     {
-      notifyUtil.notify("Already up-to-date", "Branches are already up-to-date/merged", false);
+      notifyUtil.notify(Util.getResource(this.getClass(), "mergeBranchesUpToDateTitle"),
+                        Util.getResource(this.getClass(), "mergeBranchesUpToDateMsg"), false);
     }
     finally
     {
@@ -126,7 +127,7 @@ class MergeAction extends AbstractTableAction
     String stashedCommitId = prefStore.get(STASH_ID_KEY);
     if (stashedCommitId != null && pUnstashChanges)
     {
-      pProgressHandle.setDescription("Un-stashing saved uncommitted local changes");
+      pProgressHandle.setDescription(Util.getResource(this.getClass(), "unstashChangesMessage"));
       try
       {
         StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(pRepository)));

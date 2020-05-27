@@ -14,8 +14,8 @@ import java.util.WeakHashMap;
 public class FileSystemObserverProviderImpl implements IFileSystemObserverProvider
 {
 
-  private IFileSystemObserverImplFactory pFactory;
-  private WeakHashMap<IRepositoryDescription, IFileSystemObserver> cache = new WeakHashMap<>();
+  private final IFileSystemObserverImplFactory pFactory;
+  private final WeakHashMap<IRepositoryDescription, IFileSystemObserver> cache = new WeakHashMap<>();
 
   @Inject
   FileSystemObserverProviderImpl(IFileSystemObserverImplFactory pFactory)
@@ -26,6 +26,6 @@ public class FileSystemObserverProviderImpl implements IFileSystemObserverProvid
   @Override
   public IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription)
   {
-    return cache.computeIfAbsent(pRepositoryDescription, pDescription -> pFactory.create(pDescription));
+    return cache.computeIfAbsent(pRepositoryDescription, pFactory::create);
   }
 }

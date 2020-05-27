@@ -11,7 +11,7 @@ public interface IProgressHandle
   /**
    * Sets the display name of the task
    *
-   * @param pMessage
+   * @param pMessage Message to be displayed as task name
    */
   void setDisplayName(@Nullable String pMessage);
 

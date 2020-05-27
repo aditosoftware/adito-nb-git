@@ -74,7 +74,7 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
   /**
    * Class that does the actual rendering of the CommitHistoryTreeListItems in the paintComponent method
    */
-  private class CommitHistoryTreeListItemComponent extends JPanel
+  private static class CommitHistoryTreeListItemComponent extends JPanel
   {
 
     private static final int PADDING_RIGHT = 20;

@@ -11,6 +11,7 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IRevertDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -59,7 +60,7 @@ class RevertWorkDirAction extends AbstractTableAction
     {
       progressFacade.executeInBackground("Reverting", pHandle -> {
         repository.blockingFirst()
-            .orElseThrow(() -> new RuntimeException("no valid repository found"))
+            .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")))
             .revertWorkDir(filesToRevert
                                .stream()
                                .map(IFileChangeType::getFile)

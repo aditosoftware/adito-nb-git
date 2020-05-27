@@ -220,7 +220,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
   private double _getStillbornMeetingOffset(int pIndex, @NotNull AncestryLine pAdvancedLine, @NotNull List<AncestryLine> pNewLines)
   {
     List<AncestryLine> linesToAnalyze;
-    if (latestHistoryItem.getAncestryLines().indexOf(pAdvancedLine) >= 0)
+    if (latestHistoryItem.getAncestryLines().contains(pAdvancedLine))
       linesToAnalyze = latestHistoryItem.getAncestryLines().subList(0, latestHistoryItem.getAncestryLines().indexOf(pAdvancedLine));
     else
       linesToAnalyze = pNewLines.subList(0, pNewLines.indexOf(pAdvancedLine));

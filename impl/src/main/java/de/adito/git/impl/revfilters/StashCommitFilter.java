@@ -23,7 +23,7 @@ public class StashCommitFilter extends RevFilter
 {
 
   private final Git git;
-  private ArrayList<ObjectId> stashedCommitIdList = new ArrayList<>();
+  private final ArrayList<ObjectId> stashedCommitIdList = new ArrayList<>();
   private RevCommit latestStashedCommit = null;
 
   public StashCommitFilter(@NotNull Git pGit)

@@ -126,7 +126,7 @@ class DAGFilterIteratorTest
   private static class _DAGTestObj implements IDAGObject<_DAGTestObj>
   {
 
-    private int num;
+    private final int num;
     private List<_DAGTestObj> parents;
 
     _DAGTestObj(int pNum, List<_DAGTestObj> pParents)

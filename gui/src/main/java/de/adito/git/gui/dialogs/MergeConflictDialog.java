@@ -11,6 +11,7 @@ import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -34,11 +35,11 @@ import java.util.stream.Collectors;
 class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
-  private static final String NO_REPO_ERROR_MSG = "no valid repository found";
+  private static final String NO_REPO_ERROR_MSG = Util.getResource(MergeConflictDialog.class, "noValidRepoMsg");
 
   private final IDialogProvider dialogProvider;
-  private IDialogDisplayer.IDescriptor isValidDescriptor;
-  private IRepository repository;
+  private final IDialogDisplayer.IDescriptor isValidDescriptor;
+  private final IRepository repository;
   private final Subject<List<IMergeData>> mergeConflictDiffs;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final JTable mergeConflictTable = new JTable();

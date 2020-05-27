@@ -23,7 +23,7 @@ public class StatusTableModel extends AbstractTableModel implements IDiscardable
   public static final String[] columnNames = {FILE_NAME_COLUMN_NAME, FILE_PATH_COLUMN_NAME, CHANGE_TYPE_COLUMN_NAME};
 
   private IFileStatus status;
-  private Disposable statusDisposable;
+  private final Disposable statusDisposable;
 
   public StatusTableModel(Observable<Optional<IFileStatus>> pStatusObservable)
   {

@@ -15,7 +15,7 @@ public class HistoryGraphElement
 {
 
   private KnotCoordinates knotCoordinates = null;
-  private List<ColoredLineCoordinates> lineCoordinates = new ArrayList<>();
+  private final List<ColoredLineCoordinates> lineCoordinates = new ArrayList<>();
   private int knotIndex = Integer.MAX_VALUE;
 
   /**

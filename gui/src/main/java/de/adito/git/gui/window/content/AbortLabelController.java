@@ -27,7 +27,7 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
   private final BranchWindowContent branchWindowContent;
   private final Observable<Optional<IRepository>> repositoryObservable;
   private final INotifyUtil notifyUtil;
-  private MouseListener mouseListener = voidListener;
+  private static final MouseListener mouseListener = voidListener;
 
   public AbortLabelController(@NotNull BranchWindowContent pBranchWindowContent, @NotNull Observable<Optional<IRepositoryState>> pRepoStateObservable,
                               @NotNull Observable<Optional<IRepository>> pRepositoryObservable, @NotNull INotifyUtil pNotifyUtil)

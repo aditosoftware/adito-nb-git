@@ -21,7 +21,7 @@ public abstract class ObservingLabelController<TYPE> implements Disposable
 
   protected CompositeDisposable disposable = new CompositeDisposable();
   protected final JLabel label;
-  protected final MouseListener voidListener = new MouseAdapter()
+  protected static final MouseListener voidListener = new MouseAdapter()
   {
   };
 

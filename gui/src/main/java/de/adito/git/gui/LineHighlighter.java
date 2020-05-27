@@ -13,7 +13,7 @@ import java.util.*;
 public class LineHighlighter extends DefaultHighlighter
 {
 
-  private Map<Object, LineHighlighter._Highlight> backgroundHighlights = new LinkedHashMap<>();
+  private final Map<Object, LineHighlighter._Highlight> backgroundHighlights = new LinkedHashMap<>();
   private JTextComponent component;
 
   /**
@@ -117,9 +117,9 @@ public class LineHighlighter extends DefaultHighlighter
 
   private static class _Highlight
   {
-    private int start;
-    private int end;
-    private HighlightPainter painter;
+    private final int start;
+    private final int end;
+    private final HighlightPainter painter;
 
     private _Highlight(int start, int end, HighlightPainter painter)
     {

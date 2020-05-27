@@ -49,7 +49,7 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final Observable<Optional<IRepository>> repository;
   private final Disposable tagDisposable;
   private final ComputationCycleExecutor executor = new ComputationCycleExecutor();
-  private boolean expandActionDone = false;
+  private static final boolean expandActionDone = false;
   private ObservableTreeSelectionModel selectionModel;
   private _SelectCommitAction selectCommitAction;
 

@@ -20,7 +20,7 @@ public class ObservableTreeSelectionModel implements TreeSelectionModel, IDiscar
 
   private final Observable<TreePath[]> selectedPaths;
   private final CompositeDisposable disposables = new CompositeDisposable();
-  private TreeSelectionModel delegate;
+  private final TreeSelectionModel delegate;
 
 
   public ObservableTreeSelectionModel(TreeSelectionModel pDelegate)

@@ -48,9 +48,9 @@ class EditorColorizer extends JPanel implements IDiscardable
   private final JTextComponent targetEditor;
   private Observable<List<IChangeDelta>> chunkObservable;
   private final JViewport editorViewPort;
-  private CompositeDisposable disposable = new CompositeDisposable();
-  private File file;
-  private ImageIcon rightArrow = new NBIconLoader().getIcon(ARROW_RIGHT);
+  private final CompositeDisposable disposable = new CompositeDisposable();
+  private final File file;
+  private final ImageIcon rightArrow = new NBIconLoader().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList<>();
   private Observable<List<_ChangeHolder>> rectanglesObs;
   private BufferedImage cachedImage;

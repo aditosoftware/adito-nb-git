@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +24,7 @@ import java.util.Optional;
 public class CheckoutCommitAction extends AbstractTableAction
 {
 
-  private INotifyUtil notifyUtil;
+  private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
@@ -47,7 +48,7 @@ public class CheckoutCommitAction extends AbstractTableAction
     {
       progressFacade.executeInBackground("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
         IRepository pRepo = repository.blockingFirst()
-            .orElseThrow(() -> new RuntimeException("no valid repository found"));
+            .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
         try
         {
           pRepo.setUpdateFlag(false);

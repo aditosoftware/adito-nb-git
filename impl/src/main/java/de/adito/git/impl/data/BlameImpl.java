@@ -15,7 +15,7 @@ import java.util.Date;
 public class BlameImpl implements IBlame
 {
 
-  private BlameResult blame;
+  private final BlameResult blame;
 
   public BlameImpl(BlameResult pBlame)
   {

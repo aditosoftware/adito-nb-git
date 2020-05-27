@@ -6,6 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -22,8 +23,8 @@ class IgnoreAction extends AbstractTableAction
 {
 
   private final IAsyncProgressFacade progressFacade;
-  private Observable<Optional<IRepository>> repository;
-  private Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
+  private final Observable<Optional<IRepository>> repository;
+  private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
   IgnoreAction(IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
@@ -44,7 +45,7 @@ class IgnoreAction extends AbstractTableAction
           .stream()
           .map(iFileChangeType -> new File(iFileChangeType.getFile().getPath()))
           .collect(Collectors.toList());
-      repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found")).ignore(files);
+      repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg"))).ignore(files);
     });
   }
 

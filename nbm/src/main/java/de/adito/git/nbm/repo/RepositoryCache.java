@@ -40,8 +40,8 @@ public class RepositoryCache
   private static final ThreadPoolExecutor executorService = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 30, TimeUnit.SECONDS,
                                                                                    new ArrayBlockingQueue<>(20));
   private static RepositoryCache instance;
-  private PropertyChangeListener pcl = new _OpenProjectListener();
-  private IRepositoryProviderFactory repositoryProviderFactory = IGitConstants.INJECTOR.getInstance(IRepositoryProviderFactory.class);
+  private final PropertyChangeListener pcl = new _OpenProjectListener();
+  private final IRepositoryProviderFactory repositoryProviderFactory = IGitConstants.INJECTOR.getInstance(IRepositoryProviderFactory.class);
   private final BehaviorSubject<List<RepositoryProvider>> providers = BehaviorSubject.createDefault(List.of());
 
   private RepositoryCache()

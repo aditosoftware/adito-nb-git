@@ -111,8 +111,8 @@ class WindowProviderNBImpl implements IWindowProvider
 
   private static class _SingletonIdentifier
   {
-    private Observable<Optional<IRepository>> repoObservable;
-    private Set<Object> objects;
+    private final Observable<Optional<IRepository>> repoObservable;
+    private final Set<Object> objects;
 
     _SingletonIdentifier(Observable<Optional<IRepository>> pRepoObservable, Object... pObjects)
     {

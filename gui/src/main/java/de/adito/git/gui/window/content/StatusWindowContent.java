@@ -47,7 +47,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
   private StatusTree statusTree;
   private BaseObservingTreeModel<IFileChangeType> statusTreeModel;
   private Action openFileAction;
-  private List<IDiscardable> discardableActions = new ArrayList<>();
+  private final List<IDiscardable> discardableActions = new ArrayList<>();
   private ObservableTreeUpdater<IFileChangeType> treeUpdater;
 
   @Inject

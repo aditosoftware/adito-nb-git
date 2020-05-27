@@ -12,7 +12,7 @@ import java.awt.event.ActionEvent;
 public class ShowAnnotationNBAction extends AbstractAction
 {
 
-  private JTextComponent targetEditor;
+  private final JTextComponent targetEditor;
 
   public ShowAnnotationNBAction(JTextComponent pTargetEditor)
   {

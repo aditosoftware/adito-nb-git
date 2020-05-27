@@ -19,8 +19,8 @@ public class LayeredBorderLayout implements LayoutManager2
   private final List<Component> southComponents = new ArrayList<>();
   private final List<Component> eastComponents = new ArrayList<>();
   private final List<Component> westComponents = new ArrayList<>();
-  private int hgap;
-  private int vgap;
+  private final int hgap;
+  private final int vgap;
 
   @SuppressWarnings("WeakerAccess")
   public LayeredBorderLayout(int pHgap, int pVgap)

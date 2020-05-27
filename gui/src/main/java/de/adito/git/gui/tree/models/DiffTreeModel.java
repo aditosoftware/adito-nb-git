@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class DiffTreeModel extends ObservingTreeModel<IDiffInfo> implements IDiscardable
 {
 
-  private Comparator<TreeNode> comparator = _getDefaultComparator();
+  private final Comparator<TreeNode> comparator = _getDefaultComparator();
 
   public DiffTreeModel(@NotNull File pProjectDirectory)
   {

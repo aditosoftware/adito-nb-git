@@ -6,9 +6,11 @@ import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.progress.AsyncProgressFacadeImpl;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.progress.ProgressHandle;
-import org.openide.filesystems.*;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * @author a.arnold, 09.01.2019
@@ -39,10 +41,7 @@ class AditoRepositoryCloneWizardExec
     }
 
     //delete the ssh key
-    for (int i = 0; i < pSshKey.length; i++)
-    {
-      pSshKey[i] = 0;
-    }
+    Arrays.fill(pSshKey, (char) 0);
 
     return FileUtil.toFileObject(new File(pLocalPath, pProjectName));
   }

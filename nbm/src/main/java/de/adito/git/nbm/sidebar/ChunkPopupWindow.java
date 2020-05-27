@@ -39,7 +39,7 @@ class ChunkPopupWindow extends JWindow
   private final IChangeDelta changeDelta;
   private final Observable<List<IChangeDelta>> changeChunkList;
   private final EditorColorizer editorColorizer;
-  private _WindowDisposer windowDisposer;
+  private final _WindowDisposer windowDisposer;
   private JScrollPane scrollPane;
   private JToolBar toolBar;
 
@@ -269,7 +269,7 @@ class ChunkPopupWindow extends JWindow
     }
     int minHeight = pFontMetrics.getHeight() * lines.length;
     return new Dimension(minWidth + INSET_RIGHT + scrollPane.getInsets().left + scrollPane.getInsets().right,
-                         (minHeight > MIN_HEIGHT ? minHeight : MIN_HEIGHT) + scrollPane.getInsets().top + scrollPane.getInsets().bottom);
+                         (Math.max(minHeight, MIN_HEIGHT)) + scrollPane.getInsets().top + scrollPane.getInsets().bottom);
   }
 
   /**
@@ -362,7 +362,7 @@ class ChunkPopupWindow extends JWindow
   /**
    * Stores Information for rolling back a changed part of a file to the HEAD state
    */
-  private class _RollbackInformation
+  private static class _RollbackInformation
   {
 
     private final int startOffset;

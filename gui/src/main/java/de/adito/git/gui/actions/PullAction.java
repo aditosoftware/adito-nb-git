@@ -18,6 +18,7 @@ import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
 /**
  * PullAction to pull from one branch.
@@ -89,7 +89,8 @@ class PullAction extends AbstractAction
       ICommit head = pRepo.getCommit(null);
       if (pRepo.getStatus().blockingFirst().map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(false))
       {
-        notifyUtil.notify("Found conflicting files", "There are files that have the conflicting state, resolve these conflicts first before pulling", false);
+        notifyUtil.notify(Util.getResource(this.getClass(), "pullExistingConflictingFilesTitle"),
+                          Util.getResource(this.getClass(), "pullExistingConflictingFilesMsg"), false);
         return;
       }
       if (!pRepo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
@@ -109,11 +110,11 @@ class PullAction extends AbstractAction
         if (rebaseResult.isSuccess())
         {
           if (rebaseResult.getResultType() != IRebaseResult.ResultType.UP_TO_DATE)
-            notifyUtil.notify("Pull successful", "The pull --rebase was successful, files are now up-to-date", false,
+            notifyUtil.notify(Util.getResource(this.getClass(), "pullSuccessTitle"), Util.getResource(this.getClass(), "pullSuccessMsg"), false,
                               actionProvider.getDiffCommitToHeadAction(repository, Observable.just(Optional.of(List.of(head))), Observable.just(Optional.empty())));
           else
           {
-            notifyUtil.notify("Pull successful", "Files are already up-to-date", false);
+            notifyUtil.notify(Util.getResource(this.getClass(), "pullSuccessTitle"), Util.getResource(this.getClass(), "pullAlreadyUpToDate"), false);
           }
           break;
         }
@@ -125,8 +126,8 @@ class PullAction extends AbstractAction
         }
         if (rebaseResult.getResultType() == null)
         {
-          notifyUtil.notify("Unclear rebase state, aborting rebase", "The current rebase state is neither a conflict nor success, aborting rebase",
-                            true);
+          notifyUtil.notify(Util.getResource(this.getClass(), "pullUnclearRebaseStateTitle"),
+                            Util.getResource(this.getClass(), "pullUnclearRebaseStateMsg"), true);
           _abortRebase(pRepo);
           doAbort = true;
         }
@@ -134,15 +135,15 @@ class PullAction extends AbstractAction
     }
     catch (MissingTrackedBranchException pE)
     {
-      notifyUtil.notify(pE, "Pull failed.", false);
+      notifyUtil.notify(pE, Util.getResource(this.getClass(), "pullFailedUpstreamBranchMsg"), false);
     }
     catch (AuthCancelledException pE)
     {
-      notifyUtil.notify("Aborted pull", "Pull was aborted because authentication was cancelled", false);
+      notifyUtil.notify(Util.getResource(this.getClass(), "pullAbortTitle"), Util.getResource(this.getClass(), "pullAbortDueToAuthCancel"), false);
     }
     catch (Exception e)
     {
-      notifyUtil.notify(e, "Pull failed due to an exception.", false);
+      notifyUtil.notify(e, Util.getResource(this.getClass(), "pullFailedExceptionMsg"), false);
     }
     finally
     {
@@ -151,7 +152,7 @@ class PullAction extends AbstractAction
         String stashedCommitId = prefStore.get(STASH_ID_KEY);
         if (stashedCommitId != null)
         {
-          pProgressHandle.setDescription("Un-stashing changes");
+          pProgressHandle.setDescription(Util.getResource(this.getClass(), "unstashChangesMessage"));
           StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
           prefStore.put(STASH_ID_KEY, null);
         }
@@ -177,13 +178,14 @@ class PullAction extends AbstractAction
     }
     else if (!dialogResult.isAbortMerge())
     {
-      promptDialogResult = dialogProvider.showMessageDialog(ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSaveStateQuestion"),
+      promptDialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
                                                             List.of(IDialogDisplayer.EButtons.SAVE, IDialogDisplayer.EButtons.ABORT),
                                                             List.of(IDialogDisplayer.EButtons.SAVE));
       if (promptDialogResult.isOkay())
       {
         doUnstash = false;
-        notifyUtil.notify("Saved merge state", ResourceBundle.getBundle(getClass().getPackageName() + ".Bundle").getString("mergeSavedStateMessage"), false);
+        notifyUtil.notify(Util.getResource(this.getClass(), "mergeSavedStateTitle"), Util.getResource(this.getClass(), "mergeSavedStateMsg"),
+                          false);
       }
     }
     if (dialogResult.isAbortMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
@@ -206,12 +208,13 @@ class PullAction extends AbstractAction
         pRepo.pull(true);
     if (abortedRebaseResult.getResultType() != IRebaseResult.ResultType.ABORTED)
     {
-      String errorMessage = "The abort of the rebase failed with state: " + abortedRebaseResult.getResultType();
+      String errorMessage = Util.getResource(this.getClass(), "pullAbortErrorMsg") + abortedRebaseResult.getResultType();
       RuntimeException pE = new RuntimeException(errorMessage);
       notifyUtil.notify(pE, errorMessage + ". ", false);
+      return;
     }
     // abort was successful -> notify user
-    notifyUtil.notify("Aborted rebase", "Rebase abort was successful, all local content restored to state before rebase", true);
+    notifyUtil.notify(Util.getResource(this.getClass(), "pullAbortTitle"), Util.getResource(this.getClass(), "pullAbortMsg"), true);
   }
 
   /**
@@ -232,10 +235,8 @@ class PullAction extends AbstractAction
       {
         if (repositoryState.get().getCurrentRemoteTrackedBranch() != null)
         {
-          IUserPromptDialogResult dialogResult = dialogProvider.showMessageDialog("<html>Local unpushed commits contain a merge-commit, rebasing a merge-commit can" +
-                                                                                      " lead to lost data.<br>Do you want to merge the remote branch into the current " +
-                                                                                      "branch instead?</html>", List.of(IDialogDisplayer.EButtons.MERGE_REMOTE,
-                                                                                                                        IDialogDisplayer.EButtons.CANCEL),
+          IUserPromptDialogResult dialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "rebaseMergeCommitsWarning"),
+                                                                                  List.of(IDialogDisplayer.EButtons.MERGE_REMOTE, IDialogDisplayer.EButtons.CANCEL),
                                                                                   List.of(IDialogDisplayer.EButtons.MERGE_REMOTE));
           if (dialogResult.isOkay())
           {

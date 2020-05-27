@@ -13,6 +13,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.dialogs.results.ICommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +37,8 @@ class CommitAction extends AbstractTableAction
   private final IPrefStore prefStore;
   private final ISaveUtil saveUtil;
   private String messageTemplate;
-  private Observable<Optional<IRepository>> repository;
-  private IDialogProvider dialogProvider;
+  private final Observable<Optional<IRepository>> repository;
+  private final IDialogProvider dialogProvider;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
 
   @Inject
@@ -76,7 +77,7 @@ class CommitAction extends AbstractTableAction
     {
       progressFacade.executeInBackground("Committing Changes", pProgress -> {
         List<File> files = dialogResult.getInformation().getSelectedFilesSupplier().get();
-        IRepository iRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+        IRepository iRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
         iRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().getUserName(), dialogResult.getInformation().getUserMail(),
                      dialogResult.getInformation().isDoAmend());
         prefStore.put(prefStoreInstanceKey, null);

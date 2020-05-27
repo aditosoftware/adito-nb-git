@@ -32,7 +32,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   private final Logger logger = Logger.getLogger(TransportConfigCallbackImpl.class.getName());
   private final IPrefStore prefStore;
   private final IKeyStore keyStore;
-  private GitUserInfo gitUserInfo;
+  private final GitUserInfo gitUserInfo;
   private final IUserInputPrompt userInputPrompt;
   private final IConfig config;
   private String sshKeyPath;

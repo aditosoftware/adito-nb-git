@@ -31,8 +31,8 @@ public class StatusLineElementImpl implements StatusLineElementProvider, IDiscar
 
   private final JPanel statusLinePanel;
   private JComponent branchWindowContent;
-  private IWindowContentProvider windowContentProvider = IGitConstants.INJECTOR.getInstance(IWindowContentProvider.class);
-  private JLabel label = new JLabel(NbBundle.getMessage(StatusLineElementImpl.class, "Invalid.Initialized"));
+  private final IWindowContentProvider windowContentProvider = IGitConstants.INJECTOR.getInstance(IWindowContentProvider.class);
+  private final JLabel label = new JLabel(NbBundle.getMessage(StatusLineElementImpl.class, "Invalid.Initialized"));
   private PopupWindow popupWindow;
   private Disposable disposable;
 

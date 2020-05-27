@@ -12,6 +12,7 @@ import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,9 +31,9 @@ class CheckoutAction extends AbstractTableAction
   private final IPrefStore prefStore;
   private final IDialogProvider dialogProvider;
   private final IAsyncProgressFacade progressFactory;
-  private Observable<Optional<IRepository>> repositoryObservable;
+  private final Observable<Optional<IRepository>> repositoryObservable;
   private final ISaveUtil saveUtil;
-  private Observable<Optional<IBranch>> branchObservable;
+  private final Observable<Optional<IBranch>> branchObservable;
 
   /**
    * @param pRepository The repository where the branch is
@@ -57,7 +58,7 @@ class CheckoutAction extends AbstractTableAction
   public void actionPerformed(ActionEvent pEvent)
   {
     saveUtil.saveUnsavedFiles();
-    IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+    IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
     Optional<IBranch> branchOpt = branchObservable.blockingFirst();
     if (branchOpt.isPresent())
     {

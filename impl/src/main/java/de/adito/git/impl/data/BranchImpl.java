@@ -20,7 +20,7 @@ public class BranchImpl implements IBranch
   private Ref branchRef;
   private final TrackedBranchStatusCache trackedBranchStatusCache;
   private EBranchType branchType;
-  private String simpleName;
+  private final String simpleName;
 
   public BranchImpl(Ref pBranchRef, TrackedBranchStatusCache pTrackedBranchStatusCache)
   {

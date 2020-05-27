@@ -3,6 +3,8 @@ package de.adito.git.impl.data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+
 /**
  * Class to (temporarily) store information about an ssh key
  *
@@ -13,7 +15,7 @@ public class SSHKeyDetails
 
   private final String keyLocation;
   private final String remoteName;
-  private char[] passPhrase;
+  private final char[] passPhrase;
 
   public SSHKeyDetails(@Nullable String pKeyLocation, @NotNull String pRemoteName, @Nullable char[] pPassPhrase)
   {
@@ -56,10 +58,7 @@ public class SSHKeyDetails
   {
     if (passPhrase != null)
     {
-      for (int index = 0; index < passPhrase.length; index++)
-      {
-        passPhrase[index] = '0';
-      }
+      Arrays.fill(passPhrase, '0');
     }
   }
 }

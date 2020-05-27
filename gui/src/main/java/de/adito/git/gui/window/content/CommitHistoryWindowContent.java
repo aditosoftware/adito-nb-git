@@ -71,14 +71,14 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final List<IDiscardable> popupDiscardables = new ArrayList<>();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final ObservableListSelectionModel observableCommitListSelectionModel;
-  private JPopupMenu commitListPopupMenu = new JPopupMenu();
+  private final JPopupMenu commitListPopupMenu = new JPopupMenu();
 
   // Variables for filtering the shown entries
-  private JTextField authorField = new JTextField();
-  private JComboBox<IBranch> branchSelectionBox = new JComboBox<>();
+  private final JTextField authorField = new JTextField();
+  private final JComboBox<IBranch> branchSelectionBox = new JComboBox<>();
   private final List<File> chosenFiles = new ArrayList<>();
-  private Observable<ICommitFilter> commitFilterObs;
-  private Disposable branchObservable;
+  private final Observable<ICommitFilter> commitFilterObs;
+  private final Disposable branchObservable;
 
   /**
    * @param pActionProvider         IActionProvider from which actions can be retrieved
@@ -156,7 +156,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       tmpSelectedItem = pStartFilter.getBranch();
     branchSelectionBox.removeAllItems();
     branchSelectionBox.addItem(IBranch.ALL_BRANCHES);
-    pBranches.forEach(pBranch -> branchSelectionBox.addItem(pBranch));
+    pBranches.forEach(branchSelectionBox::addItem);
     branchSelectionBox.setSelectedItem(tmpSelectedItem == null ? IBranch.ALL_BRANCHES : tmpSelectedItem);
   }
 
@@ -306,7 +306,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
    * JTable whose tooltip depends on the component that the mouse is hovering over (so if one cell consists of more than one component, the tooltip
    * of the component that the mouse is over is shown)
    */
-  private class _SearchableCommitTable extends SearchableTable
+  private static class _SearchableCommitTable extends SearchableTable
   {
 
     _SearchableCommitTable(@Nullable TableModel pTableModel, @NotNull JPanel pView)

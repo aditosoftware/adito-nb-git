@@ -66,9 +66,4 @@ public class PullNBAction extends NBAction
     return NbBundle.getMessage(PullNBAction.class, "LBL_PullNBAction_Name");
   }
 
-  @Override
-  public String toString()
-  {
-    return super.toString();
-  }
 }

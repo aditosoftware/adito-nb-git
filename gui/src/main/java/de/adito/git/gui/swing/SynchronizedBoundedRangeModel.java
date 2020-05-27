@@ -32,7 +32,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
   // aggregated and released after a set amount of time. The resulting effect should be the same scroll speed with fewer events
   private final BehaviorSubject<Integer> throttler = BehaviorSubject.create();
   private final AtomicInteger throttleCounter = new AtomicInteger(0);
-  private HashMap<BoundedRangeModel, List<_CoupledScrollbarInfo>> subListCache = new HashMap<>();
+  private final HashMap<BoundedRangeModel, List<_CoupledScrollbarInfo>> subListCache = new HashMap<>();
 
   public SynchronizedBoundedRangeModel(@NotNull JScrollBar pCoupledBar, @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
                                        @NotNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)

@@ -17,7 +17,7 @@ public class QuickSearchProviderImpl implements IQuickSearchProvider
     return new QuickSearchImpl(QuickSearch.attach(pComponent, pConstraints, new QuickSearchCallbackImpl(pCallback)));
   }
 
-  class QuickSearchCallbackImpl implements QuickSearch.Callback
+  static class QuickSearchCallbackImpl implements QuickSearch.Callback
   {
 
     private final IQuickSearch.ICallback quickSearchCallback;

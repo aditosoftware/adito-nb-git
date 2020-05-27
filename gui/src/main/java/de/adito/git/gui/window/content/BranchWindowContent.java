@@ -41,8 +41,8 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   private final Observable<Optional<IRepository>> observableOptRepo;
   private final Observable<Optional<List<IBranch>>> observableBranches;
   private ObservableListSelectionModel observableListSelectionModel;
-  private List<JList<IBranch>> branchLists = new ArrayList<>();
-  private CompositeDisposable disposable = new CompositeDisposable();
+  private final List<JList<IBranch>> branchLists = new ArrayList<>();
+  private final CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
   public BranchWindowContent(IActionProvider pProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pObservableOptRepo)
@@ -144,8 +144,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   @Override
   public void discard()
   {
-    if (disposable != null)
-      disposable.dispose();
+    disposable.dispose();
     observableListSelectionModel.discard();
   }
 

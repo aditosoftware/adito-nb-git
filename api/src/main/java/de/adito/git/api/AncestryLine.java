@@ -18,7 +18,7 @@ public class AncestryLine
   private final Color color;
   private LineType lineType;
   private double stillBornMeetingIndex = 0;
-  private ICommit nextCommit;
+  private final ICommit nextCommit;
 
   /**
    * FULL: active line

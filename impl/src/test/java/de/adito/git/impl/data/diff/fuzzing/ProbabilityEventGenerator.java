@@ -44,7 +44,7 @@ public class ProbabilityEventGenerator<EVENTTYPE>
    */
   public static class Builder<EVENTTYPE>
   {
-    private List<EventShares<EVENTTYPE>> probabilities = new ArrayList<>();
+    private final List<EventShares<EVENTTYPE>> probabilities = new ArrayList<>();
     private IRandomGenerator randomGenerator;
 
     /**

@@ -22,8 +22,8 @@ public class OnionColumnLayout implements LayoutManager2
   public static final String RIGHT = "RIGHT";
 
   private Component centerComponent;
-  private List<Component> leftComponents = new ArrayList<>();
-  private List<Component> rightComponents = new ArrayList<>();
+  private final List<Component> leftComponents = new ArrayList<>();
+  private final List<Component> rightComponents = new ArrayList<>();
 
   @Override
   public void addLayoutComponent(Component pComp, Object pConstraints)

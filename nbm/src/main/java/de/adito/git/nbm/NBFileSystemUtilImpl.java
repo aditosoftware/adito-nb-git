@@ -48,7 +48,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
   private final FileSystem memoryFS = FileUtil.createMemoryFileSystem();
   private final HashMap<String, Image> artificialIconMap = new HashMap<>();
   private final LoadingCache<_IconKey, Image> iconCache;
-  private Image defaultMissingIconImage = ImageUtilities.icon2Image(MissingIcon.get16x16());
+  private final Image defaultMissingIconImage = ImageUtilities.icon2Image(MissingIcon.get16x16());
 
   @Singleton
   public NBFileSystemUtilImpl()

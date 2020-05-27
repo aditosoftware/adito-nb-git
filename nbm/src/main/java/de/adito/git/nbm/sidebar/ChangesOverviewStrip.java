@@ -169,6 +169,6 @@ public class ChangesOverviewStrip extends JPanel implements IDiscardable
       return HEIGHT_OFFSET;
     }
 
-    return (HEIGHT_OFFSET > scrollBar.top ? HEIGHT_OFFSET : scrollBar.top) + PIXELS_FOR_LINE;
+    return (Math.max(HEIGHT_OFFSET, scrollBar.top)) + PIXELS_FOR_LINE;
   }
 }

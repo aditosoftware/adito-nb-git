@@ -28,7 +28,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
 {
   private CloneWizardVisualPanel1 panel1;
   private WizardDescriptor wizard;
-  private ChangeSupport cs = new ChangeSupport(this);
+  private final ChangeSupport cs = new ChangeSupport(this);
   private NBPrefStore preferences;
   private Pattern compiledUrlPattern;
 

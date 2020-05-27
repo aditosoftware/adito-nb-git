@@ -20,7 +20,7 @@ public class CloneWizardPanel2 implements WizardDescriptor.Panel<WizardDescripto
   private final ICloneRepo cloneRepo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
   private CloneWizardVisualPanel2 panel2;
   private WizardDescriptor wizard;
-  private ChangeSupport cs = new ChangeSupport(this);
+  private final ChangeSupport cs = new ChangeSupport(this);
 
   @Override
   public Component getComponent()

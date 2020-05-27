@@ -12,6 +12,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IDeleteBranchDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -54,7 +55,7 @@ class DeleteBranchAction extends AbstractTableAction
       if (result.isDelete())
       {
         progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + branchName, pHandle -> {
-          IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException("no valid repository found"));
+          IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
           _deleteBranch(branchName, result.getInformation(), repo);
         });
       }

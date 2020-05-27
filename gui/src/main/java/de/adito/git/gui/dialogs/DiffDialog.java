@@ -52,8 +52,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final JPanel searchPanel = new JPanel(new BorderLayout());
   private final ObservableTreeUpdater<IFileChangeType> treeUpdater;
   private DiffPanel diffPanel;
-  private CompositeDisposable disposables = new CompositeDisposable();
-  private List<IFileDiff> diffs;
+  private final CompositeDisposable disposables = new CompositeDisposable();
+  private final List<IFileDiff> diffs;
 
   @Inject
   public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil,

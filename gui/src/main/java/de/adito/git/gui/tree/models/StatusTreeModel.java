@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class StatusTreeModel extends ObservingTreeModel<IFileChangeType> implements IDiscardable
 {
 
-  private Comparator<TreeNode> comparator = _getDefaultComparator();
+  private final Comparator<TreeNode> comparator = _getDefaultComparator();
 
   public StatusTreeModel(@NotNull File pProjectDirectory)
   {
