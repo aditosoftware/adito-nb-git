@@ -208,8 +208,8 @@ class ChunkPopupWindow extends JWindow
     String content;
     try
     {
-      startOffset = pChangeDelta.getStartTextIndex(EChangeSide.NEW);
-      int endOffset = pChangeDelta.getEndTextIndex(EChangeSide.NEW);
+      startOffset = pChangeDelta.getStartTextIndex(EChangeSide.OLD);
+      int endOffset = pChangeDelta.getEndTextIndex(EChangeSide.OLD);
       if (endOffset <= startOffset)
         length = 0;
       else
@@ -222,7 +222,7 @@ class ChunkPopupWindow extends JWindow
       throw new RuntimeException(pE);
     }
     // If it is an insert, remove the newline at the end as well (because else the newline is still an insertion)
-    if (pChangeDelta.getEndLine(EChangeSide.OLD) == pChangeDelta.getStartLine(EChangeSide.OLD))
+    if (pChangeDelta.getEndLine(EChangeSide.NEW) == pChangeDelta.getStartLine(EChangeSide.NEW))
       length += 1;
     return new _RollbackInformation(startOffset, length, _getAffectedContents(content, pChangeDelta));
   }
@@ -244,7 +244,7 @@ class ChunkPopupWindow extends JWindow
     }
     String[] lines = pContents.replace("\r", "").split("\n");
     StringBuilder builder = new StringBuilder();
-    for (int index = pChangeDelta.getStartLine(EChangeSide.OLD); index < pChangeDelta.getEndLine(EChangeSide.OLD); index++)
+    for (int index = pChangeDelta.getStartLine(EChangeSide.NEW); index < pChangeDelta.getEndLine(EChangeSide.NEW); index++)
     {
       builder.append(lines[index]).append("\n");
     }
