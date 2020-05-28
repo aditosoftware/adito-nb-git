@@ -9,9 +9,7 @@ import org.openide.DialogDisplayer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.BorderLayout;
-import java.awt.Dialog;
-import java.awt.Dimension;
+import java.awt.*;
 import java.util.function.Function;
 
 /**
@@ -46,7 +44,9 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
                                                              descriptorButtons[0], DialogDescriptor.BOTTOM_ALIGN, null, null);
     S content = pDialogContentSupplier.apply(defaultButton::setEnabled);
 
-    JPanel borderPane = new JPanel(new BorderLayout());
+    JPanel borderPane = new _NonScrollablePanel(new BorderLayout())
+    {
+    };
     borderPane.add(content, BorderLayout.CENTER);
     borderPane.setBorder(new EmptyBorder(7, 7, 0, 7));
     dialogDescriptor.setMessage(borderPane);
@@ -66,6 +66,52 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
       pressedButton = EButtons.ESCAPE;
 
     return new DialogResult<>(content, pressedButton, content.getMessage(), content.getInformation());
+  }
+
+  /**
+   * Extended JPanel that makes it so that the Panel does not provide scrolling in a ScrollPane, but instead requires wrapping or hiding of information
+   * This can be of use if you want to make sure a panel can be resized to a smaller size even if it is in a ScrollPane
+   */
+  private static class _NonScrollablePanel extends JPanel implements Scrollable
+  {
+    public _NonScrollablePanel(LayoutManager layout)
+    {
+      super(layout);
+    }
+
+    /*
+    Implementation of Scrollable, to disable scrolling in a scrollpane
+     */
+    @Override
+    public Dimension getPreferredScrollableViewportSize()
+    {
+      return getPreferredSize();
+    }
+
+    @Override
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
+    {
+      return 16;
+    }
+
+    @Override
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
+    {
+      return 16;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportWidth()
+    {
+      return true;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportHeight()
+    {
+      return true;
+    }
+
   }
 
 }

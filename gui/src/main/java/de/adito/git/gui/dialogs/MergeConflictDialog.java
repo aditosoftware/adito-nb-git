@@ -7,8 +7,10 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
+import de.adito.git.gui.swing.ComponentResizeListener;
 import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
 import de.adito.git.impl.Util;
@@ -36,6 +38,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 {
 
   private static final String NO_REPO_ERROR_MSG = Util.getResource(MergeConflictDialog.class, "noValidRepoMsg");
+  private static final String PREF_STORE_SIZE_KEY = Util.getResource(MergeConflictResolutionDialog.class, "mergePanelSizeKey");
 
   private final IDialogProvider dialogProvider;
   private final IDialogDisplayer.IDescriptor isValidDescriptor;
@@ -51,11 +54,13 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final Disposable disposable;
   private final Disposable selectionDisposable;
   private final ObservableListSelectionModel observableListSelectionModel;
+  private final IPrefStore prefStore;
 
   @Inject
-  MergeConflictDialog(IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+  MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeData> pMergeConflictDiffs, @Assisted boolean pOnlyConflicting)
   {
+    prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     isValidDescriptor = pIsValidDescriptor;
     repository = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG));
@@ -99,7 +104,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private void _initGui()
   {
     setLayout(new BorderLayout(5, 10));
-    setPreferredSize(new Dimension(800, 600));
+    setPreferredSize(ComponentResizeListener._getPreferredSize(prefStore, PREF_STORE_SIZE_KEY, new Dimension(800, 600)));
+    addComponentListener(new ComponentResizeListener(prefStore, PREF_STORE_SIZE_KEY));
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
     manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable));

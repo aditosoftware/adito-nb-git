@@ -4,10 +4,13 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.swing.ComponentResizeListener;
+import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,12 +34,16 @@ import static de.adito.git.gui.Constants.DISCARD_CHANGE_ICON;
 class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements IDiscardable
 {
 
+  private static final String PREF_STORE_SIZE_KEY = Util.getResource(MergeConflictResolutionDialog.class, "mergeResolutionPanelSizeKey");
+  private static final String PREF_STORE_INNER_SIZE_KEY = Util.getResource(MergeConflictResolutionDialog.class, "mergeResolutionPanelInnerSizeKey");
+  private final IPrefStore prefStore;
   private final IMergeData mergeDiff;
   private final MergePanel mergePanel;
 
   @Inject
-  MergeConflictResolutionDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff)
+  MergeConflictResolutionDialog(IPrefStore pPrefStore, IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff)
   {
+    prefStore = pPrefStore;
     mergeDiff = pMergeDiff;
     ImageIcon acceptYoursIcon = pIconLoader.getIcon(ACCEPT_CHANGE_YOURS_ICON);
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
@@ -61,8 +68,10 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     optionsPanel.setBorder(null);
     toolBar.setBorder(null);
     diffPanel.add(optionsPanel, BorderLayout.NORTH);
-    diffPanel.setPreferredSize(new Dimension(1600, 900));
     add(diffPanel, BorderLayout.CENTER);
+    diffPanel.setPreferredSize(ComponentResizeListener._getPreferredSize(prefStore, PREF_STORE_INNER_SIZE_KEY, new Dimension(1600, 900)));
+    addComponentListener(new ComponentResizeListener(prefStore, PREF_STORE_INNER_SIZE_KEY));
+    addPropertyChangeListener(new NBdialogResizeListener(this, prefStore, PREF_STORE_SIZE_KEY));
   }
 
   @NotNull
