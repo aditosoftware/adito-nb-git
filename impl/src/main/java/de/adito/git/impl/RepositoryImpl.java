@@ -541,7 +541,7 @@ public class RepositoryImpl implements IRepository
   @Override
   public IFileDiff diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException
   {
-    return standAloneDiffProvider.diffOffline(pString, new String(Files.readAllBytes(pFile.toPath()), fileSystemUtil.getEncoding(pFile)));
+    return standAloneDiffProvider.diffOffline(new String(Files.readAllBytes(pFile.toPath()), fileSystemUtil.getEncoding(pFile)), pString);
   }
 
   @Override
