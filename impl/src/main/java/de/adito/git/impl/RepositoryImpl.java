@@ -557,7 +557,7 @@ public class RepositoryImpl implements IRepository
     RawText currentFileContents = new RawText(pFileContents.getBytes());
 
     EditList linesChanged = new HistogramDiff().diff(GitRawTextComparator.CURRENT.getValue(), headFileContents, currentFileContents);
-    return new FileDiffImpl(IFileDiffHeader.EMPTY_HEADER, linesChanged, new FileContentInfoImpl(() -> pFileContents, () -> StandardCharsets.UTF_8), fileContents)
+    return new FileDiffImpl(IFileDiffHeader.EMPTY_HEADER, linesChanged, fileContents, new FileContentInfoImpl(() -> pFileContents, () -> StandardCharsets.UTF_8))
         .getChangeDeltas();
   }
 
