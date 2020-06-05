@@ -64,7 +64,7 @@ public class ResolveConflictsNBAction extends NBAction
         .map(pFilePath -> new File(projectDir, pFilePath)).collect(Collectors.toList());
     return conflictingFiles.stream()
         .anyMatch(pConflictingFile -> getAllFilesOfNodes(lastActivated).stream()
-            .anyMatch(pFile -> pFile.equals(pConflictingFile)));
+            .anyMatch(pFile -> pConflictingFile.toPath().startsWith(pFile.toPath())));
   }
 
   @Override
