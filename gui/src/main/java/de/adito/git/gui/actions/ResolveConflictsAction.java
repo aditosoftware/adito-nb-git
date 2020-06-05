@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IMergeData;
@@ -13,6 +14,7 @@ import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.Observable;
@@ -89,7 +91,17 @@ class ResolveConflictsAction extends AbstractTableAction
         return;
       }
     }
-    dialogProvider.showMergeConflictDialog(repository, conflicts, true);
+    IMergeConflictDialogResult<?, ?> mergeConflictDialogResult = dialogProvider.showMergeConflictDialog(repository, conflicts, true);
+    if (mergeConflictDialogResult.isAbortMerge())
+    {
+      pRepo.reset(pRepo.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
+    }
+    else if (mergeConflictDialogResult.isFinishMerge())
+    {
+      dialogProvider.showCommitDialog(repository, pRepo.getStatus().map(pStatusOpt -> pStatusOpt.map(IFileStatus::getUncommitted)),
+                                      "merged xxx into " + pRepo.getRepositoryState().blockingFirst(Optional.empty())
+                                          .map(pRepoState -> pRepoState.getCurrentBranch().getSimpleName()).orElse(""));
+    }
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
