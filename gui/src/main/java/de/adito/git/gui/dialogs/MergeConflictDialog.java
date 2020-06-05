@@ -195,7 +195,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
    */
   private void _saveVersion(EConflictSide pConflictSide, IMergeData selectedMergeDiff, File pSelectedFile)
   {
-    String fileContents = selectedMergeDiff.getDiff(pConflictSide).getText(EChangeSide.OLD);
+    String fileContents = selectedMergeDiff.getDiff(pConflictSide).getText(EChangeSide.NEW);
     logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", pSelectedFile.getAbsolutePath(),
                                                selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW)));
     _writeToFile(fileContents, selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, pSelectedFile);
