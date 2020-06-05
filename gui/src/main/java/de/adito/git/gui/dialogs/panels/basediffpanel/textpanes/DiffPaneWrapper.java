@@ -164,10 +164,10 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     if (pTextChangeEvent.getSide() == model.getChangeSide() && pTextChangeEvent.isInit())
       editorPane.setText("");
     // insert the text from the event
-    TextHighlightUtil.insertColoredText(editorPane,
-                                        pTextChangeEvent,
-                                        model.getChangeSide());
     SwingUtilities.invokeLater(() -> {
+      TextHighlightUtil.insertColoredText(editorPane,
+                                          pTextChangeEvent,
+                                          model.getChangeSide());
       editorPane.revalidate();
       editorPane.repaint();
     });

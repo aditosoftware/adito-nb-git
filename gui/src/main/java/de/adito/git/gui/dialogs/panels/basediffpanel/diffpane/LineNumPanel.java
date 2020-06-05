@@ -4,10 +4,10 @@ import de.adito.git.api.ColorPicker;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.swing.LineNumber;
+import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.gui.swing.TextPaneUtil;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +19,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Panel that contains the line numbers of a given JTextPane. Arranges the numbers such that they fit the lines in the TextPane even if the font is
@@ -39,21 +38,22 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   private List<LineNumberColor> lineNumberColors = new ArrayList<>(); // all LineNumberColors for the file in the editor
   private BufferedImage lineNumImage = null;
   private final JEditorPane editorPane;
+  private final JViewport viewport;
   private final LineNumbersColorModel lineNumbersColorModel;
-  private final BehaviorSubject<Object> lineNumChangedObs = BehaviorSubject.create();
   private int lineNumFacadeWidth;
 
 
   /**
    * @param pModel           DiffPanelModel containing information about which parts of the FileChangeChunk should be utilized
    * @param pEditorPane      JEditorPane that displays the text from the IFileChangeChunks in the pModel
-   * @param pDisplayedArea   Observable of the Rectangle of the viewPort. Changes each time the viewPort is moved or resized
+   * @param pViewport        JViewPort containing pEditorPane
    * @param pViewPortSizeObs Observable of the Dimension of the viewPort. Changes each time the viewPort has its size changed, and only then
    */
-  LineNumPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, @NotNull Observable<Rectangle> pDisplayedArea,
+  LineNumPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, @NotNull JViewport pViewport,
                Observable<Dimension> pViewPortSizeObs, @NotNull LineNumbersColorModel pLineNumbersColorModel)
   {
     editorPane = pEditorPane;
+    viewport = pViewport;
     lineNumbersColorModel = pLineNumbersColorModel;
     lineNumbersColorModel.addLazyListener(this);
     editorInsets = pEditorPane.getInsets();
@@ -62,25 +62,28 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
     sizeDisposable = Observable.combineLatest(
-        pModel.getFileChangesObservable(), pViewPortSizeObs, lineNumChangedObs, ((pFileChangesEvent, pDimension, pObj) -> pFileChangesEvent))
+        pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
         .subscribe(
-            pFileChangeEvent -> SwingUtilities.invokeLater(() -> {
+            pFileChangeEvent -> SwingUtil.invokeASAP(() -> {
               lineNumFacadeWidth = _calculateLineWidth();
               setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
               lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
               repaint();
             }));
-    areaDisposable = Observable.combineLatest(
-        pModel.getFileChangesObservable(), pDisplayedArea, FileChangesRectanglePair::new).throttleLatest(16, TimeUnit.MILLISECONDS, true)
-        .subscribe(
-            pPair -> SwingUtilities.invokeLater(() -> {
-              if (lineNumImage == null)
-              {
-                lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
-              }
-              cachedViewRectangle = pPair.getRectangle();
-              repaint();
-            }));
+    areaDisposable = pModel.getFileChangesObservable().subscribe(pChangeEvent -> _recalcAndRedraw(pEditorPane, viewport));
+    pViewport.addChangeListener(e -> _recalcAndRedraw(pEditorPane, viewport));
+  }
+
+  private void _recalcAndRedraw(JEditorPane pEditorPane, @NotNull JViewport pViewport)
+  {
+    SwingUtil.invokeASAP(() -> {
+      if (lineNumImage == null)
+      {
+        lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
+      }
+      cachedViewRectangle = pViewport.getViewRect();
+      repaint();
+    });
   }
 
   @Override
@@ -105,7 +108,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   public void lineNumberColorsChanged(int pModelNumber, List<LineNumberColor> pNewValue)
   {
     lineNumberColors = pNewValue;
-    lineNumChangedObs.onNext(pNewValue);
+    _recalcAndRedraw(editorPane, viewport);
   }
 
   /**

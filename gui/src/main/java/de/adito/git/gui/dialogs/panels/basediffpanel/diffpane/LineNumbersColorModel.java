@@ -32,18 +32,17 @@ public class LineNumbersColorModel implements IDiscardable
   private final List<ILineNumberColorsListener> lazyListeners = new ArrayList<>();
   private List<LineNumberColor> viewCoordinatesColors = new ArrayList<>();
 
-  LineNumbersColorModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull Observable<Rectangle> pViewPortObs,
+  LineNumbersColorModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull JViewport pViewport,
                         @NotNull Observable<Dimension> pViewAreaObs, int pModelNumber)
   {
 
     model = pModel;
     modelNumber = pModelNumber;
-    Observable<Rectangle> viewPortObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewPortObs,
-                                                                        (pChangesEvent, pViewPort) -> pViewPort);
     Observable<IDeltaTextChangeEvent> eventObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewAreaObs,
                                                                                  (pChangesEvent, pArea) -> pChangesEvent);
     areaDisposable = eventObservable.subscribe(pEvent -> _calculateLineNumColors(pEditorPane, pEvent));
-    disposable = viewPortObservable.subscribe(this::_calculateRelativeLineNumberColors);
+    disposable = pModel.getFileChangesObservable().subscribe(pObj -> _calculateRelativeLineNumberColors(pViewport.getViewRect()));
+    pViewport.addChangeListener(pEvent -> _calculateRelativeLineNumberColors(pViewport.getViewRect()));
   }
 
   @Override

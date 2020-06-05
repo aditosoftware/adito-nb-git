@@ -3,19 +3,16 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
-import de.adito.git.gui.rxjava.ViewPortPositionObservable;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +29,6 @@ public class DiffPane extends JPanel implements IDiscardable
 {
 
 
-  private final Observable<Rectangle> viewPortPositionObservable;
   private final Observable<Dimension> viewPortSizeObservable;
   private final JScrollPane scrollPane = new JScrollPane();
   private final JEditorPane editorPane;
@@ -44,11 +40,6 @@ public class DiffPane extends JPanel implements IDiscardable
     editorPane = pEditorPane;
     Observable<Optional<Integer>> zoomObservable = Observable.create(new PropertyChangeObservable<Integer>(editorPane, "text-zoom"))
         .startWith(Optional.empty())
-        .replay(1)
-        .autoConnect(0, disposables::add);
-    Observable<Rectangle> basicViewportPositionObs = Observable.create(new ViewPortPositionObservable(scrollPane.getViewport())).distinctUntilChanged();
-    viewPortPositionObservable = Observable.combineLatest(zoomObservable, basicViewportPositionObs, (pZoom, pViewportArea) -> pViewportArea)
-        .observeOn(Schedulers.computation())
         .replay(1)
         .autoConnect(0, disposables::add);
     Observable<Dimension> basicViewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport()));
@@ -82,7 +73,7 @@ public class DiffPane extends JPanel implements IDiscardable
   }
 
   /**
-   * Only creates the LineNumbersColorModel, it does not be added to the Layout.
+   * Only creates the LineNumbersColorModel, it is not added to the Layout.
    *
    * @param pModel       DiffPanelModel with the Observable list of fileChangeChunks
    * @param pModelNumber number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
@@ -91,7 +82,7 @@ public class DiffPane extends JPanel implements IDiscardable
    */
   public LineNumbersColorModel createLineNumberColorModel(DiffPanelModel pModel, int pModelNumber)
   {
-    return new LineNumbersColorModel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable,
+    return new LineNumbersColorModel(pModel, editorPane, scrollPane.getViewport(), viewPortSizeObservable,
                                      pModelNumber);
   }
 
@@ -105,7 +96,7 @@ public class DiffPane extends JPanel implements IDiscardable
    */
   public void addLineNumPanel(LineNumbersColorModel pLineNumbersColorModel, DiffPanelModel pModel, String pLineOrientation)
   {
-    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable, pLineNumbersColorModel);
+    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, scrollPane.getViewport(), viewPortSizeObservable, pLineNumbersColorModel);
     discardables.add(lineNumPanel);
     add(lineNumPanel, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
   }
@@ -121,7 +112,7 @@ public class DiffPane extends JPanel implements IDiscardable
   public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
                                    LineNumbersColorModel[] pLineNumbersColorModels, @NotNull String pOrientation)
   {
-    ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, viewPortPositionObservable, viewPortSizeObservable,
+    ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, scrollPane.getViewport(), viewPortSizeObservable,
                                                                 pAcceptIcon, pDiscardIcon, pLineNumbersColorModels, pOrientation);
     discardables.add(choiceButtonPanel);
     add(choiceButtonPanel, pOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
