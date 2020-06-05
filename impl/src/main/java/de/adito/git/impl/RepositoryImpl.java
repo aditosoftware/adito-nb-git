@@ -1210,20 +1210,25 @@ public class RepositoryImpl implements IRepository
       {
         File aConflictingFile = new File(git.getRepository().getDirectory().getParent(), conflictingFiles.iterator().next());
         String currentBranchId = git.getRepository().getBranch();
-        String conflictingBranchId = RepositoryImplHelper.getConflictingBranch(aConflictingFile);
+        String conflictingBranchId;
+        conflictingBranchId = _getMergeHead(currentBranchId);
         if (conflictingBranchId == null)
         {
-          if (git.getRepository().readCherryPickHead() != null)
+          conflictingBranchId = RepositoryImplHelper.getConflictingBranch(aConflictingFile);
+          if (conflictingBranchId == null)
           {
-            conflictingBranchId = ObjectId.toString(git.getRepository().readCherryPickHead());
+            if (git.getRepository().readCherryPickHead() != null)
+            {
+              conflictingBranchId = ObjectId.toString(git.getRepository().readCherryPickHead());
+            }
+            else if (RepositoryImplHelper.getRebaseMergeHead(git).exists())
+            {
+              conflictingBranchId = Files.readAllLines(RepositoryImplHelper.getRebaseMergeHead(git).toPath()).get(0);
+            }
+            else
+              throw new TargetBranchNotFoundException("Cannot determine target branch of conflict",
+                                                      getCommit(ObjectId.toString(git.getRepository().readOrigHead())));
           }
-          else if (RepositoryImplHelper.getRebaseMergeHead(git).exists())
-          {
-            conflictingBranchId = Files.readAllLines(RepositoryImplHelper.getRebaseMergeHead(git).toPath()).get(0);
-          }
-          else
-            throw new TargetBranchNotFoundException("Cannot determine target branch of conflict",
-                                                    getCommit(ObjectId.toString(git.getRepository().readOrigHead())));
         }
         if (conflictingBranchId.contains("Stashed changes"))
         {
@@ -1250,6 +1255,24 @@ public class RepositoryImpl implements IRepository
     {
       throw new AditoGitException(pE);
     }
+  }
+
+  /**
+   * return the first mergeHead that is not equal to pCurrentBranchId. If no mergeHeads can be found or the only mergeHead found equals pCurrentBranchId null is returned
+   *
+   * @param pCurrentBranchId Id of the current branch, excluded from the results of the found mergeHeads
+   * @return first mergeHead that is not equal to pCurrentBranchId, or null
+   * @throws IOException if JGit has troubles reading the file containing the mergeHeads
+   */
+  @Nullable
+  private String _getMergeHead(@NotNull String pCurrentBranchId) throws IOException
+  {
+    List<ObjectId> mergeHeads = git.getRepository().readMergeHeads();
+    if (mergeHeads != null && mergeHeads.size() > 0)
+    {
+      return mergeHeads.stream().map(pObjectId -> ObjectId.toString(pObjectId)).filter(pObjectId -> !pObjectId.equals(pCurrentBranchId)).findFirst().orElse(null);
+    }
+    return null;
   }
 
   @NotNull
