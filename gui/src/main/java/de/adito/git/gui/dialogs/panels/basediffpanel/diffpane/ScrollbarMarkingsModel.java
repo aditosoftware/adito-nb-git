@@ -32,39 +32,47 @@ public class ScrollbarMarkingsModel implements IDiscardable
   public ScrollbarMarkingsModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull MarkedScrollbar pMarkedScrollbar)
   {
     disposable = pModel.getFileChangesObservable().subscribe(
-        pFileChangesEvent -> SwingUtilities.invokeLater(() -> pMarkedScrollbar.setMarkings(_getMarkings(pModel, pFileChangesEvent.getFileDiff(), pEditorPane))));
+        pFileChangesEvent -> SwingUtilities.invokeLater(() -> _getMarkings(pModel, pFileChangesEvent.getFileDiff(), pEditorPane, pMarkedScrollbar)));
     pMarkedScrollbar.addComponentListener(new _ScrollBarResizeListener(pModel, pEditorPane, pMarkedScrollbar));
   }
 
   /**
+   * sets the List with ScrollbarMarkings to pMarkedScrollbar, indicating at which position in the view Coordinate system the areas to mark are
+   *
    * @param pModel      DiffPanelModel that contains Functions to get the start/endLine of a IFileChangeChunk
    * @param pEditorPane JEditorPane displaying the IFileChangeChunks
-   * @return List with ScrollbarMarkings, indicating at which position in the view Coordinate system the areas to mark are
    */
-  @NotNull
-  private List<ScrollbarMarking> _getMarkings(@NotNull DiffPanelModel pModel, @Nullable IFileDiff pFileDiff, @NotNull JEditorPane pEditorPane)
+  private void _getMarkings(@NotNull DiffPanelModel pModel, @Nullable IFileDiff pFileDiff, @NotNull JEditorPane pEditorPane, @NotNull MarkedScrollbar pMarkedScrollbar)
   {
-    List<ScrollbarMarking> markings = new ArrayList<>();
-    View view = pEditorPane.getUI().getRootView(pEditorPane);
-    // there can be parity lines in the Chunks, so we cannot use the start/endLine of the chunk directly. Instead we have to keep track of the lines
-    for (IChangeDelta changeDelta : pFileDiff == null ? List.<IChangeDelta>of() : pFileDiff.getChangeDeltas())
+    if (pFileDiff != null)
     {
-      if (changeDelta.getChangeStatus() == EChangeStatus.PENDING)
+      if (pEditorPane.getDocument().getLength() <= 0 && pFileDiff.getText(pModel.getChangeSide()).length() > 0)
       {
-        int startOffset = changeDelta.getStartTextIndex(pModel.getChangeSide());
-        int endOffset = changeDelta.getEndTextIndex(pModel.getChangeSide());
-        try
+        SwingUtilities.invokeLater(() -> _getMarkings(pModel, pFileDiff, pEditorPane, pMarkedScrollbar));
+        return;
+      }
+      List<ScrollbarMarking> markings = new ArrayList<>();
+      View view = pEditorPane.getUI().getRootView(pEditorPane);
+      // there can be parity lines in the Chunks, so we cannot use the start/endLine of the chunk directly. Instead we have to keep track of the lines
+      for (IChangeDelta changeDelta : pFileDiff.getChangeDeltas())
+      {
+        if (changeDelta.getChangeStatus() == EChangeStatus.PENDING)
         {
-          Rectangle bounds = view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
-          markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeDelta.getDiffColor()));
-        }
-        catch (BadLocationException pE)
-        {
-          throw new RuntimeException(pE);
+          int startOffset = changeDelta.getStartTextIndex(pModel.getChangeSide());
+          int endOffset = changeDelta.getEndTextIndex(pModel.getChangeSide());
+          try
+          {
+            Rectangle bounds = view.modelToView(startOffset, Position.Bias.Forward, endOffset, Position.Bias.Backward, new Rectangle()).getBounds();
+            markings.add(new ScrollbarMarking(bounds.y, bounds.height, changeDelta.getDiffColor()));
+          }
+          catch (BadLocationException pE)
+          {
+            throw new RuntimeException(pE);
+          }
         }
       }
+      pMarkedScrollbar.setMarkings(markings);
     }
-    return markings;
   }
 
   @Override
@@ -93,7 +101,7 @@ public class ScrollbarMarkingsModel implements IDiscardable
     @Override
     public void componentResized(ComponentEvent pEvent)
     {
-      markedScrollbar.setMarkings(_getMarkings(model, model.getFileChangesObservable().blockingFirst().getFileDiff(), editorPane));
+      _getMarkings(model, model.getFileChangesObservable().blockingFirst().getFileDiff(), editorPane, markedScrollbar);
     }
   }
 }
