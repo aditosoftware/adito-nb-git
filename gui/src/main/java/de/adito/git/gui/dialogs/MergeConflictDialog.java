@@ -6,7 +6,6 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.*;
-import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
@@ -162,12 +161,12 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     Optional<List<IMergeData>> mergeDiffOptional = pSelectedMergeDiff.blockingFirst();
     if (mergeDiffOptional.isPresent())
     {
-      for (IMergeData selectedMergeDiff : mergeDiffOptional.get())
+      try
       {
-        String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
-        if (path != null)
+        for (IMergeData selectedMergeDiff : mergeDiffOptional.get())
         {
-          try
+          String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
+          if (path != null)
           {
             File selectedFile = new File(path);
             if (selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getChangeType() == EChangeType.DELETE)
@@ -179,11 +178,18 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
               _saveVersion(pConflictSide, selectedMergeDiff, selectedFile);
             }
           }
-          catch (AditoGitException pE)
-          {
-            throw new RuntimeException(pE);
-          }
         }
+        repository.add(mergeDiffOptional.get().stream()
+                           .map(pMergeDiff -> pMergeDiff.getDiff(pConflictSide).getFileHeader())
+                           .filter(pFileDiffHeader -> pFileDiffHeader.getChangeType() != EChangeType.DELETE)
+                           .map(IFileDiffHeader::getAbsoluteFilePath)
+                           .filter(Objects::nonNull)
+                           .map(File::new)
+                           .collect(Collectors.toList()));
+      }
+      catch (Exception pE)
+      {
+        throw new RuntimeException(pE);
       }
     }
   }
@@ -214,6 +220,14 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path,
                                                  pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.NEW)));
       _writeToFile(_adjustLineEndings(fileContents, pMergeDiff), pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.NEW), pMergeDiff, selectedFile);
+      try
+      {
+        repository.add(Collections.singletonList(selectedFile));
+      }
+      catch (Exception pE)
+      {
+        throw new RuntimeException(pE);
+      }
     }
   }
 
@@ -233,14 +247,6 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       List<IMergeData> mergeDiffs = mergeConflictDiffs.blockingFirst();
       mergeDiffs.remove(pSelectedMergeDiff);
       mergeConflictDiffs.onNext(mergeDiffs);
-    }
-    catch (Exception pE)
-    {
-      throw new RuntimeException(pE);
-    }
-    try
-    {
-      repository.add(Collections.singletonList(pSelectedFile));
     }
     catch (Exception pE)
     {
