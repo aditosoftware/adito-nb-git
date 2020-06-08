@@ -6,6 +6,30 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.3</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>It is now possible to store the current state of a merge and continue it later. This is done by closing the merge window by pressing on the "X" button on the top and then selecting "Save" in the following dialog. Resuming the merge is done by selecting a conflicting file via rightclick and pressing the "Resolve Conflicts" button</li>
+    <li>By using the above it is now possible to manually resolve conflicts. Conflicting files can be marked as resolved by selecting the new "Mark Resolved" action</li>
+    <li>Improved the robustness of the algorithm that detects the conflicting branch when invoking the "Resolve Conflicts" action</li>
+    <li>The two merge dialogs now remember their size after closing them and automatically open with the last set size</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Improved error messages when a push fails for "other reasons"</li>
+    <li>The name of the branch in the status bar is now separated from the status if the branch is on a state such as "MERGING"</li>
+    <li>Improved the fluidity of the scrolling in diff and merge dialogs</li>
+    <li>The performance when selecting several or all files in the merge dialog and pressing "ACCEPT YOURS/THEIRS" was improved quite significantly</li>
+    <li>The "abort" and "okay" buttons in the merge dialog when using "Resolve Conflicts" now have functionality. The "abort" button works the same as when entering the dialog the normal way, and the "okay" button opens a commit window with a predefined commit message that only needs the branch names filled out.</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: "Jump to next/previous change" does not work in the diff dialog</li>
+    <li>Fix: The in-place reverse function of the sidebar on a code editor does not work properly</li>
+    <li>Fix: Annotations do not work properly</li>
+    <li>Fix: The "ACCEPT YOURS/THEIRS/CHANGES" buttons wrote the fork-point or YOURS version to disk, instead of the version they were supposed to</li>
+    <li>Fix: "Resolve Conflicts" action when right-clicking the project node in the project tree is always inactive</li>
+  </ul>
   <p style="font-weight: bold;">v.1.4.2</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
