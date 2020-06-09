@@ -53,20 +53,24 @@ public class DiffPanel extends JPanel implements IDiscardable
     LineNumbersColorModel[] lineNumbersColorModels = new LineNumbersColorModel[2];
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.NEW);
     currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);
-    // current panel is to the right, so index 1
-    LineNumbersColorModel rightLineColorModel = currentVersionDiffPane.getPane().addLineNumPanel(currentDiffPanelModel, BorderLayout.WEST, 1);
-    lineNumbersColorModels[1] = rightLineColorModel;
-    JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
-    currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
         .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta, true)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
+    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(oldVersionDiffPane.getEditorPane(),
+                                                                                                                currentVersionDiffPane.getEditorPane());
+    // current panel is to the right, so index 1
+    LineNumbersColorModel rightLineColorModel = currentVersionDiffPane.getPane().addLineNumPanel(currentDiffPanelModel,
+                                                                                                 mouseFirstActionObservableWrapper.getObservable(), BorderLayout.WEST, 1);
+    lineNumbersColorModels[1] = rightLineColorModel;
+    JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
+    currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
     // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel, -1);
+    LineNumbersColorModel temp = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel, mouseFirstActionObservableWrapper.getObservable(), -1);
 
     // old version is to the left, so index 0
-    LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel, 0);
+    LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel,
+                                                                                                        mouseFirstActionObservableWrapper.getObservable(), 0);
     lineNumbersColorModels[0] = leftLineColorsModel;
 
     oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, new LineNumbersColorModel[]{temp, leftLineColorsModel},
@@ -86,8 +90,6 @@ public class DiffPanel extends JPanel implements IDiscardable
     add(optionsPanel, BorderLayout.NORTH);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
-    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(oldVersionDiffPane.getEditorPane(),
-                                                                                                                currentVersionDiffPane.getEditorPane());
     differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null, mouseFirstActionObservableWrapper.getObservable(),
                                                               pFileDiffObs);
   }

@@ -61,9 +61,6 @@ public class MergePanel extends JPanel implements IDiscardable
     acceptTheirsIcon = pAcceptTheirsIcon;
     discardIcon = pDiscardIcon;
     editorKitObservable = BehaviorSubject.createDefault(Optional.empty());
-    _initForkPointPanel();
-    _initYoursPanel();
-    _initTheirsPanel();
     _initGui();
     MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(yoursPaneWrapper.getEditorPane(),
                                                                                                                 forkPointPaneWrapper.getEditorPane(),
@@ -79,6 +76,23 @@ public class MergePanel extends JPanel implements IDiscardable
 
   private void _initGui()
   {
+    forkPointPaneWrapper = new ForkPointPaneWrapper(mergeDiff, editorKitObservable);
+    DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.NEW)
+        .setDoOnAccept(pChangeDelta -> mergeDiff.acceptDelta(pChangeDelta, EConflictSide.YOURS))
+        .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.YOURS));
+    yoursPaneWrapper = new DiffPaneWrapper(yoursModel, editorKitObservable);
+    DiffPanelModel theirsModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), EChangeSide.NEW)
+        .setDoOnAccept(pChangeDelta -> mergeDiff.acceptDelta(pChangeDelta, EConflictSide.THEIRS))
+        .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.THEIRS));
+    theirsPaneWrapper = new DiffPaneWrapper(theirsModel, editorKitObservable);
+    // This observable has a default value and then only fires once, when the first mouse action occurs on any of the editorPanes. This is one of the better
+    // (not good, mind you) mechanism to make sure the heights are properly calculated by the pane when they are used
+    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(yoursPaneWrapper.getEditorPane(),
+                                                                                                                theirsPaneWrapper.getEditorPane(),
+                                                                                                                forkPointPaneWrapper.getEditorPane());
+    _initForkPointPanel(mouseFirstActionObservableWrapper.getObservable());
+    _initYoursPanel(yoursModel, mouseFirstActionObservableWrapper.getObservable());
+    _initTheirsPanel(theirsModel, mouseFirstActionObservableWrapper.getObservable());
     setLayout(new BorderLayout());
     JSplitPane forkMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, forkPointPaneWrapper.getPane(), theirsPaneWrapper.getPane());
     forkMergeSplit.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -101,59 +115,51 @@ public class MergePanel extends JPanel implements IDiscardable
     add(yoursTheirsPanel, BorderLayout.NORTH);
   }
 
-  private void _initYoursPanel()
+  private void _initYoursPanel(DiffPanelModel pYoursModel, Observable<Optional<Object>> pObservable)
   {
     LineNumbersColorModel[] lineNumColorModels = new LineNumbersColorModel[2];
-    DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.NEW)
-        .setDoOnAccept(pChangeDelta -> mergeDiff.acceptDelta(pChangeDelta, EConflictSide.YOURS))
-        .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.YOURS));
-    yoursPaneWrapper = new DiffPaneWrapper(yoursModel, editorKitObservable);
+
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     yoursPaneWrapper.getScrollPane().setLayout(new LeftSideVSBScrollPaneLayout());
 
     // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = yoursPaneWrapper.getPane().createLineNumberColorModel(yoursModel, 1);
+    LineNumbersColorModel temp = yoursPaneWrapper.getPane().createLineNumberColorModel(pYoursModel, pObservable, 1);
     // index 0 because the lineNumPanel is of the left-most panel, and thus to the left to the ChoiceButtonPanel
-    lineNumColorModels[0] = yoursPaneWrapper.getPane().createLineNumberColorModel(yoursModel, 0);
+    lineNumColorModels[0] = yoursPaneWrapper.getPane().createLineNumberColorModel(pYoursModel, pObservable, 0);
     lineNumColorModels[1] = leftForkPointLineNumColorModel;
 
-    yoursPaneWrapper.getPane().addChoiceButtonPanel(yoursModel, acceptYoursIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumColorModels[0]},
+    yoursPaneWrapper.getPane().addChoiceButtonPanel(pYoursModel, acceptYoursIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumColorModels[0]},
                                                     BorderLayout.EAST);
-    yoursPaneWrapper.getPane().addLineNumPanel(lineNumColorModels[0], yoursModel, BorderLayout.EAST);
-    yoursPaneWrapper.getPane().addChoiceButtonPanel(yoursModel, null, null,
+    yoursPaneWrapper.getPane().addLineNumPanel(lineNumColorModels[0], pYoursModel, BorderLayout.EAST);
+    yoursPaneWrapper.getPane().addChoiceButtonPanel(pYoursModel, null, null,
                                                     lineNumColorModels, BorderLayout.EAST);
   }
 
-  private void _initTheirsPanel()
+  private void _initTheirsPanel(DiffPanelModel pTheirsModel, Observable<Optional<Object>> pObservable)
   {
     LineNumbersColorModel[] lineNumPanels = new LineNumbersColorModel[2];
-    DiffPanelModel theirsModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), EChangeSide.NEW)
-        .setDoOnAccept(pChangeDelta -> mergeDiff.acceptDelta(pChangeDelta, EConflictSide.THEIRS))
-        .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.THEIRS));
-    theirsPaneWrapper = new DiffPaneWrapper(theirsModel, editorKitObservable);
     theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
     // Neccessary for the right ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = theirsPaneWrapper.getPane().createLineNumberColorModel(theirsModel, 0);
+    LineNumbersColorModel temp = theirsPaneWrapper.getPane().createLineNumberColorModel(pTheirsModel, pObservable, 0);
     // index 1 because the lineNumPanel is of the right-most panel, and thus to the right to the ChoiceButtonPanel
-    lineNumPanels[1] = theirsPaneWrapper.getPane().createLineNumberColorModel(theirsModel, 1);
+    lineNumPanels[1] = theirsPaneWrapper.getPane().createLineNumberColorModel(pTheirsModel, pObservable, 1);
     lineNumPanels[0] = rightForkPointLineNumColorModel;
 
-    theirsPaneWrapper.getPane().addChoiceButtonPanel(theirsModel, acceptTheirsIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumPanels[1]},
-                                                    BorderLayout.WEST);
-    theirsPaneWrapper.getPane().addLineNumPanel(lineNumPanels[1], theirsModel, BorderLayout.WEST);
-    theirsPaneWrapper.getPane().addChoiceButtonPanel(theirsModel, null, null,
+    theirsPaneWrapper.getPane().addChoiceButtonPanel(pTheirsModel, acceptTheirsIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumPanels[1]},
+                                                     BorderLayout.WEST);
+    theirsPaneWrapper.getPane().addLineNumPanel(lineNumPanels[1], pTheirsModel, BorderLayout.WEST);
+    theirsPaneWrapper.getPane().addChoiceButtonPanel(pTheirsModel, null, null,
                                                      lineNumPanels, BorderLayout.WEST);
   }
 
-  private void _initForkPointPanel()
+  private void _initForkPointPanel(Observable<Optional<Object>> pObservable)
   {
-    forkPointPaneWrapper = new ForkPointPaneWrapper(mergeDiff, editorKitObservable);
     forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     DiffPanelModel forkPointYoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.OLD);
     DiffPanelModel forkPointTheirsModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), EChangeSide.OLD);
-    leftForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointYoursModel, BorderLayout.WEST, 1);
-    rightForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, BorderLayout.EAST, 0);
+    leftForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointYoursModel, pObservable, BorderLayout.WEST, 1);
+    rightForkPointLineNumColorModel = forkPointPaneWrapper.getPane().addLineNumPanel(forkPointTheirsModel, pObservable, BorderLayout.EAST, 0);
   }
 
   @NotNull

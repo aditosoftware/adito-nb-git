@@ -5,7 +5,9 @@ import de.adito.git.api.data.diff.EChangeStatus;
 import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
-import io.reactivex.disposables.Disposable;
+import de.adito.git.gui.dialogs.panels.basediffpanel.MouseFirstActionObservableWrapper;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,12 +29,17 @@ import java.util.List;
 public class ScrollbarMarkingsModel implements IDiscardable
 {
 
-  private final Disposable disposable;
+  private final CompositeDisposable disposable = new CompositeDisposable();
 
   public ScrollbarMarkingsModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull MarkedScrollbar pMarkedScrollbar)
   {
-    disposable = pModel.getFileChangesObservable().subscribe(
-        pFileChangesEvent -> SwingUtilities.invokeLater(() -> _getMarkings(pModel, pFileChangesEvent.getFileDiff(), pEditorPane, pMarkedScrollbar)));
+    // add a mouseFirstActionObservable so that when the first mouse action by the user happens, the heights are recalculated. This is done to make it more likely that
+    // the layouting by the editorPane is done when the heights for changed parts are retrieved
+    disposable.add(Observable.combineLatest(new MouseFirstActionObservableWrapper(pEditorPane).getObservable(), pModel.getFileChangesObservable(),
+                                            (pObj, pFileChange) -> pFileChange)
+                       .subscribe(pFileChangesEvent ->
+                                      SwingUtilities.invokeLater(() -> _getMarkings(pModel, pFileChangesEvent.getFileDiff(), pEditorPane, pMarkedScrollbar))));
+    new MouseFirstActionObservableWrapper(pEditorPane);
     pMarkedScrollbar.addComponentListener(new _ScrollBarResizeListener(pModel, pEditorPane, pMarkedScrollbar));
   }
 

@@ -59,15 +59,16 @@ public class DiffPane extends JPanel implements IDiscardable
   }
 
   /**
-   * @param pModel           DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pLineOrientation String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
-   *                         Defaults to BorderLayout.WEST if another String is passed
-   * @param pModelNumber     number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
+   * @param pModel             DiffPanelModel with the Observable list of fileChangeChunks
+   * @param pInitHeightCalcObs Observable that fires once when the heights are ready to be calculated
+   * @param pLineOrientation   String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
+   *                           Defaults to BorderLayout.WEST if another String is passed
+   * @param pModelNumber       number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
    * @return LineNumbersColorModel describing the
    */
-  public LineNumbersColorModel addLineNumPanel(DiffPanelModel pModel, String pLineOrientation, int pModelNumber)
+  public LineNumbersColorModel addLineNumPanel(DiffPanelModel pModel, Observable<Optional<Object>> pInitHeightCalcObs, String pLineOrientation, int pModelNumber)
   {
-    LineNumbersColorModel lineNumbersColorModel = createLineNumberColorModel(pModel, pModelNumber);
+    LineNumbersColorModel lineNumbersColorModel = createLineNumberColorModel(pModel, pInitHeightCalcObs, pModelNumber);
     addLineNumPanel(lineNumbersColorModel, pModel, pLineOrientation);
     return lineNumbersColorModel;
   }
@@ -75,14 +76,16 @@ public class DiffPane extends JPanel implements IDiscardable
   /**
    * Only creates the LineNumbersColorModel, it is not added to the Layout.
    *
-   * @param pModel       DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pModelNumber number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
+   * @param pModel             DiffPanelModel with the Observable list of fileChangeChunks
+   * @param pInitHeightCalcObs Observable that fires once when the heights are ready to be calculated
+   * @param pModelNumber       number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
    * @return the new LineNumbersColorModel
-   * @see #addLineNumPanel(DiffPanelModel, String, int)
+   * @see #addLineNumPanel(DiffPanelModel, Observable, String, int)
    */
-  public LineNumbersColorModel createLineNumberColorModel(DiffPanelModel pModel, int pModelNumber)
+  public LineNumbersColorModel createLineNumberColorModel(DiffPanelModel pModel, Observable<Optional<Object>> pInitHeightCalcObs, int pModelNumber)
   {
-    return new LineNumbersColorModel(pModel, editorPane, scrollPane.getViewport(), viewPortSizeObservable,
+    return new LineNumbersColorModel(pModel, editorPane, scrollPane.getViewport(),
+                                     Observable.combineLatest(pInitHeightCalcObs, viewPortSizeObservable, (pObj, pViewPortSize) -> pViewPortSize),
                                      pModelNumber);
   }
 

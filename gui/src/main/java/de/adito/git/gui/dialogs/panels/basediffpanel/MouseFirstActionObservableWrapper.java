@@ -13,7 +13,7 @@ import java.util.Optional;
  *
  * @author m.kaspera, 13.05.2020
  */
-class MouseFirstActionObservableWrapper extends MouseAdapter implements MouseWheelListener
+public class MouseFirstActionObservableWrapper extends MouseAdapter implements MouseWheelListener
 {
 
   private final BehaviorSubject<Optional<Object>> subject = BehaviorSubject.createDefault(Optional.empty());
@@ -78,7 +78,7 @@ class MouseFirstActionObservableWrapper extends MouseAdapter implements MouseWhe
     }
   }
 
-  Observable<Optional<Object>> getObservable()
+  public Observable<Optional<Object>> getObservable()
   {
     return subject;
   }
