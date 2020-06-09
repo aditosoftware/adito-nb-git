@@ -119,6 +119,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     buttonPanel.add(acceptYoursButton);
     buttonPanel.add(Box.createVerticalStrut(5));
     buttonPanel.add(acceptTheirsButton);
+    buttonPanel.add(Box.createVerticalStrut(Integer.MAX_VALUE));
     add(buttonPanel, BorderLayout.EAST);
     mergeConflictTable.setModel(mergeDiffStatusModel);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filename")).setPreferredWidth(230);
