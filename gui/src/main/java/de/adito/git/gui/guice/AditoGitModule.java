@@ -58,5 +58,6 @@ public class AditoGitModule extends AbstractModule
     bind(INotifyUtil.class).to(SimpleNotifyUtil.class);
     bind(IEditorKitProvider.class).to(SimpleEditorKitProvider.class);
     bind(IQuickSearchProvider.class).to(SimpleQuickSearchProvider.class);
+    bind(IBareRepo.class).to(BareRepoImpl.class);
   }
 }

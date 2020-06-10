@@ -30,7 +30,6 @@ import java.util.Optional;
 @ActionID(category = "System", id = "de.adito.git.nbm.actions.CommitNBAction")
 @ActionRegistration(displayName = "#LBL_CommitNBAction_Name")
 @ActionReference(name = "Commit", path = IGitConstants.RIGHTCLICK_ACTION_PATH, position = INBActionPositions.COMMIT_ACTION_RIGHT_CLICK)
-
 public class CommitNBAction extends NBAction
 {
 

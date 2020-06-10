@@ -69,6 +69,20 @@ public class RepositoryCache
     executorService.submit(RepositoryCache.this::_update);
   }
 
+  public void triggerUpdate()
+  {
+    executorService.submit(() -> {
+      try
+      {
+        Thread.sleep(5000);
+      }
+      catch (InterruptedException pE)
+      {
+      }
+      RepositoryCache.getInstance()._update();
+    });
+  }
+
   /**
    * Delete the PropertyChangeListener when the project is closed.
    */
