@@ -1,6 +1,7 @@
 package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
@@ -51,9 +52,19 @@ public class DiffLocalChangesNBAction extends NBAction
   {
     if (pRepository != null)
     {
-      List<IFileChangeType> changeType = _getIFileChangeType(lastActivated, Observable.just(Optional.of(pRepository)));
-      return !changeType.isEmpty() && changeType.stream().anyMatch(pFile -> pFile.getChangeType() != EChangeType.SAME);
+      List<File> filesOfNodes = getAllFilesOfNodes(lastActivated);
+      if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory())
+      {
+        Set<String> uncommittedChanges = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommittedChanges).orElse(Set.of());
+        for (File filesOfNode : _getFilesOfType(filesOfNodes.get(0), ""))
+        {
+          if (uncommittedChanges.contains(pRepository.getTopLevelDirectory().toPath().relativize(filesOfNode.toPath()).toString().replace("\\", "/")))
+          {
+            return true;
+          }
+        }
       }
+    }
     return false;
   }
 
@@ -82,11 +93,12 @@ public class DiffLocalChangesNBAction extends NBAction
   {
     List<File> filesOfNodes = getAllFilesOfNodes(pActivatedNodes);
     List<IFileChangeType> changeTypes = new ArrayList<>();
-    if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory())
+    Optional<IRepository> optRepository = pRepository.blockingFirst();
+    if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory() && optRepository.isPresent())
     {
       for (File filesOfNode : _getFilesOfType(filesOfNodes.get(0), ""))
       {
-        IFileChangeType changeType = pRepository.blockingFirst().map(pRepo -> pRepo.getStatusOfSingleFile(filesOfNode)).orElse(null);
+        IFileChangeType changeType = optRepository.map(pRepo -> pRepo.getStatusOfSingleFile(filesOfNode)).orElse(null);
         if (changeType != null && changeType.getChangeType() != EChangeType.SAME)
           changeTypes.add(changeType);
       }
