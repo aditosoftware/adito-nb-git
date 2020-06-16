@@ -15,6 +15,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author m.kaspera, 17.04.2019
@@ -63,8 +65,9 @@ public class GitHttpUtil
           .orElse("");
     }
     // if any error occurrs, we can't determine the realm and just return an empty string
-    catch (UnirestException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException ignored)
+    catch (UnirestException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException exception)
     {
+      Logger.getLogger(GitHttpUtil.class.getName()).log(Level.SEVERE, exception, () -> "Git: error while trying to determine the Realm for the given url " + pUrl);
       return "";
     }
   }
