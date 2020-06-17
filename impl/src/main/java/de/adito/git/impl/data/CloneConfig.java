@@ -1,8 +1,11 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.IConfig;
+import de.adito.git.api.data.IRemote;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * @author a.arnold, 14.01.2019
@@ -51,6 +54,12 @@ public class CloneConfig implements IConfig
   }
 
   @Override
+  public @NotNull List<IRemote> getRemotes()
+  {
+    return List.of();
+  }
+
+  @Override
   public AUTO_CRLF getAutoCRLF()
   {
     return null;
@@ -75,9 +84,15 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void setSshKeyLocation(@Nullable String pSshKeyLocation, String pRemoteUrl)
+  public void setSshKeyLocationForUrl(@Nullable String pSshKeyLocation, String pRemoteUrl)
   {
     sshKeyLocation = pSshKeyLocation;
+  }
+
+  @Override
+  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @NotNull String pRemoteName)
+  {
+    // not implemented
   }
 
   @Override
@@ -116,6 +131,12 @@ public class CloneConfig implements IConfig
   public void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName)
   {
     // no implemented
+  }
+
+  @Override
+  public void saveRemote(@NotNull IRemote pRemote)
+  {
+    // not implemented
   }
 
   @Override

@@ -33,8 +33,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.adito.git.api.data.IConfig.REMOTE_SECTION_KEY;
 import static de.adito.git.api.data.IConfig.REMOTE_URL_KEY;
-import static de.adito.git.api.data.IConfig.SSH_SECTION_KEY;
 import static de.adito.git.impl.Util.getRelativePath;
 
 public class RepositoryImplHelper
@@ -564,7 +564,7 @@ public class RepositoryImplHelper
     {
       remoteName = pGit.getRepository().getRemoteNames()
           .stream()
-          .filter(pRemote -> pGit.getRepository().getConfig().getString(SSH_SECTION_KEY, pRemote, REMOTE_URL_KEY).equals(pRemoteUrl))
+          .filter(pRemote -> pGit.getRepository().getConfig().getString(REMOTE_SECTION_KEY, pRemote, REMOTE_URL_KEY).equals(pRemoteUrl))
           .findFirst()
           .orElse(null);
     }

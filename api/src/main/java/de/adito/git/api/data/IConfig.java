@@ -4,6 +4,8 @@ import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Interface for retrieving configuration information for a repository/remote
  *
@@ -15,7 +17,8 @@ public interface IConfig
   String USER_SECTION_KEY = "user";
   String USER_NAME_KEY = "name";
   String USER_EMAIL_KEY = "email";
-  String SSH_SECTION_KEY = "remote";
+  String REMOTE_SECTION_KEY = "remote";
+  String FETCH_SUBSECTION_KEY = "fetch";
   String SSH_KEY_KEY = "puttykeyfile";
   String AUTO_CRLF_SECTION_KEY = "core";
   String AUTO_CRLF_KEY = "autocrlf";
@@ -94,6 +97,11 @@ public interface IConfig
   @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName);
 
   /**
+   * @return List with the information about the remotes stored in the config
+   */
+  @NotNull List<IRemote> getRemotes();
+
+  /**
    * checks the autocrlf setting of the repository/global config
    *
    * @return the autoCRLF setting
@@ -118,7 +126,15 @@ public interface IConfig
    * @param pSshKeyLocation location of the ssh key, null means the default key (user_home/.ssh/id_rsa)
    * @param pRemoteUrl      Url of the remote for which the ssh key should be saved, may be null (remote is determined via current branch and its tracked branch)
    */
-  void setSshKeyLocation(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl);
+  void setSshKeyLocationForUrl(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl);
+
+  /**
+   * save the location of the ssh key
+   *
+   * @param pSshKeyLocation location of the ssh key, null means the default key (user_home/.ssh/id_rsa)
+   * @param pRemoteName     name of the remote for which the ssh key should be stored
+   */
+  void setSshKeyLocation(@Nullable String pSshKeyLocation, @NotNull String pRemoteName);
 
   /**
    * save the passphrase for the given remote URL in the keyring
@@ -172,6 +188,13 @@ public interface IConfig
    * @param pRemoteName       name of the remote that the remote branch is on
    */
   void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName);
+
+  /**
+   * save the remote
+   *
+   * @param pRemote remote to be saved
+   */
+  void saveRemote(@NotNull IRemote pRemote);
 
   /**
    * add a new remote

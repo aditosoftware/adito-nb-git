@@ -481,18 +481,18 @@ public class RepositoryImpl implements IRepository
     logger.log(Level.INFO, "git fetch (with prune = {0})", pPrune);
     try
     {
-      Set<String> remoteNames = getRemoteNames();
+      List<IRemote> remotes = getRemotes();
       List<ITrackingRefUpdate> trackingRefUpdates = new ArrayList<>();
-      if (remoteNames.size() <= 1)
+      if (remotes.size() <= 1)
       {
         FetchResult fetchResult = git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
         fetchResult.getTrackingRefUpdates().forEach(pTrackingRefUpdate -> trackingRefUpdates.add(new TrackingRefUpdate(pTrackingRefUpdate)));
       }
       else
       {
-        for (String remoteName : remoteNames)
+        for (IRemote remote : remotes)
         {
-          FetchResult fetchResult = git.fetch().setRemote(remoteName).setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig()))
+          FetchResult fetchResult = git.fetch().setRemote(remote.getName()).setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig()))
               .setRemoveDeletedRefs(pPrune).call();
           fetchResult.getTrackingRefUpdates().forEach(pTrackingRefUpdate -> trackingRefUpdates.add(new TrackingRefUpdate(pTrackingRefUpdate)));
         }
@@ -1745,9 +1745,9 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public @NotNull Set<String> getRemoteNames()
+  public @NotNull List<IRemote> getRemotes()
   {
-    return git.getRepository().getRemoteNames();
+    return getConfig().getRemotes();
   }
 
   @Override

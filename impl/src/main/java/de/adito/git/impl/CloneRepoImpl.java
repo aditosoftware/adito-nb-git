@@ -113,7 +113,7 @@ public class CloneRepoImpl implements ICloneRepo
   private TransportConfigCallback _getTransportConfigCallBack(String pSshKeyLocation, char[] pSshKey)
   {
     CloneConfig cloneConfig = new CloneConfig();
-    cloneConfig.setSshKeyLocation(pSshKeyLocation, null);
+    cloneConfig.setSshKeyLocationForUrl(pSshKeyLocation, null);
     cloneConfig.setPassphrase(pSshKey, null);
 
     return sshProvider.getTransportConfigCallBack(cloneConfig);

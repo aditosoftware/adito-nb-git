@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IRemote;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -12,12 +13,16 @@ import de.adito.git.gui.dialogs.results.IGitConfigDialogResult;
 import de.adito.git.impl.data.SSHKeyDetails;
 import de.adito.git.impl.util.GitRawTextComparator;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.*;
+import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera, 24.12.2018
@@ -26,41 +31,34 @@ class GitConfigAction extends AbstractTableAction
 {
 
   private final IDialogProvider dialogProvider;
-  private final Observable<Optional<IRepository>> repository;
+  private final Observable<Optional<IRepository>> repositoryObs;
   private final IPrefStore prefStore;
   private final IKeyStore keyStore;
 
   @Inject
-  public GitConfigAction(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
+  public GitConfigAction(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepositoryObs)
   {
-    super("Settings", _getIsEnabledObservable(pRepository));
+    super("Settings", _getIsEnabledObservable(pRepositoryObs));
     prefStore = pPrefStore;
     keyStore = pKeyStore;
     putValue(Action.SMALL_ICON, Constants.GIT_CONFIG_ICON);
-    repository = pRepository;
+    repositoryObs = pRepositoryObs;
     dialogProvider = pDialogProvider;
   }
 
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    IGitConfigDialogResult<?, Multimap<String, Object>> dialogResult = dialogProvider.showGitConfigDialog(repository);
+    IGitConfigDialogResult<?, Multimap<String, Object>> dialogResult = dialogProvider.showGitConfigDialog(repositoryObs);
     if (dialogResult.doSave())
     {
-      // only set sshKeyLocation for now since that is the only supported setting (for now)
-      for (Object obj : dialogResult.getInformation().get(Constants.SSH_KEY_KEY))
+      IRepository repository = repositoryObs.blockingFirst().orElse(null);
+      if (repository != null)
       {
-        SSHKeyDetails value = (SSHKeyDetails) obj;
-        if (value.getKeyLocation() != null)
-        {
-          repository.blockingFirst().ifPresent(pRepo -> pRepo.getConfig().setSshKeyLocation(value.getKeyLocation(), value.getRemoteName()));
-          if (value.getPassPhrase() != null)
-          {
-            keyStore.save(value.getKeyLocation(), value.getPassPhrase(), null);
-          }
-          value.nullifyPassphrase();
-        }
+        _storeRemoteInfos(dialogResult, repository);
       }
+      // only set sshKeyLocation for now since that is the only supported setting (for now)
+      _storeSSHKeyInfos(dialogResult, repository);
       Iterator<Object> logLevelIter = dialogResult.getInformation().get(Constants.LOG_LEVEL_SETTINGS_KEY).iterator();
       if (logLevelIter.hasNext())
       {
@@ -77,11 +75,41 @@ class GitConfigAction extends AbstractTableAction
       }
 
       Iterator<Object> comparatorIter = dialogResult.getInformation().get(Constants.RAW_TEXT_COMPARATOR_SETTINGS_KEY).iterator();
-      if(comparatorIter.hasNext())
+      if (comparatorIter.hasNext())
       {
         Object currentComparator = comparatorIter.next();
         prefStore.put(Constants.RAW_TEXT_COMPARATOR_SETTINGS_KEY, currentComparator.toString());
         GitRawTextComparator.setCurrent(currentComparator.toString());
+      }
+    }
+  }
+
+  private void _storeRemoteInfos(@NotNull IGitConfigDialogResult<?, Multimap<String, Object>> pDialogResult, @NotNull IRepository pRepository)
+  {
+    List<IRemote> storedRemotes = pRepository.getRemotes();
+    List<IRemote> remotes = pDialogResult.getInformation().get(Constants.REMOTE_INFO_KEY).stream().map(pObj -> (IRemote) pObj).collect(Collectors.toList());
+    for (IRemote remote : remotes)
+    {
+      if (!storedRemotes.contains(remote))
+      {
+        pRepository.getConfig().saveRemote(remote);
+      }
+    }
+  }
+
+  private void _storeSSHKeyInfos(@NotNull IGitConfigDialogResult<?, Multimap<String, Object>> pDialogResult, @Nullable IRepository pRepository)
+  {
+    for (Object obj : pDialogResult.getInformation().get(Constants.SSH_KEY_KEY))
+    {
+      SSHKeyDetails value = (SSHKeyDetails) obj;
+      if (value.getKeyLocation() != null && pRepository != null)
+      {
+        pRepository.getConfig().setSshKeyLocation(value.getKeyLocation(), value.getRemoteName());
+        if (value.getPassPhrase() != null)
+        {
+          keyStore.save(value.getKeyLocation(), value.getPassPhrase(), null);
+        }
+        value.nullifyPassphrase();
       }
     }
   }

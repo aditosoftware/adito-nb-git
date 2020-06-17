@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.data.IConfig;
+import de.adito.git.api.data.IRemote;
 import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
@@ -15,6 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,7 +65,7 @@ public class ConfigImpl implements IConfig
       String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
       if (remoteName == null)
         return null;
-      String keyLocation = git.getRepository().getConfig().getString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY);
+      String keyLocation = git.getRepository().getConfig().getString(REMOTE_SECTION_KEY, remoteName, SSH_KEY_KEY);
       logger.log(Level.INFO, () -> String.format("git: key location for remote \"%s\" is \"%s\"", remoteName, keyLocation));
       return keyLocation;
     }
@@ -100,6 +104,21 @@ public class ConfigImpl implements IConfig
   public @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName)
   {
     return git.getRepository().getConfig().getString(pSectionKey, pSubSectionKey, pName);
+  }
+
+  @Override
+  public @NotNull List<IRemote> getRemotes()
+  {
+    List<IRemote> remotes = new ArrayList<>();
+    Set<String> remoteNames = git.getRepository().getRemoteNames();
+    StoredConfig config = git.getRepository().getConfig();
+    for (String remoteName : remoteNames)
+    {
+      String url = config.getString(REMOTE_SECTION_KEY, remoteName, "url");
+      String fetchInfo = config.getString(REMOTE_SECTION_KEY, remoteName, FETCH_SUBSECTION_KEY);
+      remotes.add(new RemoteImpl(remoteName, url, fetchInfo));
+    }
+    return remotes;
   }
 
   @Override
@@ -159,21 +178,34 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl)
+  public void setSshKeyLocationForUrl(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl)
   {
     try
     {
       String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
       if (remoteName != null)
       {
-        logger.log(Level.INFO, () -> String.format("git: Setting ssh key location for remote \"%s\" to %s", remoteName, pSshKeyLocation));
-        git.getRepository().getConfig().setString(SSH_SECTION_KEY, remoteName, SSH_KEY_KEY, pSshKeyLocation);
-        git.getRepository().getConfig().save();
+        setSshKeyLocation(pSshKeyLocation, remoteName);
       }
       else
       {
         logger.log(Level.INFO, () -> String.format("git: Could not find remote for url \"%s\", ssh key location was not saved", pRemoteUrl));
       }
+    }
+    catch (IOException pE)
+    {
+      throw new RuntimeException(pE);
+    }
+  }
+
+  @Override
+  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @NotNull String pRemoteName)
+  {
+    try
+    {
+      logger.log(Level.INFO, () -> String.format("git: Setting ssh key location for remote \"%s\" to %s", pRemoteName, pSshKeyLocation));
+      git.getRepository().getConfig().setString(REMOTE_SECTION_KEY, pRemoteName, SSH_KEY_KEY, pSshKeyLocation);
+      git.getRepository().getConfig().save();
     }
     catch (IOException pE)
     {
@@ -263,7 +295,7 @@ public class ConfigImpl implements IConfig
   @Override
   public @Nullable String getRemoteUrl(@Nullable String pRemoteName)
   {
-    return git.getRepository().getConfig().getString(SSH_SECTION_KEY, pRemoteName, REMOTE_URL_KEY);
+    return git.getRepository().getConfig().getString(REMOTE_SECTION_KEY, pRemoteName, REMOTE_URL_KEY);
   }
 
   @Override
@@ -272,7 +304,7 @@ public class ConfigImpl implements IConfig
     logger.log(Level.INFO, () -> String.format("Git: establishing tracking relationsship between %s and remote branch %s on remote %s", pBranchname, pRemoteBranchname,
                                                pRemoteName));
     StoredConfig config = git.getRepository().getConfig();
-    config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, pBranchname, "remote", pRemoteName);
+    config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, pBranchname, REMOTE_SECTION_KEY, pRemoteName);
     config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, pBranchname, "merge", pRemoteBranchname);
     try
     {
@@ -285,11 +317,27 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
+  public void saveRemote(@NotNull IRemote pRemote)
+  {
+    StoredConfig config = git.getRepository().getConfig();
+    config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemote.getName(), "url", pRemote.getUrl());
+    config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemote.getName(), FETCH_SUBSECTION_KEY, pRemote.getFetchInfo());
+    try
+    {
+      config.save();
+    }
+    catch (IOException ignored)
+    {
+      // ignore exception
+    }
+  }
+
+  @Override
   public boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl)
   {
     StoredConfig config = git.getRepository().getConfig();
     config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemoteName, "url", pRemoteUrl);
-    config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemoteName, "fetch", "+refs/heads/*:refs/remotes/" + pRemoteName + "/*");
+    config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemoteName, FETCH_SUBSECTION_KEY, "+refs/heads/*:refs/remotes/" + pRemoteName + "/*");
     try
     {
       config.save();

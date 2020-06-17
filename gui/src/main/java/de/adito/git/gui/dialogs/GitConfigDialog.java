@@ -7,6 +7,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IRemote;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.Constants;
@@ -52,7 +53,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
     Optional<IRepository> optionalIRepository = pRepository.blockingFirst();
     if (optionalIRepository.isPresent())
     {
-      @NotNull Set<String> remotes = new HashSet<>(optionalIRepository.get().getRemoteNames());
+      @NotNull Set<IRemote> remotes = new HashSet<>(optionalIRepository.get().getRemotes());
       JTabbedPane tabbedPane = new JTabbedPane();
       JPanel labelPanel = new JPanel(new BorderLayout());
       JLabel remotesLabel = _getBoldLabel("Remotes:");
@@ -62,18 +63,18 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
       remotesLabel.setBorder(DEFAULT_MARGIN_BORDER);
       tabbedPane.setBorder(new CompoundBorder(DEFAULT_MARGIN_BORDER, tabbedPane.getBorder()));
       add(tabbedPane);
-      Consumer<String> createAddRemotePanel = pRemoteName -> {
-        RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), pRemoteName, pKeyStore);
+      Consumer<IRemote> createAddRemotePanel = pRemote -> {
+        RemotePanel remoteSettingsPanel = new RemotePanel(optionalIRepository.get(), pRemote, pKeyStore);
         remoteSettingsPanels.add(remoteSettingsPanel);
         tabbedPane.add(remoteSettingsPanel, tabbedPane.getTabCount() - 1);
       };
-      Consumer<String> addRemoteSettingsPanel = pRemoteName -> {
-        createAddRemotePanel.accept(pRemoteName);
-        remotes.add(pRemoteName);
+      Consumer<IRemote> addRemoteSettingsPanel = pRemote -> {
+        createAddRemotePanel.accept(pRemote);
+        remotes.add(pRemote);
       };
       addRemotePanel = new NewRemotePanel(remotes, addRemoteSettingsPanel, optionalIRepository.get().getConfig());
       tabbedPane.add("+", addRemotePanel);
-      for (String remote : remotes)
+      for (IRemote remote : remotes)
       {
         createAddRemotePanel.accept(remote);
       }
@@ -100,6 +101,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
   public Multimap<String, Object> getInformation()
   {
     Multimap<String, Object> settingsMap = HashMultimap.create();
+    // Mutlimap -> keys with same value do not override each other, but are stored in "sublist"
     for (RemotePanel remoteSettingsPanel : remoteSettingsPanels)
     {
       settingsMap.putAll(remoteSettingsPanel.getInformation());

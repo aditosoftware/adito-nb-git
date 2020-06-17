@@ -11,7 +11,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Interface defining the actions that the Repository can perform
@@ -615,7 +617,7 @@ public interface IRepository extends IDiscardable
    * @return List with names of the remotes (e.g. "origin")
    */
   @NotNull
-  Set<String> getRemoteNames();
+  List<IRemote> getRemotes();
 
   /**
    * Sets the update flag that is determines wether the status and other data is updated when files change.

@@ -150,7 +150,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
                                                                                  + "\":", null, null, keyStore);
         if (result.isPressedOK())
         {
-          config.setSshKeyLocation(result.getUserInput(), remoteUrl);
+          config.setSshKeyLocationForUrl(result.getUserInput(), remoteUrl);
           defaultJSch.addIdentity(result.getUserInput());
           gitUserInfo.setSshKeyFile(new File(result.getUserInput()));
           if (result.getUserArrayInput() != null)

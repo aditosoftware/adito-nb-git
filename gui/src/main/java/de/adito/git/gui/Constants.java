@@ -54,6 +54,7 @@ public class Constants
   public static final String TAG_ICON = "de/adito/git/gui/icons/tag_icon.png";
 
   //Settings map keys
+  public static final String REMOTE_INFO_KEY = "git.remote.info";
   public static final String SSH_KEY_KEY = "sshKey";
   public static final String LOG_LEVEL_SETTINGS_KEY = "gitLogLevel";
   public static final String RAW_TEXT_COMPARATOR_SETTINGS_KEY = "rawTextComparator";

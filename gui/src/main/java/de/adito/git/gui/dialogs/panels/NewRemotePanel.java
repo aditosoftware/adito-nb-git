@@ -2,7 +2,9 @@ package de.adito.git.gui.dialogs.panels;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IConfig;
+import de.adito.git.api.data.IRemote;
 import de.adito.git.gui.swing.ADocumentListener;
+import de.adito.git.impl.data.RemoteImpl;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
@@ -27,10 +29,10 @@ public class NewRemotePanel extends JPanel implements IDiscardable
   private final JTextField remoteUrlField = new JTextField();
   private JButton addRemoteButton;
   private final DocumentListener isActiveListener;
-  private final Consumer<String> createRemotePanelFn;
+  private final Consumer<IRemote> createRemotePanelFn;
   private final IConfig config;
 
-  public NewRemotePanel(Set<String> pRemotes, Consumer<String> pCreateRemotePanelFn, IConfig pConfig)
+  public NewRemotePanel(Set<IRemote> pRemotes, Consumer<IRemote> pCreateRemotePanelFn, IConfig pConfig)
   {
     isActiveListener = new ADocumentListener()
     {
@@ -38,7 +40,7 @@ public class NewRemotePanel extends JPanel implements IDiscardable
       public void updated(DocumentEvent pE)
       {
         if (addRemoteButton != null)
-          addRemoteButton.setEnabled(!remoteNameField.getText().isEmpty() && !pRemotes.contains(remoteNameField.getText()) && !remoteUrlField.getText().isEmpty());
+          addRemoteButton.setEnabled(!remoteNameField.getText().isEmpty() && pRemotes.stream().noneMatch(pRemote -> pRemote.getName().equals(remoteNameField.getText())) && !remoteUrlField.getText().isEmpty());
       }
     };
     remoteUrlField.getDocument().addDocumentListener(isActiveListener);
@@ -75,7 +77,7 @@ public class NewRemotePanel extends JPanel implements IDiscardable
     addRemoteButton.addActionListener(e -> {
       if (config.addRemote(remoteNameField.getText(), remoteUrlField.getText()))
       {
-        createRemotePanelFn.accept(remoteNameField.getText());
+        createRemotePanelFn.accept(new RemoteImpl(remoteNameField.getText(), remoteUrlField.getText(), IRemote.getFetchStringFromName(remoteNameField.getText())));
         remoteNameField.setText("");
         remoteUrlField.setText("");
       }
