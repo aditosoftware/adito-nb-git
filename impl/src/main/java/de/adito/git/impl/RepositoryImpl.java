@@ -397,7 +397,10 @@ public class RepositoryImpl implements IRepository
     }
     catch (TransportException pE)
     {
-      throw new AuthCancelledException(pE);
+      if (pE.getMessage().contains(": not authorized"))
+        throw new AuthCancelledException(pE);
+      else
+        throw new AditoGitException(pE);
     }
     catch (IOException | GitAPIException pE)
     {

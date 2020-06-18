@@ -26,6 +26,8 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * PullAction to pull from one branch.
@@ -140,6 +142,7 @@ class PullAction extends AbstractAction
     catch (AuthCancelledException pE)
     {
       notifyUtil.notify(Util.getResource(this.getClass(), "pullAbortTitle"), Util.getResource(this.getClass(), "pullAbortDueToAuthCancel"), false);
+      Logger.getLogger(this.getClass().getName()).log(Level.WARNING, pE, () -> Util.getResource(this.getClass(), "authCancelledLogMessage"));
     }
     catch (Exception e)
     {

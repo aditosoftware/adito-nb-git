@@ -71,7 +71,9 @@ class FetchAction extends AbstractTableAction
     }
     catch (AuthCancelledException pE)
     {
-      notifyUtil.notify("Aborted fetch", "Fetch was aborted because authentication was cancelled", false);
+      notifyUtil.notify("Aborted fetch", "Fetch was aborted because authentication was cancelled. If you didn't cancel the authentication check the IDE Log for the" +
+          " underlying exception to get more information", false);
+      logger.log(Level.WARNING, pE, () -> "Git: Received an auth cancelled exception, underlying cause: ");
     }
     catch (AditoGitException pE)
     {
