@@ -1,9 +1,12 @@
 package de.adito.git.gui.progress;
 
-import de.adito.git.api.progress.*;
-import org.jetbrains.annotations.*;
+import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.api.progress.IProgressHandle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * Dummy Swing ProgressFacade
@@ -25,6 +28,20 @@ public class SimpleAsyncProgressFacade implements IAsyncProgressFacade
     catch (Throwable ex)
     {
       throw new RuntimeException("Exception in simple progress facade for task " + pSimpleName, ex);
+    }
+  }
+
+  @NotNull
+  @Override
+  public <T, Ex extends Throwable> T executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  {
+    try
+    {
+      return CompletableFuture.completedFuture(pExecutor.get(new _DummyHandle())).get();
+    }
+    catch (Throwable ex)
+    {
+      throw new RuntimeException("Exception in simple progress facade for task " + pDisplayName, ex);
     }
   }
 

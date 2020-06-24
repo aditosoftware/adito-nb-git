@@ -5,6 +5,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.netbeans.api.progress.BaseProgressUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
@@ -40,6 +41,24 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
   {
     _NetBeansHandle handle = new _NetBeansHandle(pDisplayName, ProgressHandle.createHandle(pDisplayName));
     return PROCESSOR.submit(new _Runner<>(handle, pExecutor));
+  }
+
+  @NotNull
+  @Override
+  public <T, Ex extends Throwable> T executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  {
+    return BaseProgressUtils.showProgressDialogAndRun(pProgressHandle -> {
+      try
+      {
+        return pExecutor.get(AsyncProgressFacadeImpl.wrapNBHandle(pProgressHandle));
+      }
+      catch (Throwable ex)
+      {
+        // Delegate all Exceptions to our uncaught exception handler -> otherwise they won't be shown on GUI
+        Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
+        throw new RuntimeException(NbBundle.getMessage(AsyncProgressFacadeImpl.class, "Error.Async", new _NetBeansHandle(null, pProgressHandle).getDisplayName()), ex);
+      }
+    }, pDisplayName, true);
   }
 
   /**

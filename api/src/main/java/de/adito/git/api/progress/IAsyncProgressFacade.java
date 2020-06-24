@@ -1,6 +1,7 @@
 package de.adito.git.api.progress;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.Future;
 
@@ -33,8 +34,33 @@ public interface IAsyncProgressFacade
    * @param pExecutor    Executing-Function
    * @return A Future containing the calculated value
    */
-  @NotNull
-  <T, Ex extends Throwable> Future<T> executeInBackground(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor);
+  @NotNull <T, Ex extends Throwable> Future<T> executeInBackground(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor);
+
+  /**
+   * Executes an Action. While the action is running, the UI is blocked for the user. However, a progress bar is shown.
+   * The progress bar can either show indeterminate progress or display the actual progress in work units
+   *
+   * @param pDisplayName Name of the Process, shown in the progress bar
+   * @param pExecutor    Executing-Function
+   */
+  default <Ex extends Throwable> void executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IVoidExec<Ex> pExecutor)
+  {
+    executeAndBlockWithProgress(pDisplayName, pProgressHandle -> {
+      pExecutor.get(pProgressHandle);
+      return null;
+    });
+  }
+
+  /**
+   * Executes an Action. While the action is running, the UI is blocked for the user. However, a progress bar is shown.
+   * The progress bar can either show indeterminate progress or display the actual progress in work units
+   *
+   * @param pDisplayName Name of the Process, shown in the progress bar
+   * @param pExecutor    Executing-Function
+   * @param <T>          return type
+   * @return the resulting value of the computation. Since this method is blocking there is no need for a future
+   */
+  @NotNull <T, Ex extends Throwable> T executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor);
 
   /**
    * Exec-Description with no return value
