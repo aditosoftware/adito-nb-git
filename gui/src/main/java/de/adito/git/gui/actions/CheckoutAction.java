@@ -12,6 +12,7 @@ import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,7 @@ class CheckoutAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFactory;
   private final Observable<Optional<IRepository>> repositoryObservable;
   private final ISaveUtil saveUtil;
+  private final MergeConflictSequence mergeConflictSequence;
   private final Observable<Optional<IBranch>> branchObservable;
 
   /**
@@ -41,13 +43,14 @@ class CheckoutAction extends AbstractTableAction
    */
   @Inject
   CheckoutAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFactory, ISaveUtil pSaveUtil,
-                 @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
+                 MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
   {
     super("Checkout", _getIsEnabledObservable(pRepository, pBranch));
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     progressFactory = pProgressFactory;
     saveUtil = pSaveUtil;
+    mergeConflictSequence = pMergeConflictSequence;
     branchObservable = pBranch;
     putValue(Action.NAME, "Checkout");
     putValue(Action.SHORT_DESCRIPTION, "Command to change the branch to another one");
@@ -109,7 +112,7 @@ class CheckoutAction extends AbstractTableAction
     {
       try
       {
-        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(pRepository)));
+        StashCommand.doUnStashing(mergeConflictSequence, stashedCommitId, Observable.just(Optional.of(pRepository)));
       }
       finally
       {

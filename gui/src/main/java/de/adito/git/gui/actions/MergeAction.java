@@ -88,7 +88,8 @@ class MergeAction extends AbstractTableAction
                                                              pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(repository)), mergeConflictDiffs);
+        IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(repository)),
+                                                                                                           mergeConflictDiffs, true);
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
         {
@@ -133,7 +134,7 @@ class MergeAction extends AbstractTableAction
       pProgressHandle.setDescription(Util.getResource(this.getClass(), "unstashChangesMessage"));
       try
       {
-        StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(Optional.of(pRepository)));
+        StashCommand.doUnStashing(mergeConflictSequence, stashedCommitId, Observable.just(Optional.of(pRepository)));
       }
       finally
       {

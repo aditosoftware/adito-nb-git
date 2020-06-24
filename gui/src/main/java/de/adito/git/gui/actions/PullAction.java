@@ -18,6 +18,7 @@ import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,7 @@ class PullAction extends AbstractAction
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private final ISaveUtil saveUtil;
+  private final MergeConflictSequence mergeConflictSequence;
   private boolean doUnstash = true;
 
   /**
@@ -54,7 +56,7 @@ class PullAction extends AbstractAction
    */
   @Inject
   PullAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IActionProvider pActionProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
-             ISaveUtil pSaveUtil, @Assisted Observable<Optional<IRepository>> pRepository)
+             ISaveUtil pSaveUtil, MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
@@ -62,6 +64,7 @@ class PullAction extends AbstractAction
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     saveUtil = pSaveUtil;
+    mergeConflictSequence = pMergeConflictSequence;
     putValue(Action.NAME, "Pull");
     putValue(Action.SHORT_DESCRIPTION, "Pull all changes from the remote Branch");
     repository = pRepository;
@@ -156,7 +159,7 @@ class PullAction extends AbstractAction
         if (stashedCommitId != null)
         {
           pProgressHandle.setDescription(Util.getResource(this.getClass(), "unstashChangesMessage"));
-          StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
+          StashCommand.doUnStashing(mergeConflictSequence, stashedCommitId, Observable.just(repository.blockingFirst()));
           prefStore.put(STASH_ID_KEY, null);
         }
       }
@@ -173,7 +176,7 @@ class PullAction extends AbstractAction
    */
   private boolean _handleConflictDialog(IRepository pRepo, List<IMergeData> pMergeConflicts) throws AditoGitException
   {
-    IMergeConflictDialogResult<?, ?> dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true, true);
+    IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
     IUserPromptDialogResult<?, ?> promptDialogResult = null;
     if (dialogResult.isFinishMerge())
     {

@@ -17,6 +17,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -30,18 +31,20 @@ class ResolveConflictsAction extends AbstractTableAction
 {
   private static final String NOTIFY_MESSAGE = "Conflict resolution";
   private final IAsyncProgressFacade progressFacade;
+  private final MergeConflictSequence mergeConflictSequence;
   private final IDialogProvider dialogProvider;
   private final Observable<Optional<IRepository>> repository;
   private final INotifyUtil notifyUtil;
 
   @Inject
-  public ResolveConflictsAction(IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil,
+  public ResolveConflictsAction(IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil, MergeConflictSequence pMergeConflictSequence,
                                 IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                                 @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super("Resolve Conflicts", _getIsEnabledObservable(pSelectedFilesObservable));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
+    mergeConflictSequence = pMergeConflictSequence;
     dialogProvider = pDialogProvider;
     repository = pRepository;
   }
@@ -91,7 +94,7 @@ class ResolveConflictsAction extends AbstractTableAction
         return;
       }
     }
-    IMergeConflictDialogResult<?, ?> mergeConflictDialogResult = dialogProvider.showMergeConflictDialog(repository, conflicts, true, true);
+    IMergeConflictDialogResult<?, ?> mergeConflictDialogResult = mergeConflictSequence.performMergeConflictSequence(repository, conflicts, true);
     if (mergeConflictDialogResult.isAbortMerge())
     {
       pRepo.reset(pRepo.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);

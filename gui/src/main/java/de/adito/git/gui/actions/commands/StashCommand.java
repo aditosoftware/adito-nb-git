@@ -3,9 +3,10 @@ package de.adito.git.gui.actions.commands;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +22,12 @@ public class StashCommand
   }
 
   /**
-   * @param pRepository      current Repository
-   * @param pStashedCommitId sha-1 id of the stashed commit to un-stash
+   * @param pMergeConflictSequence MergeConflictSequence used to determine if an Auto-Resolve should be performed and to display the merge itself
+   * @param pRepository            current Repository
+   * @param pStashedCommitId       sha-1 id of the stashed commit to un-stash
    */
-  public static void doUnStashing(IDialogProvider pDialogProvider, String pStashedCommitId, Observable<Optional<IRepository>> pRepository)
+  public static void doUnStashing(@NotNull MergeConflictSequence pMergeConflictSequence, @NotNull String pStashedCommitId,
+                                  @NotNull Observable<Optional<IRepository>> pRepository)
   {
     pRepository.blockingFirst().ifPresent(pRepo -> {
       List<IMergeData> stashConflicts;
@@ -39,7 +42,7 @@ public class StashCommand
       IMergeConflictDialogResult dialogResult = null;
       if (!stashConflicts.isEmpty())
       {
-        dialogResult = pDialogProvider.showMergeConflictDialog(pRepository, stashConflicts, false, true, "Stash Conflicts");
+        dialogResult = pMergeConflictSequence.performMergeConflictSequence(pRepository, stashConflicts, false, "Stash Conflicts");
       }
       if (stashConflicts.isEmpty() || dialogResult.isFinishMerge())
       {

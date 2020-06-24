@@ -11,6 +11,7 @@ import de.adito.git.gui.dialogs.DialogResult;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -27,15 +28,17 @@ class UnStashChangesAction extends AbstractAction
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
   private final INotifyUtil notifyUtil;
+  private final MergeConflictSequence mergeConflictSequence;
   private final Observable<Optional<IRepository>> repository;
 
   @Inject
-  UnStashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil,
+  UnStashChangesAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, MergeConflictSequence pMergeConflictSequence,
                        @Assisted Observable<Optional<IRepository>> pRepository)
   {
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
     notifyUtil = pNotifyUtil;
+    mergeConflictSequence = pMergeConflictSequence;
     repository = pRepository;
   }
 
@@ -73,8 +76,8 @@ class UnStashChangesAction extends AbstractAction
       List<IMergeData> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
       if (!stashConflicts.isEmpty())
       {
-        IMergeConflictDialogResult conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),
-                                                                                           stashConflicts, false, true, "Stash Conflicts");
+        IMergeConflictDialogResult conflictResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)),
+                                                                                                       stashConflicts, false, "Stash Conflicts");
         if (conflictResult.isFinishMerge())
           dialogProvider.showCommitDialog(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(List.of())), "");
       }

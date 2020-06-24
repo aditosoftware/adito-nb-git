@@ -44,7 +44,18 @@ public class MergeConflictSequence
     asyncProgressFacade = pAsyncProgressFacade;
   }
 
-  public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(Observable<Optional<IRepository>> pRepo, List<IMergeData> pMergeConflicts)
+  /**
+   * Determines if an auto-resolve should be performed by checking a flag and potentially asking the user, and then shows the merge dialog itself
+   *
+   * @param pRepo                Observable with the current repository
+   * @param pMergeConflicts      list of mergeConflicts
+   * @param pShowOnlyConflicting true if the list of mergeConflicts should be filtered by the status of the files
+   * @param pDialogTitle         Optional title of the dialog, may be left out. Only first parameter is used
+   * @return Result of the mergeConflictDialog
+   */
+  @NotNull
+  public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(@NotNull Observable<Optional<IRepository>> pRepo, @NotNull List<IMergeData> pMergeConflicts,
+                                                                       boolean pShowOnlyConflicting, String... pDialogTitle)
   {
     boolean showAutoResolveButton = true;
     EAutoResolveOptions autoResolveSettingsFlag = EAutoResolveOptions.getFromStringValue(prefStore.get(Constants.AUTO_RESOLVE_SETTINGS_KEY));
@@ -71,7 +82,7 @@ public class MergeConflictSequence
       showAutoResolveButton = false;
       performAutoResolve(pMergeConflicts, repositoryOptional.get(), asyncProgressFacade);
     }
-    return dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts, true, showAutoResolveButton);
+    return dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts, pShowOnlyConflicting, showAutoResolveButton, pDialogTitle);
   }
 
   /**

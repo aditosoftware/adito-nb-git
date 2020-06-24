@@ -11,6 +11,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -33,18 +34,21 @@ public class RevertCommitsAction extends AbstractTableAction
   private final IDialogProvider dialogProvider;
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
+  private final MergeConflictSequence mergeConflictSequence;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
 
   @Inject
   public RevertCommitsAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
-                             @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+                             MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepository,
+                             @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     super("Revert Commit(s)", _getIsEnabledObservable(pRepository, pSelectedCommitObservable));
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
+    mergeConflictSequence = pMergeConflictSequence;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
   }
@@ -79,7 +83,7 @@ public class RevertCommitsAction extends AbstractTableAction
     if (stashedCommitId != null)
     {
       pHandle.setDescription("Un-stashing changes");
-      StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
+      StashCommand.doUnStashing(mergeConflictSequence, stashedCommitId, Observable.just(repository.blockingFirst()));
       prefStore.put(STASH_ID_KEY, null);
     }
   }

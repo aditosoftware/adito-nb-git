@@ -18,6 +18,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -44,14 +45,16 @@ class CherryPickAction extends AbstractTableAction
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommits;
   private final ISaveUtil saveUtil;
+  private final MergeConflictSequence mergeConflictSequence;
 
   @Inject
   CherryPickAction(IPrefStore pPrefStore, IIconLoader pIconLoader, INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider,
-                   IAsyncProgressFacade pProgressFacade, ISaveUtil pSaveUtil, IActionProvider pActionProvider,
+                   IAsyncProgressFacade pProgressFacade, ISaveUtil pSaveUtil, IActionProvider pActionProvider, MergeConflictSequence pMergeConflictSequence,
                    @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommits)
   {
     super(ACTION_NAME, _getIsEnabledObservable(pSelectedCommits));
     saveUtil = pSaveUtil;
+    mergeConflictSequence = pMergeConflictSequence;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.CHERRY_PICK));
     putValue(Action.SHORT_DESCRIPTION, "Cherry pick");
     prefStore = pPrefStore;
@@ -120,7 +123,7 @@ class CherryPickAction extends AbstractTableAction
     if (stashedCommitId != null)
     {
       pHandle.setDescription(Util.getResource(this.getClass(), "unstashChangesMessage"));
-      StashCommand.doUnStashing(dialogProvider, stashedCommitId, Observable.just(repository.blockingFirst()));
+      StashCommand.doUnStashing(mergeConflictSequence, stashedCommitId, Observable.just(repository.blockingFirst()));
       prefStore.put(STASH_ID_KEY, null);
     }
   }
@@ -132,9 +135,9 @@ class CherryPickAction extends AbstractTableAction
       ICherryPickResult cherryPickResult = pRepo.cherryPick(pCommitsToPick);
       if (!cherryPickResult.getConflicts().isEmpty())
       {
-        IMergeConflictDialogResult<?, ?> conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),
-                                                                                                 cherryPickResult.getConflicts(), true, true,
-                                                                                                 Util.getResource(this.getClass(), "cherryPickDialogTitle"));
+        IMergeConflictDialogResult<?, ?> conflictResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)),
+                                                                                                             cherryPickResult.getConflicts(), true,
+                                                                                                             Util.getResource(this.getClass(), "cherryPickDialogTitle"));
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (conflictResult.isFinishMerge())
         {
