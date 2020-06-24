@@ -1823,7 +1823,8 @@ public class RepositoryImpl implements IRepository
           logger.log(Level.INFO, pE, () -> "Exception while trying to get the ahead/behind count of branch " + pBranch.getName());
         }
       }
-      return trackingStatus == null ? TrackedBranchStatus.NONE : new TrackedBranchStatus(trackingStatus.getBehindCount(), trackingStatus.getAheadCount());
+      return trackingStatus == null ? TrackedBranchStatus.NONE : new TrackedBranchStatus(trackingStatus.getRemoteTrackingBranch(),
+                                                                                         trackingStatus.getBehindCount(), trackingStatus.getAheadCount());
     }
   }
 }

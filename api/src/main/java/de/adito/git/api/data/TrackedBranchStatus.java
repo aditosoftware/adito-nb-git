@@ -1,5 +1,7 @@
 package de.adito.git.api.data;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Stores how many commits a certain commit is ahead and behind of their tracked branch
  *
@@ -8,16 +10,19 @@ package de.adito.git.api.data;
 public class TrackedBranchStatus
 {
 
-  public static final TrackedBranchStatus NONE = new TrackedBranchStatus(0, 0);
+  public static final TrackedBranchStatus NONE = new TrackedBranchStatus(null, 0, 0);
+  private final String remoteTrackedBranchName;
   private final int remoteAheadCount;
   private final int localAheadCount;
 
   /**
-   * @param pRemoteAheadCount number of commits the remote branch is ahead of the local branch
-   * @param pLocalAheadCount  number of commits the remote branch is behind the local branch
+   * @param pRemoteTrackedBranchName Name of the remote tracked branch
+   * @param pRemoteAheadCount        number of commits the remote branch is ahead of the local branch
+   * @param pLocalAheadCount         number of commits the remote branch is behind the local branch
    */
-  public TrackedBranchStatus(int pRemoteAheadCount, int pLocalAheadCount)
+  public TrackedBranchStatus(@Nullable String pRemoteTrackedBranchName, int pRemoteAheadCount, int pLocalAheadCount)
   {
+    remoteTrackedBranchName = pRemoteTrackedBranchName;
     remoteAheadCount = pRemoteAheadCount;
     localAheadCount = pLocalAheadCount;
   }
@@ -36,5 +41,14 @@ public class TrackedBranchStatus
   public int getLocalAheadCount()
   {
     return localAheadCount;
+  }
+
+  /**
+   * @return Name of the remote tracked branch
+   */
+  @Nullable
+  public String getRemoteTrackedBranchName()
+  {
+    return remoteTrackedBranchName;
   }
 }

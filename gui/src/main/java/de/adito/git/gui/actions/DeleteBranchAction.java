@@ -4,9 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EBranchType;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.EButtons;
@@ -32,36 +30,43 @@ class DeleteBranchAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
   private final Observable<Optional<IRepository>> repository;
-  private final Observable<Optional<IBranch>> branch;
+  private final Observable<Optional<IBranch>> branchObs;
 
   @Inject
   DeleteBranchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
-                     @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
+                     @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranchObs)
   {
-    super("Delete Branch", _getIsEnabledObservable(pRepository, pBranch));
+    super("Delete Branch", _getIsEnabledObservable(pRepository, pBranchObs));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
     repository = pRepository;
-    branch = pBranch;
+    branchObs = pBranchObs;
   }
 
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    String branchName = branch.blockingFirst().map(IBranch::getSimpleName).orElse(null);
+    Optional<IBranch> branchOpt = branchObs.blockingFirst(Optional.empty());
+    String branchName = branchOpt.map(IBranch::getSimpleName).orElse(null);
     IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
     if (branchName != null)
     {
-      IUserPromptDialogResult<?, Object> dialogResult = dialogProvider.showDialog(
-          dialogProvider.getPanelFactory().createNotificationPanel("Should the remote branch be deleted as well (if existent)?"),
-          "Delete Branch",
-          List.of(EButtons.YES, EButtons.NO, EButtons.CANCEL),
-          List.of(EButtons.YES, EButtons.NO));
-      if (dialogResult.isOkay())
+      IUserPromptDialogResult<?, Object> dialogResult = null;
+      Boolean hasRemoteTrackedBranch = branchOpt.map(pBranch -> pBranch.getTrackedBranchStatus() != TrackedBranchStatus.NONE).orElse(false);
+      if (hasRemoteTrackedBranch)
       {
+        dialogResult = dialogProvider.showDialog(
+            dialogProvider.getPanelFactory().createNotificationPanel("Should the remote branch be deleted as well (if existent)?"),
+            "Delete Branch",
+            List.of(EButtons.YES, EButtons.NO, EButtons.CANCEL),
+            List.of(EButtons.YES, EButtons.NO));
+      }
+      if (!hasRemoteTrackedBranch || dialogResult.isOkay())
+      {
+        boolean isDeleteRemoteBranch = hasRemoteTrackedBranch && dialogResult.getSelectedButton() == EButtons.OK;
         progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + branchName, pHandle -> {
-          _deleteBranch(branchName, dialogResult.getSelectedButton() == EButtons.OK, repo);
+          _deleteBranch(branchName, isDeleteRemoteBranch, repo);
         });
       }
       else
