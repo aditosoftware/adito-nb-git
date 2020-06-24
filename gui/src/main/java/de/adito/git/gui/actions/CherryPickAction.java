@@ -133,7 +133,7 @@ class CherryPickAction extends AbstractTableAction
       if (!cherryPickResult.getConflicts().isEmpty())
       {
         IMergeConflictDialogResult<?, ?> conflictResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)),
-                                                                                                 cherryPickResult.getConflicts(), true,
+                                                                                                 cherryPickResult.getConflicts(), true, true,
                                                                                                  Util.getResource(this.getClass(), "cherryPickDialogTitle"));
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (conflictResult.isFinishMerge())

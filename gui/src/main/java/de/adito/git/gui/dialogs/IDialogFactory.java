@@ -24,8 +24,9 @@ import java.util.function.Consumer;
 interface IDialogFactory
 {
 
-  MergeConflictDialog createMergeConflictDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                                                Observable<Optional<IRepository>> pRepository, List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting);
+  MergeConflictDialog createMergeConflictDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor, Observable<Optional<IRepository>> pRepository,
+                                                List<IMergeData> pMergeConflictDiffs, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
+                                                @Assisted("autoResolveFlag") boolean pShowAutoResolve);
 
   MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeData pMergeDiff);
 

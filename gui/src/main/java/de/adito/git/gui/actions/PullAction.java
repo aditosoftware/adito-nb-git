@@ -173,7 +173,7 @@ class PullAction extends AbstractAction
    */
   private boolean _handleConflictDialog(IRepository pRepo, List<IMergeData> pMergeConflicts) throws AditoGitException
   {
-    IMergeConflictDialogResult<?, ?> dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
+    IMergeConflictDialogResult<?, ?> dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(pRepo)), pMergeConflicts, true, true);
     IUserPromptDialogResult<?, ?> promptDialogResult = null;
     if (dialogResult.isFinishMerge())
     {

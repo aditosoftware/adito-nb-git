@@ -39,7 +39,7 @@ public class StashCommand
       IMergeConflictDialogResult dialogResult = null;
       if (!stashConflicts.isEmpty())
       {
-        dialogResult = pDialogProvider.showMergeConflictDialog(pRepository, stashConflicts, false, "Stash Conflicts");
+        dialogResult = pDialogProvider.showMergeConflictDialog(pRepository, stashConflicts, false, true, "Stash Conflicts");
       }
       if (stashConflicts.isEmpty() || dialogResult.isFinishMerge())
       {

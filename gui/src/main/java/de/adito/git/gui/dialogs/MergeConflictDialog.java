@@ -44,6 +44,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final JButton manualMergeButton = new JButton("Manual Merge");
   private final JButton acceptYoursButton = new JButton("Accept Yours");
   private final JButton acceptTheirsButton = new JButton("Accept Theirs");
+  private final JButton autoResolveButton = new JButton("Auto-Resolve");
   private final Observable<Optional<List<IMergeData>>> selectedMergeDiffObservable;
   private final MergeDiffStatusModel mergeDiffStatusModel;
   private final Disposable disposable;
@@ -53,7 +54,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   @Inject
   MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeData> pMergeConflictDiffs, @Assisted boolean pOnlyConflicting)
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeData> pMergeConflictDiffs,
+                      @Assisted("onlyConflictingFlag") boolean pOnlyConflicting, @Assisted("autoResolveFlag") boolean pShowAutoResolve)
   {
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
@@ -93,10 +95,10 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     });
     disposable = mergeDiffListObservable.subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty()));
     mergeDiffStatusModel = new MergeDiffStatusModel(mergeDiffListObservable);
-    _initGui();
+    _initGui(pShowAutoResolve);
   }
 
-  private void _initGui()
+  private void _initGui(boolean pShowAutoResolve)
   {
     setLayout(new BorderLayout(5, 10));
     setPreferredSize(ComponentResizeListener._getPreferredSize(prefStore, PREF_STORE_SIZE_KEY, new Dimension(800, 600)));
@@ -109,12 +111,24 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
+    autoResolveButton.addActionListener(e -> {
+      MergeConflictSequence.performAutoResolve(mergeConflictDiffs.blockingFirst(List.of()), repository);
+      autoResolveButton.setEnabled(false);
+    });
+    autoResolveButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) autoResolveButton.getMaximumSize().getHeight()));
     buttonPanel.setPreferredSize(new Dimension(120, 60));
     buttonPanel.add(manualMergeButton);
     buttonPanel.add(Box.createVerticalStrut(10));
     buttonPanel.add(acceptYoursButton);
     buttonPanel.add(Box.createVerticalStrut(5));
     buttonPanel.add(acceptTheirsButton);
+    if (pShowAutoResolve)
+    {
+      buttonPanel.add(Box.createVerticalStrut(10));
+      buttonPanel.add(new JSeparator());
+      buttonPanel.add(Box.createVerticalStrut(10));
+      buttonPanel.add(autoResolveButton);
+    }
     buttonPanel.add(Box.createVerticalStrut(Integer.MAX_VALUE));
     add(buttonPanel, BorderLayout.EAST);
     mergeConflictTable.setModel(mergeDiffStatusModel);

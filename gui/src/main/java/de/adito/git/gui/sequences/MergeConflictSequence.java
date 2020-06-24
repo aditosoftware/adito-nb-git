@@ -15,6 +15,7 @@ import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
 import io.reactivex.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -42,6 +43,7 @@ public class MergeConflictSequence
 
   public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(Observable<Optional<IRepository>> pRepo, List<IMergeData> pMergeConflicts)
   {
+    boolean showAutoResolveButton = true;
     EAutoResolveOptions autoResolveSettingsFlag = EAutoResolveOptions.getFromStringValue(prefStore.get(Constants.AUTO_RESOLVE_SETTINGS_KEY));
     IUserPromptDialogResult<?, ?> promptDialogResult = null;
     // only show the dialog if the auto resolve setting is not set -> user can also choose to never use auto-resolve
@@ -63,21 +65,34 @@ public class MergeConflictSequence
     Optional<IRepository> repositoryOptional = pRepo.blockingFirst(Optional.empty());
     if (repositoryOptional.isPresent() && (EAutoResolveOptions.ALWAYS.equals(autoResolveSettingsFlag) || (promptDialogResult != null && promptDialogResult.isOkay())))
     {
-      for (int index = pMergeConflicts.size() - 1; index > 0; index--)
+      showAutoResolveButton = false;
+      performAutoResolve(pMergeConflicts, repositoryOptional.get());
+    }
+    return dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts, true, showAutoResolveButton);
+  }
+
+  /**
+   * Goes through the list of conflicting files and tries to perform an auto-resolve. This is done by checking if the file has no change delta that is marked as
+   * conflicting, and if that is the case, accepting all changes and marking the file resolved. Files with conflicting change deltas are not touched
+   *
+   * @param pMergeConflicts List of merge conflicts to try and auto-resolve
+   * @param pRepository     Repository, used to perform an add one the conflicting files to mark them as resolved
+   */
+  public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository)
+  {
+    for (int index = pMergeConflicts.size() - 1; index > 0; index--)
+    {
+      IMergeData mergeData = pMergeConflicts.get(index);
+      mergeData.markConflicting();
+      if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
+          && mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING))
       {
-        IMergeData mergeData = pMergeConflicts.get(index);
-        mergeData.markConflicting();
-        if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
-            && mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING))
-        {
-          acceptMergeSide(mergeData, EConflictSide.YOURS);
-          acceptMergeSide(mergeData, EConflictSide.THEIRS);
-          acceptManualVersion(mergeData, repositoryOptional.get());
-          pMergeConflicts.remove(mergeData);
-        }
+        acceptMergeSide(mergeData, EConflictSide.YOURS);
+        acceptMergeSide(mergeData, EConflictSide.THEIRS);
+        acceptManualVersion(mergeData, pRepository);
+        pMergeConflicts.remove(mergeData);
       }
     }
-    return dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts, true);
   }
 
   public static void acceptMergeSide(IMergeData mergeData, EConflictSide pConflictSide)

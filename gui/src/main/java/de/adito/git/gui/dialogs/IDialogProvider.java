@@ -34,12 +34,13 @@ public interface IDialogProvider
    * @param pRepository         Observable with the current Repository
    * @param pMergeConflictDiffs List of IMergeDatas detailing the conflicting files
    * @param pOnlyConflicting    true if only files with status conflicting should be shown
+   * @param pShowAutoResolve    Determines if the auto-resolve button is shown
    * @param pDialogTitle        Optional title for the dialog, only the first passed String is used
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
   IMergeConflictDialogResult<?, ?> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeData> pMergeConflictDiffs,
-                                                           boolean pOnlyConflicting, String... pDialogTitle);
+                                                           boolean pOnlyConflicting, boolean pShowAutoResolve, String... pDialogTitle);
 
   /**
    * Shows a dialog with a three-way merge based on the information from pMergeDiff

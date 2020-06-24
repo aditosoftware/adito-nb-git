@@ -91,7 +91,7 @@ class ResolveConflictsAction extends AbstractTableAction
         return;
       }
     }
-    IMergeConflictDialogResult<?, ?> mergeConflictDialogResult = dialogProvider.showMergeConflictDialog(repository, conflicts, true);
+    IMergeConflictDialogResult<?, ?> mergeConflictDialogResult = dialogProvider.showMergeConflictDialog(repository, conflicts, true, true);
     if (mergeConflictDialogResult.isAbortMerge())
     {
       pRepo.reset(pRepo.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);

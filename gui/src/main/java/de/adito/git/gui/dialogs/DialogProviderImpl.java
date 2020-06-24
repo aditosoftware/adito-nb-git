@@ -46,12 +46,13 @@ class DialogProviderImpl implements IDialogProvider
   @Override
   public @NotNull IMergeConflictDialogResult<MergeConflictDialog, ?> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
                                                                                              @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting,
-                                                                                             String... pDialogTitle)
+                                                                                             boolean pShowAutoResolve, String... pDialogTitle)
   {
     DialogResult<MergeConflictDialog, ?> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs, pOnlyConflicting),
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs, pOnlyConflicting,
+                                                                                                    pShowAutoResolve),
                                           pDialogTitle.length == 1 ? pDialogTitle[0] : "Merge Conflicts", List.of(EButtons.OK, EButtons.ABORT).toArray(new EButtons[0]));
       return new MergeConflictDialogResultImpl<>(result);
     }
