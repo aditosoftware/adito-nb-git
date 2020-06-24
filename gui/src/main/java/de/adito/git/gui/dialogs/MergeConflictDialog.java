@@ -110,8 +110,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
     manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable));
-    acceptYoursButton.addActionListener(e -> MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS, repository));
-    acceptTheirsButton.addActionListener(e -> MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS, repository));
+    acceptYoursButton.addActionListener(e -> _acceptDefaultVersion(EConflictSide.YOURS));
+    acceptTheirsButton.addActionListener(e -> _acceptDefaultVersion(EConflictSide.THEIRS));
     manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
@@ -162,17 +162,25 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         }
         else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_YOURS))
         {
-          MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS, repository);
+          _acceptDefaultVersion(EConflictSide.YOURS);
           pMergeDatas.forEach(this::_removeFromMergeConflicts);
         }
         else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_THEIRS))
         {
-          MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS, repository);
-          pMergeDatas.forEach(this::_removeFromMergeConflicts);
+          _acceptDefaultVersion(EConflictSide.THEIRS);
         }
         else
           pMergeDatas.get(0).reset();
       }
+    });
+  }
+
+  private void _acceptDefaultVersion(EConflictSide pConflictSide)
+  {
+    Optional<List<IMergeData>> mergeDiffOptional = selectedMergeDiffObservable.blockingFirst(Optional.empty());
+    mergeDiffOptional.ifPresent(pIMergeData -> {
+      MergeConflictSequence.acceptDefaultVersion(pIMergeData, pConflictSide, repository);
+      mergeDiffOptional.get().forEach(this::_removeFromMergeConflicts);
     });
   }
 

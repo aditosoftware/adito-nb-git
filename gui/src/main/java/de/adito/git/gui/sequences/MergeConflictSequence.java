@@ -126,44 +126,42 @@ public class MergeConflictSequence
   }
 
   /**
-   * @param pSelectedMergeDiff Observable optional of the list of selected IMergeDatas
+   * @param pSelectedMergeDiff list of selected IMergeDatas
    * @param pConflictSide      Side of the IMergeDatas that should be accepted
+   * @param pRepository        Repository to call add to mark files as resolved
    */
-  public static void acceptDefaultVersion(Observable<Optional<List<IMergeData>>> pSelectedMergeDiff, EConflictSide pConflictSide, IRepository pRepository)
+  public static void acceptDefaultVersion(@NotNull List<IMergeData> pSelectedMergeDiff, @NotNull EConflictSide pConflictSide, @NotNull IRepository pRepository)
   {
-    Optional<List<IMergeData>> mergeDiffOptional = pSelectedMergeDiff.blockingFirst();
-    if (mergeDiffOptional.isPresent())
+
+    try
     {
-      try
+      for (IMergeData selectedMergeDiff : pSelectedMergeDiff)
       {
-        for (IMergeData selectedMergeDiff : mergeDiffOptional.get())
+        String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
+        if (path != null)
         {
-          String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
-          if (path != null)
+          File selectedFile = new File(path);
+          if (selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getChangeType() == EChangeType.DELETE)
           {
-            File selectedFile = new File(path);
-            if (selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getChangeType() == EChangeType.DELETE)
-            {
-              pRepository.remove(List.of(selectedFile));
-            }
-            else
-            {
-              _saveVersion(pConflictSide, selectedMergeDiff, selectedFile);
-            }
+            pRepository.remove(List.of(selectedFile));
+          }
+          else
+          {
+            _saveVersion(pConflictSide, selectedMergeDiff, selectedFile);
           }
         }
-        pRepository.add(mergeDiffOptional.get().stream()
-                            .map(pMergeDiff -> pMergeDiff.getDiff(pConflictSide).getFileHeader())
-                            .filter(pFileDiffHeader -> pFileDiffHeader.getChangeType() != EChangeType.DELETE)
-                            .map(IFileDiffHeader::getAbsoluteFilePath)
-                            .filter(Objects::nonNull)
-                            .map(File::new)
-                            .collect(Collectors.toList()));
       }
-      catch (Exception pE)
-      {
-        throw new RuntimeException(pE);
-      }
+      pRepository.add(pSelectedMergeDiff.stream()
+                          .map(pMergeDiff -> pMergeDiff.getDiff(pConflictSide).getFileHeader())
+                          .filter(pFileDiffHeader -> pFileDiffHeader.getChangeType() != EChangeType.DELETE)
+                          .map(IFileDiffHeader::getAbsoluteFilePath)
+                          .filter(Objects::nonNull)
+                          .map(File::new)
+                          .collect(Collectors.toList()));
+    }
+    catch (Exception pE)
+    {
+      throw new RuntimeException(pE);
     }
   }
 
