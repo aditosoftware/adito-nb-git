@@ -1,7 +1,8 @@
-package de.adito.git.gui.dialogs;
+package de.adito.git.gui.dialogs.panels;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.gui.dialogs.AditoBaseDialog;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
@@ -10,12 +11,12 @@ import javax.swing.*;
 /**
  * @author a.arnold, 16.01.2019
  */
-class NotificationDialog extends AditoBaseDialog<Object>
+public class NotificationPanel extends AditoBaseDialog<Object>
 {
   private final JLabel label = new JLabel();
 
   @Inject
-  NotificationDialog(@Assisted String pMessage)
+  NotificationPanel(@Assisted String pMessage)
   {
     label.setText(pMessage);
     _initGui();

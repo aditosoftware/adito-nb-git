@@ -46,7 +46,9 @@ public interface IDialogDisplayer
     KEEP_TRACKING("Keep tracking the selected branch"),
     MERGE_REMOTE("Merge remote into current"),
     ACCEPT_YOURS("Accept Left"),
-    ACCEPT_THEIRS("Accept Right");
+    ACCEPT_THEIRS("Accept Right"),
+    SKIP("Skip"),
+    AUTO_RESOLVE("Resolve");
 
     private final String text;
 

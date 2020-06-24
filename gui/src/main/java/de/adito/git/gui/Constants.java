@@ -39,6 +39,8 @@ public class Constants
   public static final String ACCEPT_ALL_NON_CONFLICTING = "de/adito/git/gui/icons/accept-non-conflicting.png";
   public static final String SWITCH_TREE_VIEW_FLAT = "de/adito/git/gui/icons/tree_view_flat.png";
   public static final String SWITCH_TREE_VIEW_HIERARCHICAL = "de/adito/git/gui/icons/tree_view_hierarchical.png";
+  public static final String SHOW_MORE_DIALOG_OPTION = "de/adito/git/gui/icons/arrowRightSmall12.png";
+  public static final String SHOW_LESS_DIALOG_OPTION = "de/adito/git/gui/icons/arrowDownSmall12.png";
 
   // Sidebar Icon
   public static final String ROLLBACK_ICON = "de/adito/git/nbm/sidebar/rollback.png";
@@ -58,6 +60,7 @@ public class Constants
   public static final String SSH_KEY_KEY = "sshKey";
   public static final String LOG_LEVEL_SETTINGS_KEY = "gitLogLevel";
   public static final String RAW_TEXT_COMPARATOR_SETTINGS_KEY = "rawTextComparator";
+  public static final String AUTO_RESOLVE_SETTINGS_KEY = "git.flags.autoresolve";
   public static final String TREE_VIEW_TYPE_KEY = "git.settings.tree.view";
   public static final String TREE_VIEW_FLAT = "flat";
   public static final String TREE_VIEW_HIERARCHICAL = "hierarchical";

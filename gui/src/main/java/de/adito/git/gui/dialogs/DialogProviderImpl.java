@@ -9,6 +9,9 @@ import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
+import de.adito.git.gui.dialogs.panels.ComboBoxPanel;
+import de.adito.git.gui.dialogs.panels.IPanelFactory;
+import de.adito.git.gui.dialogs.panels.UserPromptPanel;
 import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -30,12 +33,14 @@ class DialogProviderImpl implements IDialogProvider
 {
   private final IDialogDisplayer dialogDisplayer;
   private final IDialogFactory dialogFactory;
+  private final IPanelFactory panelFactory;
 
   @Inject
-  public DialogProviderImpl(IDialogDisplayer pDialogDisplayer, IDialogFactory pDialogFactory)
+  public DialogProviderImpl(IDialogDisplayer pDialogDisplayer, IDialogFactory pDialogFactory, IPanelFactory pPanelFactory)
   {
     dialogDisplayer = pDialogDisplayer;
     dialogFactory = pDialogFactory;
+    panelFactory = pPanelFactory;
   }
 
   @Override
@@ -319,11 +324,11 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<UserPromptDialog, Object> showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefault)
+  public @NotNull IUserPromptDialogResult<UserPromptPanel, Object> showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefault)
   {
     final String defaultValue = pDefault;
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
-                                                                           dialogFactory.createUserPromptDialog(defaultValue),
+                                                                           panelFactory.createUserPromptPanel(defaultValue),
                                                                        pMessage, List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
   }
 
@@ -331,7 +336,7 @@ class DialogProviderImpl implements IDialogProvider
   public @NotNull IUserPromptDialogResult showYesNoDialog(@NotNull String pMessage)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
-                                                                           dialogFactory.createNotificationDialog(pMessage),
+                                                                           panelFactory.createNotificationPanel(pMessage),
                                                                        pMessage, List.of(EButtons.YES, EButtons.NO).toArray(new EButtons[0])))
     {
       @Override
@@ -346,7 +351,7 @@ class DialogProviderImpl implements IDialogProvider
   public IUserPromptDialogResult<?, ?> showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons, @NotNull List<EButtons> pOkayButtons)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
-                                                                           dialogFactory.createNotificationDialog(pMessage),
+                                                                           panelFactory.createNotificationPanel(pMessage),
                                                                        "Git Plugin", pShownButtons.toArray(new EButtons[0])))
     {
       @Override
@@ -362,7 +367,7 @@ class DialogProviderImpl implements IDialogProvider
   public IChangeTrackedBranchDialogResult showChangeTrackedBranchDialog(@NotNull String pMessage)
   {
     return new ChangeTrackedBranchDialogResult<>(dialogDisplayer.showDialog(pValidConsumer ->
-                                                                                dialogFactory.createNotificationDialog(pMessage),
+                                                                                panelFactory.createNotificationPanel(pMessage),
                                                                             "", List.of(EButtons.CREATE_NEW_BRANCH, EButtons.KEEP_TRACKING, EButtons.ABORT)
                                                                                 .toArray(new EButtons[0])));
   }
@@ -543,10 +548,10 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<CheckboxPrompt, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText)
+  public @NotNull IUserPromptDialogResult<?, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
-                                                                           dialogFactory.createCheckboxPrompt(pMessage, pCheckboxText),
+                                                                           panelFactory.createCheckboxPanel(pMessage, pCheckboxText),
                                                                        "", List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
   }
 
@@ -570,9 +575,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public IUserPromptDialogResult<ComboBoxDialog<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions)
+  public IUserPromptDialogResult<ComboBoxPanel<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions)
   {
-    return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createComboBoxDialog(pMessage, pOptions),
+    return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> panelFactory.createComboBoxPanel(pMessage, pOptions),
                                                                        "", List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
   }
 
@@ -587,6 +592,26 @@ class DialogProviderImpl implements IDialogProvider
                                                                                  "Local changes detected",
                                                                                  List.of(EButtons.STASH_CHANGES, EButtons.DISCARD_CHANGES, EButtons.ABORT)
                                                                                      .toArray(new EButtons[0])));
+  }
+
+  @Override
+  public <T> IUserPromptDialogResult<?, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
+                                                      @NotNull List<EButtons> pOkayButtons)
+  {
+    return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> pComponent, pTitle, pButtonList.toArray(new EButtons[0])))
+    {
+      @Override
+      public boolean isOkay()
+      {
+        return pOkayButtons.contains(selectedButton);
+      }
+    };
+  }
+
+  @Override
+  public IPanelFactory getPanelFactory()
+  {
+    return panelFactory;
   }
 
   private static class StashChangesQuestionDialogResultImpl<S, T> extends DialogResult<S, T> implements IStashChangesQuestionDialogResult<S, T>

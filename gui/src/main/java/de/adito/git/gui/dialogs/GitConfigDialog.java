@@ -7,9 +7,11 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.EAutoResolveOptions;
 import de.adito.git.api.data.IRemote;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.NewRemotePanel;
@@ -46,7 +48,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
   private final GlobalSettingsPanel globalSettingsPanel;
 
   @Inject
-  public GitConfigDialog(IActionProvider pActionProvider, IKeyStore pKeyStore, @Assisted Observable<Optional<IRepository>> pRepository)
+  public GitConfigDialog(IActionProvider pActionProvider, IKeyStore pKeyStore, IPrefStore pPrefStore, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -80,7 +82,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
       }
       tabbedPane.setSelectedIndex(0);
     }
-    globalSettingsPanel = new GlobalSettingsPanel();
+    globalSettingsPanel = new GlobalSettingsPanel(pPrefStore);
     add(Box.createVerticalStrut(15));
     JSeparator separator1 = new JSeparator();
     add(separator1);
@@ -137,8 +139,9 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
 
     private final JComboBox<Level> logLevelBox;
     private final JComboBox<GitRawTextComparator> rawTextComparatorBox;
+    private final JComboBox<EAutoResolveOptions> autoResolveComboBox;
 
-    GlobalSettingsPanel()
+    GlobalSettingsPanel(IPrefStore pPrefStore)
     {
       setBorder(DEFAULT_PANEL_BORDERS);
       setLayout(new BorderLayout(0, 15));
@@ -151,14 +154,21 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
       logLevelBox.setSelectedItem(currentLogLevel);
       otherSettingsPanel.add(new JLabel("Log level:"), BorderLayout.WEST);
       otherSettingsPanel.add(logLevelBox, BorderLayout.EAST);
-      add(otherSettingsPanel, BorderLayout.CENTER);
+      add(otherSettingsPanel, BorderLayout.NORTH);
 
       rawTextComparatorBox = new JComboBox<>(new Vector<>(GitRawTextComparator.INSTANCES));
       rawTextComparatorBox.setSelectedItem(GitRawTextComparator.CURRENT);
       JPanel comparatorPanel = new JPanel(new BorderLayout());
       comparatorPanel.add(new JLabel("Whitespace and Line-Endings:"), BorderLayout.WEST);
       comparatorPanel.add(rawTextComparatorBox, BorderLayout.EAST);
-      add(comparatorPanel, BorderLayout.SOUTH);
+      add(comparatorPanel, BorderLayout.CENTER);
+
+      autoResolveComboBox = new JComboBox<>(EAutoResolveOptions.values());
+      autoResolveComboBox.setSelectedItem(EAutoResolveOptions.getFromStringValue(pPrefStore.get(Constants.AUTO_RESOLVE_SETTINGS_KEY)));
+      JPanel autoResolvePanel = new JPanel(new BorderLayout());
+      autoResolvePanel.add(autoResolveComboBox, BorderLayout.EAST);
+      autoResolvePanel.add(new JLabel("Use auto-resolve in merges with conflicts"), BorderLayout.WEST);
+      add(autoResolvePanel, BorderLayout.SOUTH);
     }
 
     public Multimap<String, Object> getInformation()
@@ -166,6 +176,7 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
       Multimap<String, Object> settingsMap = HashMultimap.create();
       settingsMap.put(Constants.LOG_LEVEL_SETTINGS_KEY, logLevelBox.getSelectedItem());
       settingsMap.put(Constants.RAW_TEXT_COMPARATOR_SETTINGS_KEY, rawTextComparatorBox.getSelectedItem().toString());
+      settingsMap.put(Constants.AUTO_RESOLVE_SETTINGS_KEY, autoResolveComboBox.getSelectedItem());
       return settingsMap;
     }
   }

@@ -43,7 +43,7 @@ class StashedCommitSelectionDialog extends AditoBaseDialog<String> implements ID
   private String selectedCommitId = "";
 
   @Inject
-  public StashedCommitSelectionDialog(CommitDetailsPanel.IPanelFactory pPanelFactory, IActionProvider pActionProvider, IIconLoader pIconLoader,
+  public StashedCommitSelectionDialog(CommitDetailsPanel.ICommitDetailsPanelFactory pPanelFactory, IActionProvider pActionProvider, IIconLoader pIconLoader,
                                       @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
                                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<ICommit> pStashedCommits)
   {

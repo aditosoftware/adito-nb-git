@@ -265,7 +265,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     return statusTree.getTree();
   }
 
-  public interface IPanelFactory
+  public interface ICommitDetailsPanelFactory
   {
 
     CommitDetailsPanel createCommitDetailsPanel(@NotNull Observable<Optional<IRepository>> pRepository,

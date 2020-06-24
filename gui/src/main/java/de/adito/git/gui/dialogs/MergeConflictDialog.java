@@ -5,10 +5,13 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.diff.*;
+import de.adito.git.api.data.diff.EConflictSide;
+import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.gui.swing.ComponentResizeListener;
 import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
@@ -21,13 +24,7 @@ import io.reactivex.subjects.Subject;
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +40,6 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final IDialogDisplayer.IDescriptor isValidDescriptor;
   private final IRepository repository;
   private final Subject<List<IMergeData>> mergeConflictDiffs;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final JTable mergeConflictTable = new JTable();
   private final JButton manualMergeButton = new JButton("Manual Merge");
   private final JButton acceptYoursButton = new JButton("Accept Yours");
@@ -108,8 +104,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
     manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable));
-    acceptYoursButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS));
-    acceptTheirsButton.addActionListener(e -> _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS));
+    acceptYoursButton.addActionListener(e -> MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS, repository));
+    acceptTheirsButton.addActionListener(e -> MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS, repository));
     manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
@@ -142,155 +138,31 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       {
         IMergeConflictResolutionDialogResult<?, ?> result = dialogProvider.showMergeConflictResolutionDialog(pMergeDatas.get(0));
         if (result.isAcceptChanges())
-          _acceptManualVersion(pMergeDatas.get(0));
+        {
+          MergeConflictSequence.acceptManualVersion(pMergeDatas.get(0), repository);
+          _removeFromMergeConflicts(pMergeDatas.get(0));
+        }
         else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_YOURS))
-          _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS);
+        {
+          MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.YOURS, repository);
+          pMergeDatas.forEach(this::_removeFromMergeConflicts);
+        }
         else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_THEIRS))
-          _acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS);
+        {
+          MergeConflictSequence.acceptDefaultVersion(selectedMergeDiffObservable, EConflictSide.THEIRS, repository);
+          pMergeDatas.forEach(this::_removeFromMergeConflicts);
+        }
         else
           pMergeDatas.get(0).reset();
       }
     });
   }
 
-  /**
-   * @param pSelectedMergeDiff Observable optional of the list of selected IMergeDatas
-   * @param pConflictSide      Side of the IMergeDatas that should be accepted
-   */
-  private void _acceptDefaultVersion(Observable<Optional<List<IMergeData>>> pSelectedMergeDiff, EConflictSide pConflictSide)
+  private void _removeFromMergeConflicts(IMergeData pMergeData)
   {
-    Optional<List<IMergeData>> mergeDiffOptional = pSelectedMergeDiff.blockingFirst();
-    if (mergeDiffOptional.isPresent())
-    {
-      try
-      {
-        for (IMergeData selectedMergeDiff : mergeDiffOptional.get())
-        {
-          String path = selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getAbsoluteFilePath();
-          if (path != null)
-          {
-            File selectedFile = new File(path);
-            if (selectedMergeDiff.getDiff(pConflictSide).getFileHeader().getChangeType() == EChangeType.DELETE)
-            {
-              repository.remove(List.of(selectedFile));
-            }
-            else
-            {
-              _saveVersion(pConflictSide, selectedMergeDiff, selectedFile);
-            }
-          }
-        }
-        repository.add(mergeDiffOptional.get().stream()
-                           .map(pMergeDiff -> pMergeDiff.getDiff(pConflictSide).getFileHeader())
-                           .filter(pFileDiffHeader -> pFileDiffHeader.getChangeType() != EChangeType.DELETE)
-                           .map(IFileDiffHeader::getAbsoluteFilePath)
-                           .filter(Objects::nonNull)
-                           .map(File::new)
-                           .collect(Collectors.toList()));
-      }
-      catch (Exception pE)
-      {
-        throw new RuntimeException(pE);
-      }
-    }
-  }
-
-  /**
-   * @param pConflictSide     side of the conflict that was accepted by the user
-   * @param selectedMergeDiff the mergeDiff that should be resolved
-   * @param pSelectedFile     File that this mergeDiff is for
-   */
-  private void _saveVersion(EConflictSide pConflictSide, IMergeData selectedMergeDiff, File pSelectedFile)
-  {
-    String fileContents = selectedMergeDiff.getDiff(pConflictSide).getText(EChangeSide.NEW);
-    logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", pSelectedFile.getAbsolutePath(),
-                                               selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW)));
-    _writeToFile(fileContents, selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), selectedMergeDiff, pSelectedFile);
-  }
-
-  /**
-   * @param pMergeDiff IMergeData whose conflicts were resolved
-   */
-  private void _acceptManualVersion(IMergeData pMergeDiff)
-  {
-    String path = pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getAbsoluteFilePath();
-    if (path != null)
-    {
-      File selectedFile = new File(repository.getTopLevelDirectory(), pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getFilePath());
-      String fileContents = pMergeDiff.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD);
-      logger.log(Level.INFO, () -> String.format("Git: encoding used for writing file %s to disk: %s", path,
-                                                 pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.NEW)));
-      _writeToFile(_adjustLineEndings(fileContents, pMergeDiff), pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.NEW), pMergeDiff, selectedFile);
-      try
-      {
-        repository.add(Collections.singletonList(selectedFile));
-      }
-      catch (Exception pE)
-      {
-        throw new RuntimeException(pE);
-      }
-    }
-  }
-
-  /**
-   * @param pFileContents      Contents that should be written to the file
-   * @param pCharset           Charset used to write pFileContents to disk (gets transferred from String to byte array)
-   * @param pSelectedMergeDiff IMergeData that will get resolved by writing the contents to the file
-   * @param pSelectedFile      file which should be overridden with pFileContents
-   */
-  private void _writeToFile(String pFileContents, Charset pCharset, IMergeData pSelectedMergeDiff, File pSelectedFile)
-  {
-    if (!pSelectedFile.exists())
-      pSelectedFile.getParentFile().mkdirs();
-    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pSelectedFile, false), pCharset))
-    {
-      writer.write(pFileContents);
-      List<IMergeData> mergeDiffs = mergeConflictDiffs.blockingFirst();
-      mergeDiffs.remove(pSelectedMergeDiff);
-      mergeConflictDiffs.onNext(mergeDiffs);
-    }
-    catch (Exception pE)
-    {
-      throw new RuntimeException(pE);
-    }
-  }
-
-  /**
-   * replaces all lineEndings with those determined by the MergeData
-   *
-   * @param pFileContent content for which to change the newlines
-   * @param pMergeData   IMergeData containing the FileContentInfos used to determine the used lineEndings
-   * @return String with changed newlines
-   */
-  static String _adjustLineEndings(String pFileContent, IMergeData pMergeData)
-  {
-    ELineEnding lineEnding = _getLineEnding(pMergeData);
-    if (lineEnding == ELineEnding.UNIX)
-    {
-      return pFileContent.replaceAll("\r\n", ELineEnding.UNIX.getLineEnding()).replaceAll("\r", ELineEnding.UNIX.getLineEnding());
-    }
-    else if (lineEnding == ELineEnding.WINDOWS)
-    {
-      return pFileContent.replaceAll("\r(?!\n)", ELineEnding.WINDOWS.getLineEnding()).replaceAll("(?<!\r)\n", ELineEnding.WINDOWS.getLineEnding());
-    }
-    else return pFileContent.replaceAll("\r\n", ELineEnding.MAC.getLineEnding()).replaceAll("\n", ELineEnding.MAC.getLineEnding());
-  }
-
-  /**
-   * Determines the lineEnding to use by checking the two NEW versions of the ConflictSides, if those have the same lineEnding then that lineEnding is used.
-   * Otherwise the lineEnding used by the sytem is returned
-   *
-   * @param pMergeData IMergeData containing the FileContentInfos used to determine the used lineEndings
-   * @return LineEnding
-   */
-  private static ELineEnding _getLineEnding(IMergeData pMergeData)
-  {
-    if (pMergeData.getDiff(EConflictSide.THEIRS).getFileContentInfo(EChangeSide.NEW).getLineEnding().get()
-        == pMergeData.getDiff(EConflictSide.YOURS).getFileContentInfo(EChangeSide.NEW).getLineEnding().get())
-    {
-      return pMergeData.getDiff(EConflictSide.THEIRS).getFileContentInfo(EChangeSide.NEW).getLineEnding().get();
-    }
-    else return ELineEnding.getLineEnding(System.lineSeparator());
+    List<IMergeData> mergeDiffs = mergeConflictDiffs.blockingFirst();
+    mergeDiffs.remove(pMergeData);
+    mergeConflictDiffs.onNext(mergeDiffs);
   }
 
   @Override

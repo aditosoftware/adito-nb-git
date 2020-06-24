@@ -47,10 +47,6 @@ interface IDialogFactory
 
   PasswordPromptDialog createPasswordPromptDialog();
 
-  UserPromptDialog createUserPromptDialog(@Nullable String pDefault);
-
-  NotificationDialog createNotificationDialog(String pMessage);
-
   DeleteBranchDialog createDeleteBranchDialog();
 
   GitConfigDialog createGitConfigDialog(Observable<Optional<IRepository>> pRepository);
@@ -65,11 +61,7 @@ interface IDialogFactory
   SshInfoPrompt createSshInfoPromptDialog(@Assisted("message") String pMessage, @javax.annotation.Nullable @Assisted("keyLocation") String pSshKeyLocation,
                                           @javax.annotation.Nullable char[] pPassphrase, @javax.annotation.Nullable IKeyStore pKeyStore);
 
-  CheckboxPrompt createCheckboxPrompt(@Assisted("message") String pMessage, @Assisted("checkbox") String pCheckboxText);
-
   TagOverviewDialog createTagOverviewDialog(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
-
-  ComboBoxDialog<Object> createComboBoxDialog(String pMessage, List<Object> pOptions);
 
   StashChangesQuestionDialog createStashChangesQuestionDialog(Observable<Optional<IRepository>> pRepositoryObs, List<IFileChangeType> pFilesToRevert, File pProjectDir);
 }

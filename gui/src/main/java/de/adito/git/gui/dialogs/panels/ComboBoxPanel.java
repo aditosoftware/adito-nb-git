@@ -1,33 +1,34 @@
-package de.adito.git.gui.dialogs;
+package de.adito.git.gui.dialogs.panels;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.gui.dialogs.AditoBaseDialog;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
+import java.util.Vector;
 
 /**
- * Dialog with a text message and a checkbox with some specified description
+ * Dialog with some text and a comboBox for selection for the user
  *
- * @author m.kaspera, 01.07.2019
+ * @author m.kaspera, 02.07.2019
  */
-class CheckboxPrompt extends AditoBaseDialog<Boolean>
+public class ComboBoxPanel<T> extends AditoBaseDialog<T>
 {
 
-  private final JCheckBox doAutomaticallyCB;
-  private final String message;
+  private final JComboBox<T> selectionBox;
 
   @Inject
-  public CheckboxPrompt(@Assisted("message") String pMessage, @Assisted("checkbox") String pCheckboxText)
+  ComboBoxPanel(@Assisted String pMessage, @Assisted List<T> pOptions)
   {
-    message = pMessage;
-    doAutomaticallyCB = new JCheckBox(pCheckboxText);
-    _initGui();
+    selectionBox = new JComboBox<>(new Vector<>(pOptions));
+    _initGui(pMessage);
   }
 
-  private void _initGui()
+  private void _initGui(String pMessage)
   {
     double fill = TableLayout.FILL;
     double pref = TableLayout.PREFERRED;
@@ -40,8 +41,8 @@ class CheckboxPrompt extends AditoBaseDialog<Boolean>
                      gap};
     setLayout(new TableLayout(cols, rows));
     TableLayoutUtil tlu = new TableLayoutUtil(this);
-    tlu.add(1, 1, 3, 1, new JLabel(message));
-    tlu.add(1, 3, 3, 3, doAutomaticallyCB);
+    tlu.add(1, 1, 3, 1, new JLabel(pMessage));
+    tlu.add(1, 3, 3, 3, selectionBox);
   }
 
   @Override
@@ -52,8 +53,9 @@ class CheckboxPrompt extends AditoBaseDialog<Boolean>
 
   @Nullable
   @Override
-  public Boolean getInformation()
+  @SuppressWarnings("unchecked")
+  public T getInformation()
   {
-    return doAutomaticallyCB.isSelected();
+    return (T) selectionBox.getSelectedItem();
   }
 }

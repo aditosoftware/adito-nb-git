@@ -1,7 +1,8 @@
-package de.adito.git.gui.dialogs;
+package de.adito.git.gui.dialogs.panels;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.gui.dialogs.AditoBaseDialog;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 
@@ -13,14 +14,14 @@ import javax.swing.*;
  *
  * @author m.kaspera, 21.12.2018
  */
-class UserPromptDialog extends AditoBaseDialog<Object>
+public class UserPromptPanel extends AditoBaseDialog<Object>
 {
 
   private static final int PATH_NUM_CHARS = 60;
   private final JTextField textField;
 
   @Inject
-  UserPromptDialog(@Nullable @Assisted String pDefault)
+  UserPromptPanel(@Nullable @Assisted String pDefault)
   {
     textField = new JTextField(PATH_NUM_CHARS);
     if (pDefault != null)

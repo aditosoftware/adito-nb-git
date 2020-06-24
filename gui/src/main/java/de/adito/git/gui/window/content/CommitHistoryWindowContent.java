@@ -89,7 +89,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
    */
   @Inject
   CommitHistoryWindowContent(IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, IMenuProvider pMenuProvider,
-                             CommitDetailsPanel.IPanelFactory pPanelFactory, IIconLoader pIconLoader,
+                             CommitDetailsPanel.ICommitDetailsPanelFactory pPanelFactory, IIconLoader pIconLoader,
                              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted TableModel pTableModel,
                              @Assisted Runnable pLoadMoreCallback, @Assisted Consumer<ICommitFilter> pRefreshContentCallBack, @Assisted ICommitFilter pStartFilter)
   {

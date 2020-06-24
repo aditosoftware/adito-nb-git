@@ -19,6 +19,7 @@ import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
@@ -35,6 +36,7 @@ class MergeAction extends AbstractTableAction
   private static final String STASH_ID_KEY = "merge::stashCommitId";
   private final ISaveUtil saveUtil;
   private final INotifyUtil notifyUtil;
+  private final MergeConflictSequence mergeConflictSequence;
   private final Observable<Optional<IRepository>> repositoryObservable;
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade progressFacade;
@@ -43,7 +45,7 @@ class MergeAction extends AbstractTableAction
 
   @Inject
   MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil, INotifyUtil pNotifyUtil,
-              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pTargetBranch)
+              MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepoObs, @Assisted Observable<Optional<IBranch>> pTargetBranch)
   {
     super("Merge into Current", _getIsEnabledObservable(pTargetBranch));
     prefStore = pPrefStore;
@@ -51,7 +53,8 @@ class MergeAction extends AbstractTableAction
     dialogProvider = pDialogProvider;
     saveUtil = pSaveUtil;
     notifyUtil = pNotifyUtil;
-    repositoryObservable = pRepository;
+    mergeConflictSequence = pMergeConflictSequence;
+    repositoryObservable = pRepoObs;
     targetBranch = pTargetBranch;
   }
 
@@ -85,7 +88,7 @@ class MergeAction extends AbstractTableAction
                                                              pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        IMergeConflictDialogResult<?, ?> dialogResult = dialogProvider.showMergeConflictDialog(Observable.just(Optional.of(repository)), mergeConflictDiffs, true);
+        IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(repository)), mergeConflictDiffs);
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
         {

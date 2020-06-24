@@ -11,6 +11,7 @@ import de.adito.git.gui.UserPreferencesImpl;
 import de.adito.git.gui.actions.ActionModule;
 import de.adito.git.gui.dialogs.DialogModule;
 import de.adito.git.gui.dialogs.UserInputPromptImpl;
+import de.adito.git.gui.dialogs.panels.PanelModule;
 import de.adito.git.gui.guice.dummies.*;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
@@ -41,6 +42,7 @@ public class AditoGitModule extends AbstractModule
     install(new AditoSshModule());
     install(new DataModule());
     install(new MenuModule());
+    install(new PanelModule());
 
     // bind IRepository to RepositoryImpl and construct the necessary factory
     install(new FactoryModuleBuilder().build(IRepositoryFactory.class));

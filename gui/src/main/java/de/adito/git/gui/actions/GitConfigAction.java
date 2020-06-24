@@ -1,5 +1,6 @@
 package de.adito.git.gui.actions;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -59,6 +60,9 @@ class GitConfigAction extends AbstractTableAction
       }
       // only set sshKeyLocation for now since that is the only supported setting (for now)
       _storeSSHKeyInfos(dialogResult, repository);
+      Object autoResolveFlag = Iterables.getFirst(dialogResult.getInformation().get(Constants.AUTO_RESOLVE_SETTINGS_KEY), null);
+      if (autoResolveFlag != null)
+        prefStore.put(Constants.AUTO_RESOLVE_SETTINGS_KEY, autoResolveFlag.toString());
       Iterator<Object> logLevelIter = dialogResult.getInformation().get(Constants.LOG_LEVEL_SETTINGS_KEY).iterator();
       if (logLevelIter.hasNext())
       {

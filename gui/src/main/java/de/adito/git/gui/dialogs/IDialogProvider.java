@@ -9,6 +9,8 @@ import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
+import de.adito.git.gui.dialogs.panels.ComboBoxPanel;
+import de.adito.git.gui.dialogs.panels.IPanelFactory;
 import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -230,7 +232,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and if the checkbox was ticket as information
    */
   @NotNull
-  IUserPromptDialogResult<CheckboxPrompt, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
+  IUserPromptDialogResult<?, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
 
   /**
    * Shows a dialog with an overview over all tags of the current repository
@@ -250,7 +252,7 @@ public interface IDialogProvider
    * @param pOptions List of possible options to select from the comboBox
    * @return DialogResult with information such as "has the user pressed OK?" and which item of the combobox the user selected
    */
-  IUserPromptDialogResult<ComboBoxDialog<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions);
+  IUserPromptDialogResult<ComboBoxPanel<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions);
 
 
   /**
@@ -264,4 +266,24 @@ public interface IDialogProvider
   IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NotNull Observable<Optional<IRepository>> pRepository,
                                                                                                        @NotNull List<IFileChangeType> pFilesToRevert,
                                                                                                        @NotNull File pProjectDir);
+
+  /**
+   * Shows a dialog that contains the passed AditoBaseDialog as its content
+   *
+   * @param pComponent   Main content of the dialog
+   * @param pTitle       Title of the dialog
+   * @param pButtonList  List of buttons arrayed at the bottom of the dialog
+   * @param pOkayButtons List of buttons that should be considered as agreement by the user. Used for the isOkay() method of the dialogResult
+   * @param <T>          Return Type of the getInformation method call to the AditoBaseDialog
+   * @return IUserPromptDialogResult
+   */
+  <T> IUserPromptDialogResult<?, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<IDialogDisplayer.EButtons> pButtonList,
+                                               @NotNull List<IDialogDisplayer.EButtons> pOkayButtons);
+
+  /**
+   * Get an IPanelFactory that can create panels which can be used to piece together a dialog
+   *
+   * @return IPanelFactory used to create some panels
+   */
+  IPanelFactory getPanelFactory();
 }

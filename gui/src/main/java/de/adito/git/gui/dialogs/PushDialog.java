@@ -29,7 +29,7 @@ class PushDialog extends AditoBaseDialog<Boolean> implements IDiscardable
   private final ObservableListSelectionModel observableListSelectionModel;
 
   @Inject
-  public PushDialog(CommitDetailsPanel.IPanelFactory pPanelFactory, @Assisted Observable<Optional<IRepository>> pRepository,
+  public PushDialog(CommitDetailsPanel.ICommitDetailsPanelFactory pPanelFactory, @Assisted Observable<Optional<IRepository>> pRepository,
                     @Assisted List<ICommit> pCommitList)
   {
     observableListSelectionModel = new ObservableListSelectionModel(commitListTable.getSelectionModel());
