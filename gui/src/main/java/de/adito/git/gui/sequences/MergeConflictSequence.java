@@ -5,6 +5,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EAutoResolveOptions;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -33,12 +34,14 @@ public class MergeConflictSequence
   private static final Logger logger = Logger.getLogger(MergeConflictSequence.class.getName());
   private final IDialogProvider dialogProvider;
   private final IPrefStore prefStore;
+  private final IAsyncProgressFacade asyncProgressFacade;
 
   @Inject
-  public MergeConflictSequence(IDialogProvider pDialogProvider, IPrefStore pPrefStore)
+  public MergeConflictSequence(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IAsyncProgressFacade pAsyncProgressFacade)
   {
     dialogProvider = pDialogProvider;
     prefStore = pPrefStore;
+    asyncProgressFacade = pAsyncProgressFacade;
   }
 
   public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(Observable<Optional<IRepository>> pRepo, List<IMergeData> pMergeConflicts)
@@ -66,7 +69,7 @@ public class MergeConflictSequence
     if (repositoryOptional.isPresent() && (EAutoResolveOptions.ALWAYS.equals(autoResolveSettingsFlag) || (promptDialogResult != null && promptDialogResult.isOkay())))
     {
       showAutoResolveButton = false;
-      performAutoResolve(pMergeConflicts, repositoryOptional.get());
+      performAutoResolve(pMergeConflicts, repositoryOptional.get(), asyncProgressFacade);
     }
     return dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts, true, showAutoResolveButton);
   }
@@ -78,21 +81,26 @@ public class MergeConflictSequence
    * @param pMergeConflicts List of merge conflicts to try and auto-resolve
    * @param pRepository     Repository, used to perform an add one the conflicting files to mark them as resolved
    */
-  public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository)
+  public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository, @NotNull IAsyncProgressFacade pProgressFacade)
   {
-    for (int index = pMergeConflicts.size() - 1; index > 0; index--)
-    {
-      IMergeData mergeData = pMergeConflicts.get(index);
-      mergeData.markConflicting();
-      if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
-          && mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING))
+    pProgressFacade.executeAndBlockWithProgress("Auto-Resolving", pProgressHandle -> {
+      pProgressHandle.switchToDeterminate(pMergeConflicts.size());
+      for (int index = pMergeConflicts.size() - 1; index > 0; index--)
       {
-        acceptMergeSide(mergeData, EConflictSide.YOURS);
-        acceptMergeSide(mergeData, EConflictSide.THEIRS);
-        acceptManualVersion(mergeData, pRepository);
-        pMergeConflicts.remove(mergeData);
+        IMergeData mergeData = pMergeConflicts.get(index);
+        pProgressHandle.setDescription("Trying to resolve  " + mergeData.getFilePath());
+        mergeData.markConflicting();
+        if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
+            && mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING))
+        {
+          acceptMergeSide(mergeData, EConflictSide.YOURS);
+          acceptMergeSide(mergeData, EConflictSide.THEIRS);
+          acceptManualVersion(mergeData, pRepository);
+          pMergeConflicts.remove(mergeData);
+        }
+        pProgressHandle.progress(pMergeConflicts.size() - index);
       }
-    }
+    });
   }
 
   public static void acceptMergeSide(IMergeData mergeData, EConflictSide pConflictSide)

@@ -9,6 +9,7 @@ import de.adito.git.api.data.diff.EConflictSide;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.sequences.MergeConflictSequence;
@@ -37,6 +38,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private static final String PREF_STORE_SIZE_KEY = Util.getResource(MergeConflictResolutionDialog.class, "mergePanelSizeKey");
 
   private final IDialogProvider dialogProvider;
+  private final IAsyncProgressFacade progressFacade;
   private final IDialogDisplayer.IDescriptor isValidDescriptor;
   private final IRepository repository;
   private final Subject<List<IMergeData>> mergeConflictDiffs;
@@ -53,12 +55,14 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final IPrefStore prefStore;
 
   @Inject
-  MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted List<IMergeData> pMergeConflictDiffs,
-                      @Assisted("onlyConflictingFlag") boolean pOnlyConflicting, @Assisted("autoResolveFlag") boolean pShowAutoResolve)
+  MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
+                      @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor, @Assisted Observable<Optional<IRepository>> pRepository,
+                      @Assisted List<IMergeData> pMergeConflictDiffs, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
+                      @Assisted("autoResolveFlag") boolean pShowAutoResolve)
   {
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
+    progressFacade = pProgressFacade;
     isValidDescriptor = pIsValidDescriptor;
     repository = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG));
     observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
@@ -112,7 +116,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
     autoResolveButton.addActionListener(e -> {
-      MergeConflictSequence.performAutoResolve(mergeConflictDiffs.blockingFirst(List.of()), repository);
+      MergeConflictSequence.performAutoResolve(mergeConflictDiffs.blockingFirst(List.of()), repository, progressFacade);
       autoResolveButton.setEnabled(false);
     });
     autoResolveButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) autoResolveButton.getMaximumSize().getHeight()));
