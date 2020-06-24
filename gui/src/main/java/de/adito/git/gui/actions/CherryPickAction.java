@@ -13,7 +13,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.IDialogDisplayer;
+import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
@@ -149,8 +149,8 @@ class CherryPickAction extends AbstractTableAction
         else if (!conflictResult.isAbortMerge())
         {
           promptDialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
-                                                                List.of(IDialogDisplayer.EButtons.SAVE, IDialogDisplayer.EButtons.ABORT),
-                                                                List.of(IDialogDisplayer.EButtons.SAVE));
+                                                                List.of(EButtons.SAVE, EButtons.ABORT),
+                                                                List.of(EButtons.SAVE));
           if (promptDialogResult.isOkay())
           {
             notifyUtil.notify(Util.getResource(this.getClass(), "mergeSavedStateTitle"), Util.getResource(this.getClass(), "mergeSavedStateMsg"),

@@ -160,12 +160,12 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
           MergeConflictSequence.acceptManualVersion(pMergeDatas.get(0), repository);
           _removeFromMergeConflicts(pMergeDatas.get(0));
         }
-        else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_YOURS))
+        else if (result.getSelectedButton().equals(EButtons.ACCEPT_YOURS))
         {
           _acceptDefaultVersion(EConflictSide.YOURS);
           pMergeDatas.forEach(this::_removeFromMergeConflicts);
         }
-        else if (result.getSelectedButton().equals(IDialogDisplayer.EButtons.ACCEPT_THEIRS))
+        else if (result.getSelectedButton().equals(EButtons.ACCEPT_THEIRS))
         {
           _acceptDefaultVersion(EConflictSide.THEIRS);
         }

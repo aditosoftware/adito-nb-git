@@ -10,4 +10,6 @@ public interface IDialogResult<S, T>
   String getMessage();
 
   T getInformation();
+
+  EButtons getSelectedButton();
 }

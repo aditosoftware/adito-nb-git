@@ -1,9 +1,7 @@
 package de.adito.git.nbm.dialogs;
 
 import com.google.inject.Inject;
-import de.adito.git.gui.dialogs.AditoBaseDialog;
-import de.adito.git.gui.dialogs.DialogResult;
-import de.adito.git.gui.dialogs.IDialogDisplayer;
+import de.adito.git.gui.dialogs.*;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 

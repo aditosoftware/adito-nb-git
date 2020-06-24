@@ -10,11 +10,11 @@ import org.jetbrains.annotations.Nullable;
 public class DialogResult<S, T> implements IDialogResult<S, T>
 {
   private final S source;
-  protected final IDialogDisplayer.EButtons selectedButton;
+  protected final EButtons selectedButton;
   private final String message;
   private final T information;
 
-  public DialogResult(S pSource, IDialogDisplayer.EButtons pSelectedButton, @Nullable String pMessage, @Nullable T pInformation)
+  public DialogResult(S pSource, EButtons pSelectedButton, @Nullable String pMessage, @Nullable T pInformation)
   {
     source = pSource;
     selectedButton = pSelectedButton;
@@ -29,7 +29,7 @@ public class DialogResult<S, T> implements IDialogResult<S, T>
   }
 
 
-  public IDialogDisplayer.EButtons getSelectedButton()
+  public EButtons getSelectedButton()
   {
     return selectedButton;
   }

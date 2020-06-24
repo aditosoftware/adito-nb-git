@@ -14,7 +14,7 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.IDialogDisplayer;
+import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
@@ -185,8 +185,8 @@ class PullAction extends AbstractAction
     else if (!dialogResult.isAbortMerge())
     {
       promptDialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
-                                                            List.of(IDialogDisplayer.EButtons.SAVE, IDialogDisplayer.EButtons.ABORT),
-                                                            List.of(IDialogDisplayer.EButtons.SAVE));
+                                                            List.of(EButtons.SAVE, EButtons.ABORT),
+                                                            List.of(EButtons.SAVE));
       if (promptDialogResult.isOkay())
       {
         doUnstash = false;
@@ -242,8 +242,8 @@ class PullAction extends AbstractAction
         if (repositoryState.get().getCurrentRemoteTrackedBranch() != null)
         {
           IUserPromptDialogResult dialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "rebaseMergeCommitsWarning"),
-                                                                                  List.of(IDialogDisplayer.EButtons.MERGE_REMOTE, IDialogDisplayer.EButtons.CANCEL),
-                                                                                  List.of(IDialogDisplayer.EButtons.MERGE_REMOTE));
+                                                                                  List.of(EButtons.MERGE_REMOTE, EButtons.CANCEL),
+                                                                                  List.of(EButtons.MERGE_REMOTE));
           if (dialogResult.isOkay())
           {
             actionProvider.getMergeAction(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(repositoryState.get().getCurrentRemoteTrackedBranch())))

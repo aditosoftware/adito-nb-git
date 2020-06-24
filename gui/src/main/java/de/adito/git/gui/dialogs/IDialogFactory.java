@@ -48,8 +48,6 @@ interface IDialogFactory
 
   PasswordPromptDialog createPasswordPromptDialog();
 
-  DeleteBranchDialog createDeleteBranchDialog();
-
   GitConfigDialog createGitConfigDialog(Observable<Optional<IRepository>> pRepository);
 
   StashChangesDialog createStashChangesDialog();

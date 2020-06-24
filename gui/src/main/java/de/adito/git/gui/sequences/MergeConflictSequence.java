@@ -7,7 +7,7 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.IDialogDisplayer;
+import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.panels.CheckboxPanel;
 import de.adito.git.gui.dialogs.panels.NotificationPanel;
@@ -69,8 +69,8 @@ public class MergeConflictSequence
           .createNotificationPanel(Util.getResource(MergeConflictSequence.class, "autoResolveAdditionalInfo"));
       promptDialogResult = dialogProvider.showDialog(dialogProvider.getPanelFactory().getExpandablePanel(checkboxPanel, notificationPanel),
                                                      Util.getResource(MergeConflictSequence.class, "autoResolveDialogTitle"),
-                                                     List.of(IDialogDisplayer.EButtons.AUTO_RESOLVE, IDialogDisplayer.EButtons.SKIP),
-                                                     List.of(IDialogDisplayer.EButtons.AUTO_RESOLVE));
+                                                     List.of(EButtons.AUTO_RESOLVE, EButtons.SKIP),
+                                                     List.of(EButtons.AUTO_RESOLVE));
       if ((Boolean) promptDialogResult.getInformation())
       {
         prefStore.put(Constants.AUTO_RESOLVE_SETTINGS_KEY, EAutoResolveOptions.getFromBoolean(String.valueOf(promptDialogResult.isOkay())).toString());

@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static de.adito.git.gui.dialogs.IDialogDisplayer.EButtons;
-
 /**
  * @author m.kaspera 26.10.2018
  */
@@ -429,30 +427,7 @@ class DialogProviderImpl implements IDialogProvider
 
     public boolean isRevertAccepted()
     {
-      return selectedButton == IDialogDisplayer.EButtons.CONFIRM;
-    }
-  }
-
-  @Override
-  public @NotNull IDeleteBranchDialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(@NotNull String pBranchName)
-  {
-    DialogResult<DeleteBranchDialog, Boolean> result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDeleteBranchDialog(),
-                                                                                  "Delete Branch", List.of(EButtons.DELETE, EButtons.CANCEL).toArray(new EButtons[0]));
-    return new DeleteBranchDialogResultImpl<>(result);
-  }
-
-  private static class DeleteBranchDialogResultImpl<S, T> extends DialogResult<S, T> implements IDeleteBranchDialogResult<S, T>
-  {
-
-    private DeleteBranchDialogResultImpl(DialogResult<S, T> pDialogResult)
-    {
-      super(pDialogResult.getSource(), pDialogResult.getSelectedButton(), pDialogResult.getMessage(), pDialogResult.getInformation());
-    }
-
-    @Override
-    public boolean isDelete()
-    {
-      return selectedButton == IDialogDisplayer.EButtons.DELETE;
+      return selectedButton == EButtons.CONFIRM;
     }
   }
 
@@ -478,7 +453,7 @@ class DialogProviderImpl implements IDialogProvider
     @Override
     public boolean acceptFiles()
     {
-      return selectedButton == IDialogDisplayer.EButtons.OK;
+      return selectedButton == EButtons.OK;
     }
   }
 

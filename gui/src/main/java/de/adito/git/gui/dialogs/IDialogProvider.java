@@ -152,8 +152,8 @@ public interface IDialogProvider
    * @param pOkayButtons  Buttons that are considered as "User confirmed the dialog"
    * @return DialogResult with information about the choice of the user
    */
-  IUserPromptDialogResult showMessageDialog(@NotNull String pMessage, @NotNull List<IDialogDisplayer.EButtons> pShownButtons,
-                                            @NotNull List<IDialogDisplayer.EButtons> pOkayButtons);
+  IUserPromptDialogResult showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
+                                            @NotNull List<EButtons> pOkayButtons);
 
   /**
    * Aks the user if he wants to push to the tracked branch (different name than the local branch) or if he wants to create a new branch
@@ -174,15 +174,6 @@ public interface IDialogProvider
   @NotNull
   IRevertDialogResult<RevertFilesDialog, ?> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IFileChangeType> pFilesToRevert,
                                                              @NotNull File pProjectDir);
-
-  /**
-   * Shows a dialog that asks the user to confirm the deletion of branch
-   *
-   * @param pBranchName name of the branch to be deleted
-   * @return DialogResult with information such as "has the user pressed OK?"
-   */
-  @NotNull
-  IDeleteBranchDialogResult<DeleteBranchDialog, Boolean> showDeleteBranchDialog(@NotNull String pBranchName);
 
   /**
    * Shows a dialog with some information for the user and a file chooser
@@ -278,8 +269,8 @@ public interface IDialogProvider
    * @param <T>          Return Type of the getInformation method call to the AditoBaseDialog
    * @return IUserPromptDialogResult
    */
-  <T> IUserPromptDialogResult<?, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<IDialogDisplayer.EButtons> pButtonList,
-                                               @NotNull List<IDialogDisplayer.EButtons> pOkayButtons);
+  <T> IUserPromptDialogResult<?, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
+                                               @NotNull List<EButtons> pOkayButtons);
 
   /**
    * Get an IPanelFactory that can create panels which can be used to piece together a dialog

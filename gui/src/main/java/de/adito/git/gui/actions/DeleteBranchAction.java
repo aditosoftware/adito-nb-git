@@ -9,13 +9,14 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
-import de.adito.git.gui.dialogs.results.IDeleteBranchDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -49,14 +50,18 @@ class DeleteBranchAction extends AbstractTableAction
   public void actionPerformed(ActionEvent pEvent)
   {
     String branchName = branch.blockingFirst().map(IBranch::getSimpleName).orElse(null);
+    IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
     if (branchName != null)
     {
-      IDeleteBranchDialogResult<?, Boolean> result = dialogProvider.showDeleteBranchDialog(branchName);
-      if (result.isDelete())
+      IUserPromptDialogResult<?, Object> dialogResult = dialogProvider.showDialog(
+          dialogProvider.getPanelFactory().createNotificationPanel("Should the remote branch be deleted as well (if existent)?"),
+          "Delete Branch",
+          List.of(EButtons.YES, EButtons.NO, EButtons.CANCEL),
+          List.of(EButtons.YES, EButtons.NO));
+      if (dialogResult.isOkay())
       {
         progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + branchName, pHandle -> {
-          IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
-          _deleteBranch(branchName, result.getInformation(), repo);
+          _deleteBranch(branchName, dialogResult.getSelectedButton() == EButtons.OK, repo);
         });
       }
       else
