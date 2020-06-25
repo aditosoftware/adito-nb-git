@@ -9,6 +9,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IStashChangesDialogResult;
 import de.adito.git.gui.dialogs.results.StashChangesResult;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -45,14 +46,14 @@ class StashChangesAction extends AbstractAction
       IStashChangesDialogResult<?, StashChangesResult> dialogResult = dialogProvider.showStashChangesDialog();
       if (dialogResult.doStash())
       {
-        progressFacade.executeInBackground("Stashing changes", pHandle -> {
+        progressFacade.executeAndBlockWithProgress(Util.getResource(StashChangesAction.class, "stashProgressMsg"), pHandle -> {
           try
           {
             repo.stashChanges(dialogResult.getInformation().getStashMessage(), dialogResult.getInformation().isIncludeUnTracked());
           }
           catch (AditoGitException pE)
           {
-            notifyUtil.notify(pE, "An error occurred during the stash process. ", false);
+            notifyUtil.notify(pE, Util.getResource(StashChangesAction.class, "stashFailureMsg"), false);
           }
         });
       }
