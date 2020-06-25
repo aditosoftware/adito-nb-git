@@ -24,6 +24,7 @@ import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,31 +65,34 @@ class MergeAction extends AbstractTableAction
     IBranch selectedBranch = targetBranch.blockingFirst().orElse(null);
     if (selectedBranch == null)
       return;
+    IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
 
     // execute
-    progressFacade.executeAndBlockWithProgress("Merging " + selectedBranch.getSimpleName() + " into Current", pHandle -> {
-      _doMerge(pHandle, selectedBranch);
-    });
+    progressFacade.executeAndBlockWithProgress(MessageFormat.format(Util.getResource(MergeAction.class, "mergeProgressMsg"), selectedBranch.getSimpleName(),
+                                                                    repository.getRepositoryState().blockingFirst(Optional.empty())
+                                                                        .map(pRepositoryState -> pRepositoryState.getCurrentBranch().getSimpleName()).orElse("Current")),
+                                               pHandle -> {
+                                                 _doMerge(pHandle, repository, selectedBranch);
+                                               });
   }
 
-  private void _doMerge(IProgressHandle pProgressHandle, IBranch pSelectedBranch) throws AditoGitException
+  private void _doMerge(IProgressHandle pProgressHandle, IRepository pRepository, IBranch pSelectedBranch) throws AditoGitException
   {
     saveUtil.saveUnsavedFiles();
-    IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
     boolean unstashChanges = true;
     try
     {
-      if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false)
-          && !ActionUtility.handleStash(prefStore, dialogProvider, repository, STASH_ID_KEY, pProgressHandle))
+      if (pRepository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false)
+          && !ActionUtility.handleStash(prefStore, dialogProvider, pRepository, STASH_ID_KEY, pProgressHandle))
       {
         return;
       }
       pProgressHandle.setDescription("Merging branches");
-      List<IMergeData> mergeConflictDiffs = repository.merge(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch(),
-                                                             pSelectedBranch);
+      List<IMergeData> mergeConflictDiffs = pRepository.merge(pRepository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch(),
+                                                              pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
-        IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(repository)),
+        IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepository)),
                                                                                                            mergeConflictDiffs, true);
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
@@ -106,13 +110,13 @@ class MergeAction extends AbstractTableAction
         if (!dialogResult.isFinishMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
         {
           pProgressHandle.setDescription("Aborting merge");
-          repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
+          pRepository.reset(pRepository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
           // do not execute the "show commit dialog" part after this, the finally block should still be executed even if we return here
           return;
         }
       }
-      repository.commit("merged " + pSelectedBranch.getSimpleName() + " into "
-                            + repository.getRepositoryState().blockingFirst().map(pState -> pState.getCurrentBranch().getSimpleName())
+      pRepository.commit("merged " + pSelectedBranch.getSimpleName() + " into " + pRepository.getRepositoryState().blockingFirst()
+          .map(pState -> pState.getCurrentBranch().getSimpleName())
           .orElse("current Branch"));
     }
     catch (AlreadyUpToDateAditoGitException pE)
@@ -122,7 +126,7 @@ class MergeAction extends AbstractTableAction
     }
     finally
     {
-      _performUnstash(pProgressHandle, repository, unstashChanges);
+      _performUnstash(pProgressHandle, pRepository, unstashChanges);
     }
   }
 
