@@ -76,7 +76,7 @@ class PullAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Updating Project...", this::_doRebase);
+    progressFacade.executeAndBlockWithProgress("Updating Project...", this::_doRebase);
   }
 
   /**
