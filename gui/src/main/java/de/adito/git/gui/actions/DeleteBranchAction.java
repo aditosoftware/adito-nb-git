@@ -25,7 +25,8 @@ import java.util.Optional;
 class DeleteBranchAction extends AbstractTableAction
 {
 
-  private static final String PROGRESS_MESSAGE_STRING = "Deleting branch ";
+  private static final String PROGRESS_MESSAGE_STRING = Util.getResource(DeleteBranchAction.class, "deleteBranchProgressMsg");
+  private static final String JGIT_UNMERGED_CHANGES_MESSAGE = "Branch was not deleted as it has not been merged yet; use the force option to delete it anyway";
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;
@@ -36,7 +37,7 @@ class DeleteBranchAction extends AbstractTableAction
   DeleteBranchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider,
                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranchObs)
   {
-    super("Delete Branch", _getIsEnabledObservable(pRepository, pBranchObs));
+    super(Util.getResource(DeleteBranchAction.class, "deleteBranchTitle"), _getIsEnabledObservable(pRepository, pBranchObs));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;
@@ -57,21 +58,21 @@ class DeleteBranchAction extends AbstractTableAction
       if (hasRemoteTrackedBranch)
       {
         dialogResult = dialogProvider.showDialog(
-            dialogProvider.getPanelFactory().createNotificationPanel("Should the remote branch be deleted as well (if existent)?"),
-            "Delete Branch",
+            dialogProvider.getPanelFactory().createNotificationPanel(Util.getResource(DeleteBranchAction.class, "deleteBranchDeleteRemote")),
+            Util.getResource(DeleteBranchAction.class, "deleteBranchTitle"),
             List.of(EButtons.YES, EButtons.NO, EButtons.CANCEL),
             List.of(EButtons.YES, EButtons.NO));
       }
       if (!hasRemoteTrackedBranch || dialogResult.isOkay())
       {
         boolean isDeleteRemoteBranch = hasRemoteTrackedBranch && dialogResult.getSelectedButton() == EButtons.OK;
-        progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + branchName, pHandle -> {
+        progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + " " + branchName, pHandle -> {
           _deleteBranch(branchName, isDeleteRemoteBranch, repo);
         });
       }
       else
       {
-        notifyUtil.notify(PROGRESS_MESSAGE_STRING, "Delete was aborted", true);
+        notifyUtil.notify(PROGRESS_MESSAGE_STRING, Util.getResource(DeleteBranchAction.class, "deleteBranchAbortMsg"), true);
       }
     }
   }
@@ -90,28 +91,30 @@ class DeleteBranchAction extends AbstractTableAction
     }
     catch (AditoGitException pE)
     {
-      if (pE.getMessage().contains("Branch was not deleted as it has not been merged yet; use the force option to delete it anyway"))
+      if (pE.getMessage().contains(JGIT_UNMERGED_CHANGES_MESSAGE))
       {
-        IUserPromptDialogResult dialogResult = dialogProvider.showYesNoDialog("Branch contains unmerged changes, do you want to force delete it? " +
-                                                                                  "(WARNING: all changes on that branch are lost)");
+        IUserPromptDialogResult dialogResult = dialogProvider.showDialog(
+            dialogProvider.getPanelFactory().createNotificationPanel(Util.getResource(DeleteBranchAction.class, "deleteBranchUnmergedChangesMsg")),
+            Util.getResource(DeleteBranchAction.class, "deleteBranchUnmergedChangesTitle"),
+            List.of(EButtons.DELETE, EButtons.CANCEL), List.of(EButtons.DELETE));
         if (dialogResult.isOkay())
         {
           pRepo.deleteBranch(pBranchName, pIsDeleteRemoteBranch, true);
         }
         else
         {
-          notifyUtil.notify(PROGRESS_MESSAGE_STRING, "Delete was aborted", true);
+          notifyUtil.notify(PROGRESS_MESSAGE_STRING, Util.getResource(DeleteBranchAction.class, "deleteBranchAbortMsg"), true);
           // return here so the message in the last line of this method is not printed (would have to have that last message twice otherwise)
           return;
         }
       }
       else
       {
-        notifyUtil.notify(pE, "An error occurred while deleting the branch. ", false);
+        notifyUtil.notify(pE, Util.getResource(DeleteBranchAction.class, "deleteBranchErrorMsg"), false);
         return;
       }
     }
-    notifyUtil.notify(PROGRESS_MESSAGE_STRING, "Deleting branch was successful", true);
+    notifyUtil.notify(PROGRESS_MESSAGE_STRING, Util.getResource(DeleteBranchAction.class, "deleteBranchSuccessMsg"), true);
   }
 
   /**
