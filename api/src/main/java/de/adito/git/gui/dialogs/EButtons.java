@@ -29,7 +29,9 @@ public enum EButtons
   ACCEPT_YOURS("Accept Left"),
   ACCEPT_THEIRS("Accept Right"),
   SKIP("Skip"),
-  AUTO_RESOLVE("Resolve");
+  AUTO_RESOLVE("Resolve"),
+  RESET_HEAD("Reset HEAD"),
+  LEAVE_BE("Leave as-is");
 
   private final String text;
 

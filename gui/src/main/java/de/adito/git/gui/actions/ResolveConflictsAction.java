@@ -13,11 +13,14 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.panels.NotificationPanel;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -41,7 +44,7 @@ class ResolveConflictsAction extends AbstractTableAction
                                 IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                                 @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
-    super("Resolve Conflicts", _getIsEnabledObservable(pSelectedFilesObservable));
+    super(Util.getResource(ResolveConflictsAction.class, "resolveConflictsTitle"), _getIsEnabledObservable(pSelectedFilesObservable));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     mergeConflictSequence = pMergeConflictSequence;
@@ -69,15 +72,18 @@ class ResolveConflictsAction extends AbstractTableAction
     {
       if (pTBNFE.getOrigHead() != null)
       {
-        IUserPromptDialogResult dialogResult = dialogProvider.showYesNoDialog("Could not determine target of operation that led to conflict," +
-                                                                       " do you want to go back to the state before merge/pull/cherry pick?");
+        NotificationPanel notificationPanel = dialogProvider.getPanelFactory().createNotificationPanel(Util.getResource(ResolveConflictsAction.class, "tbnfeMsg"));
+        NotificationPanel detailsPanel = dialogProvider.getPanelFactory().createNotificationPanel(Util.getResource(ResolveConflictsAction.class, "tbnfeDetailsMsg"));
+        IUserPromptDialogResult dialogResult = dialogProvider.showDialog(dialogProvider.getPanelFactory().getExpandablePanel(notificationPanel, detailsPanel),
+                                                                         Util.getResource(ResolveConflictsAction.class, "resolveConflictsTitle"),
+                                                                         List.of(EButtons.RESET_HEAD, EButtons.LEAVE_BE),
+                                                                         List.of(EButtons.RESET_HEAD));
         if (dialogResult.isOkay())
           pRepo.reset(pTBNFE.getOrigHead().getId(), EResetType.HARD);
       }
       else
       {
-        notifyUtil.notify(NOTIFY_MESSAGE, "Could determine neither the target nor the state before the operation that led to the conflict" +
-            ", please reset the current branch to the commit you based from manually", false);
+        notifyUtil.notify(NOTIFY_MESSAGE, Util.getResource(ResolveConflictsAction.class, "resolveConflictsFailureMsg"), false);
       }
       return;
     }
