@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IResetDialogResult;
@@ -15,6 +16,7 @@ import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +40,7 @@ class ResetAction extends AbstractTableAction
   ResetAction(INotifyUtil pNotifyUtil, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
               @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
-    super("Reset current Branch to here", _getIsEnabledObservable(pSelectedCommitObservable, pRepository));
+    super(Util.getResource(ResetAction.class, "resetTitle"), _getIsEnabledObservable(pSelectedCommitObservable, pRepository));
     notifyUtil = pNotifyUtil;
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
@@ -53,21 +55,33 @@ class ResetAction extends AbstractTableAction
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
     if (selectedCommits.size() == 1 && dialogResult.isPerformReset())
     {
-      progressFacade.executeInBackground("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
-        IRepository pRepo = repository.blockingFirst()
-            .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
-        try
-        {
-          pRepo.setUpdateFlag(false);
-          pRepo.reset(selectedCommits.get(0).getId(), dialogResult.getInformation());
-          notifyUtil.notify("Reset success", "Resetting back to commit with id "
-              + selectedCommits.get(0).getId() + " and option " + dialogResult.getInformation() + " was successful", false);
-        }
-        finally
-        {
-          pRepo.setUpdateFlag(true);
-        }
-      });
+      progressFacade.executeAndBlockWithProgress(MessageFormat.format(Util.getResource(ResetAction.class, "resetProgressMsg"), selectedCommits.get(0).getId()),
+                                                 pHandle -> {
+                                                   _performReset(dialogResult, selectedCommits);
+                                                 });
+    }
+  }
+
+  /**
+   * @param pDialogResult    dialogResult with information about which kind of reset should be performed
+   * @param pSelectedCommits list with selected commits, the branch is reset to the first commit in the list. Should ideally only contain a single item
+   * @throws AditoGitException If the reset could not be performed
+   */
+  private void _performReset(IResetDialogResult<?, EResetType> pDialogResult, List<ICommit> pSelectedCommits) throws AditoGitException
+  {
+    IRepository pRepo = repository.blockingFirst()
+        .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
+    try
+    {
+      pRepo.setUpdateFlag(false);
+      pRepo.reset(pSelectedCommits.get(0).getId(), pDialogResult.getInformation());
+      notifyUtil.notify(Util.getResource(ResetAction.class, "resetSuccessTitle"),
+                        MessageFormat.format(Util.getResource(ResetAction.class, "resetSuccessMsg"), pSelectedCommits.get(0).getId(), pDialogResult.getInformation()),
+                        false);
+    }
+    finally
+    {
+      pRepo.setUpdateFlag(true);
     }
   }
 
