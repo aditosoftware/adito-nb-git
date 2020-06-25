@@ -32,8 +32,8 @@ public class TextComparatorInfoPanel extends JPanel
   @NotNull
   private static JComboBox<GitRawTextComparator> getTextComparatorComboBox()
   {
-    JComboBox<GitRawTextComparator> rawTextComparatorBox = new JComboBox<>(new Vector<>(GitRawTextComparator.INSTANCES));
-    rawTextComparatorBox.setSelectedItem(GitRawTextComparator.CURRENT);
+    JComboBox<GitRawTextComparator> rawTextComparatorBox = new JComboBox<>(new Vector<>(GitRawTextComparator.getInstances()));
+    rawTextComparatorBox.setSelectedItem(GitRawTextComparator.getCurrent());
     rawTextComparatorBox.setEnabled(false);
     return rawTextComparatorBox;
   }

@@ -156,8 +156,8 @@ public class GitConfigDialog extends AditoBaseDialog<Multimap<String, Object>> i
       otherSettingsPanel.add(logLevelBox, BorderLayout.EAST);
       add(otherSettingsPanel, BorderLayout.NORTH);
 
-      rawTextComparatorBox = new JComboBox<>(new Vector<>(GitRawTextComparator.INSTANCES));
-      rawTextComparatorBox.setSelectedItem(GitRawTextComparator.CURRENT);
+      rawTextComparatorBox = new JComboBox<>(new Vector<>(GitRawTextComparator.getInstances()));
+      rawTextComparatorBox.setSelectedItem(GitRawTextComparator.getCurrent());
       JPanel comparatorPanel = new JPanel(new BorderLayout());
       comparatorPanel.add(new JLabel("Whitespace and Line-Endings:"), BorderLayout.WEST);
       comparatorPanel.add(rawTextComparatorBox, BorderLayout.EAST);

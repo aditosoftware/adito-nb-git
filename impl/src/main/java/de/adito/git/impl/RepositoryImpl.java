@@ -559,7 +559,7 @@ public class RepositoryImpl implements IRepository
     RawText headFileContents = new RawText(fileContents.getFileContent().get().getBytes());
     RawText currentFileContents = new RawText(pFileContents.getBytes());
 
-    EditList linesChanged = new HistogramDiff().diff(GitRawTextComparator.CURRENT.getValue(), headFileContents, currentFileContents);
+    EditList linesChanged = new HistogramDiff().diff(GitRawTextComparator.getCurrent().getValue(), headFileContents, currentFileContents);
     return new FileDiffImpl(IFileDiffHeader.EMPTY_HEADER, linesChanged, fileContents, new FileContentInfoImpl(() -> pFileContents, () -> StandardCharsets.UTF_8))
         .getChangeDeltas();
   }
@@ -643,7 +643,7 @@ public class RepositoryImpl implements IRepository
       // Use the DiffFormatter to retrieve a list of changes
       DiffFormatter diffFormatter = new DiffFormatter(pWriteTo == null ? DisabledOutputStream.INSTANCE : pWriteTo);
       diffFormatter.setRepository(git.getRepository());
-      diffFormatter.setDiffComparator(GitRawTextComparator.CURRENT.getValue());
+      diffFormatter.setDiffComparator(GitRawTextComparator.getCurrent().getValue());
       List<TreeFilter> pathFilters = new ArrayList<>();
       if (pFilesToDiff != null)
       {
@@ -1105,7 +1105,7 @@ public class RepositoryImpl implements IRepository
     BlameCommand blameCommand = git
         .blame()
         .setFilePath(getRelativePath(pFile, git))
-        .setTextComparator(GitRawTextComparator.CURRENT.getValue());
+        .setTextComparator(GitRawTextComparator.getCurrent().getValue());
     try
     {
       BlameResult blameResult = blameCommand.call();

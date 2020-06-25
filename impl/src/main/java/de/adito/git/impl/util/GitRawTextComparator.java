@@ -1,9 +1,10 @@
 package de.adito.git.impl.util;
 
 import org.eclipse.jgit.diff.RawTextComparator;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -13,8 +14,8 @@ import java.util.stream.Collectors;
  */
 public class GitRawTextComparator
 {
-  public static GitRawTextComparator CURRENT;
-  public static final List<GitRawTextComparator> INSTANCES;
+  private static final List<GitRawTextComparator> INSTANCES;
+  private static GitRawTextComparator current;
 
   private final String displayValue;
   private final RawTextComparator value;
@@ -28,8 +29,8 @@ public class GitRawTextComparator
     INSTANCES.add(new GitRawTextComparator("Ignore leading whitespaces", RawTextComparator.WS_IGNORE_LEADING));
     INSTANCES.add(new GitRawTextComparator("Ignore trailing whitespaces", RawTextComparator.WS_IGNORE_TRAILING));
 
-    if (CURRENT == null)
-      CURRENT = INSTANCES.get(0);
+    if (current == null)
+      current = INSTANCES.get(1);
   }
 
   private GitRawTextComparator(String pDisplayValue, RawTextComparator pValue)
@@ -68,6 +69,26 @@ public class GitRawTextComparator
   }
 
   /**
+   * Get the list of all possible Instances of the GitRawTextComparator, this also represents the lists of possible Whitespace treatments
+   *
+   * @return list of GitRawTextComparators
+   */
+  public static List<GitRawTextComparator> getInstances()
+  {
+    return INSTANCES;
+  }
+
+  /**
+   * Get the GitRawTextComparator that is currently being used,this also defines how whitespaces are treated
+   *
+   * @return the currently set GitRawTextComparator
+   */
+  public static GitRawTextComparator getCurrent()
+  {
+    return current;
+  }
+
+  /**
    * Sets the current active RawTextComparator.The Selection can be changed in the GitConfigDialog. If nothing is set, the default is returned.
    *
    * @param pComparator The display value of the current active RawTextComparator
@@ -77,8 +98,8 @@ public class GitRawTextComparator
     GitRawTextComparator setComparator = parse(pComparator);
 
     if (setComparator == null)
-      CURRENT = INSTANCES.get(0);
+      current = INSTANCES.get(0);
     else
-      CURRENT = setComparator;
+      current = setComparator;
   }
 }
