@@ -52,7 +52,7 @@ abstract class AbstractNewBranchAction extends AbstractAction implements IDiscar
     INewBranchDialogResult<?, Boolean> result = dialogProvider.showNewBranchDialog(repository);
     if (result.isCreateBranch())
     {
-      progressFacade.executeInBackground("Creating branch " + result.getMessage(), pHandle -> {
+      progressFacade.executeAndBlockWithProgress("Creating branch " + result.getMessage(), pHandle -> {
         IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
         repo.createBranch(result.getMessage(), startingPoint.blockingFirst().orElse(null), result.getInformation());
       });

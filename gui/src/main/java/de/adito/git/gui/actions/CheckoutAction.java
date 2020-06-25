@@ -71,7 +71,7 @@ class CheckoutAction extends AbstractTableAction
     if (branchOpt.isPresent())
     {
       IBranch branch = branchOpt.get();
-      progressFactory.executeInBackground(Util.getResource(CheckoutAction.class, "checkoutProgressMsg") + " " + branch.getSimpleName(), pProgress -> {
+      progressFactory.executeAndBlockWithProgress(Util.getResource(CheckoutAction.class, "checkoutProgressMsg") + " " + branch.getSimpleName(), pProgress -> {
         try
         {
           repository.setUpdateFlag(false);
