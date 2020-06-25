@@ -12,6 +12,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -59,7 +60,7 @@ class UnStashChangesAction extends AbstractAction
       }
       catch (AditoGitException pE)
       {
-        notifyUtil.notify(pE, "An error occurred while trying to unstash. ", false);
+        notifyUtil.notify(pE, Util.getResource(UnStashChangesAction.class, "unstashFailureMsg"), false);
       }
     }
   }
@@ -72,12 +73,13 @@ class UnStashChangesAction extends AbstractAction
    */
   private void _executeUnstash(IRepository pRepo, DialogResult<?, String> pDialogResult)
   {
-    progressFacade.executeInBackground("unStashing changes", pHandle -> {
+    progressFacade.executeAndBlockWithProgress(Util.getResource(UnStashChangesAction.class, "unstashProgressMsg"), pHandle -> {
       List<IMergeData> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
       if (!stashConflicts.isEmpty())
       {
-        IMergeConflictDialogResult conflictResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)),
-                                                                                                       stashConflicts, false, "Stash Conflicts");
+        IMergeConflictDialogResult conflictResult =
+            mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)), stashConflicts, false,
+                                                               Util.getResource(UnStashChangesAction.class, "unstashConflictDialogTitle"));
         if (conflictResult.isFinishMerge())
           dialogProvider.showCommitDialog(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(List.of())), "");
       }
