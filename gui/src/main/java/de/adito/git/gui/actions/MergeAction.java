@@ -66,7 +66,7 @@ class MergeAction extends AbstractTableAction
       return;
 
     // execute
-    progressFacade.executeInBackground("Merging " + selectedBranch.getSimpleName() + " into Current", pHandle -> {
+    progressFacade.executeAndBlockWithProgress("Merging " + selectedBranch.getSimpleName() + " into Current", pHandle -> {
       _doMerge(pHandle, selectedBranch);
     });
   }
