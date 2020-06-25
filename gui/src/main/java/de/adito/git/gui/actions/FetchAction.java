@@ -13,6 +13,7 @@ import io.reactivex.Observable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.event.ActionEvent;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -33,7 +34,7 @@ class FetchAction extends AbstractTableAction
   @Inject
   FetchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository)
   {
-    super("Fetch", _getIsEnabledObservable(pRepository));
+    super(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchTitle"), _getIsEnabledObservable(pRepository));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     repository = pRepository;
@@ -42,7 +43,7 @@ class FetchAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeInBackground("Fetching from remote(s)", pHandle -> {
+    progressFacade.executeAndBlockWithProgress(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchProgressMsg"), pHandle -> {
       Optional<IRepository> optionalIRepository = repository.blockingFirst(Optional.empty());
       optionalIRepository.ifPresent(this::_performFetch);
     });
@@ -62,29 +63,31 @@ class FetchAction extends AbstractTableAction
           .filter(pITrackingRefUpdate -> !pITrackingRefUpdate.getResult().isSuccessfull())
           .collect(Collectors.toList());
       if (failedUpdates.isEmpty())
-        notifyUtil.notify("Fetching from remote(s)", "Fetch from all defined remotes was successful", true);
+        notifyUtil.notify(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchProgressMsg"),
+                          de.adito.git.impl.Util.getResource(FetchAction.class, "fetchSuccessMsg"), true);
       else
       {
-        notifyUtil.notify("Fetch succeeded with failed updates", "First failed update: " + failedUpdates.get(0) + ". For all failed updates see IDE Log", false);
-        logger.log(Level.WARNING, () -> "Fetch succeeded with failed updates:\n" + StringUtils.join(failedUpdates, "\n"));
+        notifyUtil.notify(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchFailedUpdatesTitle"),
+                          MessageFormat.format(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchFailedUpdatesMsg"), failedUpdates.get(0)), false);
+        logger.log(Level.WARNING, () -> de.adito.git.impl.Util.getResource(FetchAction.class, "fetchFailedUpdatesLog") + "\n" + StringUtils.join(failedUpdates, "\n"));
       }
     }
     catch (AuthCancelledException pE)
     {
-      notifyUtil.notify("Aborted fetch", "Fetch was aborted because authentication was cancelled. If you didn't cancel the authentication check the IDE Log for the" +
-          " underlying exception to get more information", false);
-      logger.log(Level.WARNING, pE, () -> "Git: Received an auth cancelled exception, underlying cause: ");
+      notifyUtil.notify(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchAbortTitle"),
+                        de.adito.git.impl.Util.getResource(FetchAction.class, "fetchAbortMessage"), false);
+      logger.log(Level.WARNING, pE, () -> de.adito.git.impl.Util.getResource(FetchAction.class, "fetchAbortLog") + " ");
     }
     catch (AditoGitException pE)
     {
       Throwable rootCause = Util.getRootCause(pE);
       if (rootCause != null && rootCause.getMessage().startsWith("invalid privatekey"))
       {
-        notifyUtil.notify(pE, "Privatekey is invalid, check if it really is a ssh key. ", false);
+        notifyUtil.notify(pE, de.adito.git.impl.Util.getResource(FetchAction.class, "fetchPrivateKeyInvalid"), false);
       }
       else
       {
-        notifyUtil.notify(pE, "An error occurred while performing the fetch. ", false);
+        notifyUtil.notify(pE, de.adito.git.impl.Util.getResource(FetchAction.class, "fetchUnspecifiedErrorMsg"), false);
       }
     }
   }
