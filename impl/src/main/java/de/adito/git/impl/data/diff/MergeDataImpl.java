@@ -265,4 +265,10 @@ public class MergeDataImpl implements IMergeData
       return true;
     return pOtherEdit.getBeginA() <= pEdit.getEndA();
   }
+
+  @Override
+  public String toString()
+  {
+    return getFilePath();
+  }
 }

@@ -3,6 +3,7 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
+import de.adito.git.api.IQuickSearchProvider;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.EConflictSide;
@@ -11,6 +12,8 @@ import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
+import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.gui.swing.ComponentResizeListener;
@@ -42,7 +45,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final IDialogDisplayer.IDescriptor isValidDescriptor;
   private final IRepository repository;
   private final Subject<List<IMergeData>> mergeConflictDiffs;
-  private final JTable mergeConflictTable = new JTable();
+  private final SearchableTable mergeConflictTable = new SearchableTable(this);
   private final JButton manualMergeButton = new JButton("Manual Merge");
   private final JButton acceptYoursButton = new JButton("Accept Yours");
   private final JButton acceptTheirsButton = new JButton("Accept Theirs");
@@ -55,7 +58,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final IPrefStore prefStore;
 
   @Inject
-  MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade,
+  MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, IQuickSearchProvider pQuickSearchProvider,
                       @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor, @Assisted Observable<Optional<IRepository>> pRepository,
                       @Assisted List<IMergeData> pMergeConflictDiffs, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
                       @Assisted("autoResolveFlag") boolean pShowAutoResolve)
@@ -99,10 +102,10 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     });
     disposable = mergeDiffListObservable.subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty()));
     mergeDiffStatusModel = new MergeDiffStatusModel(mergeDiffListObservable);
-    _initGui(pShowAutoResolve);
+    _initGui(pShowAutoResolve, pQuickSearchProvider);
   }
 
-  private void _initGui(boolean pShowAutoResolve)
+  private void _initGui(boolean pShowAutoResolve, IQuickSearchProvider pQuickSearchProvider)
   {
     setLayout(new BorderLayout(5, 10));
     setPreferredSize(ComponentResizeListener._getPreferredSize(prefStore, PREF_STORE_SIZE_KEY, new Dimension(800, 600)));
@@ -143,6 +146,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeConflictTable.setDefaultRenderer(Object.class, new MergeDiffTableCellRenderer());
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
     add(mergeConflictTableScrollPane, BorderLayout.CENTER);
+    pQuickSearchProvider.attach(this, BorderLayout.SOUTH, new QuickSearchCallbackImpl(mergeConflictTable, List.of(0)));
   }
 
   /**
