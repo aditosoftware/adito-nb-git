@@ -16,7 +16,7 @@ public class ShowAnnotationNBAction extends AbstractAction
 
   public ShowAnnotationNBAction(JTextComponent pTargetEditor)
   {
-    super("Annotate");
+    super(_isActive(pTargetEditor) ? "Close Annotations" : "Annotate");
     targetEditor = pTargetEditor;
   }
 
@@ -25,5 +25,15 @@ public class ShowAnnotationNBAction extends AbstractAction
   {
     Object annotatorActiveFlag = targetEditor.getClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG);
     targetEditor.putClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG, annotatorActiveFlag == null || !(Boolean) annotatorActiveFlag);
+  }
+
+  /**
+   * @param pTargetEditor Editor for which the annotator would display values. The active flag is set there as client property
+   * @return true if the annotator is currently active
+   */
+  private static boolean _isActive(JTextComponent pTargetEditor)
+  {
+    Object property = pTargetEditor.getClientProperty(IGitConstants.ANNOTATOR_ACTIVF_FLAG);
+    return property != null && (Boolean) property;
   }
 }
