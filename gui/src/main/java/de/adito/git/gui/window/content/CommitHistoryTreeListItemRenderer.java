@@ -221,7 +221,7 @@ public class CommitHistoryTreeListItemRenderer extends DefaultTableCellRenderer
           paintThis = originBranchIcon;
         else if (currentBranch.getType() == EBranchType.EMPTY)
         {
-          if (currentBranch.getName().contains("HEAD"))
+          if (currentBranch == IBranch.HEAD)
           {
             paintThis = headIcon;
           }

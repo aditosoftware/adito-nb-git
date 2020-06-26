@@ -10,6 +10,7 @@ import de.adito.git.impl.CommitHistoryItemsIteratorImpl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -41,8 +42,9 @@ public class HistoryTableManager
         synchronized (lock)
         {
           commitHistoryIterator = new CommitHistoryItemsIteratorImpl(repository.getCommits(pNewFilter),
-                                                                     repository.getBranches().blockingFirst().orElse(List.of()),
-                                                                     repository.getTags().blockingFirst());
+                                                                     repository.getBranches().blockingFirst(Optional.empty()).orElse(List.of()),
+                                                                     repository.getTags().blockingFirst(List.of()),
+                                                                     repository.getCommit(null));
           List<CommitHistoryTreeListItem> items = commitHistoryIterator.tryReadEntries(userPreferences.getNumLoadAdditionalCHEntries());
           tableModel.resetData(items);
         }

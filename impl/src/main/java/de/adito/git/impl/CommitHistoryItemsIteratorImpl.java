@@ -23,15 +23,24 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
   private final IDAGFilterIterator<ICommit> commitFilterIter;
   private final List<IBranch> allBranches;
   private final List<ITag> allTags;
+  private final ICommit head;
   private ICommit currentCommit = null;
   private CommitHistoryTreeListItem latestHistoryItem = null;
   private boolean encounteredLast = false;
 
-  public CommitHistoryItemsIteratorImpl(@NotNull IDAGFilterIterator<ICommit> pCommitFilterIter, @NotNull List<IBranch> allBranches, @NotNull List<ITag> allTags)
+  /**
+   * @param pCommitFilterIter Iterator over the filtered commits
+   * @param pAllBranches      List of all IBranches
+   * @param pAllTags          List of all ITags in the repository
+   * @param pHead             Commit that HEAD is currently pointing to
+   */
+  public CommitHistoryItemsIteratorImpl(@NotNull IDAGFilterIterator<ICommit> pCommitFilterIter, @NotNull List<IBranch> pAllBranches, @NotNull List<ITag> pAllTags,
+                                        @NotNull ICommit pHead)
   {
     commitFilterIter = pCommitFilterIter;
-    this.allBranches = allBranches;
-    this.allTags = allTags;
+    allBranches = pAllBranches;
+    allTags = pAllTags;
+    head = pHead;
   }
 
   @Override
@@ -150,7 +159,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     HistoryGraphElement historyGraphElement = new HistoryGraphElement();
     historyGraphElement.calculateUpperLines(latestHistoryItem == null ? List.of() : latestHistoryItem.getAncestryLines(), advancedLine, currentCommit);
     historyGraphElement.calculateLowerLines(newLines);
-    return new CommitHistoryTreeListItem(currentCommit, newLines, historyGraphElement, allBranches, allTags);
+    return new CommitHistoryTreeListItem(currentCommit, newLines, historyGraphElement, allBranches, allTags, head);
   }
 
   /**

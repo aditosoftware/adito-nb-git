@@ -37,14 +37,15 @@ public class CommitHistoryTreeListItem
    * @param pHistoryGraphElement HistoryGraphElement that stores information about how to draw the commitHistoryGraph for this item
    * @param pAllBranches         List of all IBranches
    * @param pAllTags             List of all ITags in the repository
+   * @param pHead                Commit that HEAD is currently pointing to
    */
   public CommitHistoryTreeListItem(@NotNull ICommit pCommit, @NotNull List<AncestryLine> pAncestryLines, HistoryGraphElement pHistoryGraphElement,
-                                   @NotNull List<IBranch> pAllBranches, List<ITag> pAllTags)
+                                   @NotNull List<IBranch> pAllBranches, List<ITag> pAllTags, ICommit pHead)
   {
     commit = pCommit;
     ancestryLines = pAncestryLines;
     historyGraphElement = pHistoryGraphElement;
-    branches = _getBelongingBranches(pAllBranches);
+    branches = _getBelongingBranches(pAllBranches, pHead);
     tags = _getBelongingTags(pAllTags);
     maxLineWidth = historyGraphElement.calculateMaxLineWidth();
   }
@@ -60,9 +61,11 @@ public class CommitHistoryTreeListItem
     return belongingTags;
   }
 
-  private List<IBranch> _getBelongingBranches(List<IBranch> pAllBranches)
+  private List<IBranch> _getBelongingBranches(List<IBranch> pAllBranches, ICommit pHead)
   {
     List<IBranch> belongingBranches = new ArrayList<>();
+    if (pHead.getId().equals(commit.getId()))
+      belongingBranches.add(IBranch.HEAD);
     for (IBranch branch : pAllBranches)
     {
       if (branch.getId().equals(commit.getId()))
