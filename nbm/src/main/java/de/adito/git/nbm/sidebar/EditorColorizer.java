@@ -55,6 +55,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   private Observable<List<_ChangeHolder>> rectanglesObs;
   private BufferedImage cachedImage;
   private _ChunkPopupMouseListener chunkPopupMouseListener;
+  private Observable<EChangeType> changeTypeObservable;
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -108,17 +109,18 @@ class EditorColorizer extends JPanel implements IDiscardable
         .switchMap(pOptRepo -> pOptRepo.map(IRepository::getRepositoryState).orElse(Observable.just(Optional.empty())));
     // pass the repositoryState here because otherwise the Observable does not notice commits (the contents of the file do not change, but the chunks have to be updated
     // nevertheless)
+    changeTypeObservable = repoState
+        .switchMap(pRepoState -> repository
+            .map(pRepoOpt -> pRepoOpt
+                .map(pRepo -> pRepo.getStatusOfSingleFile(file).getChangeType())
+                .orElse(EChangeType.SAME)));
     chunkObservable = Observable
-        .combineLatest(repository, repoState, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pRepoState, pText) -> {
-          if (pRepoOpt.isPresent())
+        .combineLatest(repository, changeTypeObservable, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pChangeType, pText) -> {
+          if (pRepoOpt.isPresent() && pChangeType != EChangeType.ADD && pChangeType != EChangeType.NEW)
           {
             try
             {
               IRepository repo = pRepoOpt.get();
-              EChangeType changeType = repo.getStatusOfSingleFile(file).getChangeType();
-              // No changes if added or new, because the file can not be diffed -> not in index
-              if (changeType == EChangeType.NEW || changeType == EChangeType.ADD)
-                return new ArrayList<IChangeDelta>();
               return repo.diff(pText, file);
             }
             catch (Exception pE)
@@ -137,11 +139,11 @@ class EditorColorizer extends JPanel implements IDiscardable
         .map(chunkList -> _calculateRectangles(targetEditor, chunkList));
 
     disposable.add(rectanglesObs
-        .subscribe(pChangeList -> {
-          changeList = pChangeList;
-          cachedImage = _createBufferedImage(changeList, targetEditor.getHeight());
-          repaint();
-        }));
+                       .subscribe(pChangeList -> {
+                         changeList = pChangeList;
+                         cachedImage = _createBufferedImage(changeList, targetEditor.getHeight());
+                         repaint();
+                       }));
   }
 
   /**
@@ -318,7 +320,8 @@ class EditorColorizer extends JPanel implements IDiscardable
     @Override
     public void mousePressed(MouseEvent pEvent)
     {
-      if (pEvent.isPopupTrigger())
+      EChangeType eChangeType = changeTypeObservable.blockingFirst(EChangeType.SAME);
+      if (pEvent.isPopupTrigger() && eChangeType != EChangeType.ADD && eChangeType != EChangeType.NEW)
       {
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.add(new ShowAnnotationNBAction(targetEditor));
@@ -329,6 +332,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     @Override
     public void mouseReleased(MouseEvent pEvent)
     {
+      EChangeType eChangeType = changeTypeObservable.blockingFirst(EChangeType.SAME);
       if (SwingUtilities.isLeftMouseButton(pEvent))
       {
         Point point = pEvent.getPoint();
@@ -345,7 +349,7 @@ class EditorColorizer extends JPanel implements IDiscardable
           }
         }
       }
-      else if (pEvent.isPopupTrigger())
+      else if (pEvent.isPopupTrigger() && eChangeType != EChangeType.ADD && eChangeType != EChangeType.NEW)
       {
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.add(new ShowAnnotationNBAction(targetEditor));
