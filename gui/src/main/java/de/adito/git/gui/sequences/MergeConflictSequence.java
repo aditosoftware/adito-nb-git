@@ -59,7 +59,7 @@ public class MergeConflictSequence
   {
     boolean showAutoResolveButton = true;
     EAutoResolveOptions autoResolveSettingsFlag = EAutoResolveOptions.getFromStringValue(prefStore.get(Constants.AUTO_RESOLVE_SETTINGS_KEY));
-    IUserPromptDialogResult<?, ?> promptDialogResult = null;
+    IUserPromptDialogResult<?, Boolean> promptDialogResult = null;
     // only show the dialog if the auto resolve setting is not set -> user can also choose to never use auto-resolve
     if (EAutoResolveOptions.ASK.equals(autoResolveSettingsFlag))
     {
@@ -71,7 +71,7 @@ public class MergeConflictSequence
                                                      Util.getResource(MergeConflictSequence.class, "autoResolveDialogTitle"),
                                                      List.of(EButtons.AUTO_RESOLVE, EButtons.SKIP),
                                                      List.of(EButtons.AUTO_RESOLVE));
-      if ((Boolean) promptDialogResult.getInformation())
+      if (promptDialogResult.getInformation())
       {
         prefStore.put(Constants.AUTO_RESOLVE_SETTINGS_KEY, EAutoResolveOptions.getFromBoolean(String.valueOf(promptDialogResult.isOkay())).toString());
       }

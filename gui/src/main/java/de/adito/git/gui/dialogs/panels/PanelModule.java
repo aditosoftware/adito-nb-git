@@ -12,6 +12,7 @@ public class PanelModule extends AbstractModule
   @Override
   protected void configure()
   {
-    install(new FactoryModuleBuilder().build(IPanelFactory.class));
+    install(new FactoryModuleBuilder().build(PanelFactoryImpl.IGuicePanelFactory.class));
+    bind(IPanelFactory.class).to(PanelFactoryImpl.class);
   }
 }

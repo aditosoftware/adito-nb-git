@@ -24,7 +24,7 @@ public interface IPanelFactory
    * @param pLowerComponent Component that is only shown if the user clicks on the "Show more" button.
    * @return JPanel with the components laid out as described
    */
-  ExpandablePanel<?> getExpandablePanel(@NotNull @Assisted("upper") AditoBaseDialog<?> pUpperComponent, @NotNull @Assisted("lower") JComponent pLowerComponent);
+  <T> ExpandablePanel<T> getExpandablePanel(@NotNull @Assisted("upper") AditoBaseDialog<T> pUpperComponent, @NotNull @Assisted("lower") JComponent pLowerComponent);
 
   /**
    * Creates a panel that has a label that will take the value of pMessage and a checkbox below. The checkbox will have the description from pCheckboxText

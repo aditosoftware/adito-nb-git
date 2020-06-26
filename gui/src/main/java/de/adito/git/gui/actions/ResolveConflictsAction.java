@@ -74,10 +74,10 @@ class ResolveConflictsAction extends AbstractTableAction
       {
         NotificationPanel notificationPanel = dialogProvider.getPanelFactory().createNotificationPanel(Util.getResource(ResolveConflictsAction.class, "tbnfeMsg"));
         NotificationPanel detailsPanel = dialogProvider.getPanelFactory().createNotificationPanel(Util.getResource(ResolveConflictsAction.class, "tbnfeDetailsMsg"));
-        IUserPromptDialogResult dialogResult = dialogProvider.showDialog(dialogProvider.getPanelFactory().getExpandablePanel(notificationPanel, detailsPanel),
-                                                                         Util.getResource(ResolveConflictsAction.class, "resolveConflictsTitle"),
-                                                                         List.of(EButtons.RESET_HEAD, EButtons.LEAVE_BE),
-                                                                         List.of(EButtons.RESET_HEAD));
+        IUserPromptDialogResult<?, Object> dialogResult = dialogProvider.showDialog(dialogProvider.getPanelFactory().getExpandablePanel(notificationPanel, detailsPanel),
+                                                                                    Util.getResource(ResolveConflictsAction.class, "resolveConflictsTitle"),
+                                                                                    List.of(EButtons.RESET_HEAD, EButtons.LEAVE_BE),
+                                                                                    List.of(EButtons.RESET_HEAD));
         if (dialogResult.isOkay())
           pRepo.reset(pTBNFE.getOrigHead().getId(), EResetType.HARD);
       }
