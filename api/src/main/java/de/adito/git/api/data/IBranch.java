@@ -8,7 +8,8 @@ package de.adito.git.api.data;
 public interface IBranch
 {
 
-  IBranch ALL_BRANCHES = new AllBranchesRepresentative();
+  IBranch ALL_BRANCHES = new SpecialBrancheRepresentative("All");
+  IBranch HEAD = new SpecialBrancheRepresentative("HEAD");
 
   /**
    * @return the name of the Branch in clear text as String, i.e. refs/heads/master
@@ -48,15 +49,20 @@ public interface IBranch
   /**
    * Signals that no specific branch is chosen
    */
-  class AllBranchesRepresentative implements IBranch
+  class SpecialBrancheRepresentative implements IBranch
   {
 
-    private static final String ALL_BRANCH_NAME = "All";
+    private final String name;
+
+    public SpecialBrancheRepresentative(String pName)
+    {
+      name = pName;
+    }
 
     @Override
     public String getName()
     {
-      return ALL_BRANCH_NAME;
+      return name;
     }
 
     @Override
@@ -92,7 +98,7 @@ public interface IBranch
     @Override
     public String toString()
     {
-      return ALL_BRANCH_NAME;
+      return name;
     }
   }
 }

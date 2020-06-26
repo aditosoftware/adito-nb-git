@@ -156,6 +156,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
       tmpSelectedItem = pStartFilter.getBranch();
     branchSelectionBox.removeAllItems();
     branchSelectionBox.addItem(IBranch.ALL_BRANCHES);
+    branchSelectionBox.addItem(IBranch.HEAD);
     pBranches.forEach(branchSelectionBox::addItem);
     branchSelectionBox.setSelectedItem(tmpSelectedItem == null ? IBranch.ALL_BRANCHES : tmpSelectedItem);
   }

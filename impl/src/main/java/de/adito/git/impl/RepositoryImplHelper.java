@@ -505,7 +505,10 @@ public class RepositoryImplHelper
       RevFilter revFilter = new StashCommitFilter(pGit);
       if (pCommitFilter.getBranch() != null && !pCommitFilter.getBranch().equals(IBranch.ALL_BRANCHES))
       {
-        logCommand.add(pGit.getRepository().resolve(pCommitFilter.getBranch().getName()));
+        if (pCommitFilter.getBranch().equals(IBranch.HEAD))
+          logCommand.add(pGit.getRepository().resolve("HEAD"));
+        else
+          logCommand.add(pGit.getRepository().resolve(pCommitFilter.getBranch().getName()));
       }
       else
       {
