@@ -53,9 +53,9 @@ public class DiffLocalChangesNBAction extends NBAction
     if (pRepository != null)
     {
       List<File> filesOfNodes = getAllFilesOfNodes(lastActivated);
+      Set<String> uncommittedChanges = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommittedChanges).orElse(Set.of());
       if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory())
       {
-        Set<String> uncommittedChanges = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommittedChanges).orElse(Set.of());
         for (File filesOfNode : _getFilesOfType(filesOfNodes.get(0), ""))
         {
           if (uncommittedChanges.contains(pRepository.getTopLevelDirectory().toPath().relativize(filesOfNode.toPath()).toString().replace("\\", "/")))
@@ -63,6 +63,10 @@ public class DiffLocalChangesNBAction extends NBAction
             return true;
           }
         }
+      }
+      else if (filesOfNodes.size() == 1)
+      {
+        return uncommittedChanges.contains(pRepository.getTopLevelDirectory().toPath().relativize(filesOfNodes.get(0).toPath()).toString().replace("\\", "/"));
       }
     }
     return false;
