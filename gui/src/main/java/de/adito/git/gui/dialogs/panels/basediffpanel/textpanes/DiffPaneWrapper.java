@@ -3,20 +3,15 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.TextHighlightUtil;
-import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPane;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.MarkedScrollbar;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.ScrollbarMarkingsModel;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import de.adito.git.gui.dialogs.panels.basediffpanel.*;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.*;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.EditorKit;
-import javax.swing.text.JTextComponent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import javax.swing.text.*;
+import java.awt.event.*;
 import java.util.Optional;
 
 /**

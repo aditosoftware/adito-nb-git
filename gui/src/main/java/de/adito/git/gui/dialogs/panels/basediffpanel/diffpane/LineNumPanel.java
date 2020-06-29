@@ -1,24 +1,19 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import de.adito.git.api.ColorPicker;
-import de.adito.git.api.IDiscardable;
+import de.adito.git.api.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
-import de.adito.git.gui.swing.LineNumber;
-import de.adito.git.gui.swing.SwingUtil;
-import de.adito.git.gui.swing.TextPaneUtil;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import de.adito.git.gui.swing.*;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.View;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.*;
 
 /**
  * Panel that contains the line numbers of a given JTextPane. Arranges the numbers such that they fit the lines in the TextPane even if the font is

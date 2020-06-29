@@ -7,22 +7,18 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
-import de.adito.git.gui.dialogs.EButtons;
-import de.adito.git.gui.dialogs.IDialogProvider;
-import de.adito.git.gui.dialogs.panels.CheckboxPanel;
-import de.adito.git.gui.dialogs.panels.NotificationPanel;
-import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
-import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.panels.*;
+import de.adito.git.gui.dialogs.results.*;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 
 /**

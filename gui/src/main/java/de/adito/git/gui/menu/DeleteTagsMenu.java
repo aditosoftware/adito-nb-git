@@ -2,17 +2,14 @@ package de.adito.git.gui.menu;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.CommitHistoryTreeListItem;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.ITag;
 import de.adito.git.gui.actions.IActionProvider;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import javax.swing.*;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera, 07.03.2019

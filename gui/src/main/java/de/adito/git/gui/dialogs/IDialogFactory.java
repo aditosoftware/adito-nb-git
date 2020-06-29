@@ -1,21 +1,16 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IKeyStore;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.diff.IFileChangeType;
-import de.adito.git.api.data.diff.IFileDiff;
-import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**

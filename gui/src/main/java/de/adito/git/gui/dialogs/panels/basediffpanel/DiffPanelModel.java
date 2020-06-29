@@ -1,11 +1,8 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.IChangeDelta;
-import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import de.adito.git.api.data.diff.*;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
 import java.util.function.Consumer;
 

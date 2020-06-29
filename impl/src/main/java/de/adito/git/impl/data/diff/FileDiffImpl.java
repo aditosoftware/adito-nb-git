@@ -1,21 +1,15 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
-import de.adito.git.impl.EnumMappings;
-import de.adito.git.impl.Util;
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.ReplaySubject;
-import io.reactivex.subjects.Subject;
-import org.eclipse.jgit.diff.Edit;
-import org.eclipse.jgit.diff.EditList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import de.adito.git.impl.*;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.*;
+import org.eclipse.jgit.diff.*;
+import org.jetbrains.annotations.*;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiPredicate;
 
 /**

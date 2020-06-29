@@ -1,7 +1,7 @@
 package de.adito.git.nbm.guice;
 
 import de.adito.git.api.IRepository;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.util.Optional;
 

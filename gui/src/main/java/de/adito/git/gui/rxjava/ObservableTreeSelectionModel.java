@@ -2,14 +2,12 @@ package de.adito.git.gui.rxjava;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.RowMapper;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
 import java.beans.PropertyChangeListener;
 
 /**
@@ -27,7 +25,7 @@ public class ObservableTreeSelectionModel implements TreeSelectionModel, IDiscar
   {
     delegate = pDelegate;
     selectedPaths = Observable.create(new _TreeSelectionObservable(this))
-        .startWith(pDelegate.getSelectionPaths())
+        .startWithItem(pDelegate.getSelectionPaths())
         .replay(1)
         .autoConnect(0, disposables::add);
   }

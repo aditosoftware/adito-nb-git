@@ -7,16 +7,15 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.impl.Util;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.*;
 import javax.swing.text.BadLocationException;
-import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.*;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.*;
 
 /**

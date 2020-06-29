@@ -2,8 +2,7 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
@@ -12,16 +11,15 @@ import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.tablemodels.CommitListTableModel;
 import de.adito.git.impl.data.CommitFilterImpl;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import java.awt.BorderLayout;
-import java.util.Collections;
+import java.awt.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Dialog for showing the user all stashed commits so he can pick one (single selection only)

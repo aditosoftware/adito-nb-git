@@ -2,8 +2,8 @@ package de.adito.git.nbm.observables;
 
 import de.adito.git.nbm.util.ProjectUtility;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
 import org.openide.windows.TopComponent;
@@ -35,7 +35,7 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
       Observable<Optional<Project>> activeProjectObs = Observable.create(new ActiveProjectObservable())
           .distinctUntilChanged()
           .filter(Optional::isPresent)
-          .startWith(ProjectUtility.findProjectFromActives(TopComponent.getRegistry()));
+          .startWithItem(ProjectUtility.findProjectFromActives(TopComponent.getRegistry()));
       observableRef = Observable.combineLatest(activeProjectObs, OpenProjectsObservable.create(),
                                                (pOptionalProject, pProjects) -> pOptionalProject.map(pProject -> pProjects.contains(pProject) ? pProject : null))
           .replay(1)

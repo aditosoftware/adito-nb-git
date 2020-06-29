@@ -1,12 +1,10 @@
 package de.adito.git.gui.menu;
 
-import de.adito.git.api.CommitHistoryTreeListItem;
-import de.adito.git.api.IRepository;
-import io.reactivex.Observable;
+import de.adito.git.api.*;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera, 07.03.2019

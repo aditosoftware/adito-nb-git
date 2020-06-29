@@ -7,13 +7,11 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.data.CommitFilterImpl;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Action class to show all commits of one branch

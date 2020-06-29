@@ -2,22 +2,18 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.ITrackingRefUpdate;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.exception.AuthCancelledException;
+import de.adito.git.api.exception.*;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.impl.util.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.event.ActionEvent;
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.*;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 
 /**

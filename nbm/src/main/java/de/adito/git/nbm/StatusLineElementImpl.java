@@ -1,15 +1,13 @@
 package de.adito.git.nbm;
 
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import de.adito.git.nbm.observables.ActiveProjectObservable;
 import de.adito.git.nbm.util.RepositoryUtility;
-import de.adito.swing.popup.PopupMouseAdapter;
-import de.adito.swing.popup.PopupWindow;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import de.adito.swing.popup.*;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;

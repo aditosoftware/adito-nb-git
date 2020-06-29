@@ -2,29 +2,23 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.ISaveUtil;
+import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.api.progress.IProgressHandle;
+import de.adito.git.api.progress.*;
 import de.adito.git.gui.actions.commands.StashCommand;
-import de.adito.git.gui.dialogs.EButtons;
-import de.adito.git.gui.dialogs.IDialogProvider;
-import de.adito.git.gui.dialogs.panels.CompositePanel;
-import de.adito.git.gui.dialogs.panels.NotificationPanel;
-import de.adito.git.gui.dialogs.panels.UserPromptPanel;
+import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * An action class to checkout to another branch.

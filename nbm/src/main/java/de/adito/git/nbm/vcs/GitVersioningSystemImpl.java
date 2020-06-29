@@ -1,9 +1,7 @@
 package de.adito.git.nbm.vcs;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
+import com.google.common.collect.*;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.prefs.IPrefStore;
@@ -11,19 +9,15 @@ import de.adito.git.gui.Constants;
 import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.util.reactive.ObservableCollectors;
-import io.reactivex.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.netbeans.api.project.FileOwnerQuery;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.versioning.spi.VCSAnnotator;
-import org.netbeans.modules.versioning.spi.VersioningSystem;
+import io.reactivex.rxjava3.disposables.Disposable;
+import org.jetbrains.annotations.*;
+import org.netbeans.api.project.*;
+import org.netbeans.modules.versioning.spi.*;
 import org.openide.util.NbPreferences;
 
 import java.io.File;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * @author a.arnold, 30.10.2018

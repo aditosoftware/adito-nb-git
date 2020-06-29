@@ -1,39 +1,29 @@
 package de.adito.git.gui.dialogs;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IKeyStore;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EAutoResolveOptions;
-import de.adito.git.api.data.IRemote;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.actions.IActionProvider;
-import de.adito.git.gui.dialogs.panels.NewRemotePanel;
-import de.adito.git.gui.dialogs.panels.RemotePanel;
+import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.git.impl.util.GitRawTextComparator;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import java.awt.BorderLayout;
-import java.awt.Font;
+import javax.swing.border.*;
+import java.awt.*;
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * @author m.kaspera, 24.12.2018

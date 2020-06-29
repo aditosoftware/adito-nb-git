@@ -1,11 +1,9 @@
 package de.adito.git.gui.actions;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IKeyStore;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IRemote;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.Constants;
@@ -13,15 +11,12 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IGitConfigDialogResult;
 import de.adito.git.impl.data.SSHKeyDetails;
 import de.adito.git.impl.util.GitRawTextComparator;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.*;
 import java.util.stream.Collectors;
 

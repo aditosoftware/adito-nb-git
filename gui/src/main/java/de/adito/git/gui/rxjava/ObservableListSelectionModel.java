@@ -2,9 +2,9 @@ package de.adito.git.gui.rxjava;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -24,7 +24,7 @@ public class ObservableListSelectionModel implements ListSelectionModel, IDiscar
   {
     delegate = pDelegate;
     selectedRowsObservable = Observable.create(new _SelectedRowsObservable(this))
-        .startWith(new Integer[0])
+        .startWithItem(new Integer[0])
         .replay(1)
         .autoConnect(0, disposables::add);
   }

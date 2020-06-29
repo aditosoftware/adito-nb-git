@@ -3,7 +3,7 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommitFilter;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

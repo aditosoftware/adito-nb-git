@@ -4,10 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
-import io.reactivex.Observable;
+import de.adito.git.gui.icon.IIconLoader;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

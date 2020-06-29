@@ -4,7 +4,7 @@ import com.bulenkov.darcula.DarculaLaf;
 import com.google.inject.*;
 import com.revivius.nb.darcula.adito.AditoDarkLFCustoms;
 import de.adito.git.gui.guice.AditoGitModule;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.netbeans.swing.plaf.Startup;
 
 import javax.swing.*;

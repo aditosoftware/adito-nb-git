@@ -4,16 +4,11 @@ import de.adito.git.api.dag.IDAGFilterIterator;
 import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
 
 /**
  * Interface defining the actions that the Repository can perform

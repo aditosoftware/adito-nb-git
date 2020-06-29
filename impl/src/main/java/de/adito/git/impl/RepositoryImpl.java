@@ -10,15 +10,13 @@ import de.adito.git.api.exception.*;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.TrackingRefUpdate;
 import de.adito.git.impl.data.*;
-import de.adito.git.impl.data.diff.FileContentInfoImpl;
-import de.adito.git.impl.data.diff.FileDiffHeaderImpl;
-import de.adito.git.impl.data.diff.FileDiffImpl;
+import de.adito.git.impl.data.diff.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
@@ -28,29 +26,22 @@ import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
-import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -104,21 +95,21 @@ public class RepositoryImpl implements IRepository
         .throttleLatest(500, TimeUnit.MILLISECONDS)
         .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
         .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())))
-        .startWith(Optional.of(RepositoryImplHelper.status(git)))
+        .startWithItem(Optional.of(RepositoryImplHelper.status(git)))
         .replay(1)
         .autoConnect(0, disposables::add);
 
     branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
-        .startWith(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
+        .startWithItem(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
         .replay(1)
         .autoConnect(0, disposables::add);
     currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
-        .startWith(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
+        .startWithItem(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
         .replay(1)
         .autoConnect(0, disposables::add);
     tagList = status.map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
         .distinctUntilChanged()
-        .startWith(List.<ITag>of())
+        .startWithItem(List.<ITag>of())
         .replay(1)
         .autoConnect(0, disposables::add);
 

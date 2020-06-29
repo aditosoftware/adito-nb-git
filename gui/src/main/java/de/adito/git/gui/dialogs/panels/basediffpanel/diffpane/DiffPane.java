@@ -5,17 +5,14 @@ import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.impl.observables.PropertyChangeObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,7 +36,7 @@ public class DiffPane extends JPanel implements IDiscardable
   {
     editorPane = pEditorPane;
     Observable<Optional<Integer>> zoomObservable = Observable.create(new PropertyChangeObservable<Integer>(editorPane, "text-zoom"))
-        .startWith(Optional.empty())
+        .startWithItem(Optional.empty())
         .replay(1)
         .autoConnect(0, disposables::add);
     Observable<Dimension> basicViewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport()));

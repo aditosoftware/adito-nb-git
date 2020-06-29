@@ -5,16 +5,13 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.gui.guice.IRepositoryFactory;
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.*;
+import org.jetbrains.annotations.*;
 import org.openide.filesystems.FileObject;
 
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * Gets the Repository object injected and forms the central place to get it from

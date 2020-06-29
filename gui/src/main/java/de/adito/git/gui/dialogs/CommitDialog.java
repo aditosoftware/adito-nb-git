@@ -2,52 +2,36 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.jidesoft.swing.CheckBoxTree;
-import com.jidesoft.swing.CheckBoxTreeSelectionModel;
+import com.jidesoft.swing.*;
 import de.adito.git.api.*;
-import de.adito.git.api.data.IConfig;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.IEditorKitProvider;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
-import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
+import de.adito.git.gui.quicksearch.*;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
-import de.adito.git.gui.swing.InputFieldTablePanel;
-import de.adito.git.gui.swing.LinedDecorator;
-import de.adito.git.gui.swing.MutableIconActionButton;
+import de.adito.git.gui.swing.*;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.*;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
-import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
+import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.gui.tree.renderer.*;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.border.*;
+import javax.swing.event.*;
 import javax.swing.text.Document;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
+import javax.swing.tree.*;
+import java.awt.*;
 import java.io.File;
+import java.util.List;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -112,9 +96,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       });
       Observable<Boolean> nonEmptyTextObservable = Observable.create(new DocumentChangeObservable(messagePane))
           .switchMap(pDocument -> Observable.create(new _NonEmptyTextObservable(pDocument)))
-          .startWith(messagePane.getDocument().getLength() > 0);
+          .startWithItem(messagePane.getDocument().getLength() > 0);
       selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree))
-          .startWith(List.<File>of())
+          .startWithItem(List.<File>of())
           .replay(1)
           .autoConnect(0, disposables::add);
       disposables.add(Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)

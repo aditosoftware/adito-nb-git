@@ -1,47 +1,35 @@
 package de.adito.git.nbm.sidebar;
 
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IBlame;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.rxjava.ScrollBarExtentObservable;
-import de.adito.git.gui.swing.LineNumber;
-import de.adito.git.gui.swing.TextPaneUtil;
+import de.adito.git.gui.swing.*;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.util.DocumentObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.editor.settings.FontColorNames;
-import org.netbeans.editor.BaseTextUI;
-import org.netbeans.editor.Coloring;
-import org.netbeans.editor.EditorUI;
+import org.netbeans.editor.*;
 import org.openide.loaders.DataObject;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.View;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.beans.*;
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.text.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 
 /**
@@ -155,7 +143,7 @@ public class Annotator extends JPanel implements IDiscardable
         .debounce(DEBOUNCE_DURATION, TimeUnit.MILLISECONDS);
     // Observable that observes the Active flag for the Annotator that is stored in the client settings of the target textComponent
     Observable<Optional<Boolean>> isActive = BehaviorSubject.create(new PropertyChangeObservable<Boolean>(pTarget, IGitConstants.ANNOTATOR_ACTIVF_FLAG))
-        .startWith(Optional.of(Boolean.FALSE));
+        .startWithItem(Optional.of(Boolean.FALSE));
 
     // Observable to check the File changes between the latest version of the file on disk and the actual content of the file
     Observable<List<IChangeDelta>> deltaObservable = Observable

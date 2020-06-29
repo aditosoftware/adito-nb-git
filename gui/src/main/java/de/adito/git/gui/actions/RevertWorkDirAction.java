@@ -2,24 +2,20 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.ISaveUtil;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IRevertDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

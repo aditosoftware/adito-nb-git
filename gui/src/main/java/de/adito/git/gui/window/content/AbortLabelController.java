@@ -1,17 +1,12 @@
 package de.adito.git.gui.window.content;
 
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EResetType;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.util.Optional;
 
 /**

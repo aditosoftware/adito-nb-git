@@ -4,14 +4,13 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.nbm.util.RepositoryUtility;
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
-import org.openide.util.HelpCtx;
-import org.openide.util.Lookup;
+import org.openide.util.*;
 import org.openide.util.actions.NodeAction;
 
 import javax.swing.*;

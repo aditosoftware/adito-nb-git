@@ -9,35 +9,26 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.menu.IMenuProvider;
-import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTable;
+import de.adito.git.gui.quicksearch.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.swing.SimpleBranchNameListCellRenderer;
 import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import de.adito.git.impl.data.CommitFilterImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.*;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
+import javax.swing.event.*;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -129,8 +120,8 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
                                                                           .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList())));
     commitFilterObs = Observable.combineLatest(
         Observable.create(new _ComboBoxObservable(branchSelectionBox))
-            .startWith(branchSelectionBox.getSelectedItem() == null ? Optional.empty() : Optional.of((IBranch) branchSelectionBox.getSelectedItem())),
-        Observable.create(new _JTextFieldObservable(authorField)).startWith("").debounce(500, TimeUnit.MILLISECONDS),
+            .startWithItem(branchSelectionBox.getSelectedItem() == null ? Optional.empty() : Optional.of((IBranch) branchSelectionBox.getSelectedItem())),
+        Observable.create(new _JTextFieldObservable(authorField)).startWithItem("").debounce(500, TimeUnit.MILLISECONDS),
         (pBranch, pAuthor) -> (ICommitFilter) new CommitFilterImpl()
             .setAuthor(pAuthor.isEmpty() ? null : pAuthor)
             .setBranch(pBranch.orElse(null))
