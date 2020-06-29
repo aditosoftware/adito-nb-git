@@ -1,26 +1,22 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
-import de.adito.git.api.data.diff.IFileDiff;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
+import de.adito.git.api.data.diff.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.TextComparatorInfoPanel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.data.diff.DeltaTextChangeEventImpl;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Class to handle the basic layout of the two panels that display the differences between two files

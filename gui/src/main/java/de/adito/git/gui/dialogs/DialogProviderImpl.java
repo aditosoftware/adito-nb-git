@@ -1,26 +1,19 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import de.adito.git.api.IKeyStore;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EResetType;
-import de.adito.git.api.data.ICommit;
+import com.google.inject.*;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
-import de.adito.git.gui.dialogs.panels.ComboBoxPanel;
-import de.adito.git.gui.dialogs.panels.IPanelFactory;
-import de.adito.git.gui.dialogs.panels.UserPromptPanel;
+import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**

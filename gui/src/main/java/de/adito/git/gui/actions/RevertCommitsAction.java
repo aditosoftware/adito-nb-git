@@ -2,24 +2,19 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.api.progress.IProgressHandle;
+import de.adito.git.api.progress.*;
 import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Action that reverts the changes that werde done by one or more commits

@@ -1,20 +1,17 @@
 package de.adito.git.nbm.window;
 
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.nbm.util.ProjectUtility;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
-import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
+import org.openide.util.*;
 import org.openide.util.lookup.Lookups;
 import org.openide.windows.TopComponent;
 
 import javax.swing.*;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * An abstract class to show the topComponents in NetBeans

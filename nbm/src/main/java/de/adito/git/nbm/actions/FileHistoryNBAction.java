@@ -3,18 +3,14 @@ package de.adito.git.nbm.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionRegistration;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
+import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
 import java.io.File;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Action that shows a list with all commits that affected the selected file. Only active if exactly one file is selected

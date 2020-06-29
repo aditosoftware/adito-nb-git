@@ -5,15 +5,15 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.MarkedScrollbar;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.nbm.IGitConstants;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Forms a bar on the side of the scrollbar, displays the areas/lines where changes occurred

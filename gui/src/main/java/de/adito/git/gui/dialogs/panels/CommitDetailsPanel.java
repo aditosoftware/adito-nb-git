@@ -3,36 +3,27 @@ package de.adito.git.gui.dialogs.panels;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.ICommitFilter;
-import de.adito.git.api.data.IDiffInfo;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.DateTimeRenderer;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.models.*;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import de.adito.git.impl.data.DiffInfoImpl;
-import de.adito.git.impl.data.FileChangeTypeImpl;
+import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.impl.data.*;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
@@ -79,7 +70,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     commitFilter = pCommitFilter;
     showAllCheckbox.setEnabled(!pCommitFilter.getFiles().isEmpty());
     showAllCheckbox.setSelected(pCommitFilter.getFiles().isEmpty());
-    showAllCBObservable = Observable.create(new _CheckboxObservable(showAllCheckbox)).startWith(pCommitFilter.getFiles().isEmpty());
+    showAllCBObservable = Observable.create(new _CheckboxObservable(showAllCheckbox)).startWithItem(pCommitFilter.getFiles().isEmpty());
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
@@ -109,7 +100,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
             return Collections.<IDiffInfo>emptyList();
           }
         })
-        .startWith(List.<IDiffInfo>of())
+        .startWithItem(List.<IDiffInfo>of())
         .replay(1)
         .autoConnect(0, disposables::add);
   }

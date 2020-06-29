@@ -1,18 +1,13 @@
 package de.adito.git.nbm.actions;
 
-import de.adito.git.api.IBareRepo;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.repo.RepositoryCache;
-import de.adito.git.nbm.util.ProjectUtility;
-import de.adito.git.nbm.util.RepositoryUtility;
-import io.reactivex.Observable;
+import de.adito.git.nbm.util.*;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionRegistration;
+import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;

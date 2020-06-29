@@ -2,26 +2,22 @@ package de.adito.git.nbm.sidebar;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChanges;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.nbm.IGitConstants;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * PopupWindow for the EditorColorizer, basically a popup for the lines that are marked as changed.

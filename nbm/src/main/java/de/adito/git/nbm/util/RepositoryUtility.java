@@ -3,10 +3,9 @@ package de.adito.git.nbm.util;
 import de.adito.git.api.IRepository;
 import de.adito.git.nbm.observables.ActiveProjectObservable;
 import de.adito.git.nbm.repo.RepositoryCache;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
-import org.netbeans.api.project.FileOwnerQuery;
-import org.netbeans.api.project.Project;
+import org.netbeans.api.project.*;
 import org.openide.loaders.DataObject;
 
 import java.util.Optional;

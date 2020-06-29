@@ -2,27 +2,21 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.IFileChangeType;
-import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IDiffDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.*;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 
 /**

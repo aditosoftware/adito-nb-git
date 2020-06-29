@@ -1,8 +1,8 @@
 package de.adito.git.gui.actions;
 
 import de.adito.git.api.IDiscardable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import javax.swing.*;
 import java.util.Optional;

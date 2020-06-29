@@ -1,25 +1,18 @@
 package de.adito.git.nbm.window;
 
 import com.google.inject.Inject;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.IUserPreferences;
+import de.adito.git.api.*;
 import de.adito.git.api.data.ICommitFilter;
-import de.adito.git.gui.window.HistoryTableManager;
-import de.adito.git.gui.window.IWindowProvider;
-import io.reactivex.Observable;
+import de.adito.git.gui.window.*;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
-import org.openide.windows.Mode;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
+import org.openide.windows.*;
 
 import javax.swing.*;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * A provider for all Windows in NetBeans

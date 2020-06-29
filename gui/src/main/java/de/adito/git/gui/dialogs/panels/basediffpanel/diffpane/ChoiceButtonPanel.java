@@ -1,25 +1,19 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import de.adito.git.api.ColorPicker;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.diff.EChangeStatus;
-import de.adito.git.api.data.diff.IChangeDelta;
-import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
+import de.adito.git.api.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.swing.SwingUtil;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Position;
-import javax.swing.text.View;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.*;
 
 /**
  * Panel that contains buttons for accepting and discarding changes of a text displayed in a JTextPane

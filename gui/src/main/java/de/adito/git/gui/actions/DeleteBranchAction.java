@@ -2,20 +2,17 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.EButtons;
-import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.*;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.awt.event.ActionEvent;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Action for deleting a branch

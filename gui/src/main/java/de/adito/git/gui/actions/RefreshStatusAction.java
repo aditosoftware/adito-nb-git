@@ -3,9 +3,9 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
-import io.reactivex.Observable;
+import de.adito.git.gui.icon.IIconLoader;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

@@ -6,7 +6,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.results.IFileSelectionDialogResult;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;

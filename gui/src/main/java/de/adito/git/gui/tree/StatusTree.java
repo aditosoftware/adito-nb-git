@@ -1,24 +1,19 @@
 package de.adito.git.gui.tree;
 
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IFileSystemUtil;
-import de.adito.git.api.IQuickSearchProvider;
+import de.adito.git.api.*;
 import de.adito.git.api.data.diff.IFileChangeType;
-import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTree;
+import de.adito.git.gui.quicksearch.*;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.tree.models.BaseObservingTreeModel;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
-import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.gui.tree.renderer.*;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.io.File;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 

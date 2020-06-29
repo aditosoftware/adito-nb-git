@@ -2,13 +2,11 @@ package de.adito.git.nbm.actions;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;

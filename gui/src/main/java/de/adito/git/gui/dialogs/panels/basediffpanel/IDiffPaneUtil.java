@@ -4,24 +4,18 @@ import com.google.common.collect.Collections2;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
-import de.adito.git.gui.rxjava.EditorKitChangeObservable;
-import de.adito.git.gui.rxjava.ViewPortSizeObservable;
-import de.adito.git.gui.swing.IEditorUtils;
-import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
+import de.adito.git.gui.rxjava.*;
+import de.adito.git.gui.swing.*;
 import de.adito.git.impl.util.BiNavigateAbleMap;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.View;
-import java.awt.Dimension;
-import java.util.HashMap;
+import javax.swing.text.*;
+import java.awt.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 
 /**

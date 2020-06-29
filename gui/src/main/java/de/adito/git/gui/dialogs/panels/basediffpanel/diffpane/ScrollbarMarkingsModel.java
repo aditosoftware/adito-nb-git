@@ -1,25 +1,18 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.diff.EChangeStatus;
-import de.adito.git.api.data.diff.IChangeDelta;
-import de.adito.git.api.data.diff.IFileDiff;
-import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.MouseFirstActionObservableWrapper;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import de.adito.git.api.data.diff.*;
+import de.adito.git.gui.dialogs.panels.basediffpanel.*;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Position;
-import javax.swing.text.View;
-import java.awt.Rectangle;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.util.ArrayList;
+import javax.swing.text.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Model that keeps the ScrollbarMarkings of a MarkedScrollbar up to date

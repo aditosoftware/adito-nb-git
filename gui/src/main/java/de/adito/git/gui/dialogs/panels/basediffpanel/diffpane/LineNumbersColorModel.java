@@ -1,20 +1,17 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.diff.EChangeStatus;
-import de.adito.git.api.data.diff.IChangeDelta;
-import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.*;
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * @author m.kaspera, 21.01.2019

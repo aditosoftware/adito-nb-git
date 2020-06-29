@@ -1,32 +1,23 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EConflictSide;
-import de.adito.git.api.data.diff.IMergeData;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.IEditorKitProvider;
-import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
+import de.adito.git.api.data.diff.*;
+import de.adito.git.gui.*;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
-import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
+import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.*;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.EditorKit;
-import javax.swing.text.JTextComponent;
-import java.awt.BorderLayout;
-import java.awt.Point;
+import javax.swing.text.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**

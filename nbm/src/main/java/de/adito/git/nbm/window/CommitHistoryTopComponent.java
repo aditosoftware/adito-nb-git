@@ -6,15 +6,14 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommitFilter;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.window.content.IWindowContentProvider;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
-import org.openide.windows.Mode;
-import org.openide.windows.WindowManager;
+import org.openide.windows.*;
 
 import javax.annotation.Nullable;
 import javax.swing.table.TableModel;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.Optional;
 import java.util.function.Consumer;
 

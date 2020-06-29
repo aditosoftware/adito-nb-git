@@ -3,17 +3,16 @@ package de.adito.git.gui.actions;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.data.CommitFilterImpl;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera, 06.02.2019

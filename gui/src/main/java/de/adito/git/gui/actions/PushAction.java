@@ -2,32 +2,21 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EPushResult;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.IRepositoryState;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.exception.GitTransportFailureException;
-import de.adito.git.api.exception.PushRejectedOtherReasonException;
-import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.api.progress.IProgressHandle;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
+import de.adito.git.api.exception.*;
+import de.adito.git.api.progress.*;
 import de.adito.git.gui.dialogs.IDialogProvider;
-import de.adito.git.gui.dialogs.results.IChangeTrackedBranchDialogResult;
-import de.adito.git.gui.dialogs.results.IPushDialogResult;
-import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.dialogs.results.*;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.*;
+import java.util.logging.*;
 
 /**
  * pushAction to push all commits to the actual chosen branch.

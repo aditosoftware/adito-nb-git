@@ -2,30 +2,20 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.EResetType;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IFileChangeType;
-import de.adito.git.api.data.diff.IMergeData;
-import de.adito.git.api.exception.AditoGitException;
-import de.adito.git.api.exception.AmbiguousStashCommitsException;
-import de.adito.git.api.exception.TargetBranchNotFoundException;
+import de.adito.git.api.*;
+import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
+import de.adito.git.api.exception.*;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.dialogs.EButtons;
-import de.adito.git.gui.dialogs.IDialogProvider;
+import de.adito.git.gui.dialogs.*;
 import de.adito.git.gui.dialogs.panels.NotificationPanel;
-import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
-import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
-import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.dialogs.results.*;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.awt.event.ActionEvent;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author m.kaspera, 14.12.2018
