@@ -6,6 +6,34 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.4</p>
+    <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+    <ul>
+      <li>It is now possible to do a "git init" on a project that is not managed by git yet, thereby transforming it into a git project</li>
+      <li>Added a new type of dialog that only shows a short message, but has a "Show more" button that displays additional information</li>
+      <li>The plugin now uses a progress bar that blocks access to the IDE for actions where user input during the runtime of the action is unwanted</li>
+      <li>The plugin can now try to auto-resolve conflicting files. This action is offered when conflicts are detected, and can also be manually triggered in the merge dialog. If the algorithm cannot resolve all conflicts in a file, the file is left untouched</li>
+    </ul>
+    <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+    <ul>
+      <li>It is now possible to see and change the url of a remote in the git settings dialog</li>
+      <li>Improved error reporting when a pull or fetch fails</li>
+      <li>Improved inital calculation of the heights for drawing changed blocks -> drawn changes should better match their intended position, without having to resize the panel</li>
+      <li>Improved the workflow and dialogs when deleting a branch, e.g. the dialog asking if the remote branch should be deleted now only appears if such a branch actually exists</li>
+      <li>The default value for whitespace handling is now "IGNORE ALL", the value may be changed in the git settings dialog</li>
+      <li>The MergeConflictDialog now supports Quicksearch for the list of conflicting files</li>
+      <li>Improved the displayed message during a merge: The message no longer shows "Merging xxx into Current" but uses the name of the current branch instead of "Current"</li>
+      <li>Added HEAD to the branches filter in the git log</li>
+      <li>The "Annotate" option is no longer shown for files with change type ADD or NEW, the action also changes name to "Close Annotations" if the annotations are already shown</li>
+    </ul>
+    <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+    <ul>
+      <li>Fix: The "Diff local changes" action took too long to determine whether is should be active or not</li>
+      <li>Fix: Auth failed when connecting to hosts with self-signed certificates because their realm could not be determined</li>
+      <li>Fix: The "Accept YOURS/THEIRS" action in the merge dialog does not remove the selected file(s) from the list of conflicting files (it did however apply the changes of YOURS/THEIRS)</li>
+      <li>Fix: The tags for the remote branches were using the color of the HEAD tag in the git log</li>
+      <li>Fix: The HEAD tag was never shown in the git log</li>
+    </ul>
   <p style="font-weight: bold;">v.1.4.3</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
