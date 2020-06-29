@@ -6,6 +6,7 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
@@ -36,6 +37,7 @@ import static de.adito.git.gui.Constants.NEW_BRANCH_ICON;
 class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
 {
   private static final String POPUP_WINDOW_CLIENT_PROPERTY = "parent";
+  private final IAsyncProgressFacade progressFacade;
   private final IActionProvider actionProvider;
   private final INotifyUtil notifyUtil;
   private final Observable<Optional<IRepository>> observableOptRepo;
@@ -45,8 +47,10 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   private final CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
-  public BranchWindowContent(IActionProvider pProvider, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pObservableOptRepo)
+  public BranchWindowContent(IAsyncProgressFacade pProgressFacade, IActionProvider pProvider, INotifyUtil pNotifyUtil,
+                             @Assisted Observable<Optional<IRepository>> pObservableOptRepo)
   {
+    progressFacade = pProgressFacade;
     actionProvider = pProvider;
     notifyUtil = pNotifyUtil;
     observableOptRepo = pObservableOptRepo;
@@ -92,7 +96,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
 
     setLayout(new TableLayout(cols, rows));
     TableLayoutUtil tlu = new TableLayoutUtil(this);
-    tlu.add(0, 0, new AbortLabelController(this, pRepoStateObservable, observableOptRepo, notifyUtil).getLabel());
+    tlu.add(0, 0, new AbortLabelController(this, pRepoStateObservable, observableOptRepo, notifyUtil, progressFacade).getLabel());
     tlu.add(0, 1, new NewBranchLabelController(observableOptRepo).getLabel());
     tlu.add(0, 3, _createLabel("Local Branches"));
     tlu.add(0, 4, _createListBranches(EBranchType.LOCAL));

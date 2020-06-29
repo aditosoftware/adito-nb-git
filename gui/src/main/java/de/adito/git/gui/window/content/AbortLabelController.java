@@ -4,7 +4,7 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.IRepositoryState;
-import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,15 +27,17 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
   private final BranchWindowContent branchWindowContent;
   private final Observable<Optional<IRepository>> repositoryObservable;
   private final INotifyUtil notifyUtil;
-  private static final MouseListener mouseListener = voidListener;
+  private final IAsyncProgressFacade progressFacade;
+  private MouseListener mouseListener = voidListener;
 
   public AbortLabelController(@NotNull BranchWindowContent pBranchWindowContent, @NotNull Observable<Optional<IRepositoryState>> pRepoStateObservable,
-                              @NotNull Observable<Optional<IRepository>> pRepositoryObservable, @NotNull INotifyUtil pNotifyUtil)
+                              @NotNull Observable<Optional<IRepository>> pRepositoryObservable, @NotNull INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade)
   {
     super("", pRepoStateObservable);
     branchWindowContent = pBranchWindowContent;
     repositoryObservable = pRepositoryObservable;
     notifyUtil = pNotifyUtil;
+    progressFacade = pProgressFacade;
     label.addMouseListener(new BranchWindowContent._HoverMouseListener());
     label.addMouseMotionListener(new BranchWindowContent._HoverMouseListener());
   }
@@ -49,20 +51,23 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
       if (pRepositoryState.getState() == IRepository.State.MERGING || pRepositoryState.getState() == IRepository.State.MERGING_RESOLVED)
       {
         label.setText("+ Abort Merge");
-        label.addMouseListener(new ResetMouseAdapter());
+        mouseListener = new ResetMouseAdapter();
+        label.addMouseListener(mouseListener);
         return;
       }
       else if (pRepositoryState.getState() == IRepository.State.CHERRY_PICKING || pRepositoryState.getState() == IRepository.State.CHERRY_PICKING_RESOLVED)
       {
         label.setText("+ Abort Cherry Pick");
-        label.addMouseListener(new ResetMouseAdapter());
+        mouseListener = new ResetMouseAdapter();
+        label.addMouseListener(mouseListener);
         return;
       }
       else if (pRepositoryState.getState() == IRepository.State.REBASING_MERGE || pRepositoryState.getState() == IRepository.State.REBASING
           || pRepositoryState.getState() == IRepository.State.REBASING_REBASING)
       {
         label.setText("+ Abort Rebase/Pull");
-        label.addMouseListener(new AbortPullMouseAdapter());
+        mouseListener = new AbortPullMouseAdapter();
+        label.addMouseListener(mouseListener);
         return;
       }
     }
@@ -79,19 +84,11 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
     @Override
     public void mousePressed(MouseEvent e)
     {
-      IRepository repository = repositoryObservable.blockingFirst(Optional.empty()).orElse(null);
-      if (repository != null)
-      {
-        try
-        {
-          repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
-        }
-        catch (AditoGitException pE)
-        {
-          notifyUtil.notify(pE, "Error while resetting HEAD", false);
-        }
-      }
       branchWindowContent.closeWindow();
+      repositoryObservable.blockingFirst(Optional.empty()).ifPresent(repository -> progressFacade.executeAndBlockWithProgress("Resetting repository", pHandle -> {
+        repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
+        notifyUtil.notify("Abort success", "Abort was successful", true);
+      }));
     }
   }
 
@@ -103,19 +100,11 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
     @Override
     public void mousePressed(MouseEvent e)
     {
-      IRepository repository = repositoryObservable.blockingFirst(Optional.empty()).orElse(null);
-      if (repository != null)
-      {
-        try
-        {
-          repository.pull(true);
-        }
-        catch (AditoGitException pE)
-        {
-          notifyUtil.notify(pE, "Error while aborting the pull", false);
-        }
-      }
       branchWindowContent.closeWindow();
+      repositoryObservable.blockingFirst(Optional.empty()).ifPresent(repository -> progressFacade.executeAndBlockWithProgress("Aborting pull", pHandle -> {
+        repository.pull(true);
+        notifyUtil.notify("Abort success", "Abort was successful", true);
+      }));
     }
   }
 }
