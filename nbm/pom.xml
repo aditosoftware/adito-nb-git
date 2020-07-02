@@ -178,6 +178,7 @@
         <configuration>
           <keystore>${project.basedir}/keystore</keystore>
           <keystorealias>adito</keystorealias>
+          <keystorepassword>${plugin.keystore.key}</keystorepassword>
           <requiresRestart>true</requiresRestart>
           <sourceManifestFile>${project.basedir}/src/nbm/manifest.mf</sourceManifestFile>
           <moduleDependencies>
