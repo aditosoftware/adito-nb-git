@@ -176,7 +176,7 @@
         <version>4.3-SNAPSHOT</version>
         <extensions>true</extensions>
         <configuration>
-          <keystore>${project.basedir}/keystore</keystore>
+          <keystore>${user.home}/.m2/keystore</keystore>
           <keystorealias>adito</keystorealias>
           <keystorepassword>${plugin.keystore.key}</keystorepassword>
           <requiresRestart>true</requiresRestart>
