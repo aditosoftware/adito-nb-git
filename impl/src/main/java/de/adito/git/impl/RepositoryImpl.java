@@ -101,9 +101,9 @@ public class RepositoryImpl implements IRepository
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
+        .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())))
         .throttleLatest(500, TimeUnit.MILLISECONDS)
         .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
-        .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())))
         .startWith(Optional.of(RepositoryImplHelper.status(git)))
         .replay(1)
         .autoConnect(0, disposables::add);
