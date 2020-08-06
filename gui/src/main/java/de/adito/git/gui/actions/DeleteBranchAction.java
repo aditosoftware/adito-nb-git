@@ -65,7 +65,7 @@ class DeleteBranchAction extends AbstractTableAction
       }
       if (!hasRemoteTrackedBranch || dialogResult.isOkay())
       {
-        boolean isDeleteRemoteBranch = hasRemoteTrackedBranch && dialogResult.getSelectedButton() == EButtons.OK;
+        boolean isDeleteRemoteBranch = hasRemoteTrackedBranch && dialogResult.getSelectedButton() == EButtons.YES;
         progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + " " + branchName, pHandle -> {
           _deleteBranch(branchName, isDeleteRemoteBranch, repo);
         });
