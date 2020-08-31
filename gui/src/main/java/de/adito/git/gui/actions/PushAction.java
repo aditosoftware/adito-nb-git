@@ -69,9 +69,15 @@ class PushAction extends AbstractAction
   {
     repository.blockingFirst().ifPresent(pRepo -> {
       IRepositoryState repoState = pRepo.getRepositoryState().blockingFirst().orElse(null);
-      final String[] remoteNameParam = new String[1];
+      String remoteName = (repoState != null && repoState.getRemotes().size() == 1) ? repoState.getRemotes().get(0) : null;
+      if (repoState != null && repoState.getCurrentRemoteTrackedBranch() == null && repoState.getRemotes().size() > 1)
+      {
+        // need new ArrayList to convert to List<Object>
+        IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
+        remoteName = (String) result.getInformation();
+      }
       Future<List<ICommit>> future = progressFacade.executeInBackground("Gathering Information for Push", pHandle -> {
-        return _determineUnpushedCommits(pRepo, repoState, remoteNameParam);
+        return _determineUnpushedCommits(pRepo, repoState);
       });
       List<ICommit> commitList = null;
       try
@@ -89,8 +95,9 @@ class PushAction extends AbstractAction
         IPushDialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
                                                                                    commitList);
 
+        final String remoteNameFinal = remoteName;
         progressFacade.executeInBackground("Pushing Commits", pHandle -> {
-          _performPush(pHandle, pRepo, dialogResult, remoteNameParam[0], repoState);
+          _performPush(pHandle, pRepo, dialogResult, remoteNameFinal, repoState);
         });
       }
       else
@@ -103,22 +110,13 @@ class PushAction extends AbstractAction
   }
 
   /**
-   * @param pRepo            current repo
-   * @param pRepoState       current state of the repo
-   * @param pRemoteNameParam array used to get the name of the selected remote out of the async call
+   * @param pRepo      current repo
+   * @param pRepoState current state of the repo
    * @return List of unpushed commits, or null if any error occurs while determining the unpushed commits
    */
   @NotNull
-  private List<ICommit> _determineUnpushedCommits(@NotNull IRepository pRepo, @Nullable IRepositoryState pRepoState, String[] pRemoteNameParam)
+  private List<ICommit> _determineUnpushedCommits(@NotNull IRepository pRepo, @Nullable IRepositoryState pRepoState)
   {
-    String remoteName = (pRepoState != null && pRepoState.getRemotes().size() == 1) ? pRepoState.getRemotes().get(0) : null;
-    if (pRepoState != null && pRepoState.getCurrentRemoteTrackedBranch() == null && pRepoState.getRemotes().size() > 1)
-    {
-      // need new ArrayList to convert to List<Object>
-      IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(pRepoState.getRemotes()));
-      remoteName = (String) result.getInformation();
-    }
-    pRemoteNameParam[0] = remoteName;
     if (_handleNonMatchingTrackedBranch(pRepo, pRepoState)) return List.of();
     try
     {
