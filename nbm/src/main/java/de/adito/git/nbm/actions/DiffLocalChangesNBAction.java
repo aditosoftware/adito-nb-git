@@ -50,24 +50,31 @@ public class DiffLocalChangesNBAction extends NBAction
 
   private boolean isEnabled(@Nullable IRepository pRepository)
   {
-    if (pRepository != null)
+    try
     {
-      List<File> filesOfNodes = getAllFilesOfNodes(lastActivated);
-      Set<String> uncommittedChanges = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommittedChanges).orElse(Set.of());
-      if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory())
+      if (pRepository != null)
       {
-        for (File filesOfNode : _getFilesOfType(filesOfNodes.get(0), ""))
+        List<File> filesOfNodes = getAllFilesOfNodes(lastActivated);
+        Set<String> uncommittedChanges = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommittedChanges).orElse(Set.of());
+        if (filesOfNodes.size() == 1 && filesOfNodes.get(0).isDirectory())
         {
-          if (uncommittedChanges.contains(pRepository.getTopLevelDirectory().toPath().relativize(filesOfNode.toPath()).toString().replace("\\", "/")))
+          for (File filesOfNode : _getFilesOfType(filesOfNodes.get(0), ""))
           {
-            return true;
+            if (uncommittedChanges.contains(pRepository.getTopLevelDirectory().toPath().relativize(filesOfNode.toPath()).toString().replace("\\", "/")))
+            {
+              return true;
+            }
           }
         }
+        else if (filesOfNodes.size() == 1)
+        {
+          return uncommittedChanges.contains(pRepository.getTopLevelDirectory().toPath().relativize(filesOfNodes.get(0).toPath()).toString().replace("\\", "/"));
+        }
       }
-      else if (filesOfNodes.size() == 1)
-      {
-        return uncommittedChanges.contains(pRepository.getTopLevelDirectory().toPath().relativize(filesOfNodes.get(0).toPath()).toString().replace("\\", "/"));
-      }
+    }
+    catch (Exception ignored)
+    {
+      // If an exception is thrown just return false, since if there is a problem with finding the changed files, the action would probably throw an exception as well
     }
     return false;
   }
