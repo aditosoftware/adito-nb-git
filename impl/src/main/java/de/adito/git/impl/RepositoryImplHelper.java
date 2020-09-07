@@ -435,7 +435,7 @@ public class RepositoryImplHelper
       if (!contestedLines.contains(index))
         artificalOldVersion.append(lines.get(index)).append("\n");
     }
-    String artificialOldVersionStr = artificalOldVersion.delete(artificalOldVersion.length() - 1, artificalOldVersion.length()).toString();
+    String artificialOldVersionStr = artificalOldVersion.delete(Math.max(0, artificalOldVersion.length() - 1), artificalOldVersion.length()).toString();
     EditList parentEditList = StandAloneDiffProviderImpl.getChangedLines(artificialOldVersionStr,
                                                                          pParentDiff.getFileContentInfo(EChangeSide.NEW).getFileContent().get());
     EditList toMergeEditList = StandAloneDiffProviderImpl.getChangedLines(artificialOldVersionStr,
