@@ -10,7 +10,7 @@
   <version>1.4.4</version>
 
   <properties>
-    <netbeans.version>RELEASE90a</netbeans.version>
+    <netbeans.version>RELEASE121</netbeans.version>
     <maven.plugin.version>3.2.0</maven.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
