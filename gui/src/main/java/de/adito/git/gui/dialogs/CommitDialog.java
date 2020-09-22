@@ -210,9 +210,11 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * @param pStatusTreeModel  StatusTreeModel that should have the specified files selected and it's root node expanded
    * @param pPreSelectedFiles list of files that should be preselected in the tree
    */
-  private void _markPreselectedAndExpand(BaseObservingTreeModel pStatusTreeModel, List<File> pPreSelectedFiles)
+  private void _markPreselectedAndExpand(@NotNull BaseObservingTreeModel<?> pStatusTreeModel, @NotNull List<File> pPreSelectedFiles)
   {
-    _setSelected(pPreSelectedFiles, null, (FileChangeTypeNode) checkBoxTree.getModel().getRoot(), checkBoxTree.getCheckBoxTreeSelectionModel());
+    FileChangeTypeNode root = (FileChangeTypeNode) checkBoxTree.getModel().getRoot();
+    if (root != null)
+      _setSelected(pPreSelectedFiles, null, root, checkBoxTree.getCheckBoxTreeSelectionModel());
     if (pStatusTreeModel.getRoot() != null)
       actionProvider.getExpandTreeAction(checkBoxTree).actionPerformed(null);
   }
@@ -314,6 +316,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    *
    * @return JPanel with content
    */
+  @NotNull
   private JPanel _createDetailsPanel(@NotNull IConfig pConfig)
   {
     JPanel details = new JPanel();

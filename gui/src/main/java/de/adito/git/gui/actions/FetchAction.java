@@ -8,11 +8,12 @@ import de.adito.git.api.data.ITrackingRefUpdate;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.impl.util.Util;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.event.ActionEvent;
+import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,7 @@ class FetchAction extends AbstractTableAction
   @Inject
   FetchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository)
   {
-    super(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchTitle"), _getIsEnabledObservable(pRepository));
+    super(Util.getResource(FetchAction.class, "fetchTitle"), _getIsEnabledObservable(pRepository));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     repository = pRepository;
@@ -43,7 +44,7 @@ class FetchAction extends AbstractTableAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeAndBlockWithProgress(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchProgressMsg"), pHandle -> {
+    progressFacade.executeAndBlockWithProgress(Util.getResource(FetchAction.class, "fetchProgressMsg"), pHandle -> {
       Optional<IRepository> optionalIRepository = repository.blockingFirst(Optional.empty());
       optionalIRepository.ifPresent(this::_performFetch);
     });
@@ -63,31 +64,35 @@ class FetchAction extends AbstractTableAction
           .filter(pITrackingRefUpdate -> !pITrackingRefUpdate.getResult().isSuccessfull())
           .collect(Collectors.toList());
       if (failedUpdates.isEmpty())
-        notifyUtil.notify(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchProgressMsg"),
-                          de.adito.git.impl.Util.getResource(FetchAction.class, "fetchSuccessMsg"), true);
+        notifyUtil.notify(Util.getResource(FetchAction.class, "fetchProgressMsg"),
+                          Util.getResource(FetchAction.class, "fetchSuccessMsg"), true);
       else
       {
-        notifyUtil.notify(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchFailedUpdatesTitle"),
-                          MessageFormat.format(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchFailedUpdatesMsg"), failedUpdates.get(0)), false);
-        logger.log(Level.WARNING, () -> de.adito.git.impl.Util.getResource(FetchAction.class, "fetchFailedUpdatesLog") + "\n" + StringUtils.join(failedUpdates, "\n"));
+        notifyUtil.notify(Util.getResource(FetchAction.class, "fetchFailedUpdatesTitle"),
+                          MessageFormat.format(Util.getResource(FetchAction.class, "fetchFailedUpdatesMsg"), failedUpdates.get(0)), false);
+        logger.log(Level.WARNING, () -> Util.getResource(FetchAction.class, "fetchFailedUpdatesLog") + "\n" + StringUtils.join(failedUpdates, "\n"));
       }
     }
     catch (AuthCancelledException pE)
     {
-      notifyUtil.notify(de.adito.git.impl.Util.getResource(FetchAction.class, "fetchAbortTitle"),
-                        de.adito.git.impl.Util.getResource(FetchAction.class, "fetchAbortMessage"), false);
-      logger.log(Level.WARNING, pE, () -> de.adito.git.impl.Util.getResource(FetchAction.class, "fetchAbortLog") + " ");
+      notifyUtil.notify(Util.getResource(FetchAction.class, "fetchAbortTitle"),
+                        Util.getResource(FetchAction.class, "fetchAbortMessage"), false);
+      logger.log(Level.WARNING, pE, () -> Util.getResource(FetchAction.class, "fetchAbortLog") + " ");
     }
     catch (AditoGitException pE)
     {
-      Throwable rootCause = Util.getRootCause(pE);
+      Throwable rootCause = de.adito.git.impl.util.Util.getRootCause(pE);
       if (rootCause != null && rootCause.getMessage().startsWith("invalid privatekey"))
       {
-        notifyUtil.notify(pE, de.adito.git.impl.Util.getResource(FetchAction.class, "fetchPrivateKeyInvalid"), false);
+        notifyUtil.notify(pE, Util.getResource(FetchAction.class, "fetchPrivateKeyInvalid"), false);
+      }
+      else if (rootCause instanceof UnknownHostException)
+      {
+        notifyUtil.notify(pE, MessageFormat.format(Util.getResource(FetchAction.class, "fetchUnknownHostMsg"), rootCause.getMessage()), false);
       }
       else
       {
-        notifyUtil.notify(pE, de.adito.git.impl.Util.getResource(FetchAction.class, "fetchUnspecifiedErrorMsg"), false);
+        notifyUtil.notify(pE, Util.getResource(FetchAction.class, "fetchUnspecifiedErrorMsg"), false);
       }
     }
   }
