@@ -58,23 +58,24 @@ public class RevertCommitsAction extends AbstractTableAction
   {
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
     IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
-    if (!repo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true))
-      progressFacade.executeInBackground(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
-        try
+    progressFacade.executeInBackground(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
+      try
+      {
+        if (!repo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true)
+            && !ActionUtility.handleStash(prefStore, dialogProvider, repo, STASH_ID_KEY, pHandle))
         {
-          repo.setUpdateFlag(false);
-          if (ActionUtility.handleStash(prefStore, dialogProvider, repo, STASH_ID_KEY, pHandle))
-          {
-            repo.revertCommit(selectedCommits);
-            notifyUtil.notify("Revert commits success", String.format("Reverting commits with ID %s was successfull ", selectedCommits), false);
-          }
+          return;
         }
-        finally
-        {
-          repo.setUpdateFlag(true);
-          _unStashChanges(pHandle);
-        }
-      });
+        repo.setUpdateFlag(false);
+        repo.revertCommit(selectedCommits);
+        notifyUtil.notify("Revert commits success", String.format("Reverting commits with ID %s was successfull ", selectedCommits), false);
+      }
+      finally
+      {
+        repo.setUpdateFlag(true);
+        _unStashChanges(pHandle);
+      }
+    });
   }
 
   private void _unStashChanges(@NotNull IProgressHandle pHandle)
