@@ -1289,7 +1289,7 @@ public class RepositoryImpl implements IRepository
   private String _getMergeHead(@NotNull String pCurrentBranchId) throws IOException
   {
     List<ObjectId> mergeHeads = git.getRepository().readMergeHeads();
-    if (mergeHeads != null && mergeHeads.size() > 0)
+    if (mergeHeads != null && !mergeHeads.isEmpty())
     {
       return mergeHeads.stream().map(pObjectId -> ObjectId.toString(pObjectId)).filter(pObjectId -> !pObjectId.equals(pCurrentBranchId)).findFirst().orElse(null);
     }
