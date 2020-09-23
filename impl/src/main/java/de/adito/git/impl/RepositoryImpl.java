@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -398,9 +399,21 @@ public class RepositoryImpl implements IRepository
     catch (TransportException pE)
     {
       if (pE.getMessage().contains(": not authorized"))
+      {
         throw new AuthCancelledException(pE);
+      }
       else
-        throw new AditoGitException(pE);
+      {
+        Throwable rootCause = de.adito.git.impl.util.Util.getRootCause(pE);
+        if (rootCause instanceof UnknownHostException)
+        {
+          throw new AditoGitException((Exception) rootCause);
+        }
+        else
+        {
+          throw new AditoGitException(pE);
+        }
+      }
     }
     catch (IOException | GitAPIException pE)
     {
@@ -504,6 +517,11 @@ public class RepositoryImpl implements IRepository
     }
     catch (TransportException pE)
     {
+      Throwable rootCause = de.adito.git.impl.util.Util.getRootCause(pE);
+      if (rootCause instanceof UnknownHostException)
+      {
+        throw new AditoGitException(pE);
+      }
       throw new AuthCancelledException(pE);
     }
     catch (GitAPIException pE)

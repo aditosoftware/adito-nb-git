@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.net.UnknownHostException;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -146,6 +148,18 @@ class PullAction extends AbstractAction
     {
       notifyUtil.notify(Util.getResource(this.getClass(), "pullAbortTitle"), Util.getResource(this.getClass(), "pullAbortDueToAuthCancel"), false);
       Logger.getLogger(this.getClass().getName()).log(Level.WARNING, pE, () -> Util.getResource(this.getClass(), "authCancelledLogMessage"));
+    }
+    catch (AditoGitException e)
+    {
+      Throwable rootCause = de.adito.git.impl.util.Util.getRootCause(e);
+      if (rootCause instanceof UnknownHostException)
+      {
+        notifyUtil.notify(e, MessageFormat.format(Util.getResource(FetchAction.class, "unknownHostMsg"), rootCause.getMessage()), false);
+      }
+      else
+      {
+        notifyUtil.notify(e, Util.getResource(this.getClass(), "pullFailedExceptionMsg"), false);
+      }
     }
     catch (Exception e)
     {

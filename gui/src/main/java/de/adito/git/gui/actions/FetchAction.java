@@ -88,7 +88,7 @@ class FetchAction extends AbstractTableAction
       }
       else if (rootCause instanceof UnknownHostException)
       {
-        notifyUtil.notify(pE, MessageFormat.format(Util.getResource(FetchAction.class, "fetchUnknownHostMsg"), rootCause.getMessage()), false);
+        notifyUtil.notify(pE, MessageFormat.format(Util.getResource(FetchAction.class, "unknownHostMsg"), rootCause.getMessage()), false);
       }
       else
       {
