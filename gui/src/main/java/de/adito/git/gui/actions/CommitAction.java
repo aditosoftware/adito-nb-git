@@ -9,6 +9,7 @@ import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.dialogs.results.ICommitDialogResult;
@@ -70,6 +71,12 @@ class CommitAction extends AbstractTableAction
       messageTemplate = prefStore.get(prefStoreInstanceKey);
       if (messageTemplate == null)
         messageTemplate = "";
+    }
+    if (currentRepoOpt.map(pRepo -> pRepo.getStatus().blockingFirst(Optional.empty()).map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true)).orElse(true))
+    {
+      dialogProvider.showDialog(dialogProvider.getPanelFactory().createNotificationPanel(Util.getResource(this.getClass(), "noFilesToCommitMsg")),
+                                Util.getResource(this.getClass(), "noFilesToCommitTitle"), List.of(EButtons.OK), List.of(EButtons.OK));
+      return;
     }
     ICommitDialogResult<?, CommitDialogResult> dialogResult = dialogProvider.showCommitDialog(repo, selectedFilesObservable, messageTemplate);
     // if user didn't cancel the dialogs
