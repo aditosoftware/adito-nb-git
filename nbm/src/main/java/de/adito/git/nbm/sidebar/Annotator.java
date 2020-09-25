@@ -84,29 +84,27 @@ public class Annotator extends JPanel implements IDiscardable
     JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(new ShowAnnotationNBAction(target));
     PropertyChangeListener listener = evt -> _ancestorChanged(pRepository, pTarget, file, popupMenu, evt);
-    addPropertyChangeListener(listener);
+    addPropertyChangeListener("ancestor", listener);
   }
 
   private void _ancestorChanged(Observable<Optional<IRepository>> pRepository, JTextComponent pTarget, File pFile, JPopupMenu pPopupMenu, PropertyChangeEvent evt)
   {
-    if ("ancestor".equals(evt.getPropertyName()))
+    if (evt.getNewValue() == null)
     {
-      if (evt.getNewValue() == null)
+      discard();
+      if (popupMouseListener != null)
       {
-        discard();
-        if (popupMouseListener != null)
-        {
-          removeMouseListener(popupMouseListener);
-        }
+        removeMouseListener(popupMouseListener);
+        popupMouseListener = null;
       }
-      else if (evt.getOldValue() == null)
+    }
+    else if (evt.getOldValue() == null)
+    {
+      _buildObservableChain(pRepository, pTarget, pFile);
+      if (popupMouseListener == null)
       {
-        _buildObservableChain(pRepository, pTarget, pFile);
-        if (popupMouseListener == null)
-        {
-          popupMouseListener = new PopupMouseListener(pPopupMenu);
-          addMouseListener(popupMouseListener);
-        }
+        popupMouseListener = new PopupMouseListener(pPopupMenu);
+        addMouseListener(popupMouseListener);
       }
     }
   }
@@ -167,7 +165,6 @@ public class Annotator extends JPanel implements IDiscardable
             // No check for new or deleted file (not in index in that case) since we just catch all Exceptions and if anything doesnt work we just do not show anything
             try
             {
-              // TODO: try and get rid of the blockingfirst, possibly do switchMap
               return repo.diffOffline(pText, pFile).getChangeDeltas();
             }
             catch (Exception pE)

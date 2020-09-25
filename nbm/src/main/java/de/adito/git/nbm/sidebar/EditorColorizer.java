@@ -72,27 +72,26 @@ class EditorColorizer extends JPanel implements IDiscardable
     setPreferredSize(new Dimension(COLORIZER_WIDTH, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     setLocation(0, 0);
-    addPropertyChangeListener(evt -> _ancestorChanged(pRepository, evt));
+    addPropertyChangeListener("ancestor", evt -> _ancestorChanged(pRepository, evt));
     file = new File(pDataObject.getPrimaryFile().toURI());
   }
 
   private void _ancestorChanged(Observable<Optional<IRepository>> pRepository, PropertyChangeEvent evt)
   {
-    if ("ancestor".equals(evt.getPropertyName()))
+    if (evt.getNewValue() == null)
     {
-      if (evt.getNewValue() == null)
+      discard();
+      removeMouseListener(chunkPopupMouseListener);
+      chunkPopupMouseListener = null;
+    }
+    else if (evt.getOldValue() == null)
+    {
+      _buildObservables();
+      targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, rectanglesObs);
+      if (chunkPopupMouseListener == null)
       {
-        discard();
-      }
-      else if (evt.getOldValue() == null)
-      {
-        _buildObservables();
-        targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, rectanglesObs);
-        if (chunkPopupMouseListener == null)
-        {
-          chunkPopupMouseListener = new _ChunkPopupMouseListener(pRepository, targetEditor);
-          addMouseListener(chunkPopupMouseListener);
-        }
+        chunkPopupMouseListener = new _ChunkPopupMouseListener(pRepository, targetEditor);
+        addMouseListener(chunkPopupMouseListener);
       }
     }
   }
