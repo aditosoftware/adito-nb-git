@@ -1123,7 +1123,7 @@ public class RepositoryImpl implements IRepository
     BlameCommand blameCommand = git
         .blame()
         .setFilePath(getRelativePath(pFile, git))
-        .setTextComparator(GitRawTextComparator.getCurrent().getValue());
+        .setTextComparator(RawTextComparator.WS_IGNORE_TRAILING);
     try
     {
       BlameResult blameResult = blameCommand.call();
