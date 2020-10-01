@@ -58,7 +58,8 @@ interface IDialogFactory
   RevertFilesDialog createRevertDialog(Observable<Optional<IRepository>> pRepositoryObs, List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
 
   SshInfoPrompt createSshInfoPromptDialog(@Assisted("message") String pMessage, @javax.annotation.Nullable @Assisted("keyLocation") String pSshKeyLocation,
-                                          @javax.annotation.Nullable char[] pPassphrase, @javax.annotation.Nullable IKeyStore pKeyStore);
+                                          @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor, @javax.annotation.Nullable char[] pPassphrase,
+                                          @javax.annotation.Nullable IKeyStore pKeyStore);
 
   TagOverviewDialog createTagOverviewDialog(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
 

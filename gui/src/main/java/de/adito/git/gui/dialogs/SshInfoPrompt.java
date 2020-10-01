@@ -8,7 +8,11 @@ import info.clearthought.layout.TableLayout;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileSystemView;
+import javax.swing.text.BadLocationException;
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -25,17 +29,20 @@ class SshInfoPrompt extends AditoBaseDialog<char[]>
   private final JTextField sshKeyField = new JTextField();
   private final JPasswordField sshPassphraseField = new JPasswordField(PW_FIELD_NUM_CHARS);
   private final String message;
+  private final IDialogDisplayer.IDescriptor isValidDescriptor;
   @Nullable
   private final IKeyStore keyStore;
 
   @Inject
-  SshInfoPrompt(@Assisted("message") String pMessage, @Nullable @Assisted("keyLocation") String pSshKeyLocation, @Nullable @Assisted char[] pPassphrase,
-                @Nullable @Assisted IKeyStore pKeyStore)
+  SshInfoPrompt(@Assisted("message") String pMessage, @Nullable @Assisted("keyLocation") String pSshKeyLocation, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                @Nullable @Assisted char[] pPassphrase, @Nullable @Assisted IKeyStore pKeyStore)
   {
     message = pMessage;
+    isValidDescriptor = pIsValidDescriptor;
     keyStore = pKeyStore;
     if (pSshKeyLocation != null)
       sshKeyField.setText(pSshKeyLocation);
+    sshKeyField.getDocument().addDocumentListener(new IsValidListener());
     if (pPassphrase != null)
     {
       sshPassphraseField.setText(String.valueOf(pPassphrase));
@@ -98,5 +105,42 @@ class SshInfoPrompt extends AditoBaseDialog<char[]>
   public char[] getInformation()
   {
     return sshPassphraseField.getPassword();
+  }
+
+  /**
+   * Checks if the content of the textField denotes a valid and existing file
+   */
+  private class IsValidListener implements DocumentListener
+  {
+    @Override
+    public void insertUpdate(DocumentEvent e)
+    {
+      _documentChanged(e);
+    }
+
+
+    @Override
+    public void removeUpdate(DocumentEvent e)
+    {
+      _documentChanged(e);
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e)
+    {
+      _documentChanged(e);
+    }
+
+    private void _documentChanged(DocumentEvent pDocumentEvent)
+    {
+      try
+      {
+        isValidDescriptor.setValid(new File(pDocumentEvent.getDocument().getText(0, pDocumentEvent.getDocument().getLength())).isFile());
+      }
+      catch (BadLocationException pE)
+      {
+        isValidDescriptor.setValid(false);
+      }
+    }
   }
 }

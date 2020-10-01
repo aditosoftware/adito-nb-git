@@ -519,7 +519,8 @@ class DialogProviderImpl implements IDialogProvider
                                                                                          @Nullable char[] pPassphrase, @NotNull IKeyStore pKeyStore)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
-                                                                           dialogFactory.createSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore),
+                                                                           dialogFactory.createSshInfoPromptDialog(pMessage, pSshKeyLocation, pValidConsumer,
+                                                                                                                   pPassphrase, pKeyStore),
                                                                        "SSH key information", List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
   }
 
