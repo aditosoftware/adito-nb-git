@@ -20,9 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * a Class for the clone wizard. There is a checkout option inside the wizard.
@@ -67,6 +65,7 @@ public class CloneRepoImpl implements ICloneRepo
     }
     List<IBranch> branchesList = new ArrayList<>();
     refs.forEach(branch -> branchesList.add(new BranchImpl(branch, new CloneRepoTrackedBranchStatusCache())));
+    branchesList.sort(Comparator.comparing(IBranch::getActualName));
     return branchesList;
   }
 
