@@ -6,6 +6,19 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.6</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The plugin can now differentiate between a fatch or pull that failed because of a cancelled auth dialog and a fatch or pull that failed due to an invalid URL</li>
+    <li>If there are no files to commit, the commit action now shows a notification about that fact instead of showing an empty commit dialog</li>
+    <li>The dialog asking for the SSH key now only enables the "OK" button if the content of the field for the key is an existing file</li>
+    <li>The list of branches displayed when creating a new project from an existing Git repository is now ordered alphabetically</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: Annotate uses a Comparator that includes trailing whitespaces, leading to lots of un-annotated lines that should be annotated</li>
+    <li>Fix: The Annotate popup did not work for the first opened file after the designer start</li>
+  </ul>
   <p style="font-weight: bold;">v.1.4.5</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
