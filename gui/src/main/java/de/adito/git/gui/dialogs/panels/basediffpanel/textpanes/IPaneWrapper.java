@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPane;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPaneContainer;
 
 import javax.swing.*;
 
@@ -16,6 +16,6 @@ public interface IPaneWrapper
 
   JScrollPane getScrollPane();
 
-  DiffPane getPane();
+  DiffPaneContainer getPaneContainer();
 
 }

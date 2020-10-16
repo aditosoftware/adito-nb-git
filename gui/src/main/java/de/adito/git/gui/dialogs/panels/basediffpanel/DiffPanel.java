@@ -41,8 +41,9 @@ public class DiffPanel extends JPanel implements IDiscardable
    * @param pAcceptIcon          ImageIcon that is used for the "accept these changes" button
    * @param pEditorKitObservable EditorKitObservable that holds the editorKit for the current IFileDiff
    */
-  public DiffPanel(IIconLoader pIconLoader, @NotNull Observable<Optional<IFileDiff>> pFileDiffObs,
-                   @Nullable ImageIcon pAcceptIcon, Observable<Optional<EditorKit>> pEditorKitObservable)
+  public DiffPanel(@NotNull IIconLoader pIconLoader, @NotNull Observable<Optional<IFileDiff>> pFileDiffObs,
+                   @Nullable ImageIcon pAcceptIcon, @NotNull Observable<Optional<EditorKit>> pEditorKitObservable, @Nullable String pLeftHeader,
+                   @Nullable String pRightHeader)
   {
     Observable<IDeltaTextChangeEvent> changesEventObservable = pFileDiffObs
         .switchMap(pFileDiff -> pFileDiff
@@ -52,37 +53,38 @@ public class DiffPanel extends JPanel implements IDiscardable
         .autoConnect(2, disposables::add);
     LineNumbersColorModel[] lineNumbersColorModels = new LineNumbersColorModel[2];
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.NEW);
-    currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pEditorKitObservable);
+    currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pLeftHeader, SwingConstants.RIGHT, pEditorKitObservable);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
         .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta, true)));
-    oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pEditorKitObservable);
+    oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pRightHeader, SwingConstants.LEFT, pEditorKitObservable);
     MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(oldVersionDiffPane.getEditorPane(),
                                                                                                                 currentVersionDiffPane.getEditorPane());
     // current panel is to the right, so index 1
-    LineNumbersColorModel rightLineColorModel = currentVersionDiffPane.getPane().addLineNumPanel(currentDiffPanelModel,
-                                                                                                 mouseFirstActionObservableWrapper.getObservable(), BorderLayout.WEST, 1);
+    LineNumbersColorModel rightLineColorModel = currentVersionDiffPane.getPaneContainer().addLineNumPanel(currentDiffPanelModel,
+                                                                                                          mouseFirstActionObservableWrapper.getObservable(),
+                                                                                                          BorderLayout.WEST, 1);
     lineNumbersColorModels[1] = rightLineColorModel;
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
     // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel, mouseFirstActionObservableWrapper.getObservable(), -1);
+    LineNumbersColorModel temp = oldVersionDiffPane.getPaneContainer().createLineNumberColorModel(oldDiffPanelModel, mouseFirstActionObservableWrapper.getObservable(), -1);
 
     // old version is to the left, so index 0
-    LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPane().createLineNumberColorModel(oldDiffPanelModel,
-                                                                                                        mouseFirstActionObservableWrapper.getObservable(), 0);
+    LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPaneContainer().createLineNumberColorModel(oldDiffPanelModel,
+                                                                                                                 mouseFirstActionObservableWrapper.getObservable(), 0);
     lineNumbersColorModels[0] = leftLineColorsModel;
 
-    oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, new LineNumbersColorModel[]{temp, leftLineColorsModel},
-                                                      BorderLayout.EAST);
-    oldVersionDiffPane.getPane().addLineNumPanel(leftLineColorsModel, oldDiffPanelModel, BorderLayout.EAST);
-    oldVersionDiffPane.getPane().addChoiceButtonPanel(oldDiffPanelModel, null, null, lineNumbersColorModels, BorderLayout.EAST);
+    oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, new LineNumbersColorModel[]{temp, leftLineColorsModel},
+                                                               BorderLayout.EAST);
+    oldVersionDiffPane.getPaneContainer().addLineNumPanel(leftLineColorsModel, oldDiffPanelModel, BorderLayout.EAST);
+    oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, null, null, lineNumbersColorModels, BorderLayout.EAST);
 
     JScrollPane oldVersionScrollPane = oldVersionDiffPane.getScrollPane();
     oldVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     oldVersionScrollPane.setLayout(new LeftSideVSBScrollPaneLayout());
     setLayout(new BorderLayout());
-    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, oldVersionDiffPane.getPane(), currentVersionDiffPane.getPane());
+    JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, oldVersionDiffPane.getPaneContainer(), currentVersionDiffPane.getPaneContainer());
     mainSplitPane.setResizeWeight(0.5);
     setBorder(new JScrollPane().getBorder());
     add(mainSplitPane, BorderLayout.CENTER);

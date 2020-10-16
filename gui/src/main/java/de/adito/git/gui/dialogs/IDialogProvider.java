@@ -9,8 +9,7 @@ import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
-import de.adito.git.gui.dialogs.panels.ComboBoxPanel;
-import de.adito.git.gui.dialogs.panels.IPanelFactory;
+import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +38,9 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IMergeConflictDialogResult<?, ?> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IMergeData> pMergeConflictDiffs,
-                                                           boolean pOnlyConflicting, boolean pShowAutoResolve, String... pDialogTitle);
+  IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                                  @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting,
+                                                                                  boolean pShowAutoResolve, String... pDialogTitle);
 
   /**
    * Shows a dialog with a three-way merge based on the information from pMergeDiff
@@ -49,7 +49,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IMergeConflictResolutionDialogResult<?, ?> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff);
+  IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff);
 
   /**
    * Shows a dialog which show which changes happened to a file, based on the IFileDiffs
@@ -57,13 +57,17 @@ public interface IDialogProvider
    * @param pProjectDirectory TopLevel directory of the project (i.e. the parent of the .git folder)
    * @param pFileDiffs        List with all IFileDiffs that can potentially be displayed
    * @param pSelectedFile     file whose diff should be shown when the dialog opens
+   * @param pTitle            Title to be used for the dialog. Can be null, in which case a default title mentioning the selected file is used
+   * @param pLeftHeader       Header for the left version of the comparison. Should describe where the content is from, passing null hides the header
+   * @param pRightHeader      Header for the right version of the comparison. Should describe where the content is from, passing null hides the header
    * @param pAcceptChange     true if changes can be moved from the left to the right side
    * @param pShowFileTree     true if the tree with pFileDiffs should be shown. This enables the user to choose which file from pFileDiffs to display
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IDiffDialogResult showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile, boolean pAcceptChange,
-                                   boolean pShowFileTree);
+  IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile,
+                                                       @Nullable String pTitle, @Nullable String pLeftHeader, @Nullable String pRightHeader,
+                                                       boolean pAcceptChange, boolean pShowFileTree);
 
   /**
    * Shows a dialog where the user can choose files to be commited and enter a commit message
@@ -133,7 +137,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and the text the user entered
    */
   @NotNull
-  IUserPromptDialogResult showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefaultValue);
+  IUserPromptDialogResult<UserPromptPanel, Object> showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefaultValue);
 
   /**
    * Shows a basic yes no dialog with the specified message as information for the user
@@ -142,7 +146,7 @@ public interface IDialogProvider
    * @return DialogResult with information about the choice of the user
    */
   @NotNull
-  IUserPromptDialogResult showYesNoDialog(@NotNull String pMessage);
+  IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pMessage);
 
   /**
    * Shows a dialog with the specified message and the passed buttons.
@@ -152,8 +156,8 @@ public interface IDialogProvider
    * @param pOkayButtons  Buttons that are considered as "User confirmed the dialog"
    * @return DialogResult with information about the choice of the user
    */
-  IUserPromptDialogResult showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
-                                            @NotNull List<EButtons> pOkayButtons);
+  IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
+                                                                       @NotNull List<EButtons> pOkayButtons);
 
   /**
    * Aks the user if he wants to push to the tracked branch (different name than the local branch) or if he wants to create a new branch
@@ -161,7 +165,7 @@ public interface IDialogProvider
    * @param pMessage message to display, should inform the user about which branch is tracked and what name the created branch should have
    * @return DialogResult with information about the choice of the user
    */
-  @NotNull IChangeTrackedBranchDialogResult showChangeTrackedBranchDialog(@NotNull String pMessage);
+  @NotNull IChangeTrackedBranchDialogResult<NotificationPanel, Object> showChangeTrackedBranchDialog(@NotNull String pMessage);
 
   /**
    * Shows a dialog that presents the user the list of files to be reverted as tree
@@ -172,8 +176,8 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IRevertDialogResult<RevertFilesDialog, ?> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IFileChangeType> pFilesToRevert,
-                                                             @NotNull File pProjectDir);
+  IRevertDialogResult<RevertFilesDialog, Object> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IFileChangeType> pFilesToRevert,
+                                                                  @NotNull File pProjectDir);
 
   /**
    * Shows a dialog with some information for the user and a file chooser
@@ -224,7 +228,7 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and if the checkbox was ticket as information
    */
   @NotNull
-  IUserPromptDialogResult<?, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
+  IUserPromptDialogResult<CheckboxPanel, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
 
   /**
    * Shows a dialog with an overview over all tags of the current repository
@@ -269,8 +273,8 @@ public interface IDialogProvider
    * @param <T>          Return Type of the getInformation method call to the AditoBaseDialog
    * @return IUserPromptDialogResult
    */
-  <T> IUserPromptDialogResult<?, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
-                                               @NotNull List<EButtons> pOkayButtons);
+  <T> IUserPromptDialogResult<AditoBaseDialog<T>, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
+                                                                @NotNull List<EButtons> pOkayButtons);
 
   /**
    * Get an IPanelFactory that can create panels which can be used to piece together a dialog

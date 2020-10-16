@@ -17,7 +17,8 @@ public interface IDialogDisplayer
    * @param pButtons               Buttons that allow the user to accept/deny the dialog or its presented choices
    * @return {@code true} if the "okay" button was pressed, {@code false} if the dialogs was cancelled
    */
-  <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier, String pTitle, EButtons[] pButtons);
+  <SOURCE_TYPE extends AditoBaseDialog<RESULT_TYPE>, RESULT_TYPE> DialogResult<SOURCE_TYPE, RESULT_TYPE> showDialog(Function<IDescriptor, SOURCE_TYPE> pDialogContentSupplier,
+                                                                                                                    String pTitle, EButtons[] pButtons);
 
   interface IDescriptor
   {

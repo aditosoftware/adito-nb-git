@@ -30,12 +30,12 @@ public class DiffServiceImpl implements IDiffService
   @Override
   public void showDiff(String pVersion1, String pVersion2)
   {
-    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersion1, pVersion2)), null, false, false);
+    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersion1, pVersion2)), null, null, null, null, false, false);
   }
 
   @Override
   public void showDiff(byte[] pVersion1, byte[] pVersion2)
   {
-    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersion1, pVersion2)), null, false, false);
+    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersion1, pVersion2)), null, null, null, null, false, false);
   }
 }

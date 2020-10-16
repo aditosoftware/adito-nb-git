@@ -17,6 +17,7 @@ import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -58,7 +59,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   @Inject
   public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil,
                     IPrefStore pPrefStore, IActionProvider pActionProvider, @Assisted File pProjectDirectory, @Assisted List<IFileDiff> pDiffs,
-                    @Assisted @javax.annotation.Nullable String pSelectedFile,
+                    @Assisted("selectedFile") @javax.annotation.Nullable String pSelectedFile, @Assisted("leftHeader") @javax.annotation.Nullable String pLeftHeader,
+                    @Assisted("rightHeader") @javax.annotation.Nullable String pRightHeader,
                     @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTree") boolean pShowFileTree)
   {
     iconLoader = pIconLoader;
@@ -78,13 +80,13 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     doAfterJobs[1] = () -> _setSelectedFile(pSelectedFile);
     treeUpdater = new ObservableTreeUpdater<>(changedFiles, statusTreeModel, pFileSystemUtil, doAfterJobs);
     editorKitProvider = pEditorKitProvider;
-    _initGui(pIconLoader, pProjectDirectory);
+    _initGui(pIconLoader, pProjectDirectory, pLeftHeader, pRightHeader);
   }
 
   /**
    * sets up the GUI
    */
-  private void _initGui(IIconLoader pIconLoader, File pProjectDirectory)
+  private void _initGui(@NotNull IIconLoader pIconLoader, @NotNull File pProjectDirectory, @Nullable String pLeftHeader, @Nullable String pRightHeader)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
@@ -104,7 +106,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
                                           .map(editorKitProvider::getEditorKit)
                                           .orElseGet(() -> editorKitProvider.getEditorKitForContentType("text/plain"))));
 
-    diffPanel = new DiffPanel(pIconLoader, fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable);
+    diffPanel = new DiffPanel(pIconLoader, fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable,
+                              pLeftHeader, pRightHeader);
 
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEnabled(false);
