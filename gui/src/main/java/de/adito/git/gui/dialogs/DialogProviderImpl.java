@@ -9,9 +9,7 @@ import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
-import de.adito.git.gui.dialogs.panels.ComboBoxPanel;
-import de.adito.git.gui.dialogs.panels.IPanelFactory;
-import de.adito.git.gui.dialogs.panels.UserPromptPanel;
+import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -42,11 +40,11 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IMergeConflictDialogResult<MergeConflictDialog, ?> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                             @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting,
-                                                                                             boolean pShowAutoResolve, String... pDialogTitle)
+  public @NotNull IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
+                                                                                                  @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting,
+                                                                                                  boolean pShowAutoResolve, String... pDialogTitle)
   {
-    DialogResult<MergeConflictDialog, ?> result = null;
+    DialogResult<MergeConflictDialog, Object> result = null;
     try
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs, pOnlyConflicting,
@@ -83,9 +81,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, ?> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff)
+  public @NotNull IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff)
   {
-    DialogResult<MergeConflictResolutionDialog, ?> result = null;
+    DialogResult<MergeConflictResolutionDialog, Object> result = null;
     try
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
@@ -117,18 +115,26 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IDiffDialogResult showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile,
-                                                   boolean pAcceptChange, boolean pShowFileTree)
+  public @NotNull IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile,
+                                                                       @Nullable String pTitle, @Nullable String pLeftHeader, @Nullable String pRightHeader, boolean pAcceptChange,
+                                                                       boolean pShowFileTree)
   {
-    DialogResult<DiffDialog, ?> result = null;
+    DialogResult<DiffDialog, Object> result = null;
     try
     {
-      String title = "Diff for file ";
-      if (pSelectedFile != null)
-        title += pSelectedFile;
-      else if (!pFileDiffs.isEmpty())
-        title += pFileDiffs.get(0).getFileHeader().getFilePath();
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pProjectDirectory, pFileDiffs, pSelectedFile, pAcceptChange, pShowFileTree),
+      String title;
+      if (pTitle != null)
+        title = pTitle;
+      else
+      {
+        title = "Diff for file ";
+        if (pSelectedFile != null)
+          title += pSelectedFile;
+        else if (!pFileDiffs.isEmpty())
+          title += pFileDiffs.get(0).getFileHeader().getFilePath();
+      }
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createDiffDialog(pProjectDirectory, pFileDiffs, pSelectedFile, pLeftHeader, pRightHeader,
+                                                                                           pAcceptChange, pShowFileTree),
                                           title,
                                           pAcceptChange ? List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0]) :
                                               List.of(EButtons.CLOSE).toArray(new EButtons[0]));
@@ -332,7 +338,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult showYesNoDialog(@NotNull String pMessage)
+  public @NotNull IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pMessage)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createNotificationPanel(pMessage),
@@ -347,7 +353,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public IUserPromptDialogResult<?, ?> showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons, @NotNull List<EButtons> pOkayButtons)
+  public IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
+                                                                              @NotNull List<EButtons> pOkayButtons)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createNotificationPanel(pMessage),
@@ -363,7 +370,7 @@ class DialogProviderImpl implements IDialogProvider
 
   @NotNull
   @Override
-  public IChangeTrackedBranchDialogResult showChangeTrackedBranchDialog(@NotNull String pMessage)
+  public IChangeTrackedBranchDialogResult<NotificationPanel, Object> showChangeTrackedBranchDialog(@NotNull String pMessage)
   {
     return new ChangeTrackedBranchDialogResult<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                                 panelFactory.createNotificationPanel(pMessage),
@@ -400,11 +407,11 @@ class DialogProviderImpl implements IDialogProvider
 
   @NotNull
   @Override
-  public IRevertDialogResult<RevertFilesDialog, ?> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepositoryObs,
-                                                                    @NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
+  public IRevertDialogResult<RevertFilesDialog, Object> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepositoryObs,
+                                                                         @NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
   {
 
-    DialogResult<RevertFilesDialog, ?> result = null;
+    DialogResult<RevertFilesDialog, Object> result = null;
     try
     {
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createRevertDialog(pRepositoryObs, pFilesToRevert, pProjectDirectory),
@@ -525,7 +532,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<?, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText)
+  public @NotNull IUserPromptDialogResult<CheckboxPanel, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createCheckboxPanel(pMessage, pCheckboxText),
@@ -572,8 +579,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public <T> IUserPromptDialogResult<?, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
-                                                      @NotNull List<EButtons> pOkayButtons)
+  public <T> IUserPromptDialogResult<AditoBaseDialog<T>, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
+                                                                       @NotNull List<EButtons> pOkayButtons)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> pComponent, pTitle, pButtonList.toArray(new EButtons[0])))
     {

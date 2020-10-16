@@ -70,7 +70,7 @@ class DiffCommitToHeadAction extends AbstractTableAction
           throw new RuntimeException(pE);
         }
         if (!fileDiffs.isEmpty())
-          dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, selectedFile.blockingFirst().orElse(null), false, true);
+          dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, selectedFile.blockingFirst().orElse(null), null, "HEAD", selectedCommit.getId(), false, true);
         else
         {
           notifyUtil.notify("No differences found", "No differences found for HEAD and commit " + selectedCommit.getId(), false);

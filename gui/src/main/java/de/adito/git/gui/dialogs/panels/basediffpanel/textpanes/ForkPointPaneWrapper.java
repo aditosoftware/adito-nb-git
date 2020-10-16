@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.TextHighlightUtil;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPane;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPaneContainer;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -25,7 +25,7 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
 {
 
   private final JEditorPane editorPane;
-  private final DiffPane diffPane;
+  private final DiffPaneContainer diffPaneContainer;
   private final IMergeData mergeDiff;
   private final Disposable mergeDiffDisposable;
   private final Disposable editorKitDisposable;
@@ -41,21 +41,21 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
     editorPane = new JEditorPane();
     editorPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     editorKitDisposable = pEditorKitObservable.subscribe(pOptEditorKit -> pOptEditorKit.ifPresent(this::_setEditorKit));
-    diffPane = new DiffPane(editorPane);
+    diffPaneContainer = new DiffPaneContainer(editorPane, null, SwingConstants.CENTER);
     mergeDiffDisposable = Observable.zip(
         mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(),
         mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), _ChangesEventPair::new)
         .subscribe(this::_refreshContent);
   }
 
-  public DiffPane getPane()
+  public DiffPaneContainer getPaneContainer()
   {
-    return diffPane;
+    return diffPaneContainer;
   }
 
   public JScrollPane getScrollPane()
   {
-    return diffPane.getScrollPane();
+    return diffPaneContainer.getScrollPane();
   }
 
   public JEditorPane getEditorPane()
