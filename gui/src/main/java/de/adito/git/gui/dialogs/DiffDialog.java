@@ -110,7 +110,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
                               pLeftHeader, pRightHeader);
 
     // notificationArea for information such as identical files (except whitespaces)
-    notificationArea.setEnabled(false);
+    notificationArea.setEditable(false);
     notificationArea.setForeground(ColorPicker.INFO_TEXT);
     disposables.add(fileDiffObservable.subscribe(pFileDiff -> {
       if (pFileDiff.isPresent())
@@ -179,17 +179,18 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private void _setNotificationArea(IFileDiff pFileDiff)
   {
     List<IChangeDelta> currentChangeDeltas = pFileDiff.getChangeDeltas();
-    if ((currentChangeDeltas.size() == 1 && currentChangeDeltas.get(0).getChangeType() == EChangeType.SAME)
-        || currentChangeDeltas.stream().allMatch(pDelta -> pDelta.getChangeType() == EChangeType.SAME))
+    if (currentChangeDeltas.stream().noneMatch(pChangeDelta -> pChangeDelta.getChangeType() != EChangeType.SAME))
     {
       add(notificationArea, BorderLayout.NORTH);
-      notificationArea.setText("Files do not differ in actual content, trailing whitespaces may be different");
-      revalidate();
+      notificationArea.setText("Files do not differ in actual content, depending on the selected whitespace treatment some whitespaces may be different");
     }
     else
     {
       notificationArea.setText("");
+      remove(notificationArea);
     }
+    revalidate();
+    repaint();
   }
 
   @Override
