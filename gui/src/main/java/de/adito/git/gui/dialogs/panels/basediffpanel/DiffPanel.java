@@ -10,6 +10,7 @@ import de.adito.git.gui.dialogs.TextComparatorInfoPanel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.impl.data.diff.DeltaTextChangeEventImpl;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
@@ -92,6 +93,7 @@ public class DiffPanel extends JPanel implements IDiscardable
     add(optionsPanel, BorderLayout.NORTH);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
+    SwingUtil.invokeASAP(() -> currentVersionScrollPane.getHorizontalScrollBar().setValue(0));
     differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null, mouseFirstActionObservableWrapper.getObservable(),
                                                               pFileDiffObs);
   }

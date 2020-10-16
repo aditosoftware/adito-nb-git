@@ -12,6 +12,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
+import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -112,6 +113,7 @@ public class MergePanel extends JPanel implements IDiscardable
                                  forkPointPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel(),
                                  yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel())
     );
+    SwingUtil.invokeASAP(() -> yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().setValue(0));
     add(yoursTheirsPanel, BorderLayout.NORTH);
   }
 
