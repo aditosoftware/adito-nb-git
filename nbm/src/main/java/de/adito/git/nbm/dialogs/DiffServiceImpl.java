@@ -4,6 +4,8 @@ import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IDiffService;
 import de.adito.git.api.IStandAloneDiffProvider;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.nbm.IGitConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.util.lookup.ServiceProvider;
 
 import java.io.File;
@@ -28,14 +30,30 @@ public class DiffServiceImpl implements IDiffService
   }
 
   @Override
-  public void showDiff(String pVersion1, String pVersion2)
+  public void showDiff(@NotNull String pVersionLeft, @NotNull String pVersionRight)
   {
-    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersion1, pVersion2)), null, null, null, null, false, false);
+    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME),
+                                  List.of(standAloneDiffProvider.diffOffline(pVersionLeft, pVersionRight)), null, null, null, null, false, false);
   }
 
   @Override
-  public void showDiff(byte[] pVersion1, byte[] pVersion2)
+  public void showDiff(@NotNull byte[] pVersionLeft, @NotNull byte[] pVersionRight)
   {
-    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersion1, pVersion2)), null, null, null, null, false, false);
+    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME),
+                                  List.of(standAloneDiffProvider.diffOffline(pVersionLeft, pVersionRight)), null, null, null, null, false, false);
+  }
+
+  @Override
+  public void showDiff(@NotNull String pVersionLeft, @NotNull String pVersionRight, @NotNull String pTitle, @Nullable String pHeaderLeft, @Nullable String pHeaderRight)
+  {
+    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersionLeft, pVersionRight)), null, pTitle, pHeaderLeft,
+                                  pHeaderRight, false, false);
+  }
+
+  @Override
+  public void showDiff(@NotNull byte[] pVersionLeft, @NotNull byte[] pVersionRight, @NotNull String pTitle, @Nullable String pHeaderLeft, @Nullable String pHeaderRight)
+  {
+    dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersionLeft, pVersionRight)), null, pTitle, pHeaderLeft,
+                                  pHeaderRight, false, false);
   }
 }
