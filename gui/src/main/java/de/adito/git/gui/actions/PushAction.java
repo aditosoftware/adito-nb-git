@@ -76,19 +76,27 @@ class PushAction extends AbstractAction
         IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
         remoteName = (String) result.getInformation();
       }
-      Future<List<ICommit>> future = progressFacade.executeInBackground("Gathering Information for Push", pHandle -> {
-        return _determineUnpushedCommits(pRepo, repoState);
-      });
       List<ICommit> commitList = null;
-      try
+      if (_handleNonMatchingTrackedBranch(pRepo, repoState))
       {
-        // Could try to implement Future Chaining here, but as-is, the time it takes the future to complete is not noticeable
-        commitList = future.get();
+        notifyUtil.notify("Aborted push", "Aborted push due to user action", false);
+        return;
       }
-      catch (InterruptedException | ExecutionException pE)
+      else
       {
-        logger.log(Level.WARNING, pE, () -> "Exception while waiting for the job that determines the unpushed commits");
-        Thread.currentThread().interrupt();
+        Future<List<ICommit>> future = progressFacade.executeInBackground("Gathering Information for Push", pHandle -> {
+          return _determineUnpushedCommits(pRepo);
+        });
+        try
+        {
+          // Could try to implement Future Chaining here, but as-is, the time it takes the future to complete is not noticeable
+          commitList = future.get();
+        }
+        catch (InterruptedException | ExecutionException pE)
+        {
+          logger.log(Level.WARNING, pE, () -> "Exception while waiting for the job that determines the unpushed commits");
+          Thread.currentThread().interrupt();
+        }
       }
       if (commitList != null)
       {
@@ -110,14 +118,12 @@ class PushAction extends AbstractAction
   }
 
   /**
-   * @param pRepo      current repo
-   * @param pRepoState current state of the repo
+   * @param pRepo current repo
    * @return List of unpushed commits, or null if any error occurs while determining the unpushed commits
    */
   @NotNull
-  private List<ICommit> _determineUnpushedCommits(@NotNull IRepository pRepo, @Nullable IRepositoryState pRepoState)
+  private List<ICommit> _determineUnpushedCommits(@NotNull IRepository pRepo)
   {
-    if (_handleNonMatchingTrackedBranch(pRepo, pRepoState)) return List.of();
     try
     {
       return pRepo.getUnPushedCommits();

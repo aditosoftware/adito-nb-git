@@ -23,7 +23,7 @@ public enum EButtons
   SAVE("Save"),
   COMMIT("Commit"),
   UNSTASH("Unstash commit"),
-  CREATE_NEW_BRANCH("Create new branch"),
+  CREATE_NEW_BRANCH("Create new remote branch"),
   KEEP_TRACKING("Keep tracking the selected branch"),
   MERGE_REMOTE("Merge remote into current"),
   ACCEPT_YOURS("Accept Left"),
