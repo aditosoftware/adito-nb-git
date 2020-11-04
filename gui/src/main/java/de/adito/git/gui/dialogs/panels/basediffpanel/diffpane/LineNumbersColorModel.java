@@ -8,13 +8,16 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author m.kaspera, 21.01.2019
@@ -40,7 +43,9 @@ public class LineNumbersColorModel implements IDiscardable
     modelNumber = pModelNumber;
     Observable<IDeltaTextChangeEvent> eventObservable = Observable.combineLatest(pModel.getFileChangesObservable(), pViewAreaObs,
                                                                                  (pChangesEvent, pArea) -> pChangesEvent);
-    areaDisposable = eventObservable.subscribe(pEvent -> _calculateLineNumColors(pEditorPane, pEvent));
+    areaDisposable = eventObservable
+        .throttleLatest(200, TimeUnit.MILLISECONDS, true)
+        .subscribe(pEvent -> _calculateLineNumColors(pEditorPane, pEvent));
     disposable = pModel.getFileChangesObservable().subscribe(pObj -> _calculateRelativeLineNumberColors(pViewport.getViewRect()));
     pViewport.addChangeListener(pEvent -> _calculateRelativeLineNumberColors(pViewport.getViewRect()));
   }
@@ -126,7 +131,8 @@ public class LineNumbersColorModel implements IDiscardable
           if (fileChange.getStartLine(model.getChangeSide()) <= pEditorPane.getDocument().getDefaultRootElement().getElementCount())
           {
             LineNumberColor lineNumberColor = _viewCoordinatesLineNumberColor(pEditorPane, fileChange.getStartLine(model.getChangeSide()), numLines, fileChange, view);
-            lineNumberColors.add(lineNumberColor);
+            if (lineNumberColor != null)
+              lineNumberColors.add(lineNumberColor);
           }
           else
           {
@@ -153,6 +159,7 @@ public class LineNumbersColorModel implements IDiscardable
    * @return LineNumberColor with the gathered information about where and what color the LineNumberColor should be drawn, view coordinates
    * @throws BadLocationException i.e. if the line is out of bounds
    */
+  @Nullable
   private LineNumberColor _viewCoordinatesLineNumberColor(JEditorPane pEditorPane, int pLineCounter, int pNumLines, IChangeDelta pFileChange,
                                                           View pView) throws BadLocationException
   {
@@ -174,8 +181,11 @@ public class LineNumbersColorModel implements IDiscardable
       }
       else
       {
-        bounds = pView.modelToView(startingLineElement.getStartOffset(), Position.Bias.Forward,
-                                   endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle()).getBounds();
+        Shape modelViewShape = pView.modelToView(startingLineElement.getStartOffset(), Position.Bias.Forward,
+                                                 endingLineElement.getEndOffset() - 1, Position.Bias.Backward, new Rectangle());
+        if (modelViewShape == null)
+          return null;
+        bounds = modelViewShape.getBounds();
       }
       // adjust coordinates from view to viewPort coordinates
       return new LineNumberColor(pFileChange.getDiffColor(), bounds);

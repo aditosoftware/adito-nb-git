@@ -33,7 +33,7 @@ public class DiffPanel extends JPanel implements IDiscardable
 
   private final DiffPaneWrapper currentVersionDiffPane;
   private final DiffPaneWrapper oldVersionDiffPane;
-  private final IDiffPaneUtil.ScrollBarCoupling differentialScrollBarCoupling;
+  private IDiffPaneUtil.ScrollBarCoupling differentialScrollBarCoupling;
   private final CompositeDisposable disposables = new CompositeDisposable();
 
   /**
@@ -94,8 +94,16 @@ public class DiffPanel extends JPanel implements IDiscardable
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
     SwingUtil.invokeASAP(() -> currentVersionScrollPane.getHorizontalScrollBar().setValue(0));
-    differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null, mouseFirstActionObservableWrapper.getObservable(),
-                                                              pFileDiffObs);
+    SwingUtilities.invokeLater(() -> differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null,
+                                                                                               mouseFirstActionObservableWrapper.getObservable(), pFileDiffObs));
+    currentVersionDiffPane.getEditorPane().addPropertyChangeListener("completion-visible", e -> {
+      currentVersionScrollPane.getVerticalScrollBar().setValue(0);
+      oldVersionScrollPane.getVerticalScrollBar().setValue(0);
+    });
+    oldVersionDiffPane.getEditorPane().addPropertyChangeListener("completion-visible", e -> {
+      currentVersionScrollPane.getVerticalScrollBar().setValue(0);
+      oldVersionScrollPane.getVerticalScrollBar().setValue(0);
+    });
   }
 
   /**
