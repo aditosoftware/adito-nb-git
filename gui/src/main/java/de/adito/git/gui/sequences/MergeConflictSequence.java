@@ -1,6 +1,7 @@
 package de.adito.git.gui.sequences;
 
 import com.google.inject.Inject;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EAutoResolveOptions;
 import de.adito.git.api.data.diff.*;
@@ -17,6 +18,7 @@ import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -32,16 +34,19 @@ public class MergeConflictSequence
 {
 
   private static final Logger logger = Logger.getLogger(MergeConflictSequence.class.getName());
+  private static final int NUM_MAX_CHARS_FOR_RESOLVE = 80000;
   private final IDialogProvider dialogProvider;
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade asyncProgressFacade;
+  private final INotifyUtil notifyUtil;
 
   @Inject
-  public MergeConflictSequence(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IAsyncProgressFacade pAsyncProgressFacade)
+  public MergeConflictSequence(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IAsyncProgressFacade pAsyncProgressFacade, INotifyUtil pNotifyUtil)
   {
     dialogProvider = pDialogProvider;
     prefStore = pPrefStore;
     asyncProgressFacade = pAsyncProgressFacade;
+    notifyUtil = pNotifyUtil;
   }
 
   /**
@@ -80,7 +85,7 @@ public class MergeConflictSequence
     if (repositoryOptional.isPresent() && (EAutoResolveOptions.ALWAYS.equals(autoResolveSettingsFlag) || (promptDialogResult != null && promptDialogResult.isOkay())))
     {
       showAutoResolveButton = false;
-      performAutoResolve(pMergeConflicts, repositoryOptional.get(), asyncProgressFacade);
+      performAutoResolve(pMergeConflicts, repositoryOptional.get(), asyncProgressFacade, notifyUtil);
     }
     return dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts, pShowOnlyConflicting, showAutoResolveButton, pDialogTitle);
   }
@@ -92,26 +97,63 @@ public class MergeConflictSequence
    * @param pMergeConflicts List of merge conflicts to try and auto-resolve
    * @param pRepository     Repository, used to perform an add one the conflicting files to mark them as resolved
    */
-  public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository, @NotNull IAsyncProgressFacade pProgressFacade)
+  public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository, @NotNull IAsyncProgressFacade pProgressFacade,
+                                        @NotNull INotifyUtil pNotifyUtil)
   {
+    int numConflictsTotal = pMergeConflicts.size();
+    List<IMergeData> resolvedConflicts = new ArrayList<>();
     pProgressFacade.executeAndBlockWithProgress("Auto-Resolving", pProgressHandle -> {
       pProgressHandle.switchToDeterminate(pMergeConflicts.size());
+      List<File> resolvedFiles = new ArrayList<>();
       for (int index = pMergeConflicts.size() - 1; index > 0; index--)
       {
         IMergeData mergeData = pMergeConflicts.get(index);
         pProgressHandle.setDescription("Trying to resolve  " + mergeData.getFilePath());
-        mergeData.markConflicting();
-        if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
-            && mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().stream().noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING))
+        try
         {
-          acceptMergeSide(mergeData, EConflictSide.YOURS);
-          acceptMergeSide(mergeData, EConflictSide.THEIRS);
-          acceptManualVersion(mergeData, pRepository);
-          pMergeConflicts.remove(mergeData);
+          if (!_isSkipMergeData(mergeData))
+          {
+            mergeData.markConflicting();
+            if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas()
+                .stream()
+                .noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
+                && mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas()
+                .stream()
+                .noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING))
+            {
+              acceptMergeSide(mergeData, EConflictSide.YOURS);
+              acceptMergeSide(mergeData, EConflictSide.THEIRS);
+              File resolvedFile = acceptManualVersion(mergeData, pRepository);
+              if (resolvedFile != null)
+                resolvedFiles.add(resolvedFile);
+              resolvedConflicts.add(mergeData);
+            }
+          }
+        }
+        catch (Exception pE)
+        {
+          logger.log(Level.WARNING, "Git error while trying to resolve conflict for file " + mergeData.getFilePath(), pE);
         }
         pProgressHandle.progress(pMergeConflicts.size() - index);
       }
+      pRepository.add(resolvedFiles);
+      pMergeConflicts.removeAll(resolvedConflicts);
     });
+    pNotifyUtil.notify("Auto-resolve", "Auto-resolve managed to resolve " + resolvedConflicts.size() + " of " + numConflictsTotal + " conflicts", false);
+  }
+
+  /**
+   * Check if the mergeData should be analyzed for conflicts or skipped because marking the conflicts takes a long time
+   *
+   * @param pMergeData MergeData to check
+   * @return true if the particular mergeData should be skipped
+   */
+  private static boolean _isSkipMergeData(IMergeData pMergeData)
+  {
+    IFileDiff theirsData = pMergeData.getDiff(EConflictSide.THEIRS);
+    IFileDiff yoursData = pMergeData.getDiff(EConflictSide.YOURS);
+    return theirsData.getText(EChangeSide.NEW).length() > NUM_MAX_CHARS_FOR_RESOLVE || theirsData.getText(EChangeSide.OLD).length() > NUM_MAX_CHARS_FOR_RESOLVE
+        || yoursData.getText(EChangeSide.NEW).length() > NUM_MAX_CHARS_FOR_RESOLVE || yoursData.getText(EChangeSide.OLD).length() > NUM_MAX_CHARS_FOR_RESOLVE;
   }
 
   public static void acceptMergeSide(IMergeData mergeData, EConflictSide pConflictSide)
@@ -178,7 +220,13 @@ public class MergeConflictSequence
     _writeToFile(fileContents, selectedMergeDiff.getDiff(pConflictSide).getEncoding(EChangeSide.NEW), pSelectedFile);
   }
 
-  public static void acceptManualVersion(IMergeData pMergeDiff, IRepository pRepository)
+  /**
+   * @param pMergeDiff  mergeDiff whose current manual version should be accepted
+   * @param pRepository IRepository
+   * @return the file that the mergeDiff was representing and that now has the manual version as content. Null if the file cannot be found or any other error occcurs
+   */
+  @Nullable
+  public static File acceptManualVersion(IMergeData pMergeDiff, IRepository pRepository)
   {
     String path = pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getAbsoluteFilePath();
     if (path != null)
@@ -190,13 +238,14 @@ public class MergeConflictSequence
       try
       {
         _writeToFile(_adjustLineEndings(fileContents, pMergeDiff), pMergeDiff.getDiff(EConflictSide.YOURS).getEncoding(EChangeSide.NEW), selectedFile);
-        pRepository.add(Collections.singletonList(selectedFile));
+        return selectedFile;
       }
       catch (Exception pE)
       {
         throw new RuntimeException(pE);
       }
     }
+    return null;
   }
 
   /**
