@@ -19,6 +19,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Panel that contains the line numbers of a given JTextPane. Arranges the numbers such that they fit the lines in the TextPane even if the font is
@@ -61,8 +62,20 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
     setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
+    editorPane.addPropertyChangeListener("completion-visible", pEvent -> {
+      SwingUtilities.invokeLater(() -> {
+        lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
+        lineNumFacadeWidth = _calculateLineWidth();
+        setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
+        revalidate();
+        repaint();
+        editorPane.getParent().getParent().getParent().getParent().getParent().getParent().revalidate();
+        editorPane.getParent().getParent().getParent().getParent().getParent().getParent().repaint();
+      });
+    });
     sizeDisposable = Observable.combineLatest(
         pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
+        .throttleLatest(200, TimeUnit.MILLISECONDS, true)
         .subscribe(
             pFileChangeEvent -> SwingUtil.invokeASAP(() -> {
               lineNumFacadeWidth = _calculateLineWidth();
