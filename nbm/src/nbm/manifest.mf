@@ -6,6 +6,23 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.7</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>The auto-resolve in merges is a lot faster in general and also skips huge files, making it faster still. The auto-resolve for huge files may come back later on, if the performance is acceptable for them</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Both the diff and the merge windows now have better information about where each version of the change is coming from (e.g. the name of the branch instead of YOURS/THEIRS)</li>
+    <li>Improvements to the calculation time of the positions of the changes in a diff or merge. This does not 100% fix the problem with bad scrolling behaviour, if you have the feeling that scrolling is not behaving the way it should try and resize the window. This should fix the issue</li>
+    <li>Double-clicking on a conflict in the merge window now triggers the manual resolve action</li>
+    <li>The diff window is now set to always start on the left side if the text is too big to fit into the ScrollPane</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: Deadlock when trying to push a branch whose name does not match the name of the tracked remote branch</li>
+    <li>Fix: If two versions are the same in a diff, the notification about that fact is missing</li>
+  </ul>
   <p style="font-weight: bold;">v.1.4.6</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
