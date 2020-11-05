@@ -11,6 +11,7 @@ import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTable;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -148,6 +150,9 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn(pMergeDetails.getYoursOrigin())).setPreferredWidth(120);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn(pMergeDetails.getTheirsOrigin())).setPreferredWidth(120);
     mergeConflictTable.setDefaultRenderer(Object.class, new MergeDiffTableCellRenderer());
+    PopupMouseListener popupMouseListener = new PopupMouseListener(new JPopupMenu());
+    popupMouseListener.setDoubleClickAction(new ManualResolveAction(pMergeDetails));
+    mergeConflictTable.addMouseListener(popupMouseListener);
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
     add(mergeConflictTableScrollPane, BorderLayout.CENTER);
     pQuickSearchProvider.attach(this, BorderLayout.SOUTH, new QuickSearchCallbackImpl(mergeConflictTable, List.of(0)));
@@ -229,5 +234,22 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   public Object getInformation()
   {
     return null;
+  }
+
+  private class ManualResolveAction extends AbstractAction
+  {
+    @NotNull
+    private final IMergeDetails mergeDetails;
+
+    public ManualResolveAction(@NotNull IMergeDetails pMergeDetails)
+    {
+      mergeDetails = pMergeDetails;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      _doManualResolve(selectedMergeDiffObservable, mergeDetails.getYoursOrigin(), mergeDetails.getTheirsOrigin());
+    }
   }
 }
