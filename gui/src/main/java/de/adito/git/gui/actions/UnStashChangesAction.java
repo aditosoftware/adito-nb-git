@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
@@ -13,6 +14,7 @@ import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
+import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.Observable;
 
 import javax.swing.*;
@@ -77,8 +79,9 @@ class UnStashChangesAction extends AbstractAction
       List<IMergeData> stashConflicts = pRepo.unStashChanges(pDialogResult.getInformation());
       if (!stashConflicts.isEmpty())
       {
-        IMergeConflictDialogResult conflictResult =
-            mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)), stashConflicts, false,
+        IMergeDetails mergeDetails = new MergeDetailsImpl(stashConflicts, "HEAD", "Stash");
+        IMergeConflictDialogResult<?, ?> conflictResult =
+            mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)), mergeDetails, false,
                                                                Util.getResource(UnStashChangesAction.class, "unstashConflictDialogTitle"));
         if (conflictResult.isFinishMerge())
           dialogProvider.showCommitDialog(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(List.of())), "");

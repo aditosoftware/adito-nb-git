@@ -418,20 +418,21 @@ public interface IRepository extends IDiscardable
   void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException;
 
   /**
-   * @return List with IMergeDatas for all conflicting files. Empty list if no conflicting files exists
-   * or if the branch to be merged cannot be read from the conflicting files
+   * @return IMergeDetails with the list of IMergeDatas for all conflicting files (empty list if no conflicting files exists or if the branch to be merged
+   * cannot be read from the conflicting files) and details about the origins of the conflicting versions
    * @throws AditoGitException if an error occurs or if the conflict was caused by a stashed commit, but several commits are stashed
    */
-  List<IMergeData> getConflicts() throws AditoGitException;
+  IMergeDetails getConflicts() throws AditoGitException;
 
   /**
    * retrieves a list with all conflicting changes caused by the passed stash commit
    *
    * @param pStashedCommitId sha-1 id of the stashed commit that caused the conflicts
-   * @return List with IMergeDatas for all conflicting files. Empty list if no conflicting files exists
+   * @return IMergeDetails with the list of IMergeDatas for all conflicting files (empty list if no conflicting files exists) and details about the origins of the
+   * conflicting versions
    * @throws AditoGitException if an error occurs
    */
-  List<IMergeData> getStashConflicts(String pStashedCommitId) throws AditoGitException;
+  IMergeDetails getStashConflicts(String pStashedCommitId) throws AditoGitException;
 
   /**
    * merges two branches

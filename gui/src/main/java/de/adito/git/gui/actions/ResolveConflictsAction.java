@@ -6,9 +6,9 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
-import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
@@ -63,10 +63,10 @@ class ResolveConflictsAction extends AbstractTableAction
 
   private void _resolveConflicts(IRepository pRepo) throws AditoGitException
   {
-    List<IMergeData> conflicts;
+    IMergeDetails mergeDetails;
     try
     {
-      conflicts = pRepo.getConflicts();
+      mergeDetails = pRepo.getConflicts();
     }
     catch (TargetBranchNotFoundException pTBNFE)
     {
@@ -93,14 +93,14 @@ class ResolveConflictsAction extends AbstractTableAction
       if (dialogResult.doUnStash())
       {
         String selectedStashCommitId = dialogResult.getInformation();
-        conflicts = pRepo.getStashConflicts(selectedStashCommitId);
+        mergeDetails = pRepo.getStashConflicts(selectedStashCommitId);
       }
       else
       {
         return;
       }
     }
-    IMergeConflictDialogResult<?, ?> mergeConflictDialogResult = mergeConflictSequence.performMergeConflictSequence(repository, conflicts, true);
+    IMergeConflictDialogResult<?, ?> mergeConflictDialogResult = mergeConflictSequence.performMergeConflictSequence(repository, mergeDetails, true);
     if (mergeConflictDialogResult.isAbortMerge())
     {
       pRepo.reset(pRepo.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);

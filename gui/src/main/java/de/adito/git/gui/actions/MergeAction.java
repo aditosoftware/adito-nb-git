@@ -5,9 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
-import de.adito.git.api.data.EResetType;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AlreadyUpToDateAditoGitException;
@@ -21,6 +19,7 @@ import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
+import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.Observable;
 
 import java.awt.event.ActionEvent;
@@ -87,13 +86,14 @@ class MergeAction extends AbstractTableAction
       {
         return;
       }
+      IBranch currentBranch = pRepository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch();
       pProgressHandle.setDescription("Merging branches");
-      List<IMergeData> mergeConflictDiffs = pRepository.merge(pRepository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch(),
-                                                              pSelectedBranch);
+      List<IMergeData> mergeConflictDiffs = pRepository.merge(currentBranch, pSelectedBranch);
       if (!mergeConflictDiffs.isEmpty())
       {
+        IMergeDetails mergeDetails = new MergeDetailsImpl(mergeConflictDiffs, currentBranch.getSimpleName(), pSelectedBranch.getSimpleName());
         IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepository)),
-                                                                                                           mergeConflictDiffs, true);
+                                                                                                           mergeDetails, true);
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
         {
@@ -110,7 +110,7 @@ class MergeAction extends AbstractTableAction
         if (!dialogResult.isFinishMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
         {
           pProgressHandle.setDescription("Aborting merge");
-          pRepository.reset(pRepository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
+          pRepository.reset(currentBranch.getId(), EResetType.HARD);
           // do not execute the "show commit dialog" part after this, the finally block should still be executed even if we return here
           return;
         }

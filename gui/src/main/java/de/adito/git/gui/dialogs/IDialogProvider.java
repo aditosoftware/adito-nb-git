@@ -5,6 +5,7 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
@@ -30,26 +31,30 @@ public interface IDialogProvider
   /**
    * Shows a dialog that shows a list of conflicting files and has options to solve those conflict
    *
-   * @param pRepository         Observable with the current Repository
-   * @param pMergeConflictDiffs List of IMergeDatas detailing the conflicting files
-   * @param pOnlyConflicting    true if only files with status conflicting should be shown
-   * @param pShowAutoResolve    Determines if the auto-resolve button is shown
-   * @param pDialogTitle        Optional title for the dialog, only the first passed String is used
+   * @param pRepository      Observable with the current Repository
+   * @param pMergeDetails    IMergeDetails with the list of IMergeData detailing the conflicting files and the origins of the conflicting versions
+   * @param pOnlyConflicting true if only files with status conflicting should be shown
+   * @param pShowAutoResolve Determines if the auto-resolve button is shown
+   * @param pDialogTitle     Optional title for the dialog, only the first passed String is used
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
   IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                  @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting,
+                                                                                  @NotNull IMergeDetails pMergeDetails, boolean pOnlyConflicting,
                                                                                   boolean pShowAutoResolve, String... pDialogTitle);
 
   /**
    * Shows a dialog with a three-way merge based on the information from pMergeDiff
    *
-   * @param pMergeDiff MergeDiff describing the changes to the file by both conflict sides
+   * @param pMergeDiff    MergeDiff describing the changes to the file by both conflict sides
+   * @param pYoursOrigin  name of the branch/commit that is the origin of the yours version
+   * @param pTheirsOrigin name of the branch/commit that is the origin of the theirs version
    * @return DialogResult with information such as "has the user pressed OK?"
    */
   @NotNull
-  IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff);
+  IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff,
+                                                                                                                @NotNull String pYoursOrigin,
+                                                                                                                @NotNull String pTheirsOrigin);
 
   /**
    * Shows a dialog which show which changes happened to a file, based on the IFileDiffs

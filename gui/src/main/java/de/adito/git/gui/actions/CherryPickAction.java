@@ -20,6 +20,7 @@ import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
+import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -135,8 +136,9 @@ class CherryPickAction extends AbstractTableAction
       ICherryPickResult cherryPickResult = pRepo.cherryPick(pCommitsToPick);
       if (!cherryPickResult.getConflicts().isEmpty())
       {
+        IMergeDetails mergeDetails = new MergeDetailsImpl(cherryPickResult.getConflicts(), "HEAD", "Cherry Picked");
         IMergeConflictDialogResult<?, ?> conflictResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)),
-                                                                                                             cherryPickResult.getConflicts(), true,
+                                                                                                             mergeDetails, true,
                                                                                                              Util.getResource(this.getClass(), "cherryPickDialogTitle"));
         IUserPromptDialogResult<?, ?> promptDialogResult = null;
         if (conflictResult.isFinishMerge())

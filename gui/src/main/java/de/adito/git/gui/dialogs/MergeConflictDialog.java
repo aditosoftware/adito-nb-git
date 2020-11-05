@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.EConflictSide;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
@@ -23,6 +24,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -61,7 +63,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   @Inject
   MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, IQuickSearchProvider pQuickSearchProvider,
                       INotifyUtil pNotifyUtil, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor, @Assisted Observable<Optional<IRepository>> pRepository,
-                      @Assisted List<IMergeData> pMergeConflictDiffs, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
+                      @Assisted IMergeDetails pMergeDetails, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
                       @Assisted("autoResolveFlag") boolean pShowAutoResolve)
   {
     prefStore = pPrefStore;
@@ -72,7 +74,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     repository = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG));
     observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
-    mergeConflictDiffs = BehaviorSubject.createDefault(pMergeConflictDiffs);
+    mergeConflictDiffs = BehaviorSubject.createDefault(pMergeDetails.getMergeConflicts());
     Observable<Optional<IFileStatus>> obs = repository.getStatus();
     Observable<List<IMergeData>> mergeDiffListObservable = Observable
         .combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
@@ -103,18 +105,18 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       acceptTheirsButton.setEnabled(pSelectedMergeDiffs.map(pList -> !pList.isEmpty()).orElse(false));
     });
     disposable = mergeDiffListObservable.subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty()));
-    mergeDiffStatusModel = new MergeDiffStatusModel(mergeDiffListObservable);
-    _initGui(pShowAutoResolve, pQuickSearchProvider);
+    mergeDiffStatusModel = new MergeDiffStatusModel(mergeDiffListObservable, pMergeDetails);
+    _initGui(pMergeDetails, pShowAutoResolve, pQuickSearchProvider);
   }
 
-  private void _initGui(boolean pShowAutoResolve, IQuickSearchProvider pQuickSearchProvider)
+  private void _initGui(@NotNull IMergeDetails pMergeDetails, boolean pShowAutoResolve, IQuickSearchProvider pQuickSearchProvider)
   {
     setLayout(new BorderLayout(5, 10));
     setPreferredSize(ComponentResizeListener._getPreferredSize(prefStore, PREF_STORE_SIZE_KEY, new Dimension(800, 600)));
     addComponentListener(new ComponentResizeListener(prefStore, PREF_STORE_SIZE_KEY));
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
-    manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable));
+    manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable, pMergeDetails.getYoursOrigin(), pMergeDetails.getTheirsOrigin()));
     acceptYoursButton.addActionListener(e -> _acceptDefaultVersion(EConflictSide.YOURS));
     acceptTheirsButton.addActionListener(e -> _acceptDefaultVersion(EConflictSide.THEIRS));
     manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
@@ -143,8 +145,8 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeConflictTable.setModel(mergeDiffStatusModel);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filename")).setPreferredWidth(230);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filepath")).setPreferredWidth(230);
-    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Your Changes")).setPreferredWidth(120);
-    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Their Changes")).setPreferredWidth(120);
+    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn(pMergeDetails.getYoursOrigin())).setPreferredWidth(120);
+    mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn(pMergeDetails.getTheirsOrigin())).setPreferredWidth(120);
     mergeConflictTable.setDefaultRenderer(Object.class, new MergeDiffTableCellRenderer());
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
     add(mergeConflictTableScrollPane, BorderLayout.CENTER);
@@ -153,14 +155,16 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   /**
    * @param pSelectedMergeDiffObservable Observable optional list (should be of size 1) of IMergeDatas whose conflicts should be manually resolved
+   * @param pYoursOrigin                 name of the branch/commit that is the origin of the yours version
+   * @param pTheirsOrigin                name of the branch/commit that is the origin of the theirs version
    */
-  private void _doManualResolve(Observable<Optional<List<IMergeData>>> pSelectedMergeDiffObservable)
+  private void _doManualResolve(Observable<Optional<List<IMergeData>>> pSelectedMergeDiffObservable, @NotNull String pYoursOrigin, @NotNull String pTheirsOrigin)
   {
     Optional<List<IMergeData>> mergeDiffOptional = pSelectedMergeDiffObservable.blockingFirst();
     mergeDiffOptional.ifPresent(pMergeDatas -> {
       if (pMergeDatas.size() == 1)
       {
-        IMergeConflictResolutionDialogResult<?, ?> result = dialogProvider.showMergeConflictResolutionDialog(pMergeDatas.get(0));
+        IMergeConflictResolutionDialogResult<?, ?> result = dialogProvider.showMergeConflictResolutionDialog(pMergeDatas.get(0), pYoursOrigin, pTheirsOrigin);
         if (result.isAcceptChanges())
         {
           File resolvedFile = MergeConflictSequence.acceptManualVersion(pMergeDatas.get(0), repository);

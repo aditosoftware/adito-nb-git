@@ -4,6 +4,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
@@ -25,10 +26,11 @@ interface IDialogFactory
 {
 
   MergeConflictDialog createMergeConflictDialog(IDialogDisplayer.IDescriptor pIsValidDescriptor, Observable<Optional<IRepository>> pRepository,
-                                                List<IMergeData> pMergeConflictDiffs, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
+                                                IMergeDetails pMergeDetails, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
                                                 @Assisted("autoResolveFlag") boolean pShowAutoResolve);
 
-  MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeData pMergeDiff);
+  MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeData pMergeDiff, @Assisted("yoursOrigin") String pYoursOrigin,
+                                                                    @Assisted("theirsOrigin") String pTheirsOrigin);
 
   CommitDialog createCommitDialog(@NotNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
                                   @NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
