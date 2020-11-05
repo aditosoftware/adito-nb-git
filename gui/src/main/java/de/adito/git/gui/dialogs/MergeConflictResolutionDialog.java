@@ -41,7 +41,8 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   private final MergePanel mergePanel;
 
   @Inject
-  MergeConflictResolutionDialog(IPrefStore pPrefStore, IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff)
+  MergeConflictResolutionDialog(IPrefStore pPrefStore, IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff,
+                                @Assisted("yoursOrigin") String pYoursOrigin, @Assisted("theirsOrigin") String pTheirsOrigin)
   {
     prefStore = pPrefStore;
     mergeDiff = pMergeDiff;
@@ -49,7 +50,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
     ImageIcon discardIcon = pIconLoader.getIcon(DISCARD_CHANGE_ICON);
     mergeDiff.markConflicting();
-    mergePanel = new MergePanel(pIconLoader, mergeDiff, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
+    mergePanel = new MergePanel(pIconLoader, mergeDiff, pYoursOrigin, pTheirsOrigin, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui(pIconLoader);
   }
 

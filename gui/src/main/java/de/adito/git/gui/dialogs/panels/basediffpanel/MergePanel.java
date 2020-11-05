@@ -18,6 +18,7 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.Subject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -53,8 +54,9 @@ public class MergePanel extends JPanel implements IDiscardable
   private LineNumbersColorModel leftForkPointLineNumColorModel;
   private LineNumbersColorModel rightForkPointLineNumColorModel;
 
-  public MergePanel(IIconLoader pIconLoader, IMergeData pMergeDiff, ImageIcon pAcceptYoursIcon, ImageIcon pAcceptTheirsIcon, ImageIcon pDiscardIcon,
-                    IEditorKitProvider pEditorKitProvider)
+  public MergePanel(@NotNull IIconLoader pIconLoader, @NotNull IMergeData pMergeDiff, @NotNull String pYoursOrigin, @NotNull String pTheirsOrigin,
+                    @Nullable ImageIcon pAcceptYoursIcon, @Nullable ImageIcon pAcceptTheirsIcon, @Nullable ImageIcon pDiscardIcon,
+                    @NotNull IEditorKitProvider pEditorKitProvider)
   {
     iconLoader = pIconLoader;
     mergeDiff = pMergeDiff;
@@ -62,7 +64,7 @@ public class MergePanel extends JPanel implements IDiscardable
     acceptTheirsIcon = pAcceptTheirsIcon;
     discardIcon = pDiscardIcon;
     editorKitObservable = BehaviorSubject.createDefault(Optional.empty());
-    _initGui();
+    _initGui(pYoursOrigin, pTheirsOrigin);
     MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(yoursPaneWrapper.getEditorPane(),
                                                                                                                 forkPointPaneWrapper.getEditorPane(),
                                                                                                                 theirsPaneWrapper.getEditorPane());
@@ -75,7 +77,7 @@ public class MergePanel extends JPanel implements IDiscardable
                                                .orElseGet(() -> pEditorKitProvider.getEditorKitForContentType("text/plain"))));
   }
 
-  private void _initGui()
+  private void _initGui(@NotNull String pYoursOrigin, @NotNull String pTheirsOrigin)
   {
     forkPointPaneWrapper = new ForkPointPaneWrapper(mergeDiff, editorKitObservable);
     DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.NEW)
@@ -106,8 +108,8 @@ public class MergePanel extends JPanel implements IDiscardable
     add(threeWayPane, BorderLayout.CENTER);
     JPanel yoursTheirsPanel = new JPanel(new BorderLayout());
     yoursTheirsPanel.setBorder(new EmptyBorder(3, 16, 3, 16));
-    yoursTheirsPanel.add(new JLabel("Your changes"), BorderLayout.WEST);
-    yoursTheirsPanel.add(new JLabel("Their changes"), BorderLayout.EAST);
+    yoursTheirsPanel.add(new JLabel(pYoursOrigin), BorderLayout.WEST);
+    yoursTheirsPanel.add(new JLabel(pTheirsOrigin), BorderLayout.EAST);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(theirsPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel(),
                                  forkPointPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel(),

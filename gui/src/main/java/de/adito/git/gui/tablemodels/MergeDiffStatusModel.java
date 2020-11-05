@@ -1,10 +1,12 @@
 package de.adito.git.gui.tablemodels;
 
 import de.adito.git.api.IDiscardable;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.EConflictSide;
 import de.adito.git.api.data.diff.IMergeData;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
@@ -16,12 +18,13 @@ import java.util.List;
 public class MergeDiffStatusModel extends AbstractTableModel implements IDiscardable
 {
 
-  private static final List<String> COLUMN_NAMES = List.of("Filename", "Filepath", "Your Changes", "Their Changes");
+  private final List<String> columnNames;
   private List<IMergeData> mergeDiffs = new ArrayList<>();
   private final Disposable disposable;
 
-  public MergeDiffStatusModel(Observable<List<IMergeData>> pMergeDiffObservable)
+  public MergeDiffStatusModel(@NotNull Observable<List<IMergeData>> pMergeDiffObservable, @NotNull IMergeDetails pMergeDetails)
   {
+    columnNames = List.of("Filename", "Filepath", pMergeDetails.getYoursOrigin(), pMergeDetails.getTheirsOrigin());
     disposable = pMergeDiffObservable.subscribe(pMergeDiffs -> {
       boolean sameFiles = _containsSameFiles(mergeDiffs, pMergeDiffs);
       mergeDiffs = pMergeDiffs;
@@ -34,9 +37,9 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   public String getColumnName(int pColumn)
   {
     String columnName;
-    if (pColumn < COLUMN_NAMES.size())
+    if (pColumn < columnNames.size())
     {
-      return COLUMN_NAMES.get(pColumn);
+      return columnNames.get(pColumn);
     }
     else
       columnName = super.getColumnName(pColumn);
@@ -52,15 +55,15 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   @Override
   public int getColumnCount()
   {
-    return COLUMN_NAMES.size();
+    return columnNames.size();
   }
 
   @Override
   public int findColumn(String pColumnName)
   {
-    for (int index = 0; index < COLUMN_NAMES.size(); index++)
+    for (int index = 0; index < columnNames.size(); index++)
     {
-      if (pColumnName.equals(COLUMN_NAMES.get(index)))
+      if (pColumnName.equals(columnNames.get(index)))
         return index;
     }
     return -1;

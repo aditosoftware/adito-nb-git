@@ -1221,7 +1221,7 @@ public class RepositoryImpl implements IRepository
    */
   @Override
   @NotNull
-  public List<IMergeData> getConflicts() throws AditoGitException
+  public IMergeDetails getConflicts() throws AditoGitException
   {
     try
     {
@@ -1257,20 +1257,25 @@ public class RepositoryImpl implements IRepository
           if (stashedCommits.size() > 1)
             throw new AmbiguousStashCommitsException("num stashed commits: " + stashedCommits.size());
           else if (!stashedCommits.isEmpty())
-            return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, stashedCommits.get(0).getId(), this::diff);
+          {
+            List<IMergeData> conflicts = RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, stashedCommits.get(0).getId(), this::diff);
+            return new MergeDetailsImpl(conflicts, currentBranchId, conflictingBranchId);
+          }
           else throw new AditoGitException("Conflict from failed un-stashing, but no more stashed commits exist");
         }
         if (git.getRepository().getRepositoryState() == RepositoryState.CHERRY_PICKING)
         {
-          return RepositoryImplHelper.getMergeConflicts(git, currentBranchId, conflictingBranchId,
-                                                        getCommit(conflictingBranchId).getParents().get(0),
-                                                        conflictingFiles, this::diff);
+          List<IMergeData> mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, currentBranchId, conflictingBranchId,
+                                                                                   getCommit(conflictingBranchId).getParents().get(0),
+                                                                                   conflictingFiles, this::diff);
+          return new MergeDetailsImpl(mergeConflicts, currentBranchId, conflictingBranchId);
         }
-        return RepositoryImplHelper.getMergeConflicts(git, currentBranchId, conflictingBranchId,
-                                                      new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentBranchId, conflictingBranchId)),
-                                                      conflictingFiles, this::diff);
+        List<IMergeData> mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, currentBranchId, conflictingBranchId,
+                                                                                 new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentBranchId, conflictingBranchId)),
+                                                                                 conflictingFiles, this::diff);
+        return new MergeDetailsImpl(mergeConflicts, currentBranchId, conflictingBranchId);
       }
-      return Collections.emptyList();
+      return new MergeDetailsImpl(Collections.emptyList(), "HEAD", "UNKNOWN");
     }
     catch (IOException pE)
     {
@@ -1297,12 +1302,12 @@ public class RepositoryImpl implements IRepository
   }
 
   @NotNull
-  public List<IMergeData> getStashConflicts(String pStashedCommitId) throws AditoGitException
+  public IMergeDetails getStashConflicts(String pStashedCommitId) throws AditoGitException
   {
     Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
     try
     {
-      return RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, pStashedCommitId, this::diff);
+      return new MergeDetailsImpl(RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, pStashedCommitId, this::diff), "HEAD", pStashedCommitId);
     }
     catch (IOException pE)
     {

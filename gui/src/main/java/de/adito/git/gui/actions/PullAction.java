@@ -6,7 +6,6 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.*;
-import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.exception.MissingTrackedBranchException;
@@ -20,6 +19,7 @@ import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
+import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -129,7 +129,8 @@ class PullAction extends AbstractAction
         {
           pProgressHandle.setDescription("Resolving Conflicts");
           // if the pull should be aborted, _handleConflictDialog returns true
-          doAbort = _handleConflictDialog(pRepo, rebaseResult.getMergeConflicts());
+          IMergeDetails mergeDetails = new MergeDetailsImpl(rebaseResult.getMergeConflicts(), "Local", "Remote");
+          doAbort = _handleConflictDialog(pRepo, mergeDetails);
         }
         if (rebaseResult.getResultType() == null)
         {
@@ -184,13 +185,14 @@ class PullAction extends AbstractAction
   /**
    * Handles showing the conflict dialog if a conflict occurred during the pull
    *
-   * @param pMergeConflicts List of IMergeData for each file that is in a conflicting state
+   * @param pMergeDetails MergeDetails containing the list of IMergeData for each file that is in a conflicting state and info about the origins of the conflicting
+   *                      versions
    * @return true if the user pressed cancel and the pull should be aborted, false otherwise
    * @throws AditoGitException if an error occurred during the pull
    */
-  private boolean _handleConflictDialog(IRepository pRepo, List<IMergeData> pMergeConflicts) throws AditoGitException
+  private boolean _handleConflictDialog(@NotNull IRepository pRepo, @NotNull IMergeDetails pMergeDetails) throws AditoGitException
   {
-    IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)), pMergeConflicts, true);
+    IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)), pMergeDetails, true);
     IUserPromptDialogResult<?, ?> promptDialogResult = null;
     if (dialogResult.isFinishMerge())
     {

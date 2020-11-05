@@ -7,6 +7,7 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.panels.*;
@@ -41,13 +42,13 @@ class DialogProviderImpl implements IDialogProvider
 
   @Override
   public @NotNull IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                                  @NotNull List<IMergeData> pMergeConflictDiffs, boolean pOnlyConflicting,
+                                                                                                  @NotNull IMergeDetails pMergeDetails, boolean pOnlyConflicting,
                                                                                                   boolean pShowAutoResolve, String... pDialogTitle)
   {
     DialogResult<MergeConflictDialog, Object> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeConflictDiffs, pOnlyConflicting,
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictDialog(pValidConsumer, pRepository, pMergeDetails, pOnlyConflicting,
                                                                                                     pShowAutoResolve),
                                           pDialogTitle.length == 1 ? pDialogTitle[0] : "Merge Conflicts", List.of(EButtons.OK, EButtons.ABORT).toArray(new EButtons[0]));
       return new MergeConflictDialogResultImpl<>(result);
@@ -81,12 +82,14 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff)
+  public @NotNull IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff,
+                                                                                                                                @NotNull String pYoursOrigin,
+                                                                                                                                @NotNull String pTheirsOrigin)
   {
     DialogResult<MergeConflictResolutionDialog, Object> result = null;
     try
     {
-      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff),
+      result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff, pYoursOrigin, pTheirsOrigin),
                                           "Conflict resolution for file "
                                               + pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getFilePath(),
                                           List.of(EButtons.ACCEPT_CHANGES, EButtons.ACCEPT_YOURS, EButtons.ACCEPT_THEIRS, EButtons.CANCEL).toArray(new EButtons[0]));
@@ -115,9 +118,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile,
-                                                                       @Nullable String pTitle, @Nullable String pLeftHeader, @Nullable String pRightHeader, boolean pAcceptChange,
-                                                                       boolean pShowFileTree)
+  public @NotNull IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs,
+                                                                       @Nullable String pSelectedFile, @Nullable String pTitle, @Nullable String pLeftHeader,
+                                                                       @Nullable String pRightHeader, boolean pAcceptChange, boolean pShowFileTree)
   {
     DialogResult<DiffDialog, Object> result = null;
     try

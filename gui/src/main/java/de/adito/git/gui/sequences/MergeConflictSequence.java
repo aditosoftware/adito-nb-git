@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EAutoResolveOptions;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
@@ -53,13 +54,14 @@ public class MergeConflictSequence
    * Determines if an auto-resolve should be performed by checking a flag and potentially asking the user, and then shows the merge dialog itself
    *
    * @param pRepo                Observable with the current repository
-   * @param pMergeConflicts      list of mergeConflicts
+   * @param pMergeDetails        MergeDetails containing the list of IMergeData for each file that is in a conflicting state and info about the origins of the conflicting
+   *                             versions
    * @param pShowOnlyConflicting true if the list of mergeConflicts should be filtered by the status of the files
    * @param pDialogTitle         Optional title of the dialog, may be left out. Only first parameter is used
    * @return Result of the mergeConflictDialog
    */
   @NotNull
-  public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(@NotNull Observable<Optional<IRepository>> pRepo, @NotNull List<IMergeData> pMergeConflicts,
+  public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(@NotNull Observable<Optional<IRepository>> pRepo, @NotNull IMergeDetails pMergeDetails,
                                                                        boolean pShowOnlyConflicting, String... pDialogTitle)
   {
     boolean showAutoResolveButton = true;
@@ -85,9 +87,9 @@ public class MergeConflictSequence
     if (repositoryOptional.isPresent() && (EAutoResolveOptions.ALWAYS.equals(autoResolveSettingsFlag) || (promptDialogResult != null && promptDialogResult.isOkay())))
     {
       showAutoResolveButton = false;
-      performAutoResolve(pMergeConflicts, repositoryOptional.get(), asyncProgressFacade, notifyUtil);
+      performAutoResolve(pMergeDetails.getMergeConflicts(), repositoryOptional.get(), asyncProgressFacade, notifyUtil);
     }
-    return dialogProvider.showMergeConflictDialog(pRepo, pMergeConflicts, pShowOnlyConflicting, showAutoResolveButton, pDialogTitle);
+    return dialogProvider.showMergeConflictDialog(pRepo, pMergeDetails, pShowOnlyConflicting, showAutoResolveButton, pDialogTitle);
   }
 
   /**

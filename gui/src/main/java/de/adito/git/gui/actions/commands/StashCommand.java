@@ -1,10 +1,12 @@
 package de.adito.git.gui.actions.commands;
 
 import de.adito.git.api.IRepository;
+import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
+import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,10 +41,11 @@ public class StashCommand
       {
         throw new RuntimeException(pE);
       }
-      IMergeConflictDialogResult dialogResult = null;
+      IMergeConflictDialogResult<?, ?> dialogResult = null;
       if (!stashConflicts.isEmpty())
       {
-        dialogResult = pMergeConflictSequence.performMergeConflictSequence(pRepository, stashConflicts, false, "Stash Conflicts");
+        IMergeDetails mergeDetails = new MergeDetailsImpl(stashConflicts, "HEAD", "Stash");
+        dialogResult = pMergeConflictSequence.performMergeConflictSequence(pRepository, mergeDetails, false, "Stash Conflicts");
       }
       if (stashConflicts.isEmpty() || dialogResult.isFinishMerge())
       {
