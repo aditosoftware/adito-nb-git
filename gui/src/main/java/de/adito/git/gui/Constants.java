@@ -28,6 +28,7 @@ public class Constants
   public static final String FILE_HISTORY_ACTION_ICON = "de/adito/git/gui/icons/file_history.png";
   public static final String SHOW_TAGS_ACTION_ICON = "de/adito/git/gui/icons/tags.png";
   public static final String GIT_CONFIG_ICON = "de/adito/git/gui/icons/settings.png";
+  public static final String TRASH_ICON = "de/adito/git/gui/icons/trash.png";
   public static final String REFRESH_CONTENT_ICON = "de/adito/git/gui/icons/refresh.png";
   public static final String DELETE_ICON = "de/adito/git/gui/icons/delete.png";
   public static final String ADD_TAG_ACTION_ICON = "de/adito/git/gui/icons/tag_icon.png";

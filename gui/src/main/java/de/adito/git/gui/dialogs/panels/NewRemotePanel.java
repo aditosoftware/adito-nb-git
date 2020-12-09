@@ -1,7 +1,6 @@
 package de.adito.git.gui.dialogs.panels;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IRemote;
 import de.adito.git.gui.swing.ADocumentListener;
 import de.adito.git.impl.data.RemoteImpl;
@@ -30,9 +29,8 @@ public class NewRemotePanel extends JPanel implements IDiscardable
   private JButton addRemoteButton;
   private final DocumentListener isActiveListener;
   private final Consumer<IRemote> createRemotePanelFn;
-  private final IConfig config;
 
-  public NewRemotePanel(Set<IRemote> pRemotes, Consumer<IRemote> pCreateRemotePanelFn, IConfig pConfig)
+  public NewRemotePanel(Set<IRemote> pRemotes, Consumer<IRemote> pCreateRemotePanelFn)
   {
     isActiveListener = new ADocumentListener()
     {
@@ -40,13 +38,14 @@ public class NewRemotePanel extends JPanel implements IDiscardable
       public void updated(DocumentEvent pE)
       {
         if (addRemoteButton != null)
-          addRemoteButton.setEnabled(!remoteNameField.getText().isEmpty() && pRemotes.stream().noneMatch(pRemote -> pRemote.getName().equals(remoteNameField.getText())) && !remoteUrlField.getText().isEmpty());
+          addRemoteButton.setEnabled(!remoteNameField.getText().isEmpty()
+                                         && pRemotes.stream().noneMatch(pRemote -> pRemote.getName().equals(remoteNameField.getText()))
+                                         && !remoteUrlField.getText().isEmpty());
       }
     };
     remoteUrlField.getDocument().addDocumentListener(isActiveListener);
     remoteNameField.getDocument().addDocumentListener(isActiveListener);
     createRemotePanelFn = pCreateRemotePanelFn;
-    config = pConfig;
     _initGui();
   }
 
@@ -75,12 +74,9 @@ public class NewRemotePanel extends JPanel implements IDiscardable
     addRemoteButton = new JButton("Add");
     addRemoteButton.setEnabled(false);
     addRemoteButton.addActionListener(e -> {
-      if (config.addRemote(remoteNameField.getText(), remoteUrlField.getText()))
-      {
-        createRemotePanelFn.accept(new RemoteImpl(remoteNameField.getText(), remoteUrlField.getText(), IRemote.getFetchStringFromName(remoteNameField.getText())));
-        remoteNameField.setText("");
-        remoteUrlField.setText("");
-      }
+      createRemotePanelFn.accept(new RemoteImpl(remoteNameField.getText(), remoteUrlField.getText(), IRemote.getFetchStringFromName(remoteNameField.getText())));
+      remoteNameField.setText("");
+      remoteUrlField.setText("");
     });
     return addRemoteButton;
   }

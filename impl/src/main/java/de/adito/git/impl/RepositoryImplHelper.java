@@ -571,15 +571,7 @@ public class RepositoryImplHelper
           .findFirst()
           .orElse(null);
     }
-    if (remoteName != null)
-      return remoteName;
-    String remoteTrackingBranch = RepositoryImplHelper.getRemoteTrackingBranch(pGit, null);
-    // Fallback: get remoteBranch of master and resolve remoteName with that branch
-    if (remoteTrackingBranch == null)
-    {
-      return pGit.getRepository().getRemoteName(remoteTrackingBranch);
-    }
-    return null;
+    return remoteName;
   }
 
   static File getRebaseMergeHead(@NotNull Git pGit)

@@ -145,4 +145,10 @@ public class CloneConfig implements IConfig
     // not implemented
     return false;
   }
+
+  public boolean removeRemote(@NotNull IRemote pRemote)
+  {
+    // not implemented
+    return false;
+  }
 }
