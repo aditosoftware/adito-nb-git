@@ -20,6 +20,14 @@ public enum EConflictType
    */
   RESOLVABLE,
   /**
+   * The THEIRS change is a part of the YOURS change -> accepting the YOURS change yields the changes from both sides -> not a conflict
+   */
+  ENCLOSED_BY_YOURS,
+  /**
+   * The YOURS change is a part of the THEIRS change -> accepting the THEIRS change yields the changes from both sides -> not a conflict
+   */
+  ENCLOSED_BY_THEIRS,
+  /**
    * deltas affect different lines/indices and do not clash with each other
    */
   NONE
