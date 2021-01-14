@@ -57,6 +57,16 @@ public class GitHttpUtil
       String authHeader = response
           .getHeaders()
           .getFirst("WWW-Authenticate");
+      // github seems to use a lowercase version since recently
+      if (authHeader == null)
+      {
+        authHeader = response
+            .getHeaders()
+            .getFirst("www-authenticate");
+      }
+      // in case no auth header is given
+      if (authHeader == null)
+        return "";
       return Arrays.stream(authHeader.split(" "))
           .map(pPart -> pPart.split("="))
           .filter(pKeyValuePair -> pKeyValuePair.length == 2 && "realm".equalsIgnoreCase(pKeyValuePair[0]))
