@@ -427,6 +427,63 @@ public class MergeDataImplTest
     assertEquals(new Edit(1, 4, 1, 4), theirsChangedLines.get(0));
   }
 
+  @Test
+  void testEncloseInsertEncloserFirst()
+  {
+    String originalVersion = "int main:\nreturn";
+    String yourVersion = "int main:\nif(a)\n  doStuff\nreturn";
+    String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNottin'\nreturn";
+    IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
+    mergeData.markConflicting();
+    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
+    assertEquals(EChangeStatus.ACCEPTED, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus());
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.NEW), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
+  }
+
+  @Test
+  void testEncloseInsertEncloseeFirst()
+  {
+    String originalVersion = "int main:\nreturn";
+    String yourVersion = "int main:\nif(a)\n  doStuff\nreturn";
+    String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNottin'\nreturn";
+    IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
+    mergeData.markConflicting();
+    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
+    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
+    // the NEW version of the THEIRS version is theirVersion above, this should be the result in both cases
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.NEW), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.NEW), mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
+  }
+
+  @Test
+  void testEncloseModifyEncloserFirst()
+  {
+    String originalVersion = "int main:\nif(a)\n  doStuff\nels\n  doNottin'\nreturn";
+    String yourVersion = "int main:\nif(a)\n  doStuff\nels\n  doNothing\nreturn";
+    String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNothing\nreturn";
+    IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
+    mergeData.markConflicting();
+    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
+    assertEquals(EChangeStatus.ACCEPTED, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus());
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.NEW), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
+  }
+
+  @Test
+  void testEncloseModifyEncloseeFirst()
+  {
+    String originalVersion = "int main:\nif(a)\n  doStuff\nels\n  doNottin'\nreturn";
+    String yourVersion = "int main:\nif(a)\n  doStuff\nels\n  doNothing\nreturn";
+    String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNothing\nreturn";
+    IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
+    mergeData.markConflicting();
+    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
+    mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
+    assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.NEW), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
+  }
+
   /**
    * Another somewhat simple test for adjustEditListsForMerge, the last deltas have to be combined
    */
