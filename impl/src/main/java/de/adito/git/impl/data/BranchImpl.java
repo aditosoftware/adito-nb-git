@@ -6,6 +6,8 @@ import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.TrackedBranchStatus;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author m.kaspera 25.09.2018
@@ -17,12 +19,13 @@ public class BranchImpl implements IBranch
   public static final String HEAD_STRING = "heads/";
   public static final String REMOTE_STRING = "remotes/";
 
-  private Ref branchRef;
+  @Nullable // this only happens if the type is DETACHED
+  private final Ref branchRef;
   private final TrackedBranchStatusCache trackedBranchStatusCache;
   private EBranchType branchType;
   private final String simpleName;
 
-  public BranchImpl(Ref pBranchRef, TrackedBranchStatusCache pTrackedBranchStatusCache)
+  public BranchImpl(@NotNull Ref pBranchRef, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     branchRef = pBranchRef;
     trackedBranchStatusCache = pTrackedBranchStatusCache;
@@ -50,11 +53,12 @@ public class BranchImpl implements IBranch
     this.simpleName = simpleNameRaw;
   }
 
-  public BranchImpl(ObjectId pId, TrackedBranchStatusCache pTrackedBranchStatusCache)
+  public BranchImpl(@NotNull ObjectId pId, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     trackedBranchStatusCache = pTrackedBranchStatusCache;
     branchType = EBranchType.DETACHED;
     simpleName = ObjectId.toString(pId);
+    branchRef = null;
   }
 
   /**
@@ -63,7 +67,7 @@ public class BranchImpl implements IBranch
   @Override
   public String getName()
   {
-    if (branchType == EBranchType.DETACHED)
+    if (branchType == EBranchType.DETACHED || branchRef == null)
     {
       return simpleName;
     }
@@ -77,7 +81,10 @@ public class BranchImpl implements IBranch
   @Override
   public String getId()
   {
-    return ObjectId.toString(branchRef.getObjectId());
+    if (branchType != EBranchType.DETACHED && branchRef != null)
+      return ObjectId.toString(branchRef.getObjectId());
+    else
+      return simpleName;
   }
 
   /**
@@ -119,7 +126,7 @@ public class BranchImpl implements IBranch
   @Override
   public String toString()
   {
-    if (EBranchType.DETACHED == this.getType())
+    if (EBranchType.DETACHED == this.getType() || branchRef == null)
       return this.getId();
     return branchRef.getName();
   }
