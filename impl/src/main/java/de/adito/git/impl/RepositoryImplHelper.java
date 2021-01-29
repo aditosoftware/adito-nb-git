@@ -11,6 +11,7 @@ import de.adito.git.impl.data.diff.FileContentInfoImpl;
 import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.data.diff.MergeDataImpl;
 import de.adito.git.impl.revfilters.StashCommitFilter;
+import de.adito.git.impl.util.GitRawTextComparator;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.*;
@@ -91,6 +92,7 @@ public class RepositoryImplHelper
       DiffFormatter df = new DiffFormatter(NullOutputStream.INSTANCE);
       df.setRepository(pGit.getRepository());
       df.setDetectRenames(true);
+      df.setDiffComparator(GitRawTextComparator.getCurrent().getValue());
       return df.scan(oldTreeIter, newTreeIter);
     }
     catch (IOException pE)

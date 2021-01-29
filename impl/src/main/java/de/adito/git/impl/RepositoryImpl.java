@@ -620,6 +620,7 @@ public class RepositoryImpl implements IRepository
         try (DiffFormatter formatter = new DiffFormatter(pWriteTo == null ? DisabledOutputStream.INSTANCE : pWriteTo))
         {
           formatter.setRepository(git.getRepository());
+          formatter.setDiffComparator(GitRawTextComparator.getCurrent().getValue());
           for (DiffEntry diff : listDiff)
           {
             FileHeader fileHeader = formatter.toFileHeader(diff);
