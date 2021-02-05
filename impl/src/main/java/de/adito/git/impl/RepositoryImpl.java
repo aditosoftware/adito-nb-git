@@ -203,6 +203,31 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  @Override
+  public void renormalizeNewlines() throws AditoGitException
+  {
+    try
+    {
+      Optional<IFileStatus> statusOptional = status.blockingFirst(Optional.empty());
+      if (statusOptional.map(pIFileStatus -> !pIFileStatus.isClean()).orElse(true))
+      {
+        throw new AditoGitException("Please make sure there are no changed tracked or untracked files first");
+      }
+      Set<String> ignoredFiles = statusOptional.map(IFileStatus::getIgnoredNotInIndex).orElse(Set.of());
+      List<String> folders = Arrays
+          .stream(git.getRepository().getDirectory().getParentFile().list((dir, name) -> !name.equals(".git") && !ignoredFiles.contains(name)))
+          .collect(Collectors.toList());
+      RmCommand rmCommand = git.rm().setCached(true);
+      folders.forEach(rmCommand::addFilepattern);
+      rmCommand.call();
+      git.add().addFilepattern(".").call();
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException("Failed to remove files from index", pE);
+    }
+  }
+
   /**
    * {@inheritDoc}
    */

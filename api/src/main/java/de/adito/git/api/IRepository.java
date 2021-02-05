@@ -112,6 +112,13 @@ public interface IRepository extends IDiscardable
   void remove(List<File> pList) throws AditoGitException;
 
   /**
+   * Make sure all files have the lineEndings set by the gitattributes in the index
+   *
+   * @throws AditoGitException If any error occurrs while reading or writing the index
+   */
+  void renormalizeNewlines() throws AditoGitException;
+
+  /**
    * performs a commit of the staged files, with the passed message as commit message. Message should not be empty
    *
    * @param pMessage String with the commit message entered by the user
