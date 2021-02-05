@@ -148,6 +148,12 @@ public interface IActionProvider
 
   /**
    * @param pRepository Observable with the current Repository
+   * @return Action whose actionPerformed method renormalizes the newlines in the index by removing all files, doing a commit, and adding and committing all files again
+   */
+  Action getRenormalizeNewlinesAction(@NotNull Observable<Optional<IRepository>> pRepository);
+
+  /**
+   * @param pRepository Observable with the current Repository
    * @return Action whose actionPerformed method opens a window with a list of all changed files of the working copy with the type of change
    */
   Action getShowStatusWindowAction(@NotNull Observable<Optional<IRepository>> pRepository);

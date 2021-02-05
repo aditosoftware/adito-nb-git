@@ -61,6 +61,8 @@ interface IActionFactory
 
   ResetAction createResetAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
+  RenormalizeNewlinesAction createRenormalizeNewlinesAction(Observable<Optional<IRepository>> pRepository);
+
   ShowStatusWindowAction createShowStatusWindowAction(Observable<Optional<IRepository>> pRepository);
 
   ResolveConflictsAction createResolveConflictsAction(Observable<Optional<IRepository>> pRepository,

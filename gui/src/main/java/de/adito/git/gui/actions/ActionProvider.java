@@ -185,6 +185,12 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
+  public Action getRenormalizeNewlinesAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  {
+    return actionFactory.createRenormalizeNewlinesAction(pRepository);
+  }
+
+  @Override
   public Action getShowStatusWindowAction(@NotNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createShowStatusWindowAction(pRepository);
