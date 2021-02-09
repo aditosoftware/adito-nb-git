@@ -84,7 +84,7 @@ public class RepositoryImplHelper
     try
     {
       AbstractTreeIterator oldTreeIter;
-      if (pCompareToId == null)
+      if (pCompareToId == null || pCompareToId.equals(ObjectId.fromString(CommitImpl.VOID_COMMIT.getId())))
         oldTreeIter = new EmptyTreeIterator();
       else
         oldTreeIter = prepareTreeParser(pGit.getRepository(), pCompareToId);
@@ -341,9 +341,9 @@ public class RepositoryImplHelper
    * @throws AditoGitException if JGit encountered an error condition
    */
   @NotNull
-  static List<IMergeData> getMergeConflicts(@NotNull Git pGit, String pCurrentBranch, String pBranchToMerge,
-                                            ICommit pForkCommit, Set<String> pConflicts,
-                                            BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFunction) throws AditoGitException
+  static List<IMergeData> getMergeConflicts(@NotNull Git pGit, @NotNull String pCurrentBranch, @NotNull String pBranchToMerge,
+                                            @NotNull ICommit pForkCommit, @NotNull Set<String> pConflicts,
+                                            @NotNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFunction) throws AditoGitException
   {
     List<IMergeData> mergeConflicts = new ArrayList<>();
     ICommit parentBranchCommit;

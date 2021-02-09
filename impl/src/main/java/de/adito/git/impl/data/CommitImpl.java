@@ -19,7 +19,7 @@ public class CommitImpl implements ICommit
   private List<ICommit> parents = null;
   public static final ICommit VOID_COMMIT = VoidCommit.getInstance();
 
-  public CommitImpl(RevCommit pRevCommit)
+  public CommitImpl(@NotNull RevCommit pRevCommit)
   {
     revCommit = pRevCommit;
   }
