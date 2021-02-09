@@ -381,10 +381,11 @@ public class RepositoryImpl implements IRepository
         pullCommand.setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig()));
 
         PullResult pullResult = pullCommand.call();
-        String currentCommitId = pullResult.getRebaseResult().getCurrentCommit() == null ?
-            null : ObjectId.toString(pullResult.getRebaseResult().getCurrentCommit().getId());
-        iRebaseResult = _handlePullResult(pullResult::getRebaseResult, currentCommitId, targetName,
-                                          new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentHeadName, targetName)));
+        RevCommit currentCommit = pullResult.getRebaseResult().getCurrentCommit();
+        String currentCommitId = currentCommit == null ? null : ObjectId.toString(currentCommit.getId());
+        RevCommit forkPointRef = RepositoryImplHelper.findForkPoint(git, currentHeadName, targetName);
+        ICommit forkPoint = forkPointRef == null ? CommitImpl.VOID_COMMIT : new CommitImpl(forkPointRef);
+        iRebaseResult = _handlePullResult(pullResult::getRebaseResult, currentCommitId, targetName, forkPoint);
       }
       else
       {
@@ -403,16 +404,17 @@ public class RepositoryImpl implements IRepository
         }
         if (!conflictingFiles.isEmpty())
         {
-          RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, targetName, currentHeadName);
-          return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, targetName, currentHeadName, new CommitImpl(forkCommit),
+          RevCommit forkRef = RepositoryImplHelper.findForkPoint(git, targetName, currentHeadName);
+          ICommit forkCommit = forkRef == null ? CommitImpl.VOID_COMMIT : new CommitImpl(forkRef);
+          return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, targetName, currentHeadName, forkCommit,
                                                                              conflictingFiles, this::diff),
                                       RebaseResult.Status.CONFLICTS);
         }
         RebaseCommand rebaseCommand = git.rebase();
         rebaseCommand.setOperation(RebaseCommand.Operation.CONTINUE);
         RebaseResult rebaseResult = rebaseCommand.call();
-        iRebaseResult = _handlePullResult(() -> rebaseResult, currentHeadName, targetName,
-                                          rebaseResult.getCurrentCommit() == null ? null : new CommitImpl(rebaseResult.getCurrentCommit().getParent(0)));
+        ICommit baseCommit = rebaseResult.getCurrentCommit() == null ? CommitImpl.VOID_COMMIT : new CommitImpl(rebaseResult.getCurrentCommit().getParent(0));
+        iRebaseResult = _handlePullResult(() -> rebaseResult, currentHeadName, targetName, baseCommit);
       }
       return iRebaseResult;
     }
@@ -476,7 +478,7 @@ public class RepositoryImpl implements IRepository
 
   @NotNull
   private IRebaseResult _handlePullResult(@NotNull Supplier<RebaseResult> pResultSupplier,
-                                          String pCurrHeadName, String pTargetName, CommitImpl pForkPoint) throws AditoGitException
+                                          @Nullable String pCurrHeadName, @Nullable String pTargetName, @NotNull ICommit pForkPoint) throws AditoGitException
   {
     if (!pResultSupplier.get().getStatus().isSuccessful())
     {
@@ -493,6 +495,16 @@ public class RepositoryImpl implements IRepository
       }
       if (!conflictFilesSet.isEmpty())
       {
+        if (pCurrHeadName == null)
+        {
+          throw new AditoGitException("Found conflicts during the pull, but could not determine the current HEAD -> Can not display conflicts." +
+                                          " Resolve the conflicts manually and mark them as resolved before continuing");
+        }
+        if (pTargetName == null)
+        {
+          throw new AditoGitException("Found conflicts during the pull, but could not determine the target branch -> Can not display conflicts." +
+                                          " Resolve the conflicts manually and mark them as resolved before continuing");
+        }
         return new RebaseResultImpl(RepositoryImplHelper.getMergeConflicts(git, pCurrHeadName, pTargetName, pForkPoint, conflictFilesSet, this::diff),
                                     pResultSupplier.get().getStatus());
       }
@@ -637,8 +649,8 @@ public class RepositoryImpl implements IRepository
 
       File tld = getTopLevelDirectory();
       IFileContentInfo emptyContentInfo = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
-      List<DiffEntry> listDiff = RepositoryImplHelper.doDiff(git, ObjectId.fromString(pOriginal.getId()), pCompareTo == null ? null
-          : ObjectId.fromString(pCompareTo.getId()));
+      ObjectId compareTo = pCompareTo == null || pCompareTo == CommitImpl.VOID_COMMIT ? null : ObjectId.fromString(pCompareTo.getId());
+      List<DiffEntry> listDiff = RepositoryImplHelper.doDiff(git, ObjectId.fromString(pOriginal.getId()), compareTo);
 
       if (listDiff != null)
       {
@@ -1296,8 +1308,10 @@ public class RepositoryImpl implements IRepository
                                                                                    conflictingFiles, this::diff);
           return new MergeDetailsImpl(mergeConflicts, currentBranchId, conflictingBranchId);
         }
+        RevCommit forkPointRef = RepositoryImplHelper.findForkPoint(git, currentBranchId, conflictingBranchId);
+        ICommit forkPointCommit = forkPointRef == null ? CommitImpl.VOID_COMMIT : new CommitImpl(forkPointRef);
         List<IMergeData> mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, currentBranchId, conflictingBranchId,
-                                                                                 new CommitImpl(RepositoryImplHelper.findForkPoint(git, currentBranchId, conflictingBranchId)),
+                                                                                 forkPointCommit,
                                                                                  conflictingFiles, this::diff);
         return new MergeDetailsImpl(mergeConflicts, currentBranchId, conflictingBranchId);
       }
@@ -1360,7 +1374,7 @@ public class RepositoryImpl implements IRepository
       if (!status.blockingFirst().map(pStatus -> pStatus.getConflicting().isEmpty()).orElse(true))
       {
         RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
-        return RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, new CommitImpl(forkCommit),
+        return RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, forkCommit == null ? CommitImpl.VOID_COMMIT : new CommitImpl(forkCommit),
                                                       status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet()),
                                                       this::diff);
       }
@@ -1395,9 +1409,8 @@ public class RepositoryImpl implements IRepository
         {
           RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
           logger.log(Level.INFO, () -> String.format("base commit for merge: %s", forkCommit));
-          if (forkCommit != null)
-            mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, new CommitImpl(forkCommit),
-                                                                    mergeResult.getConflicts().keySet(), this::diff);
+          mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, forkCommit == null ? CommitImpl.VOID_COMMIT : new CommitImpl(forkCommit),
+                                                                  mergeResult.getConflicts().keySet(), this::diff);
         }
       }
       catch (GitAPIException e)
