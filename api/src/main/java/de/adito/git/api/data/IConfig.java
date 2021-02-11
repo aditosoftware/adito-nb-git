@@ -73,10 +73,10 @@ public interface IConfig
    * returns the passphrase registered with the sshKey of this config or null if no passphrase saved/the key is not set
    * IMPORTANT: Overwrite the returned char array as soon as possible
    *
-   * @param pRemoteUrl url for the remote for which to retrieve the passphrase, null if not known
+   * @param pSSHKeyLocation location of the key for which to retrieve the passphrase, null if not known
    * @return passphrase registered with the sshKey
    */
-  @Nullable char[] getPassphrase(@Nullable String pRemoteUrl);
+  @Nullable char[] getPassphrase(@NotNull String pSSHKeyLocation);
 
   /**
    * returns the password registered to the current user/repository/remote combination if available, else null
@@ -139,10 +139,10 @@ public interface IConfig
   /**
    * save the passphrase for the given remote URL in the keyring
    *
-   * @param pPassphrase new passphrase for the ssh key, null means no passphrase required
-   * @param pRemoteUrl  url of the remote, or null if not known
+   * @param pPassphrase     new passphrase for the ssh key, null means no passphrase required
+   * @param pSSHKeyLocation path to the ssh key
    */
-  void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl) throws UnknownRemoteRepositoryException;
+  void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pSSHKeyLocation);
 
   /**
    * save the password for a remote URL in the keyring

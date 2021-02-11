@@ -8,13 +8,13 @@ import com.jcraft.jsch.Session;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IUserInputPrompt;
 import de.adito.git.api.data.IConfig;
-import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.impl.http.GitHttpUtil;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.logging.Level;
@@ -102,6 +102,28 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   }
 
   /**
+   * Try and get the ssh key that will be used for auth purposes, either by getting it from the gitUserInfo or by checking the config for the set location for the
+   * given remote url
+   *
+   * @param pRemoteUrl remote url to fall back on
+   * @return path to the ssh key that will be used for auth purposes
+   */
+  @Nullable
+  private String getSetSSHKeyLocation(@Nullable String pRemoteUrl)
+  {
+    File sshKeyFile = gitUserInfo.getSshKeyFile();
+    if (sshKeyFile != null)
+    {
+      return sshKeyFile.toString();
+    }
+    else if (pRemoteUrl != null)
+    {
+      return config.getSshKeyLocation(pRemoteUrl);
+    }
+    return null;
+  }
+
+  /**
    * JschConfigSessionFactory that utilizes password and alternative ssh key locations if need be
    */
   private class _SshSessionFactory extends JschConfigSessionFactory
@@ -156,6 +178,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
           if (result.getUserArrayInput() != null)
           {
             gitUserInfo.setPassPhrase(String.valueOf(result.getUserArrayInput()));
+            config.setPassphrase(result.getUserArrayInput(), getSetSSHKeyLocation(remoteUrl));
           }
         }
       }
@@ -179,13 +202,14 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     @Override
     public void reset(URIish pUri)
     {
-      try
+      String sshKeyLocation = getSetSSHKeyLocation(pUri.toString());
+      if (sshKeyLocation != null)
       {
-        config.setPassphrase(null, pUri.toString());
+        config.setPassphrase(null, config.getSshKeyLocation(pUri.toString()));
       }
-      catch (UnknownRemoteRepositoryException pE)
+      else
       {
-        logger.log(Level.INFO, pE, () -> "Tried to reset passphrase for pUri " + pUri + " but couldn't find matching repository");
+        logger.log(Level.INFO, () -> "Tried to reset passphrase for pUri " + pUri + " but couldn't find matching repository");
       }
     }
 

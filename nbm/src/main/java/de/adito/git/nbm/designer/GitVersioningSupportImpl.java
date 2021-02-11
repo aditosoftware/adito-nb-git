@@ -24,7 +24,7 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     String branchName = pOptions == null ? null : pOptions.get("branch");
     String remote = pOptions == null ? null : pOptions.get("remote");
     String tag = pOptions == null ? null : pOptions.get("tag");
-    repo.cloneProject(null, pTarget.getParentFile().getAbsolutePath(), pTarget.getName(), pRemoteURI, branchName, tag, remote, null, null);
+    repo.cloneProject(null, pTarget.getParentFile().getAbsolutePath(), pTarget.getName(), pRemoteURI, branchName, tag, remote, null);
     return true;
   }
 

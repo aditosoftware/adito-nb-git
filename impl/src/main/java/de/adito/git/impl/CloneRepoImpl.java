@@ -2,8 +2,10 @@ package de.adito.git.impl;
 
 import com.google.inject.Inject;
 import de.adito.git.api.ICloneRepo;
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.IBranch;
+import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.TrackedBranchStatus;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
@@ -31,25 +33,27 @@ import java.util.*;
 public class CloneRepoImpl implements ICloneRepo
 {
   private final ISshProvider sshProvider;
+  private final CloneConfig cloneConfig;
 
 
   @Inject
-  CloneRepoImpl(ISshProvider pSshProvider)
+  CloneRepoImpl(ISshProvider pSshProvider, IKeyStore pKeyStore)
   {
     sshProvider = pSshProvider;
+    cloneConfig = new CloneConfig(pKeyStore);
   }
 
   /**
    * {@inheritDoc}
    */
   @NotNull
-  public List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, String pSshPath, char[] pSshKey) throws AditoGitException
+  public List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException
   {
     Collection<Ref> refs;
     LsRemoteCommand lsRemoteCommand = Git.lsRemoteRepository()
         .setHeads(true)
         .setTags(false)
-        .setTransportConfigCallback(_getTransportConfigCallBack(pSshPath, pSshKey))
+        .setTransportConfigCallback(_getTransportConfigCallBack(pSshPath))
         .setRemote(pUrl);
     try
     {
@@ -70,14 +74,13 @@ public class CloneRepoImpl implements ICloneRepo
   }
 
   @Override
-  public void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
-                           @NotNull String pURL, @Nullable String pBranchName, @Nullable String pTag, @Nullable String pRemote,
-                           String pSshPath, char[] pSshKey) throws AditoGitException
+  public void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName, @NotNull String pURL,
+                           @Nullable String pBranchName, @Nullable String pTag, @Nullable String pRemote, String pSshPath) throws AditoGitException
   {
     File target = new File(pLocalPath, pProjectName);
     CloneCommand cloneCommand = Git.cloneRepository()
         .setURI(pURL)
-        .setTransportConfigCallback(_getTransportConfigCallBack(pSshPath, pSshKey))
+        .setTransportConfigCallback(_getTransportConfigCallBack(pSshPath))
         .setDirectory(target);
 
     if (pProgressHandle != null)
@@ -109,12 +112,14 @@ public class CloneRepoImpl implements ICloneRepo
     }
   }
 
-  private TransportConfigCallback _getTransportConfigCallBack(String pSshKeyLocation, char[] pSshKey)
+  public IConfig getConfig()
   {
-    CloneConfig cloneConfig = new CloneConfig();
-    cloneConfig.setSshKeyLocationForUrl(pSshKeyLocation, null);
-    cloneConfig.setPassphrase(pSshKey, null);
+    return cloneConfig;
+  }
 
+  private TransportConfigCallback _getTransportConfigCallBack(@Nullable String pSshKeyLocation)
+  {
+    cloneConfig.setSshKeyLocationForUrl(pSshKeyLocation, null);
     return sshProvider.getTransportConfigCallBack(cloneConfig);
   }
 

@@ -1,8 +1,6 @@
 package de.adito.git.nbm.wizard;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import de.adito.git.api.data.IBranch;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -89,14 +87,7 @@ public class AditoRepositoryCloneWizard implements WizardDescriptor.ProgressInst
   @Override
   public Set instantiate(ProgressHandle pHandle)
   {
-    String localPath = wizard.getProperty(W_PROJECT_PATH).toString();
-    String projectName = wizard.getProperty(W_PROJECT_NAME).toString();
-    String repoPath = wizard.getProperty(W_REPOSITORY_PATH).toString();
-    String sshPath = Strings.emptyToNull(wizard.getProperty(W_SSH_PATH).toString());
-    char[] sshKey = (char[]) wizard.getProperty(W_SSH_KEY_PASS);
-    IBranch branch = (IBranch) wizard.getProperty(W_BRANCH);
-
-    FileObject instantiate = AditoRepositoryCloneWizardExec.instantiate(pHandle, localPath, projectName, repoPath, sshPath, sshKey, branch);
+    FileObject instantiate = AditoRepositoryCloneWizardExec.instantiate(pHandle, wizard);
     return instantiate == null ? Collections.emptySet() : Sets.newHashSet(instantiate);
   }
 

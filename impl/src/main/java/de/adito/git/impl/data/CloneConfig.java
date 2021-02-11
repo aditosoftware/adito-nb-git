@@ -1,5 +1,6 @@
 package de.adito.git.impl.data;
 
+import de.adito.git.api.IKeyStore;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IRemote;
 import org.jetbrains.annotations.NotNull;
@@ -12,8 +13,16 @@ import java.util.List;
  */
 public class CloneConfig implements IConfig
 {
+
+  private final IKeyStore keyStore;
   private char[] passphrase;
   private String sshKeyLocation;
+
+  public CloneConfig(IKeyStore pKeyStore)
+  {
+    keyStore = pKeyStore;
+  }
+
 
   @Override
   public @Nullable String getUserName()
@@ -35,8 +44,10 @@ public class CloneConfig implements IConfig
 
   @Nullable
   @Override
-  public char[] getPassphrase(String pRemoteUrl)
+  public char[] getPassphrase(@NotNull String pSshKeyLocation)
   {
+    if (passphrase == null)
+      passphrase = keyStore.read(pSshKeyLocation);
     return passphrase;
   }
 
@@ -96,9 +107,16 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl)
+  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pSshKeyLocation)
   {
     passphrase = pPassphrase;
+    if (pSshKeyLocation != null)
+    {
+      if (pPassphrase != null)
+        keyStore.save(pSshKeyLocation, pPassphrase, null);
+      else
+        keyStore.delete(pSshKeyLocation);
+    }
   }
 
   @Override

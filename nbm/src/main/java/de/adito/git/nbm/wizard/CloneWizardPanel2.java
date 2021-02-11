@@ -108,14 +108,17 @@ public class CloneWizardPanel2 implements WizardDescriptor.Panel<WizardDescripto
       return;
     }
     String sshKeyLocation = (String) wizard.getProperty(AditoRepositoryCloneWizard.W_SSH_PATH);
-    char[] sshKey = (char[]) wizard.getProperty(AditoRepositoryCloneWizard.W_SSH_KEY_PASS);
     String repositoryUrl = (String) wizard.getProperty(AditoRepositoryCloneWizard.W_REPOSITORY_PATH);
     if (repositoryUrl != null)
     {
       List<IBranch> branchesFromRemoteRepo;
       try
       {
-        branchesFromRemoteRepo = cloneRepo.getBranchesFromRemoteRepo(repositoryUrl, sshKeyLocation, sshKey);
+        branchesFromRemoteRepo = cloneRepo.getBranchesFromRemoteRepo(repositoryUrl, sshKeyLocation);
+        if (sshKeyLocation == null || sshKeyLocation.isEmpty())
+        {
+          wizard.putProperty(AditoRepositoryCloneWizard.W_SSH_PATH, cloneRepo.getConfig().getSshKeyLocation(repositoryUrl));
+        }
       }
       catch (AditoGitException pE)
       {
