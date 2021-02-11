@@ -77,10 +77,9 @@ public class ConfigImpl implements IConfig
 
   @Nullable
   @Override
-  public char[] getPassphrase(@Nullable String pRemoteUrl)
+  public char[] getPassphrase(@NotNull String pSSHKeyLocation)
   {
-    String sshKeyLocation = getSshKeyLocation(pRemoteUrl);
-    return sshKeyLocation == null ? null : keyStore.read(sshKeyLocation);
+    return keyStore.read(pSSHKeyLocation);
   }
 
   @Nullable
@@ -214,25 +213,19 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pRemoteUrl) throws UnknownRemoteRepositoryException
+  public void setPassphrase(@Nullable char[] pPassphrase, @Nullable String pSSHKeyLocation)
   {
-    String sshKeyLocation = getSshKeyLocation(pRemoteUrl);
-    if (sshKeyLocation != null)
+    if (pSSHKeyLocation == null)
+      return;
+    if (pPassphrase == null)
     {
-      if (pPassphrase == null)
-      {
-        keyStore.delete(sshKeyLocation);
-        logger.log(Level.INFO, () -> String.format("git: removed password for key %s", sshKeyLocation));
-      }
-      else
-      {
-        keyStore.save(sshKeyLocation, pPassphrase, null);
-        logger.log(Level.INFO, () -> String.format("git: saved password for key %s", sshKeyLocation));
-      }
+      keyStore.delete(pSSHKeyLocation);
+      logger.log(Level.INFO, () -> String.format("git: removed password for key %s", pSSHKeyLocation));
     }
     else
     {
-      throw new UnknownRemoteRepositoryException("Could not find any valid key in the config for which to set passphrase. Passed url for the remote was: " + pRemoteUrl);
+      keyStore.save(pSSHKeyLocation, pPassphrase, null);
+      logger.log(Level.INFO, () -> String.format("git: saved password for key %s", pSSHKeyLocation));
     }
   }
 

@@ -1,5 +1,7 @@
 package de.adito.git.nbm.wizard;
 
+import de.adito.git.api.ICloneRepo;
+import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.prefs.NBPrefStore;
 import de.adito.git.nbm.sidebar.DocumentUpdateChangeListener;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +28,8 @@ import static de.adito.git.nbm.IGitConstants.GIT_SSH_KEY;
  */
 public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<WizardDescriptor>
 {
+
+  private final ICloneRepo cloneRepo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
   private CloneWizardVisualPanel1 panel1;
   private WizardDescriptor wizard;
   private final ChangeSupport cs = new ChangeSupport(this);
@@ -251,10 +255,14 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
     wizard.putProperty(AditoRepositoryCloneWizard.W_PROJECT_PATH, _getProjectPath());
     preferences.put(GIT_PROJECT_LOCATION, _getProjectPath());
     wizard.putProperty(AditoRepositoryCloneWizard.W_REPOSITORY_PATH, _getRepositoryPath());
-    wizard.putProperty(AditoRepositoryCloneWizard.W_SSH_PATH, _getSshPath());
-    preferences.put(GIT_SSH_KEY, _getSshPath());
-    wizard.putProperty(AditoRepositoryCloneWizard.W_SSH_KEY_PASS, _getSSHPasswort());
-
+    String sshPath = _getSshPath();
+    char[] sshPassword = _getSSHPassword();
+    wizard.putProperty(AditoRepositoryCloneWizard.W_SSH_PATH, sshPath);
+    preferences.put(GIT_SSH_KEY, sshPath);
+    if (sshPath != null && !sshPath.isEmpty() && sshPassword != null)
+    {
+      cloneRepo.getConfig().setPassphrase(sshPassword, sshPath);
+    }
   }
 
   private String _getProjectPath()
@@ -277,7 +285,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
     return panel1 == null ? "" : panel1.getRepositoryUrlTextField().getText();
   }
 
-  private char[] _getSSHPasswort()
+  private char[] _getSSHPassword()
   {
     return panel1.getSshKeyPassField().getPassword();
   }

@@ -3,7 +3,8 @@ package de.adito.git.nbm.designer;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IGitVersioningSupport;
 import de.adito.git.api.ICloneRepo;
 import de.adito.git.nbm.IGitConstants;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.util.lookup.ServiceProvider;
 
 import java.io.File;
@@ -23,7 +24,7 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     String branchName = pOptions == null ? null : pOptions.get("branch");
     String remote = pOptions == null ? null : pOptions.get("remote");
     String tag = pOptions == null ? null : pOptions.get("tag");
-    repo.cloneProject(null, pTarget.getParentFile().getAbsolutePath(), pTarget.getName(), pRemoteURI, branchName, tag, remote, null, null);
+    repo.cloneProject(null, pTarget.getParentFile().getAbsolutePath(), pTarget.getName(), pRemoteURI, branchName, tag, remote, null);
     return true;
   }
 
