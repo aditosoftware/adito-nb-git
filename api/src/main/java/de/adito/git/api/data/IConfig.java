@@ -205,4 +205,12 @@ public interface IConfig
    */
   boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl);
 
+  /**
+   * Remove an existing remote
+   *
+   * @param pRemote Remote that should be removed
+   * @return true if the remote was removed, false if an error occurred
+   */
+  boolean removeRemote(@NotNull IRemote pRemote);
+
 }

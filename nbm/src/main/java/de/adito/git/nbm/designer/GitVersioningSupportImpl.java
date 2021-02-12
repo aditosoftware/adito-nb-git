@@ -16,11 +16,11 @@ import java.util.Map;
 @ServiceProvider(service = IGitVersioningSupport.class)
 public class GitVersioningSupportImpl implements IGitVersioningSupport
 {
+  private static final ICloneRepo repo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
 
   @Override
   public boolean performClone(@NotNull String pRemoteURI, @NotNull File pTarget, @Nullable Map<String, String> pOptions) throws Exception
   {
-    ICloneRepo repo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
     String branchName = pOptions == null ? null : pOptions.get("branch");
     String remote = pOptions == null ? null : pOptions.get("remote");
     String tag = pOptions == null ? null : pOptions.get("tag");

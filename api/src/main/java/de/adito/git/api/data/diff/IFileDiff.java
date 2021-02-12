@@ -71,9 +71,13 @@ public interface IFileDiff extends IFileChangeType
    * @param pUseWordBasedResolve true if the delta should be accepted by using the word-differences, based on the original values (does not override new additions),
    *                             false if the text in the delta should match the original text of the delta
    * @param pCreateTextEvents    true if TextEvents should be created for the changes imparted due to accepting the delta, false if none should be created
+   * @param pOverride            if true, the resulting textChangeEvent replaces the whole delta instead of potentially only adding parts. This may be necessary if an
+   *                             ADD change has had some text inserted and should then be accepted. The result with pOverride = false would be the text and the added
+   *                             parts, if pOverride is set to true the change overrides the previously inserted text and leaves the text with only the added parts
    * @return Event describing the changes done to the old side of the diff
    */
-  List<IDeltaTextChangeEvent> acceptDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents);
+  @NotNull
+  List<IDeltaTextChangeEvent> acceptDelta(@NotNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents, boolean pOverride);
 
   /**
    * Inserts the text on the NEW side at the end of the OLD side without removing the OLD text
@@ -82,7 +86,8 @@ public interface IFileDiff extends IFileChangeType
    * @param pChangeDelta Delta whose text should be inserted
    * @return Event describing the changes done to the old side of the diff
    */
-  IDeltaTextChangeEvent appendDeltaText(IChangeDelta pChangeDelta);
+  @NotNull
+  IDeltaTextChangeEvent appendDeltaText(@NotNull IChangeDelta pChangeDelta);
 
   /**
    * Reverts the changes introduced by the given Delta (applies changes from OLD side to NEW side)
@@ -92,14 +97,15 @@ public interface IFileDiff extends IFileChangeType
    *                             a whole line should be utilized
    * @return Event describing the changes done to the new side of the diff
    */
-  List<IDeltaTextChangeEvent> revertDelta(IChangeDelta pChangeDelta, boolean pUseWordBasedResolve);
+  @NotNull
+  List<IDeltaTextChangeEvent> revertDelta(@NotNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve);
 
   /**
    * Discards the changes introduced by the given Delta
    *
    * @param pChangeDelta ChangeDelta to discard
    */
-  void discardDelta(IChangeDelta pChangeDelta);
+  void discardDelta(@NotNull IChangeDelta pChangeDelta);
 
   /**
    * Incorporates the changes done in the DocumentEvent into this diff
@@ -119,16 +125,18 @@ public interface IFileDiff extends IFileChangeType
    * @param pChangeSide Which side of the diff
    * @return Text if the passed side, up-to-date if any deltas were accepted
    */
-  String getText(EChangeSide pChangeSide);
+  String getText(@NotNull EChangeSide pChangeSide);
 
   /**
    * Mark all changeDeltas as conflicting that clash with any of the changeDeltas from the other IFileDiff
    * Intended direction of the changes here is always NEW -> OLD (so the old version of the text between the IFileDiffs should be the same)
    *
    * @param pOtherFileDiff IFileDiff for which to mark conflicting changes
+   * @param pConflictSide  Side of the conflict for the passed IFileDiff
    * @return List of conflictPairs, denoting the indices of the list of deltas of both diffs that are conflicting
    */
-  List<ConflictPair> markConflicting(IFileDiff pOtherFileDiff);
+  @NotNull
+  List<ConflictPair> markConflicting(@NotNull IFileDiff pOtherFileDiff, @NotNull EConflictSide pConflictSide);
 
   /**
    * checks if the IFileDiff matches the filePath, works with renames

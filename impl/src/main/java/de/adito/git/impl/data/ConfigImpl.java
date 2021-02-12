@@ -342,4 +342,20 @@ public class ConfigImpl implements IConfig
     return true;
   }
 
+  @Override
+  public boolean removeRemote(@NotNull IRemote pRemote)
+  {
+    StoredConfig config = git.getRepository().getConfig();
+    config.unsetSection(REMOTE_SECTION_KEY, pRemote.getName());
+    try
+    {
+      config.save();
+    }
+    catch (IOException pE)
+    {
+      return false;
+    }
+    return true;
+  }
+
 }

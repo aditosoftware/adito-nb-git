@@ -92,6 +92,13 @@ class GitConfigAction extends AbstractTableAction
   {
     List<IRemote> storedRemotes = pRepository.getRemotes();
     List<IRemote> remotes = pDialogResult.getInformation().get(Constants.REMOTE_INFO_KEY).stream().map(pObj -> (IRemote) pObj).collect(Collectors.toList());
+    for (IRemote storedRemote : storedRemotes)
+    {
+      if (!remotes.contains(storedRemote))
+      {
+        pRepository.getConfig().removeRemote(storedRemote);
+      }
+    }
     for (IRemote remote : remotes)
     {
       if (!storedRemotes.contains(remote))

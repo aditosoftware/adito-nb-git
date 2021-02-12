@@ -107,7 +107,7 @@ public class MergeConflictSequence
     pProgressFacade.executeAndBlockWithProgress("Auto-Resolving", pProgressHandle -> {
       pProgressHandle.switchToDeterminate(pMergeConflicts.size());
       List<File> resolvedFiles = new ArrayList<>();
-      for (int index = pMergeConflicts.size() - 1; index > 0; index--)
+      for (int index = pMergeConflicts.size() - 1; index >= 0; index--)
       {
         IMergeData mergeData = pMergeConflicts.get(index);
         pProgressHandle.setDescription("Trying to resolve  " + mergeData.getFilePath());
