@@ -6,6 +6,26 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.5.1</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>Added the "Renormalize" functionality: This action makes it so all files have the lineending in the index that is determined by the gitattributes file. If a file has the wrong lineending in the index, just changing a line and committing does not fix that issue</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Branches with unrelated histories may now be merged</li>
+    <li>The plugin can now resolve conflicts where one side encloses the other</li>
+    <li>It is now possible to remove remotes from the Config Dialog. The remotes are also only written to disk upon pressing the Save button instead of immediately after adding the remote</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: The location of the ssh key to use and its passphrase is asked more than once when checking out a project via git</li>
+    <li>Fix: If a wrong passphrase for a ssh key is stored, it does not get overriden when the user inserts the correct passphrase</li>
+    <li>Fix: The merge conflict dialogs no longer ignore the setting for the newline treatment</li>
+    <li>Fix: Potential Nullpointer when working with detached branches</li>
+    <li>Fix: The "Resolve Conflicts" action does not try and resolve the first file in the list</li>
+    <li>Fix: Error when retrieving the realm name for github addresses</li>
+  </ul>
   <p style="font-weight: bold;">v.1.5.0</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
