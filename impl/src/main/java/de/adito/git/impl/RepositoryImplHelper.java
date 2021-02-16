@@ -84,7 +84,7 @@ public class RepositoryImplHelper
     try
     {
       AbstractTreeIterator oldTreeIter;
-      if (pCompareToId == null || pCompareToId.equals(ObjectId.fromString(CommitImpl.VOID_COMMIT.getId())))
+      if (pCompareToId == null || pCompareToId.toString().equals(CommitImpl.VOID_COMMIT.getId()))
         oldTreeIter = new EmptyTreeIterator();
       else
         oldTreeIter = prepareTreeParser(pGit.getRepository(), pCompareToId);
