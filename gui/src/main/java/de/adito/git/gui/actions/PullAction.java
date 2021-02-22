@@ -118,7 +118,9 @@ class PullAction extends AbstractAction
         {
           if (rebaseResult.getResultType() != IRebaseResult.ResultType.UP_TO_DATE)
             notifyUtil.notify(Util.getResource(this.getClass(), "pullSuccessTitle"), Util.getResource(this.getClass(), "pullSuccessMsg"), false,
-                              actionProvider.getDiffCommitToHeadAction(repository, Observable.just(Optional.of(List.of(head))), Observable.just(Optional.empty())));
+                              actionProvider.getDiffCommitToHeadAction(Observable.just(Optional.of(pRepo)),
+                                                                       Observable.just(Optional.of(List.of(head))),
+                                                                       Observable.just(Optional.empty())));
           else
           {
             notifyUtil.notify(Util.getResource(this.getClass(), "pullSuccessTitle"), Util.getResource(this.getClass(), "pullAlreadyUpToDate"), false);
@@ -174,7 +176,8 @@ class PullAction extends AbstractAction
         if (stashedCommitId != null)
         {
           pProgressHandle.setDescription(Util.getResource(this.getClass(), "unstashChangesMessage"));
-          StashCommand.doUnStashing(mergeConflictSequence, stashedCommitId, Observable.just(repository.blockingFirst()));
+          logger.log(Level.INFO, () -> Util.getResource(this.getClass(), "unstashChangesMessage"));
+          StashCommand.doUnStashing(mergeConflictSequence, stashedCommitId, Observable.just(Optional.of(pRepo)));
           prefStore.put(STASH_ID_KEY, null);
         }
       }
@@ -257,9 +260,9 @@ class PullAction extends AbstractAction
       {
         if (repositoryState.get().getCurrentRemoteTrackedBranch() != null)
         {
-          IUserPromptDialogResult dialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "rebaseMergeCommitsWarning"),
-                                                                                  List.of(EButtons.MERGE_REMOTE, EButtons.CANCEL),
-                                                                                  List.of(EButtons.MERGE_REMOTE));
+          IUserPromptDialogResult<?, ?> dialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "rebaseMergeCommitsWarning"),
+                                                                                        List.of(EButtons.MERGE_REMOTE, EButtons.CANCEL),
+                                                                                        List.of(EButtons.MERGE_REMOTE));
           if (dialogResult.isOkay())
           {
             actionProvider.getMergeAction(Observable.just(Optional.of(pRepo)), Observable.just(Optional.of(repositoryState.get().getCurrentRemoteTrackedBranch())))
