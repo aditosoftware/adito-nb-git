@@ -338,6 +338,21 @@ public class RepositoryImpl implements IRepository
     return resultMap;
   }
 
+  @Override
+  public boolean isUpToDate(@NotNull IBranch pCommit, @NotNull IBranch pCompareTo) throws AditoGitException
+  {
+    fetch();
+    try
+    {
+      String forkPointId = ObjectId.toString(RepositoryImplHelper.findForkPoint(git, pCommit.getName(), pCompareTo.getName()));
+      return forkPointId.equals(pCompareTo.getId());
+    }
+    catch (IOException pE)
+    {
+      throw new AditoGitException("Failed to find find fork-point due to an exception", pE);
+    }
+  }
+
   private void _setRefSpec(PushCommand pPush, IRepositoryState pRepositoryState)
   {
     IBranch remoteTrackedBranch = pRepositoryState.getCurrentRemoteTrackedBranch();

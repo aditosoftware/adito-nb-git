@@ -153,6 +153,15 @@ public interface IRepository extends IDiscardable
   Map<String, EPushResult> push(boolean pIsPushTags, @Nullable String pRemoteName) throws AditoGitException;
 
   /**
+   * Checks if the branch contains all changes from the second branch
+   *
+   * @param pBranch    the current branch/branch to check
+   * @param pCompareTo the method checks if the changes from this branch are contained in the first branch. For a pull this would be the upstream branch
+   * @return true if the changes from the second branch are contained in the first, false otherwise
+   */
+  boolean isUpToDate(@NotNull IBranch pBranch, @NotNull IBranch pCompareTo) throws AditoGitException;
+
+  /**
    * Pulls the current contents of the tracked remote branch of the currently selected local branch
    * from origin via pull --rebase
    *

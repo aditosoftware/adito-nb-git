@@ -41,6 +41,7 @@ class PullAction extends AbstractAction
 {
   private static final String STASH_ID_KEY = "pull::stashCommitId";
   private static final String NO_VALID_REPO_MSG = "no valid repository found";
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final Observable<Optional<IRepository>> repository;
   private final IPrefStore prefStore;
   private final IDialogProvider dialogProvider;
@@ -67,8 +68,8 @@ class PullAction extends AbstractAction
     progressFacade = pProgressFacade;
     saveUtil = pSaveUtil;
     mergeConflictSequence = pMergeConflictSequence;
-    putValue(Action.NAME, "Pull");
-    putValue(Action.SHORT_DESCRIPTION, "Pull all changes from the remote Branch");
+    putValue(Action.NAME, Util.getResource(this.getClass(), "pullActionName"));
+    putValue(Action.SHORT_DESCRIPTION, Util.getResource(this.getClass(), "pullTooltipMsg"));
     repository = pRepository;
   }
 
@@ -78,7 +79,7 @@ class PullAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeAndBlockWithProgress("Updating Project...", this::_doRebase);
+    progressFacade.executeAndBlockWithProgress(Util.getResource(this.getClass(), "pullHandleTitleMsg"), this::_doRebase);
   }
 
   /**
@@ -88,12 +89,27 @@ class PullAction extends AbstractAction
   private void _doRebase(@NotNull IProgressHandle pProgressHandle)
   {
     saveUtil.saveUnsavedFiles();
-    pProgressHandle.setDescription("Retrieving Repository");
+    pProgressHandle.setDescription(Util.getResource(this.getClass(), "pullGetRepoHandleMsg"));
     IRepository pRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_VALID_REPO_MSG));
     boolean doAbort = false;
     try
     {
       ICommit head = pRepo.getCommit(null);
+      IRepositoryState repositoryState = pRepo.getRepositoryState().blockingFirst(Optional.empty()).orElse(null);
+      if (repositoryState == null || repositoryState.getCurrentRemoteTrackedBranch() == null)
+      {
+        notifyUtil.notify(Util.getResource(this.getClass(), "pullAbortTitle"), Util.getResource(this.getClass(), "pullFailedRepoStateMsg"), false);
+        return;
+      }
+      else
+      {
+        pProgressHandle.setDescription(Util.getResource(this.getClass(), "pullFetchHandleMsg"));
+        if (pRepo.isUpToDate(repositoryState.getCurrentBranch(), repositoryState.getCurrentRemoteTrackedBranch()))
+        {
+          notifyUtil.notify(Util.getResource(this.getClass(), "pullBrancheUpToDateTitle"), Util.getResource(this.getClass(), "pullBrancheUpToDateMsg"), false);
+          return;
+        }
+      }
       if (pRepo.getStatus().blockingFirst().map(pStatus -> !pStatus.getConflicting().isEmpty()).orElse(false))
       {
         notifyUtil.notify(Util.getResource(this.getClass(), "pullExistingConflictingFilesTitle"),
@@ -111,7 +127,7 @@ class PullAction extends AbstractAction
       }
       while (!doAbort)
       {
-        pProgressHandle.setDescription("Rebasing");
+        pProgressHandle.setDescription(Util.getResource(this.getClass(), "pullRebaseHandleMsg"));
         IRebaseResult rebaseResult =
             pRepo.pull(false);
         if (rebaseResult.isSuccess())
@@ -129,7 +145,7 @@ class PullAction extends AbstractAction
         }
         if (!rebaseResult.getMergeConflicts().isEmpty())
         {
-          pProgressHandle.setDescription("Resolving Conflicts");
+          pProgressHandle.setDescription(Util.getResource(this.getClass(), "pullResolveConflictsHandleMsg"));
           // if the pull should be aborted, _handleConflictDialog returns true
           IMergeDetails mergeDetails = new MergeDetailsImpl(rebaseResult.getMergeConflicts(), "Local", "Remote");
           doAbort = _handleConflictDialog(pRepo, mergeDetails);
@@ -150,7 +166,7 @@ class PullAction extends AbstractAction
     catch (AuthCancelledException pE)
     {
       notifyUtil.notify(Util.getResource(this.getClass(), "pullAbortTitle"), Util.getResource(this.getClass(), "pullAbortDueToAuthCancel"), false);
-      Logger.getLogger(this.getClass().getName()).log(Level.WARNING, pE, () -> Util.getResource(this.getClass(), "authCancelledLogMessage"));
+      logger.log(Level.WARNING, pE, () -> Util.getResource(this.getClass(), "authCancelledLogMessage"));
     }
     catch (AditoGitException e)
     {

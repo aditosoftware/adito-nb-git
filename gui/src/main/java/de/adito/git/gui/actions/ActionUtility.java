@@ -1,5 +1,6 @@
 package de.adito.git.gui.actions;
 
+import com.google.inject.internal.Messages;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
@@ -10,18 +11,24 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IStashChangesQuestionDialogResult;
+import de.adito.git.impl.Util;
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author m.kaspera, 01.07.2019
  */
 class ActionUtility
 {
+
+  private static final Logger LOGGER = Logger.getLogger(ActionUtility.class.getName());
 
   /**
    * Asks the user if he wants to stash the changed files, discard the changes or abort the current action
@@ -46,14 +53,17 @@ class ActionUtility
     if (dialogResult.isStashChanges())
     {
       if (pHandle != null)
-        pHandle.setDescription("Stashing existing changes");
-      pPrefStore.put(pStashKey, pRepository.stashChanges(null, true));
+        pHandle.setDescription(Util.getResource(ActionUtility.class, "stashProgressMsg"));
+      String stashId = pRepository.stashChanges(null, true);
+      LOGGER.log(Level.INFO, () -> MessageFormat.format(Util.getResource(ActionUtility.class, "stashDoneMsg"), stashId));
+      pPrefStore.put(pStashKey, stashId);
     }
     else if (dialogResult.isDiscardChanges())
     {
       ICommit head = pRepository.getCommit(null);
       if (head == null)
-        throw new AditoGitException("Cannot determine HEAD, so the current changes can't be discarded");
+        throw new AditoGitException(Util.getResource(ActionUtility.class, "stashDiscardErrorMsg"));
+      LOGGER.log(Level.INFO, () -> Messages.format(Util.getResource(ActionUtility.class, "stashDiscardMsg"), head.getId()));
       pRepository.reset(head.getId(), EResetType.HARD);
     }
     return true;
