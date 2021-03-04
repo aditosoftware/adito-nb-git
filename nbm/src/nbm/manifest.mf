@@ -387,4 +387,4 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: It is now possible to get the changes of the first commit of a file/the first commit in general</li>
     <li>Fix: NullPointerException if diff'ing a file where no changes can be accepted</li>
   </ul>
-OpenIDE-Module-Short-Description: Git Support for NetBeans IDE
+OpenIDE-Module-Short-Description: Git Support for ADITO Designer
