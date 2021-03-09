@@ -8,7 +8,7 @@ import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.git.nbm.util.ProjectUtility;
 import de.adito.git.nbm.util.RepositoryUtility;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

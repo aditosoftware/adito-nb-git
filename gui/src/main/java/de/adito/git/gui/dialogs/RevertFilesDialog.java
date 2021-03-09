@@ -16,7 +16,7 @@ import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.inject.Inject;
 import javax.swing.*;

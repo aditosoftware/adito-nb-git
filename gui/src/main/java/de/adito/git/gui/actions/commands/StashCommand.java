@@ -7,7 +7,7 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.data.MergeDetailsImpl;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

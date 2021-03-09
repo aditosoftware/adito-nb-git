@@ -7,7 +7,7 @@ import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;

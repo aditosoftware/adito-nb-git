@@ -12,9 +12,9 @@ import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;

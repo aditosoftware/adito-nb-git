@@ -24,9 +24,9 @@ import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.impl.data.DiffInfoImpl;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -79,7 +79,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     commitFilter = pCommitFilter;
     showAllCheckbox.setEnabled(!pCommitFilter.getFiles().isEmpty());
     showAllCheckbox.setSelected(pCommitFilter.getFiles().isEmpty());
-    showAllCBObservable = Observable.create(new _CheckboxObservable(showAllCheckbox)).startWith(pCommitFilter.getFiles().isEmpty());
+    showAllCBObservable = Observable.create(new _CheckboxObservable(showAllCheckbox)).startWithItem(pCommitFilter.getFiles().isEmpty());
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
@@ -109,7 +109,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
             return Collections.<IDiffInfo>emptyList();
           }
         })
-        .startWith(List.<IDiffInfo>of())
+        .startWithItem(List.of())
         .replay(1)
         .autoConnect(0, disposables::add);
   }

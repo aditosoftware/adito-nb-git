@@ -11,7 +11,7 @@ import de.adito.git.gui.Constants;
 import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.util.reactive.ObservableCollectors;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.FileOwnerQuery;

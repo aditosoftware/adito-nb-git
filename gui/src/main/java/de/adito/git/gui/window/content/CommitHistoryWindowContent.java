@@ -16,9 +16,9 @@ import de.adito.git.gui.swing.SimpleBranchNameListCellRenderer;
 import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import de.adito.git.impl.data.CommitFilterImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,8 +129,10 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
                                                                           .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList())));
     commitFilterObs = Observable.combineLatest(
         Observable.create(new _ComboBoxObservable(branchSelectionBox))
-            .startWith(branchSelectionBox.getSelectedItem() == null ? Optional.empty() : Optional.of((IBranch) branchSelectionBox.getSelectedItem())),
-        Observable.create(new _JTextFieldObservable(authorField)).startWith("").debounce(500, TimeUnit.MILLISECONDS),
+            .startWithItem(branchSelectionBox.getSelectedItem() == null ? Optional.empty() : Optional.of((IBranch) branchSelectionBox.getSelectedItem())),
+        Observable.create(new _JTextFieldObservable(authorField))
+            .startWithItem("")
+            .debounce(500, TimeUnit.MILLISECONDS),
         (pBranch, pAuthor) -> (ICommitFilter) new CommitFilterImpl()
             .setAuthor(pAuthor.isEmpty() ? null : pAuthor)
             .setBranch(pBranch.orElse(null))

@@ -14,9 +14,9 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -9,7 +9,7 @@ import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;

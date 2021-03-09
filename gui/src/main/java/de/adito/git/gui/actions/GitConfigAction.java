@@ -13,7 +13,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IGitConfigDialogResult;
 import de.adito.git.impl.data.SSHKeyDetails;
 import de.adito.git.impl.util.GitRawTextComparator;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -4,9 +4,9 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.impl.observables.PropertyChangeObservable;
 import de.adito.git.impl.util.BiNavigateAbleMap;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -256,7 +256,8 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
       toCouple = pToCouple;
       this.refreshMappings = refreshMappings;
       useInverseMap = pUseInverseMap;
-      propertyChangeDisposable = Observable.create(new PropertyChangeObservable<>(pToCouple, "model")).startWith(Optional.of(pToCouple.getModel()))
+      propertyChangeDisposable = Observable.create(new PropertyChangeObservable<>(pToCouple, "model"))
+          .startWithItem(Optional.of(pToCouple.getModel()))
           .subscribe(pObj -> setOtherScrollBarValueFunction = _getSetOtherScrollbarFunction(pObj.orElse(null), pToCouple));
       disposable = pFileChangesEventObs
           .subscribe(pFileChangesEvent -> refreshMappings(pFileChangesEvent.orElse(null)));

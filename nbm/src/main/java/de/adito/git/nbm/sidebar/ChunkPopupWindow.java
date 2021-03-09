@@ -10,7 +10,7 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.nbm.IGitConstants;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;

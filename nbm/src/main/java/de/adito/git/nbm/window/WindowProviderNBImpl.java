@@ -6,7 +6,7 @@ import de.adito.git.api.IUserPreferences;
 import de.adito.git.api.data.ICommitFilter;
 import de.adito.git.gui.window.HistoryTableManager;
 import de.adito.git.gui.window.IWindowProvider;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
 import org.openide.windows.Mode;

@@ -14,9 +14,9 @@ import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.icon.NBIconLoader;
 import de.adito.git.nbm.util.DocumentObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jetbrains.annotations.NotNull;
 import org.openide.loaders.DataObject;
 import org.openide.windows.WindowManager;
@@ -99,7 +99,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   private void _buildObservables()
   {
     Observable<String> actualText = Observable.create(new DocumentChangeObservable(targetEditor))
-        .startWith(targetEditor.getDocument())
+        .startWithItem(targetEditor.getDocument())
         .switchMap(DocumentObservable::create);
     // An observable that only triggers if the viewPort changes its size (not if it moves)
     Observable<Dimension> viewPortSizeObs = Observable.create(new ViewPortSizeObservable(editorViewPort));

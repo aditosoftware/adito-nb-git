@@ -1,15 +1,18 @@
 package de.adito.git.gui.dialogs;
 
 import com.bulenkov.darcula.DarculaLaf;
-import com.google.inject.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.revivius.nb.darcula.adito.AditoDarkLFCustoms;
 import de.adito.git.gui.guice.AditoGitModule;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.netbeans.swing.plaf.Startup;
 
 import javax.swing.*;
-import javax.swing.border.*;
-import java.util.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author w.glanzer, 07.02.2019

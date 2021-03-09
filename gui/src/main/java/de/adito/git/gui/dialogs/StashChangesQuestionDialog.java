@@ -8,7 +8,7 @@ import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.icon.IIconLoader;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.io.File;

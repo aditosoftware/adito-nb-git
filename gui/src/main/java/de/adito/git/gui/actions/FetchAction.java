@@ -9,7 +9,7 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.event.ActionEvent;

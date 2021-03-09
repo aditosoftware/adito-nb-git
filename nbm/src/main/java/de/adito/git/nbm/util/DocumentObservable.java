@@ -1,11 +1,13 @@
 package de.adito.git.nbm.util;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.event.*;
-import javax.swing.text.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 /**
  * An Observable to check document changes inside the editor tab
@@ -28,7 +30,7 @@ public class DocumentObservable extends AbstractListenerObservable<DocumentListe
   public static Observable<String> create(Document pDocument)
   {
     return Observable.create(new DocumentObservable(pDocument))
-        .startWith(_getText(pDocument));
+        .startWithItem(_getText(pDocument));
   }
 
   @NotNull

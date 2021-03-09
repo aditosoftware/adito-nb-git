@@ -18,8 +18,8 @@ import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.tree.TagTreeBackgroundUpdater;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.renderer.TagTreeCellRenderer;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -7,8 +7,8 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ITag;
 import de.adito.git.gui.actions.IActionProvider;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import javax.swing.*;
 import java.util.List;

@@ -12,7 +12,7 @@ import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

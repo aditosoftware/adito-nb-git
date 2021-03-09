@@ -4,7 +4,7 @@ import de.adito.git.api.dag.IDAGFilterIterator;
 import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

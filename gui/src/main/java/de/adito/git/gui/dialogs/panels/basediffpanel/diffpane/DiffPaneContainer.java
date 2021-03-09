@@ -2,7 +2,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

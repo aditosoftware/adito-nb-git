@@ -12,7 +12,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IResetDialogResult;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;

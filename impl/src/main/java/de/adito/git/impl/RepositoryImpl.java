@@ -16,9 +16,9 @@ import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
@@ -105,21 +105,21 @@ public class RepositoryImpl implements IRepository
         .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())))
         .throttleLatest(500, TimeUnit.MILLISECONDS)
         .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
-        .startWith(Optional.of(RepositoryImplHelper.status(git)))
+        .startWithItem(Optional.of(RepositoryImplHelper.status(git)))
         .replay(1)
         .autoConnect(0, disposables::add);
 
     branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
-        .startWith(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
+        .startWithItem(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
         .replay(1)
         .autoConnect(0, disposables::add);
     currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
-        .startWith(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
+        .startWithItem(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
         .replay(1)
         .autoConnect(0, disposables::add);
     tagList = status.map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
         .distinctUntilChanged()
-        .startWith(List.<ITag>of())
+        .startWithItem(List.<ITag>of())
         .replay(1)
         .autoConnect(0, disposables::add);
 

@@ -21,7 +21,7 @@ import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.awt.event.ActionEvent;
 import java.util.List;

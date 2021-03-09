@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.exception.AditoGitException;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.awt.event.ActionEvent;
 import java.io.File;

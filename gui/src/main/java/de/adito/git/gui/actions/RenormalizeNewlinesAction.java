@@ -8,7 +8,7 @@ import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.openide.util.NbBundle;
 
 import javax.swing.*;
@@ -33,6 +33,16 @@ public class RenormalizeNewlinesAction extends AbstractAction
     dialogProvider = pDialogProvider;
     notifyUtil = pNotifyUtil;
     repository = pRepository;
+  }
+
+  @Override
+  public boolean isEnabled()
+  {
+    return repository.blockingFirst(Optional.empty())
+        .map(pRepo -> pRepo.getStatus().blockingFirst(Optional.empty())
+            .map(IFileStatus::isClean)
+            .orElse(false))
+        .orElse(false);
   }
 
   @Override

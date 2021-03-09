@@ -9,7 +9,7 @@ import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

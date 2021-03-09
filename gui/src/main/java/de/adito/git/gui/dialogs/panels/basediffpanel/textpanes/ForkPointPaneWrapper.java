@@ -4,8 +4,8 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPaneContainer;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

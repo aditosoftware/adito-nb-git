@@ -9,8 +9,8 @@ import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.gui.swing.IEditorUtils;
 import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
 import de.adito.git.impl.util.BiNavigateAbleMap;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

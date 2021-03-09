@@ -4,8 +4,8 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.EConflictSide;
 import de.adito.git.api.data.diff.IMergeData;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.AbstractTableModel;

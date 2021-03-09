@@ -30,8 +30,8 @@ import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.swing.LinedDecorator;
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,9 +112,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       });
       Observable<Boolean> nonEmptyTextObservable = Observable.create(new DocumentChangeObservable(messagePane))
           .switchMap(pDocument -> Observable.create(new _NonEmptyTextObservable(pDocument)))
-          .startWith(messagePane.getDocument().getLength() > 0);
+          .startWithItem(messagePane.getDocument().getLength() > 0);
       selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree))
-          .startWith(List.<File>of())
+          .startWithItem(List.of())
           .replay(1)
           .autoConnect(0, disposables::add);
       disposables.add(Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)

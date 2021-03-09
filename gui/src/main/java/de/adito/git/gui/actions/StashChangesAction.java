@@ -10,7 +10,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IStashChangesDialogResult;
 import de.adito.git.gui.dialogs.results.StashChangesResult;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

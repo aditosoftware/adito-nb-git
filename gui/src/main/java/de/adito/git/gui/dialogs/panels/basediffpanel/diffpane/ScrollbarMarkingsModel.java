@@ -6,8 +6,8 @@ import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MouseFirstActionObservableWrapper;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

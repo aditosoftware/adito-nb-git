@@ -13,7 +13,7 @@ import de.adito.git.gui.actions.commands.StashCommand;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;

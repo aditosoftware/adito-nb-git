@@ -21,7 +21,7 @@ import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.MergeDetailsImpl;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

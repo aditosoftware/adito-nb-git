@@ -1,7 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 import java.awt.Component;
 import java.awt.event.*;

@@ -1,7 +1,7 @@
 package de.adito.git.nbm.observables;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
@@ -36,7 +36,7 @@ public class OpenProjectsObservable extends AbstractListenerObservable<PropertyC
   {
     if (instance == null)
       instance = Observable.create(new OpenProjectsObservable())
-          .startWith(List.of(OpenProjects.getDefault().getOpenProjects()))
+          .startWithItem(List.of(OpenProjects.getDefault().getOpenProjects()))
           .replay(1)
           .autoConnect();
     return instance;

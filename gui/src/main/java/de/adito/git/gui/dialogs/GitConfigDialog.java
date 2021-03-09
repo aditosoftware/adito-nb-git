@@ -19,7 +19,7 @@ import de.adito.git.gui.dialogs.panels.RemotePanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.git.impl.util.GitRawTextComparator;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;

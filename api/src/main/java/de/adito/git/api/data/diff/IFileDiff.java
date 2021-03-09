@@ -2,7 +2,7 @@ package de.adito.git.api.data.diff;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.impl.data.diff.ConflictPair;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

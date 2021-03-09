@@ -3,7 +3,7 @@ package de.adito.git.gui.menu;
 import com.google.inject.Inject;
 import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.api.IRepository;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 
 import javax.swing.*;
 import java.util.List;
