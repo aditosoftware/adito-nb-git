@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs.filechooser;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -70,27 +71,14 @@ public class FileChooserProvider
   /**
    * Creates a JPanel that includes a JFileChooser and a textfield that displays the File that was selected by the FileChooser
    *
-   * @param pLabel             Label for the textfield displaying the selected fiile
-   * @param pFileSelectionMode SelectionMode, only files matching the selected mode may be selected in the JFileChooser
-   * @return JPanel bestehend aus Label, Textfeld und mit dem Textfeld verknüpftem JFileChooser
-   */
-  public static FileChooserPanel createFileChooserPanel(@NotNull String pLabel, @NotNull FileSelectionMode pFileSelectionMode)
-  {
-    return new FileChooserPanel(pLabel, pFileSelectionMode);
-  }
-
-  /**
-   * Creates a JPanel that includes a JFileChooser and a textfield that displays the File that was selected by the FileChooser
-   *
-   * @param pLabel             Label for the textfield displaying the selected fiile
    * @param pFileSelectionMode SelectionMode, only files matching the selected mode may be selected in the JFileChooser
    * @param pFileFilter        FileFilter that determines which files are available for the user to select in the JFileChooser
    * @return JPanel consisting of a label, textfield and a JFileChooser that is connected to the textfield
    */
-  public static FileChooserPanel createFileChooserPanel(@NotNull String pLabel, @NotNull FileSelectionMode pFileSelectionMode,
-                                                        @NotNull FileFilter pFileFilter)
+  public static FileChooserPanel createFileChooserPanel(@NotNull FileSelectionMode pFileSelectionMode,
+                                                        @NotNull FileFilter pFileFilter, @Nullable String pFileName)
   {
-    return new FileChooserPanel(pLabel, pFileSelectionMode, pFileFilter);
+    return new FileChooserPanel(pFileSelectionMode, pFileFilter, pFileName);
   }
 
   public static FileFilter createFilter(String pMatchRegex, boolean pAllowFiles)

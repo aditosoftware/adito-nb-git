@@ -442,12 +442,12 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage, @NotNull String pLabel,
+  public @NotNull IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage,
                                                                                                   @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
-                                                                                                  @Nullable FileFilter pFileFilter)
+                                                                                                  @Nullable FileFilter pFileFilter, @Nullable String pFileName)
   {
     DialogResult<FileSelectionDialog, Object> result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory
-                                                                                      .createFileSelectionDialog(pLabel, pFileSelectionMode, pFileFilter),
+                                                                                      .createFileSelectionDialog(pFileSelectionMode, pFileFilter, pFileName),
                                                                                   pMessage, List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0]));
     return new FileSelectionDialogResultImpl<>(result);
   }

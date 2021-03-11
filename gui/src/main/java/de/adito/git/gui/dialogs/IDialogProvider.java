@@ -191,9 +191,9 @@ public interface IDialogProvider
    * @return DialogResult with information such as "has the user pressed OK?" and the selected file as getMessage
    */
   @NotNull
-  IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage, @NotNull String pLabel,
+  IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage,
                                                                                   @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
-                                                                                  @Nullable FileFilter pFileFilter);
+                                                                                  @Nullable FileFilter pFileFilter, @Nullable String pFileName);
 
   /**
    * Shows a dialog with settings that affect the git plugin

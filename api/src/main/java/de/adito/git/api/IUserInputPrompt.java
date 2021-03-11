@@ -39,7 +39,7 @@ public interface IUserInputPrompt
    * @return PromptResult with the information if the user clicked okay and the ssh key location and passphrase
    */
   @NotNull
-  PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @Nullable IKeyStore pKeyStore);
+  PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @NotNull IKeyStore pKeyStore);
 
   /**
    * Prompts the user for a String (such as a filePath or username), with pMessage as information for the user

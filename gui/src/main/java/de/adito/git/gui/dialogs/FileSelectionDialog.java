@@ -20,12 +20,9 @@ class FileSelectionDialog extends AditoBaseDialog<Object>
   private final FileChooserPanel fileChooserPanel;
 
   @Inject
-  FileSelectionDialog(@Assisted String pLabel, @Assisted FileChooserProvider.FileSelectionMode pFileSelectionMode, @Assisted @Nullable FileFilter pFileFilter)
+  FileSelectionDialog(@Assisted FileChooserProvider.FileSelectionMode pFileSelectionMode, @Assisted @Nullable FileFilter pFileFilter, @Assisted @Nullable String pFileName)
   {
-    if (pFileFilter == null)
-      fileChooserPanel = FileChooserProvider.createFileChooserPanel(pLabel, pFileSelectionMode);
-    else
-      fileChooserPanel = FileChooserProvider.createFileChooserPanel(pLabel, pFileSelectionMode, pFileFilter);
+    fileChooserPanel = FileChooserProvider.createFileChooserPanel(pFileSelectionMode, pFileFilter, pFileName);
     add(fileChooserPanel);
   }
 

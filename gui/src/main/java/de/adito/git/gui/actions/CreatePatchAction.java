@@ -8,7 +8,6 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.results.IFileSelectionDialogResult;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -44,11 +43,16 @@ public class CreatePatchAction extends AbstractTableAction
   public void actionPerformed(ActionEvent e)
   {
     IFileSelectionDialogResult<?, Object> dialogResult =
-        dialogProvider.showFileSelectionDialog("Choose destination for patch", "Selected file", FileChooserProvider.FileSelectionMode.FILES_AND_DIRECTORIES, null);
-    List<@NotNull File> selectedFiles = selectedFilesObservable.blockingFirst().orElse(List.of()).stream().map(IFileChangeType::getFile).collect(Collectors.toList());
+        dialogProvider.showFileSelectionDialog("Choose destination for patch", FileChooserProvider.FileSelectionMode.DIRECTORIRES_ONLY, null, "changes.patch");
+    List<File> selectedFiles = selectedFilesObservable.blockingFirst().orElse(List.of()).stream().map(IFileChangeType::getFile).collect(Collectors.toList());
     if (dialogResult.acceptFiles())
     {
-      try (OutputStream outputStream = Files.newOutputStream(Paths.get(dialogResult.getMessage())))
+      String filePath = dialogResult.getMessage();
+      if (!filePath.endsWith(".patch"))
+      {
+        filePath = filePath + ".patch";
+      }
+      try (OutputStream outputStream = Files.newOutputStream(Paths.get(filePath)))
       {
         repositoryObservable.blockingFirst().ifPresent(pRepo -> pRepo.createPatch(selectedFiles, null, outputStream));
       }

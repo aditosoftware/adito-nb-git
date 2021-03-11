@@ -31,7 +31,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptPassword(String pMessage)
   {
-    IUserPromptDialogResult result = dialogProvider.showPasswordPromptDialog(pMessage);
+    IUserPromptDialogResult<?, ?> result = dialogProvider.showPasswordPromptDialog(pMessage);
     return new PromptResult(result.isOkay(), result.getMessage());
   }
 
@@ -46,7 +46,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   }
 
   @Override
-  public @NotNull PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @Nullable IKeyStore pKeyStore)
+  public @NotNull PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @NotNull IKeyStore pKeyStore)
   {
     IUserPromptDialogResult<?, char[]> result = dialogProvider.showSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore);
     return new PromptResult(result.isOkay(), result.getMessage(), result.getInformation());
@@ -58,7 +58,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptText(String pMessage)
   {
-    IUserPromptDialogResult result = dialogProvider.showUserPromptDialog(pMessage, null);
+    IUserPromptDialogResult<?, ?> result = dialogProvider.showUserPromptDialog(pMessage, null);
     return new PromptResult(result.isOkay(), result.getMessage());
   }
 
@@ -68,7 +68,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptYesNo(String pMessage)
   {
-    IUserPromptDialogResult result = dialogProvider.showYesNoDialog(pMessage);
+    IUserPromptDialogResult<?, ?> result = dialogProvider.showYesNoDialog(pMessage);
     return new PromptResult(result.isOkay(), result.getMessage());
   }
 
@@ -85,7 +85,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptFile(String pMessage)
   {
-    IFileSelectionDialogResult result = dialogProvider.showFileSelectionDialog(pMessage, "", FileChooserProvider.FileSelectionMode.FILES_ONLY, null);
+    IFileSelectionDialogResult<?, ?> result = dialogProvider.showFileSelectionDialog(pMessage, FileChooserProvider.FileSelectionMode.FILES_ONLY, null, null);
     return new PromptResult(result.acceptFiles(), result.getMessage());
   }
 }

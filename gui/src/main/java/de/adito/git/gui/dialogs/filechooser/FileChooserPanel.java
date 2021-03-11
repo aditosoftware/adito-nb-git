@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs.filechooser;
 
+import de.adito.git.gui.swing.TextFieldWithPlaceholder;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import org.jetbrains.annotations.NotNull;
@@ -7,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 /**
@@ -18,20 +18,22 @@ import java.awt.Dimension;
 public class FileChooserPanel extends JPanel
 {
 
-  private final JTextField targetPath = new JTextField();
+  private final TextFieldWithPlaceholder targetPath;
+  private final TextFieldWithPlaceholder fileNameField;
   private final JFileChooser fc;
+  private final String fileName;
 
-  FileChooserPanel(@NotNull String pLabel, @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode)
+  FileChooserPanel(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter, @Nullable String pFileName)
   {
-    this(pLabel, pFileSelectionMode, null);
-  }
-
-  FileChooserPanel(@NotNull String pLabel, @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter)
-  {
+    fileName = pFileName;
     fc = FileChooserProvider.getFileChooser();
     fc.setFileFilter(pFileFilter);
-    targetPath.setText(fc.getCurrentDirectory().getAbsolutePath());
-    _initComponents(pLabel, pFileSelectionMode);
+    targetPath = new TextFieldWithPlaceholder(fc.getCurrentDirectory().getAbsolutePath(), fc.getCurrentDirectory().getAbsolutePath());
+    if (pFileName != null)
+      fileNameField = new TextFieldWithPlaceholder(pFileName);
+    else
+      fileNameField = null;
+    _initComponents(pFileSelectionMode);
   }
 
   /**
@@ -50,10 +52,31 @@ public class FileChooserPanel extends JPanel
   public String getSelectedFile()
   {
     String currentText = targetPath.getText();
-    return currentText == null ? "" : currentText;
+    if (currentText == null)
+      currentText = "";
+    if (fileNameField != null)
+    {
+      String fieldText = fileNameField.getText();
+      if (fieldText != null)
+      {
+        if (fieldText.isEmpty())
+        {
+          fieldText = fileName;
+        }
+        if (currentText.endsWith("/"))
+        {
+          currentText += fieldText;
+        }
+        else
+        {
+          currentText += "/" + fieldText;
+        }
+      }
+    }
+    return currentText;
   }
 
-  private void _initComponents(String pLabel, FileChooserProvider.FileSelectionMode pFileSelectionMode)
+  private void _initComponents(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode)
   {
     double fill = TableLayout.FILL;
     double pref = TableLayout.PREFERRED;
@@ -62,15 +85,25 @@ public class FileChooserPanel extends JPanel
     double[] cols = {pref, gap, fill, gap, pref};
     double[] rows = {gap,
                      pref,
+                     gap,
+                     pref,
                      gap};
     setLayout(new TableLayout(cols, rows));
     TableLayoutUtil tlu = new TableLayoutUtil(this);
-    JPanel labelTextPanel = new JPanel(new BorderLayout());
-    labelTextPanel.add(new JLabel(pLabel), BorderLayout.WEST);
-    labelTextPanel.add(targetPath, BorderLayout.CENTER);
-    tlu.add(0, 1, new JLabel(pLabel));
     tlu.add(2, 1, targetPath);
     tlu.add(4, 1, _createFileChooserButton(pFileSelectionMode));
+    if (fileNameField != null)
+    {
+      tlu.add(0, 1, new JLabel("Directory:"));
+      tlu.add(0, 3, new JLabel("Filename:"));
+      tlu.add(2, 3, 4, 3, fileNameField);
+      setPreferredSize(new Dimension(550, 80));
+    }
+    else
+    {
+      tlu.add(0, 1, new JLabel("Path:"));
+      setPreferredSize(new Dimension(550, 45));
+    }
   }
 
   /**
@@ -84,7 +117,7 @@ public class FileChooserPanel extends JPanel
    */
   private JButton _createFileChooserButton(FileChooserProvider.FileSelectionMode pFileSelectionMode)
   {
-    JButton locationBrowseButton = new JButton(". . .");
+    JButton locationBrowseButton = new JButton("Browse");
     locationBrowseButton.setMaximumSize(new Dimension(32, 32));
     locationBrowseButton.addActionListener(e -> {
       fc.setFileSelectionMode(pFileSelectionMode.ordinal());

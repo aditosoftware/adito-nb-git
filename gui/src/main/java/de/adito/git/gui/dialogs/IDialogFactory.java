@@ -55,8 +55,8 @@ interface IDialogFactory
 
   StashChangesDialog createStashChangesDialog();
 
-  FileSelectionDialog createFileSelectionDialog(String pLabel, FileChooserProvider.FileSelectionMode pFileSelectionMode,
-                                                @javax.annotation.Nullable FileFilter pFileFilter);
+  FileSelectionDialog createFileSelectionDialog(FileChooserProvider.FileSelectionMode pFileSelectionMode,
+                                                @javax.annotation.Nullable FileFilter pFileFilter, @javax.annotation.Nullable String pFileName);
 
   RevertFilesDialog createRevertDialog(Observable<Optional<IRepository>> pRepositoryObs, List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
 
