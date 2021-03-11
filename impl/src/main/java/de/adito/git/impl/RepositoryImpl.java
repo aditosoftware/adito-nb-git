@@ -1380,6 +1380,7 @@ public class RepositoryImpl implements IRepository
     logger.log(Level.INFO, () -> String.format("git merge %s %s", pParentBranch, pBranchToMerge));
     try
     {
+      // check if the branch is already up-to-date
       String forkPointId = ObjectId.toString(RepositoryImplHelper.findForkPoint(git, pParentBranch.getName(), pBranchToMerge.getName()));
       if (forkPointId.equals(pBranchToMerge.getId()))
         throw new AlreadyUpToDateAditoGitException("Already up-to-date");
@@ -1405,10 +1406,10 @@ public class RepositoryImpl implements IRepository
           throw new AditoGitException("Unable to checkout the parentBranch: " + parentID + " at the merge command", e);
         }
       }
-      ObjectId mergeBase;
+      ObjectId toMergeCommit;
       try
       {
-        mergeBase = git.getRepository().resolve(toMergeID);
+        toMergeCommit = git.getRepository().resolve(toMergeID);
       }
       catch (IOException e)
       {
@@ -1417,14 +1418,23 @@ public class RepositoryImpl implements IRepository
       try
       {
         MergeResult mergeResult = git.merge()
-            .include(mergeBase)
+            .include(toMergeCommit)
             .setCommit(false)
             .setFastForward(MergeCommand.FastForwardMode.NO_FF).call();
+        RevCommit mergeBase;
         if (mergeResult.getConflicts() != null)
         {
-          RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
-          logger.log(Level.INFO, () -> String.format("base commit for merge: %s", forkCommit));
-          mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, forkCommit == null ? CommitImpl.VOID_COMMIT : new CommitImpl(forkCommit),
+          ObjectId mergeBaseId = mergeResult.getBase();
+          if (mergeBaseId == null)
+          {
+            mergeBase = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
+          }
+          else
+          {
+            mergeBase = git.getRepository().parseCommit(mergeBaseId);
+          }
+          logger.log(Level.INFO, () -> String.format("base commit for merge: %s", mergeBase));
+          mergeConflicts = RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, mergeBase == null ? CommitImpl.VOID_COMMIT : new CommitImpl(mergeBase),
                                                                   mergeResult.getConflicts().keySet(), this::diff);
         }
       }
