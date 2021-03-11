@@ -2,6 +2,7 @@ package de.adito.git.gui.swing;
 
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -20,7 +21,14 @@ public class InputFieldTablePanel extends JPanel
 {
   private final Map<String, TextFieldWithPlaceholder> textFieldList = new HashMap<>();
 
-  public InputFieldTablePanel(List<String> pFieldTitles, List<String> pFieldContent, List<String> pPlaceholders)
+  /**
+   * Creats the Panel, the parameters in the lists have to match up index-wise (first title is used with the first placeholder and so on)
+   *
+   * @param pFieldTitles  list of labels/titles for the inputFields
+   * @param pFieldContent list with predermined content of the inputField. Use an empty string if the field should show the placeholder
+   * @param pPlaceholders list of placeholders
+   */
+  public InputFieldTablePanel(@NotNull List<String> pFieldTitles, @NotNull List<String> pFieldContent, @NotNull List<String> pPlaceholders)
   {
     double fill = TableLayout.FILL;
     double pref = TableLayout.PREFERRED;
@@ -38,8 +46,8 @@ public class InputFieldTablePanel extends JPanel
 
     for (int index = 0; index < pFieldTitles.size(); index++)
     {
-      TextFieldWithPlaceholder textField = new TextFieldWithPlaceholder(pFieldContent.size() < index ? "" : pFieldContent.get(index),
-                                                                        pPlaceholders.size() < index ? null : pPlaceholders.get(index));
+      TextFieldWithPlaceholder textField = new TextFieldWithPlaceholder(pFieldContent.size() <= index ? "" : pFieldContent.get(index),
+                                                                        pPlaceholders.size() <= index ? null : pPlaceholders.get(index));
       textFieldList.put(pFieldTitles.get(index), textField);
       tlu.add(0, index * 2, new JLabel(pFieldTitles.get(index)));
       tlu.add(2, index * 2, textField);
