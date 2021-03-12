@@ -1,7 +1,8 @@
-package de.adito.git.gui.dialogs;
+package de.adito.git.gui;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.gui.dialogs.AditoBaseDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserPanel;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 
@@ -9,20 +10,17 @@ import javax.annotation.Nullable;
 import javax.swing.filechooser.FileFilter;
 
 /**
- * Dialog with one textField for manually entering a file and a button that opens a fileChooser, if selection of the fileChooser is accepted
- * the path to the selected file is stored in the textField
- *
- * @author m.kaspera, 06.03.2019
+ * @author m.kaspera, 12.03.2021
  */
-class FileSelectionDialog extends AditoBaseDialog<Object>
+public class NewFileDialog extends AditoBaseDialog<Object>
 {
 
   private final FileChooserPanel fileChooserPanel;
 
   @Inject
-  FileSelectionDialog(@Assisted FileChooserProvider.FileSelectionMode pFileSelectionMode, @Assisted @Nullable FileFilter pFileFilter)
+  NewFileDialog(@Assisted FileChooserProvider.FileSelectionMode pFileSelectionMode, @Assisted @Nullable FileFilter pFileFilter, @Assisted @Nullable String pFileName)
   {
-    fileChooserPanel = FileChooserProvider.createFileChooserPanel(pFileSelectionMode, pFileFilter);
+    fileChooserPanel = FileChooserProvider.createNewFileChooserPanel(pFileSelectionMode, pFileFilter, pFileName);
     add(fileChooserPanel);
   }
 
@@ -37,4 +35,5 @@ class FileSelectionDialog extends AditoBaseDialog<Object>
   {
     return null;
   }
+
 }

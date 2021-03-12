@@ -9,6 +9,7 @@ import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.gui.NewFileDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
@@ -185,15 +186,31 @@ public interface IDialogProvider
                                                                   @NotNull File pProjectDir);
 
   /**
-   * Shows a dialog with some information for the user and a file chooser
+   * Shows a dialog with a field and a file chooser, works best for selecting an existing file. For creating a file see showNewFileDialog
    *
-   * @param pMessage Message to inform the user about the purpose of the file to select
+   * @param pMessage           Message to inform the user about the purpose of the file to select
+   * @param pFileSelectionMode Mode that determines if files or directories are visible in the FileChooser
+   * @param pFileFilter        FileFilter for the FileChooser, determines which files are shown
    * @return DialogResult with information such as "has the user pressed OK?" and the selected file as getMessage
    */
   @NotNull
   IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage,
                                                                                   @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
-                                                                                  @Nullable FileFilter pFileFilter, @Nullable String pFileName);
+                                                                                  @Nullable FileFilter pFileFilter);
+
+  /**
+   * Shows a dialog with some a field and a file chooser for selecting a directory and a textfield for entering a file name. Should be used for creating a new file
+   *
+   * @param pMessage           Message to inform the user about the purpose of the file to select
+   * @param pFileSelectionMode Mode that determines if files or directories are visible in the FileChooser
+   * @param pFileFilter        FileFilter for the FileChooser, determines which files are shown
+   * @param pFileName          suggested fileName
+   * @return DialogResult with information such as "has the user pressed OK?" and the selected file as getMessage
+   */
+  @NotNull
+  IFileSelectionDialogResult<NewFileDialog, Object> showNewFileDialog(@NotNull String pMessage,
+                                                                      @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
+                                                                      @Nullable FileFilter pFileFilter, @Nullable String pFileName);
 
   /**
    * Shows a dialog with settings that affect the git plugin

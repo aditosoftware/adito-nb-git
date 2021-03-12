@@ -85,7 +85,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   @Override
   public PromptResult promptFile(String pMessage)
   {
-    IFileSelectionDialogResult<?, ?> result = dialogProvider.showFileSelectionDialog(pMessage, FileChooserProvider.FileSelectionMode.FILES_ONLY, null, null);
+    IFileSelectionDialogResult<?, ?> result = dialogProvider.showFileSelectionDialog(pMessage, FileChooserProvider.FileSelectionMode.FILES_ONLY, null);
     return new PromptResult(result.acceptFiles(), result.getMessage());
   }
 }

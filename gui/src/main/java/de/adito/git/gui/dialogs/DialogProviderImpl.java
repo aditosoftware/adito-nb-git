@@ -9,6 +9,7 @@ import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.*;
+import de.adito.git.gui.NewFileDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
@@ -444,11 +445,22 @@ class DialogProviderImpl implements IDialogProvider
   @Override
   public @NotNull IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage,
                                                                                                   @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
-                                                                                                  @Nullable FileFilter pFileFilter, @Nullable String pFileName)
+                                                                                                  @Nullable FileFilter pFileFilter)
   {
     DialogResult<FileSelectionDialog, Object> result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory
-                                                                                      .createFileSelectionDialog(pFileSelectionMode, pFileFilter, pFileName),
+                                                                                      .createFileSelectionDialog(pFileSelectionMode, pFileFilter),
                                                                                   pMessage, List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0]));
+    return new FileSelectionDialogResultImpl<>(result);
+  }
+
+  @Override
+  public @NotNull IFileSelectionDialogResult<NewFileDialog, Object> showNewFileDialog(@NotNull String pMessage,
+                                                                                      @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
+                                                                                      @Nullable FileFilter pFileFilter, @Nullable String pFileName)
+  {
+    DialogResult<NewFileDialog, Object> result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory
+                                                                                .createNewFileDialog(pFileSelectionMode, pFileFilter, pFileName),
+                                                                            pMessage, List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0]));
     return new FileSelectionDialogResultImpl<>(result);
   }
 

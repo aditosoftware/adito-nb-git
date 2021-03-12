@@ -18,21 +18,18 @@ import java.awt.Dimension;
 public class FileChooserPanel extends JPanel
 {
 
-  private final TextFieldWithPlaceholder targetPath;
-  private final TextFieldWithPlaceholder fileNameField;
-  private final JFileChooser fc;
-  private final String fileName;
+  final double gap = 15;
+  final TextFieldWithPlaceholder targetPath;
+  final JFileChooser fc;
+  final double fill = TableLayout.FILL;
+  final double pref = TableLayout.PREFERRED;
+  TableLayoutUtil tlu;
 
-  FileChooserPanel(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter, @Nullable String pFileName)
+  FileChooserPanel(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter)
   {
-    fileName = pFileName;
     fc = FileChooserProvider.getFileChooser();
     fc.setFileFilter(pFileFilter);
     targetPath = new TextFieldWithPlaceholder(fc.getCurrentDirectory().getAbsolutePath(), fc.getCurrentDirectory().getAbsolutePath());
-    if (pFileName != null)
-      fileNameField = new TextFieldWithPlaceholder(pFileName);
-    else
-      fileNameField = null;
     _initComponents(pFileSelectionMode);
   }
 
@@ -51,59 +48,38 @@ public class FileChooserPanel extends JPanel
   @NotNull
   public String getSelectedFile()
   {
-    String currentText = targetPath.getText();
-    if (currentText == null)
-      currentText = "";
-    if (fileNameField != null)
-    {
-      String fieldText = fileNameField.getText();
-      if (fieldText != null)
-      {
-        if (fieldText.isEmpty())
-        {
-          fieldText = fileName;
-        }
-        if (currentText.endsWith("/"))
-        {
-          currentText += fieldText;
-        }
-        else
-        {
-          currentText += "/" + fieldText;
-        }
-      }
-    }
-    return currentText;
+    return targetPath.getText();
   }
 
   private void _initComponents(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode)
   {
-    double fill = TableLayout.FILL;
-    double pref = TableLayout.PREFERRED;
-    final double gap = 15;
 
-    double[] cols = {pref, gap, fill, gap, pref};
-    double[] rows = {gap,
-                     pref,
-                     gap,
-                     pref,
-                     gap};
+
+    double[] cols = getColumns();
+    double[] rows = getRows();
     setLayout(new TableLayout(cols, rows));
-    TableLayoutUtil tlu = new TableLayoutUtil(this);
+    tlu = new TableLayoutUtil(this);
+    tlu.add(0, 1, new JLabel(getFileChooserLabel()));
     tlu.add(2, 1, targetPath);
     tlu.add(4, 1, _createFileChooserButton(pFileSelectionMode));
-    if (fileNameField != null)
-    {
-      tlu.add(0, 1, new JLabel("Directory:"));
-      tlu.add(0, 3, new JLabel("Filename:"));
-      tlu.add(2, 3, 4, 3, fileNameField);
-      setPreferredSize(new Dimension(550, 80));
-    }
-    else
-    {
-      tlu.add(0, 1, new JLabel("Path:"));
-      setPreferredSize(new Dimension(550, 45));
-    }
+    setPreferredSize(new Dimension(550, 45));
+  }
+
+  double[] getRows()
+  {
+    return new double[]{gap,
+                        pref,
+                        gap};
+  }
+
+  double[] getColumns()
+  {
+    return new double[]{pref, gap, fill, gap, pref};
+  }
+
+  String getFileChooserLabel()
+  {
+    return "Path:";
   }
 
   /**

@@ -32,7 +32,7 @@ public class ApplyPatchAction extends AbstractTableAction
   public void actionPerformed(ActionEvent e)
   {
     IFileSelectionDialogResult<?, Object> dialogResult =
-        dialogProvider.showFileSelectionDialog("Select file that contains the patch", FileChooserProvider.FileSelectionMode.FILES_ONLY, null, null);
+        dialogProvider.showFileSelectionDialog("Select file that contains the patch", FileChooserProvider.FileSelectionMode.FILES_ONLY, null);
     if (dialogResult.acceptFiles())
     {
       repositoryObservable.blockingFirst().ifPresent(pRepo -> pRepo.applyPatch(new File(dialogResult.getMessage())));

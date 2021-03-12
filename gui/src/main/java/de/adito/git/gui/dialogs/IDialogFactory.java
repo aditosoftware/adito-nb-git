@@ -8,6 +8,7 @@ import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.gui.NewFileDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +57,10 @@ interface IDialogFactory
   StashChangesDialog createStashChangesDialog();
 
   FileSelectionDialog createFileSelectionDialog(FileChooserProvider.FileSelectionMode pFileSelectionMode,
-                                                @javax.annotation.Nullable FileFilter pFileFilter, @javax.annotation.Nullable String pFileName);
+                                                @javax.annotation.Nullable FileFilter pFileFilter);
+
+  NewFileDialog createNewFileDialog(FileChooserProvider.FileSelectionMode pFileSelectionMode,
+                                    @javax.annotation.Nullable FileFilter pFileFilter, @javax.annotation.Nullable String pFileName);
 
   RevertFilesDialog createRevertDialog(Observable<Optional<IRepository>> pRepositoryObs, List<IFileChangeType> pFilesToRevert, File pProjectDirectory);
 

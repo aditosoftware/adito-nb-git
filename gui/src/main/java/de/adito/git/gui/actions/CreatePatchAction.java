@@ -43,7 +43,7 @@ public class CreatePatchAction extends AbstractTableAction
   public void actionPerformed(ActionEvent e)
   {
     IFileSelectionDialogResult<?, Object> dialogResult =
-        dialogProvider.showFileSelectionDialog("Choose destination for patch", FileChooserProvider.FileSelectionMode.DIRECTORIRES_ONLY, null, "changes.patch");
+        dialogProvider.showNewFileDialog("Choose destination for patch", FileChooserProvider.FileSelectionMode.DIRECTORIRES_ONLY, null, "changes.patch");
     List<File> selectedFiles = selectedFilesObservable.blockingFirst().orElse(List.of()).stream().map(IFileChangeType::getFile).collect(Collectors.toList());
     if (dialogResult.acceptFiles())
     {

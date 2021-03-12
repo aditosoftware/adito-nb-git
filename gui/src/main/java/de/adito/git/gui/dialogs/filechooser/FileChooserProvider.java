@@ -76,9 +76,22 @@ public class FileChooserProvider
    * @return JPanel consisting of a label, textfield and a JFileChooser that is connected to the textfield
    */
   public static FileChooserPanel createFileChooserPanel(@NotNull FileSelectionMode pFileSelectionMode,
-                                                        @NotNull FileFilter pFileFilter, @Nullable String pFileName)
+                                                        @Nullable FileFilter pFileFilter)
   {
-    return new FileChooserPanel(pFileSelectionMode, pFileFilter, pFileName);
+    return new FileChooserPanel(pFileSelectionMode, pFileFilter);
+  }
+
+  /**
+   * Creates a JPanel that includes a JFileChooser and a textfield that displays the File that was selected by the FileChooser
+   *
+   * @param pFileSelectionMode SelectionMode, only files matching the selected mode may be selected in the JFileChooser
+   * @param pFileFilter        FileFilter that determines which files are available for the user to select in the JFileChooser
+   * @return JPanel consisting of a label, textfield and a JFileChooser that is connected to the textfield
+   */
+  public static FileChooserPanel createNewFileChooserPanel(@NotNull FileSelectionMode pFileSelectionMode,
+                                                           @Nullable FileFilter pFileFilter, @Nullable String pFileName)
+  {
+    return new NewFileChooserPanel(pFileSelectionMode, pFileFilter, pFileName);
   }
 
   public static FileFilter createFilter(String pMatchRegex, boolean pAllowFiles)
