@@ -80,7 +80,7 @@ class DiffCommitsAction extends AbstractTableAction
         else
           parentCommit = oldestSelectedCommit.getParents().get(0);
         fileDiffs = pRepo.diff(selectedCommit, parentCommitObservable.blockingFirst().orElse(parentCommit));
-        String rightHeader = Optional.ofNullable(parentCommitObservable.blockingFirst(null).orElse(parentCommit)).map(ICommit::getId).orElse(null);
+        String rightHeader = Optional.ofNullable(parentCommitObservable.blockingFirst(Optional.empty()).orElse(parentCommit)).map(ICommit::getId).orElse(null);
         dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, selectedFile.blockingFirst().orElse(null), null, selectedCommit.getId(), rightHeader, false, false);
       }
       catch (AditoGitException pE)
