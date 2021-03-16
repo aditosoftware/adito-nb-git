@@ -31,7 +31,7 @@ class NewBranchFromCommitAction extends AbstractNewBranchAction
     super(pProgressFacade, pDialogProvider, pRepository,
           pStartingPoint.map(pOpt -> pOpt.map(pList -> pList.size() == 1 ? pList.get(0) : null)),
           pStartingPoint.map(pOpt -> pOpt.map(pList -> pList.size() == 1)));
-    putValue(Action.NAME, "Create branch from here");
+    putValue(Action.NAME, "Create Branch from here");
     putValue(Action.SHORT_DESCRIPTION, "Create a new branch with this commit as its source/origin");
   }
 }
