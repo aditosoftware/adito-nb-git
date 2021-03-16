@@ -40,6 +40,12 @@ public class FetchNBAction extends NBAction
   }
 
   @Override
+  protected String iconResource()
+  {
+    return NbBundle.getMessage(PushNBAction.class, "ICON_FetchNBAction_Path");
+  }
+
+  @Override
   protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
     return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(obj -> true));
