@@ -83,7 +83,7 @@ class CommitAction extends AbstractTableAction
     if (dialogResult.doCommit())
     {
       progressFacade.executeInBackground("Committing Changes", pProgress -> {
-        List<File> files = dialogResult.getInformation().getSelectedFilesSupplier().get();
+        List<File> files = dialogResult.getInformation().getSelectedFiles();
         IRepository iRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
         iRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().getUserName(), dialogResult.getInformation().getUserMail(),
                      dialogResult.getInformation().isDoAmend());

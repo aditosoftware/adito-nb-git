@@ -49,7 +49,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.io.File;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -372,9 +371,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                                   committerDetailsPanel.getFieldContent(AUTHOR_EMAIL_FIELD_TITLE));
   }
 
-  private Supplier<List<File>> _getFilesToCommit()
+  private List<File> _getFilesToCommit()
   {
-    return selectedFiles::blockingFirst;
+    return selectedFiles.blockingFirst(List.of());
   }
 
   @Override

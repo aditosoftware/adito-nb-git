@@ -2,7 +2,6 @@ package de.adito.git.gui.dialogs.results;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Stores information about the user actions before pressing the commit/OK button in the
@@ -13,22 +12,22 @@ import java.util.function.Supplier;
 public class CommitDialogResult
 {
 
-  private final Supplier<List<File>> selectedFilesSupplier;
+  private final List<File> selectedFiles;
   private final boolean doAmend;
   private final String userName;
   private final String userMail;
 
-  public CommitDialogResult(Supplier<List<File>> pSelectedFilesSupplier, boolean pDoAmend, String pUserName, String pUserMail)
+  public CommitDialogResult(List<File> pSelectedFiles, boolean pDoAmend, String pUserName, String pUserMail)
   {
-    this.selectedFilesSupplier = pSelectedFilesSupplier;
+    this.selectedFiles = pSelectedFiles;
     this.doAmend = pDoAmend;
     userName = pUserName;
     userMail = pUserMail;
   }
 
-  public Supplier<List<File>> getSelectedFilesSupplier()
+  public List<File> getSelectedFiles()
   {
-    return selectedFilesSupplier;
+    return selectedFiles;
   }
 
   public boolean isDoAmend()
