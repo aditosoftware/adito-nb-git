@@ -383,13 +383,25 @@ public final class ChangeDeltaImpl implements IChangeDelta
       newVersion = "";
     else
       newVersion = textVersionProvider.getVersion(EChangeSide.NEW).substring(startTextIndexNew, endTextIndexNew);
-    String originalProcessedVersion = originalVersion.replace(" ", "\n");
-    String newProcessedVersion = newVersion.replace(" ", "\n");
-    EditList editList = LineIndexDiffUtil.getChangedLines(originalProcessedVersion, newProcessedVersion, RawTextComparator.DEFAULT);
-    if (changeStatus.getChangeType() == EChangeType.MODIFY)
-      editList = _validateLines(editList, originalVersion, newVersion, originalProcessedVersion, newProcessedVersion);
-    return LineIndexDiffUtil.getTextOffsets(originalProcessedVersion, newProcessedVersion, editList,
-                                            new LinePartChangeDeltaFactory(startTextIndexOld, startTextIndexNew));
+    int numLinesChanged = (endLineIndexNew - startLineIndexNew) + (endLineIndexOld - startLineIndexOld);
+    // The word-based algorithm takes a lot of time if there are more than a few lines affected. To avoid overly long load times, use the normal line-based diff
+    // instead of the word-based one if the change is bigger than a certain amount of lines
+    if (numLinesChanged < 20)
+    {
+      String originalProcessedVersion = originalVersion.replace(" ", "\n");
+      String newProcessedVersion = newVersion.replace(" ", "\n");
+      EditList editList = LineIndexDiffUtil.getChangedLines(originalProcessedVersion, newProcessedVersion, RawTextComparator.DEFAULT);
+      if (changeStatus.getChangeType() == EChangeType.MODIFY)
+        editList = _validateLines(editList, originalVersion, newVersion, originalProcessedVersion, newProcessedVersion);
+      return LineIndexDiffUtil.getTextOffsets(originalProcessedVersion, newProcessedVersion, editList,
+                                              new LinePartChangeDeltaFactory(startTextIndexOld, startTextIndexNew));
+    }
+    else
+    {
+      EditList editList = LineIndexDiffUtil.getChangedLines(originalVersion, newVersion, RawTextComparator.DEFAULT);
+      return LineIndexDiffUtil.getTextOffsets(originalVersion, newVersion, editList,
+                                              new LinePartChangeDeltaFactory(startTextIndexOld, startTextIndexNew));
+    }
   }
 
   /**
