@@ -62,25 +62,15 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
     setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
-    editorPane.addPropertyChangeListener("completion-visible", pEvent -> {
-      SwingUtilities.invokeLater(() -> {
-        lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
-        lineNumFacadeWidth = _calculateLineWidth();
-        setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
-        revalidate();
-        repaint();
-        editorPane.getParent().getParent().getParent().getParent().getParent().getParent().revalidate();
-        editorPane.getParent().getParent().getParent().getParent().getParent().getParent().repaint();
-      });
-    });
     sizeDisposable = Observable.combineLatest(
         pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
-        .throttleLatest(200, TimeUnit.MILLISECONDS, true)
+        .throttleLatest(250, TimeUnit.MILLISECONDS, true)
         .subscribe(
             pFileChangeEvent -> SwingUtil.invokeASAP(() -> {
               lineNumFacadeWidth = _calculateLineWidth();
               setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
               lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
+              revalidate();
               repaint();
             }));
     areaDisposable = pModel.getFileChangesObservable().subscribe(pChangeEvent -> _recalcAndRedraw(pEditorPane, viewport));
@@ -95,6 +85,7 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
         lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
       }
       cachedViewRectangle = pViewport.getViewRect();
+      revalidate();
       repaint();
     });
   }

@@ -14,6 +14,8 @@ import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.impl.data.diff.DeltaTextChangeEventImpl;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,7 @@ public class DiffPanel extends JPanel implements IDiscardable
   private final DiffPaneWrapper oldVersionDiffPane;
   private IDiffPaneUtil.ScrollBarCoupling differentialScrollBarCoupling;
   private final CompositeDisposable disposables = new CompositeDisposable();
+  private final Subject<Optional<Object>> initHeightsObs;
 
   /**
    * @param pIconLoader          IIconLoader for loading Icons
@@ -58,22 +61,22 @@ public class DiffPanel extends JPanel implements IDiscardable
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
         .setDoOnAccept(pChangeDelta -> pFileDiffObs.blockingFirst().ifPresent(pFileDiff -> pFileDiff.revertDelta(pChangeDelta, true)));
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pRightHeader, SwingConstants.LEFT, pEditorKitObservable);
-    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(oldVersionDiffPane.getEditorPane(),
-                                                                                                                currentVersionDiffPane.getEditorPane());
+    initHeightsObs = BehaviorSubject.create();
+    initHeightsObs.onNext(Optional.empty());
     // current panel is to the right, so index 1
     LineNumbersColorModel rightLineColorModel = currentVersionDiffPane.getPaneContainer().addLineNumPanel(currentDiffPanelModel,
-                                                                                                          mouseFirstActionObservableWrapper.getObservable(),
+                                                                                                          initHeightsObs,
                                                                                                           BorderLayout.WEST, 1);
     lineNumbersColorModels[1] = rightLineColorModel;
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
     // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = oldVersionDiffPane.getPaneContainer().createLineNumberColorModel(oldDiffPanelModel, mouseFirstActionObservableWrapper.getObservable(), -1);
+    LineNumbersColorModel temp = oldVersionDiffPane.getPaneContainer().createLineNumberColorModel(oldDiffPanelModel, initHeightsObs, -1);
 
     // old version is to the left, so index 0
     LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPaneContainer().createLineNumberColorModel(oldDiffPanelModel,
-                                                                                                                 mouseFirstActionObservableWrapper.getObservable(), 0);
+                                                                                                                 initHeightsObs, 0);
     lineNumbersColorModels[0] = leftLineColorsModel;
 
     oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, new LineNumbersColorModel[]{temp, leftLineColorsModel},
@@ -95,15 +98,14 @@ public class DiffPanel extends JPanel implements IDiscardable
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
     SwingUtil.invokeASAP(() -> currentVersionScrollPane.getHorizontalScrollBar().setValue(0));
     SwingUtilities.invokeLater(() -> differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null,
-                                                                                               mouseFirstActionObservableWrapper.getObservable(), pFileDiffObs));
-    currentVersionDiffPane.getEditorPane().addPropertyChangeListener("completion-visible", e -> {
-      currentVersionScrollPane.getVerticalScrollBar().setValue(0);
-      oldVersionScrollPane.getVerticalScrollBar().setValue(0);
-    });
-    oldVersionDiffPane.getEditorPane().addPropertyChangeListener("completion-visible", e -> {
-      currentVersionScrollPane.getVerticalScrollBar().setValue(0);
-      oldVersionScrollPane.getVerticalScrollBar().setValue(0);
-    });
+                                                                                               initHeightsObs, pFileDiffObs));
+  }
+
+  public void finishLoading()
+  {
+    initHeightsObs.onNext(Optional.of(new Object()));
+    currentVersionDiffPane.getScrollPane().getVerticalScrollBar().setValue(0);
+    oldVersionDiffPane.getScrollPane().getVerticalScrollBar().setValue(0);
   }
 
   /**

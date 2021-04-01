@@ -46,7 +46,7 @@ public class DiffPane extends JPanel implements IDiscardable
     viewPortSizeObservable = Observable.combineLatest(zoomObservable, basicViewPortSizeObservable, (pZoom, pViewportSize) -> pViewportSize)
         .replay(1)
         .autoConnect(0, disposables::add)
-        .throttleLatest(250, TimeUnit.MILLISECONDS);
+        .throttleLatest(250, TimeUnit.MILLISECONDS, true);
     setLayout(new OnionColumnLayout());
     scrollPane.setViewportView(editorPane);
     scrollPane.setBorder(null);

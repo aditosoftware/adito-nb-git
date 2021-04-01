@@ -48,6 +48,7 @@ public class MergePanel extends JPanel implements IDiscardable
   private final Subject<Optional<EditorKit>> editorKitObservable;
   private final IDiffPaneUtil.ScrollBarCoupling yoursCoupling;
   private final IDiffPaneUtil.ScrollBarCoupling theirsCoupling;
+  private final Subject<Optional<Object>> initHeightsObs;
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
@@ -65,13 +66,12 @@ public class MergePanel extends JPanel implements IDiscardable
     discardIcon = pDiscardIcon;
     editorKitObservable = BehaviorSubject.createDefault(Optional.empty());
     _initGui(pYoursOrigin, pTheirsOrigin);
-    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(yoursPaneWrapper.getEditorPane(),
-                                                                                                                forkPointPaneWrapper.getEditorPane(),
-                                                                                                                theirsPaneWrapper.getEditorPane());
+    initHeightsObs = BehaviorSubject.create();
+    initHeightsObs.onNext(Optional.empty());
     yoursCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, yoursPaneWrapper, "yoursPane",
-                                              mouseFirstActionObservableWrapper.getObservable(), Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.YOURS))));
+                                              initHeightsObs, Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.YOURS))));
     theirsCoupling = IDiffPaneUtil.synchronize(forkPointPaneWrapper, FORKPOINT_MODEL_KEY, theirsPaneWrapper, "theirsPane",
-                                               mouseFirstActionObservableWrapper.getObservable(), Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.THEIRS))));
+                                               initHeightsObs, Observable.just(Optional.of(pMergeDiff.getDiff(EConflictSide.THEIRS))));
     editorKitObservable.onNext(Optional.of(Optional.ofNullable(pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getAbsoluteFilePath())
                                                .map(pEditorKitProvider::getEditorKit)
                                                .orElseGet(() -> pEditorKitProvider.getEditorKitForContentType("text/plain"))));
@@ -117,6 +117,14 @@ public class MergePanel extends JPanel implements IDiscardable
     );
     SwingUtil.invokeASAP(() -> yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().setValue(0));
     add(yoursTheirsPanel, BorderLayout.NORTH);
+  }
+
+  public void finishLoading()
+  {
+    initHeightsObs.onNext(Optional.of(new Object()));
+    yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setValue(0);
+    forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setValue(0);
+    theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setValue(0);
   }
 
   private void _initYoursPanel(DiffPanelModel pYoursModel, Observable<Optional<Object>> pObservable)

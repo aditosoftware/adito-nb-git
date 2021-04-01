@@ -90,6 +90,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
   {
     SwingUtil.invokeASAP(() -> {
       changedChunkConnectionsToDraw = _calculateChunkConnectionsToDraw(pViewport.getViewRect(), leftLineNumberColors, rightLineNumberColors);
+      revalidate();
       repaint();
     });
   }

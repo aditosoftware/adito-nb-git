@@ -5,9 +5,11 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
+import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.actions.IActionProvider;
+import de.adito.git.gui.concurrency.GitProcessExecutors;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
@@ -58,9 +60,9 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
 
   @Inject
   public DiffDialog(IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, IQuickSearchProvider pQuickSearchProvider, IFileSystemUtil pFileSystemUtil,
-                    IPrefStore pPrefStore, IActionProvider pActionProvider, @Assisted File pProjectDirectory, @Assisted List<IFileDiff> pDiffs,
-                    @Assisted("selectedFile") @javax.annotation.Nullable String pSelectedFile, @Assisted("leftHeader") @javax.annotation.Nullable String pLeftHeader,
-                    @Assisted("rightHeader") @javax.annotation.Nullable String pRightHeader,
+                    IPrefStore pPrefStore, IActionProvider pActionProvider, IAsyncProgressFacade pProgressFacade, @Assisted File pProjectDirectory,
+                    @Assisted List<IFileDiff> pDiffs, @Assisted("selectedFile") @javax.annotation.Nullable String pSelectedFile, @Assisted("leftHeader")
+                      @javax.annotation.Nullable String pLeftHeader, @Assisted("rightHeader") @javax.annotation.Nullable String pRightHeader,
                     @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTree") boolean pShowFileTree)
   {
     iconLoader = pIconLoader;
@@ -80,13 +82,14 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     doAfterJobs[1] = () -> _setSelectedFile(pSelectedFile);
     treeUpdater = new ObservableTreeUpdater<>(changedFiles, statusTreeModel, pFileSystemUtil, doAfterJobs);
     editorKitProvider = pEditorKitProvider;
-    _initGui(pIconLoader, pProjectDirectory, pLeftHeader, pRightHeader);
+    _initGui(pIconLoader, pProjectDirectory, pLeftHeader, pRightHeader, pProgressFacade);
   }
 
   /**
    * sets up the GUI
    */
-  private void _initGui(@NotNull IIconLoader pIconLoader, @NotNull File pProjectDirectory, @Nullable String pLeftHeader, @Nullable String pRightHeader)
+  private void _initGui(@NotNull IIconLoader pIconLoader, @NotNull File pProjectDirectory, @Nullable String pLeftHeader, @Nullable String pRightHeader,
+                        @NotNull IAsyncProgressFacade pProgressFacade)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
@@ -145,6 +148,11 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       diffPanel.setBorder(null);
       add(diffPanel, BorderLayout.CENTER);
     }
+    GitProcessExecutors.getDefaultBackgroundExecutor().submit(() ->
+                                                                  pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
+                                                                    Thread.sleep(2000);
+                                                                    diffPanel.finishLoading();
+                                                                  }));
   }
 
   private void _setSelectedFile(@Nullable String pSelectedFile)
