@@ -6,6 +6,26 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.5.3</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>The plugin now performs a fetch and checks for updates from remote before performing a stash when pulling. This way no stash and unstash is necessary if the local branch is up-to-date</li>
+    <li>The plugin now uses the more basic line-based diff instead of the word-based diff for larger changes, drastically improving performance when diffing large files with e.g. changed newlines</li>
+    <li>The diff and merge dialogs are now built behind a progress bar, when finished both versions should now always be scrolled to the top and the markings should be correct from the start instead of after a resize of the window</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Upgraded JGit version from 5.6.0. to 5.11.0</li>
+    <li>Reworked and improved the dialogs used when creating or applying patches</li>
+    <li>The Fetch Action now has an icon and can be added to the toolbar ribbons manually</li>
+    <li>Changed the capitalization in the action names to match the schema used by Netbeans and the ADITO Designer</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: The correct repository could be lost while pulling, leading to no unstash of stashed changes</li>
+    <li>Fix: It is possible that not all conflicting files are marked as such during a merge conflict</li>
+    <li>Fix: The Commit action is stuck when retrieving files to commit</li>
+  </ul>
   <p style="font-weight: bold;">v.1.5.2</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
   <ul>
@@ -31,7 +51,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: The "Resolve Conflicts" action does not try and resolve the first file in the list</li>
     <li>Fix: Error when retrieving the realm name for github addresses</li>
   </ul>
-  <p style="font-weight: bold;">v.1.5.0</p>
+  <p style="font-weight: bold;">v1.5.0</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>The auto-resolve in merges is a lot faster in general and also skips huge files, making it faster still. The auto-resolve for huge files may come back later on, if the performance is acceptable for them</li>
@@ -49,7 +69,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: Deadlock when trying to push a branch whose name does not match the name of the tracked remote branch</li>
     <li>Fix: If two versions are the same in a diff, the notification about that fact is missing</li>
   </ul>
-  <p style="font-weight: bold;">v.1.4.6</p>
+  <p style="font-weight: bold;">v1.4.6</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
     <li>The plugin can now differentiate between a fatch or pull that failed because of a cancelled auth dialog and a fatch or pull that failed due to an invalid URL</li>
@@ -62,7 +82,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: Annotate uses a Comparator that includes trailing whitespaces, leading to lots of un-annotated lines that should be annotated</li>
     <li>Fix: The Annotate popup did not work for the first opened file after the designer start</li>
   </ul>
-  <p style="font-weight: bold;">v.1.4.5</p>
+  <p style="font-weight: bold;">v1.4.5</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
     <li>Improved the behaviour of the "Abort Pull/Rebase/Merge" Action such that it no longer blocks the GUI</li>
@@ -77,7 +97,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: If a file is added on both sides of a merge conflict and one version is empty, an IndexOutOfBoundsException is thrown</li>
     <li>Fix: "Revert Commits" does not work at all if no local changes exist</li>
   </ul>
-  <p style="font-weight: bold;">v.1.4.4</p>
+  <p style="font-weight: bold;">v1.4.4</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>It is now possible to do a "git init" on a project that is not managed by git yet, thereby transforming it into a git project</li>
@@ -105,7 +125,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: The tags for the remote branches were using the color of the HEAD tag in the git log</li>
     <li>Fix: The HEAD tag was never shown in the git log</li>
   </ul>
-  <p style="font-weight: bold;">v.1.4.3</p>
+  <p style="font-weight: bold;">v1.4.3</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>It is now possible to store the current state of a merge and continue it later. This is done by closing the merge window by pressing on the "X" button on the top and then selecting "Save" in the following dialog. Resuming the merge is done by selecting a conflicting file via rightclick and pressing the "Resolve Conflicts" button</li>
@@ -129,7 +149,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: The "ACCEPT YOURS/THEIRS/CHANGES" buttons wrote the fork-point or YOURS version to disk, instead of the version they were supposed to</li>
     <li>Fix: "Resolve Conflicts" action when right-clicking the project node in the project tree is always inactive</li>
   </ul>
-  <p style="font-weight: bold;">v.1.4.2</p>
+  <p style="font-weight: bold;">v1.4.2</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>If a file was added to both branches or commits in a merge with different content, the plugin now creates an artificial text for the fork-point that contains the lines that both versions have in common</li>
@@ -146,12 +166,12 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fixed several bugs with ADD or DELETE type changes in merge conflicts</li>
     <li>Fixed the first pull failing when connecting to a new remote and using HTTPS as auth method</li>
   </ul>
-  <p style="font-weight: bold;">v.1.4.1</p>
+  <p style="font-weight: bold;">v1.4.1</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
   <ul>
     <li>Fix: adito.version file located at the wrong location</li>
   </ul>
-  <p style="font-weight: bold;">v.1.4.0</p>
+  <p style="font-weight: bold;">v1.4.0</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>Reworked the Diff and Merge Dialogs
@@ -171,7 +191,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <ul>
     <li>The whitespace treatment used for diffs and merges can be set in the git settings</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.11</p>
+  <p style="font-weight: bold;">v1.3.11</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>Reworked the author section in the commit dialog. The fields now have the default author and email as placeholder, and a set author and email is only used for the next commit</li>
@@ -188,7 +208,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: Reverting new files (files that are not in the index) does not work</li>
     <li>Fix: Potential deadlock while loading the icons for a tree</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.10</p>
+  <p style="font-weight: bold;">v1.3.10</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
     <li>Adjusted looks of the branches window, mostly visible in the bright color scheme</li>
@@ -197,7 +217,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <ul>
     <li>Fix: When determining the fork-point for a merge, the used algorithm could potentially run into a loop</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.9</p>
+  <p style="font-weight: bold;">v1.3.9</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>Reworked parts of the branch window, it now always pops up at the same location, better respects the size of its content and has a sleeker look in general. It also uses proper elements as separators and such, instead of approximating those elements via letters</li>
@@ -213,7 +233,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Aborting a pull or fetch by pressing cancel on the Authentication Dialog now shows a notification instead of an exception</li>
     <li>Fixed an IndexOutOfBoundsException when performing a fetch (Occurred if more than one update was applied and none failed)</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.8</p>
+  <p style="font-weight: bold;">v1.3.8</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
     <li>Selecting "Discard Changes" when e.g. switching branches with active changes now works with a hard reset instead of resetting the files individually via checkout</li>
@@ -226,7 +246,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: Exception when closing the Plugin Dialogs via ESC button</li>
     <li>Fix: No Icon for a section of deleted lines in the EditorColorizer (located to the left in an editor, shows the changed lines of the file)</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.7</p>
+  <p style="font-weight: bold;">v1.3.7</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
     <li>The "Checkout" and "Delete Branch" actions are now disabled for the currently active branch, since performing those actions on the branch doesn't make sense and only leads to an error anyways</li>
@@ -240,12 +260,12 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: The merge dialog throws an exception if one of the conflicting files is in the top-most folder of the project</li>
     <li>Fix: In some rare circumstances the Plugin threw an exception when trying to accept the yours or theirs version of a file</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.6</p>
+  <p style="font-weight: bold;">v1.3.6</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
   <ul>
     <li>Fix: The Cherry-pick conflict and following commit dialog did not have any changed files listed, even though there were conflicts</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.5</p>
+  <p style="font-weight: bold;">v1.3.5</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>If the name of the local branch and its tracked remote branch do not match, the plugin now queries the user if the tracking relationship should be kept or if the plugin should create a new branch with the name of the local branch on the remote. The local branch would then track that new remote branch.</li>
@@ -254,7 +274,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <ul>
     <li>Fix: The "Delete Branch" Dialog always returned false as input by the user, so the delete was always cancelled</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.4</p>
+  <p style="font-weight: bold;">v1.3.4</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
    <li>Reworked the Merge conflict dialog that shows the conflicting files, the files are colored according to the THEIRS/YOURS change type and both change types are displayed, in case they differ</li>
@@ -281,7 +301,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
    <li>Fix: "Revert commit" action not working</li>
    <li>Fix: The initial commit in the log was shown as empty, even though files were committed</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.3</p>
+  <p style="font-weight: bold;">v1.3.3</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
     <ul>
       <li>The plugin now offers functionality for creating and applying patches</li>
@@ -299,7 +319,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
       <li>Fix: Toolbar in the "Local changes" window is missing</li>
       <li>Fix: Checking out a remote branch that has the same name as a tag could leave you in a detached HEAD state</li>
     </ul>
-  <p style="font-weight: bold;">v.1.3.2</p>
+  <p style="font-weight: bold;">v1.3.2</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>Updating the Status of a Tree now works differently:
@@ -331,7 +351,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: Deleted Folders are displayed as white file Icons</li>
   <li>Fix: Loading some Icons of the manual conflict resolution dialog failed</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.1</p>
+  <p style="font-weight: bold;">v1.3.1</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>Fixed several listeners or Observables not being discarded properly which could lead to memory leaks</li>
@@ -352,7 +372,7 @@ OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
     <li>Fix: If one version existed of only a single "\n" accepting that change would lead to an ArrayOutOfBoundsException</li>
     <li>Fix: Showing the diff of a non-merge commit in the Log would yield an error</li>
   </ul>
-  <p style="font-weight: bold;">v.1.3.0</p>
+  <p style="font-weight: bold;">v1.3.0</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
     <li>Lots of performance improvements that make both the creation and display of diff and merge dialogs a lot faster/smoother:
