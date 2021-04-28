@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * RevFilter that filters out all stash commits. This is not as simple as it sounds, as a stash command can lead to up to three stash commits being
@@ -40,7 +42,7 @@ public class StashCommitFilter extends RevFilter
     }
     catch (GitAPIException pE)
     {
-      pE.printStackTrace();
+      Logger.getLogger(StashCommitFilter.class.getName()).log(Level.WARNING, pE, () -> "Error while initialising the StashCommitFilter");
     }
   }
 
