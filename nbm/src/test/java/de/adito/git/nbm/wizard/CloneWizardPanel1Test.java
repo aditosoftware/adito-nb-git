@@ -5,7 +5,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,7 +25,7 @@ public class CloneWizardPanel1Test
   @MethodSource("_provideUrls")
   void testCorrectUrls(@NotNull String pInuput, boolean pExpected)
   {
-    assertEquals(pExpected, Pattern.compile(CloneWizardPanel1.URL_PATTERN).matcher(pInuput).matches());
+    assertEquals(pExpected, CloneWizardPanel1._isValidUrlPattern(pInuput));
   }
 
   /**
