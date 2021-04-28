@@ -25,6 +25,11 @@ abstract class AbstractRepositoryTopComponent extends TopComponent
 {
   private final Disposable displayNameDisposable;
 
+  AbstractRepositoryTopComponent()
+  {
+    this(Observable.empty());
+  }
+
   /**
    * Abstract class to give all TopComponents
    *

@@ -34,6 +34,8 @@ public class VoidingPseudoBlockingArrayQueue<T> extends ArrayBlockingQueue<T>
    * @return true
    */
   @Override
+  @SuppressWarnings("squid:S899") // This class is explicitly made so that any items that are entered while the queue is full are discarded -> not necessary to do
+  // anything with the return from offer
   public boolean offer(T pO)
   {
     super.offer(pO);
@@ -46,6 +48,8 @@ public class VoidingPseudoBlockingArrayQueue<T> extends ArrayBlockingQueue<T>
    * @param pO object to put into the queue if it is not full
    */
   @Override
+  @SuppressWarnings("squid:S899") // This class is explicitly made so that any items that are entered while the queue is full are discarded -> not necessary to do
+  // anything with the return from offer
   public void put(T pO)
   {
     super.offer(pO);
@@ -59,6 +63,8 @@ public class VoidingPseudoBlockingArrayQueue<T> extends ArrayBlockingQueue<T>
    * @throws InterruptedException if interrupted while waiting
    */
   @Override
+  @SuppressWarnings("squid:S899") // This class is explicitly made so that any items that are entered while the queue is full are discarded -> not necessary to do
+  // anything with the return from offer
   public boolean offer(T pO, long pTimeout, TimeUnit pUnit) throws InterruptedException
   {
     super.offer(pO, pTimeout, pUnit);

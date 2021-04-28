@@ -32,6 +32,7 @@ class NBdialogResizeListener implements PropertyChangeListener
   }
 
   @Override
+  @SuppressWarnings("squid:S1872") // anonymous class, can't use instanceOf
   public void propertyChange(PropertyChangeEvent evt)
   {
     if ("ancestor".equals(evt.getPropertyName()) && !listenerAdded)

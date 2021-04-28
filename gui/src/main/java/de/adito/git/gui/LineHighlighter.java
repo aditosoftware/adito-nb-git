@@ -42,7 +42,7 @@ public class LineHighlighter extends DefaultHighlighter
     // determine visible area
     Rectangle visRect = component.getVisibleRect();
     int startOffset = component.viewToModel2D(new Point2D.Float(visRect.x, visRect.y));
-    int endOffset = component.viewToModel2D(new Point2D.Float(visRect.x + visRect.width, visRect.y + visRect.height));
+    int endOffset = component.viewToModel2D(new Point2D.Float((float) visRect.x + visRect.width, (float) visRect.y + visRect.height));
 
     final Highlighter.Highlight[] highlights = getHighlights();
     final int len = highlights.length;

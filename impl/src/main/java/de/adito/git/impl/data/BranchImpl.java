@@ -138,6 +138,7 @@ public class BranchImpl implements IBranch
   }
 
   @Override
+  @SuppressWarnings("squid:S2097") // This equals method is setup in such a way that it also returns true for other implementations of the interface if the details match
   public boolean equals(Object obj)
   {
     if (obj == null || !(IBranch.class.isAssignableFrom(obj.getClass())))
