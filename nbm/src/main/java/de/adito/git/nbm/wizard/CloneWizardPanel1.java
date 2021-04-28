@@ -28,6 +28,7 @@ import static de.adito.git.nbm.IGitConstants.GIT_SSH_KEY;
  */
 public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<WizardDescriptor>
 {
+  public static final String URL_PATTERN = "((ssh://)?git@.*:?.*/+.*[.]git)|(https://.*(/.*)+[.]git)";
 
   private final ICloneRepo cloneRepo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
   private CloneWizardVisualPanel1 panel1;
@@ -51,7 +52,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
    */
   private void _createComponent()
   {
-    compiledUrlPattern = Pattern.compile("((ssh://)?git@.*:?.*/+.*[.]git)|(https://.*(/.*)+[.]git)");
+    compiledUrlPattern = Pattern.compile(URL_PATTERN);
     preferences = new NBPrefStore();
     panel1 = new CloneWizardVisualPanel1();
     panel1.getProjectNameTextField().getDocument().addDocumentListener(new DocumentUpdateChangeListener()
