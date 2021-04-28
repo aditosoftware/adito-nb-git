@@ -50,13 +50,6 @@ class GitHttpUtilTest
   }
 
   @Test
-  void testGitIntern()
-  {
-    String repoURL = "https://gitintern.aditosoftware.local/devs/aditoonline.git";
-    assertEquals("GitLab", GitHttpUtil.getRealmName(repoURL));
-  }
-
-  @Test
   void testGitLab()
   {
     String repoURL = "https://gitlab.adito.de/xrm/basic.git";

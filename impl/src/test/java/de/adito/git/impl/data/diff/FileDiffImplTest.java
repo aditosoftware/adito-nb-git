@@ -1000,13 +1000,13 @@ public class FileDiffImplTest
     assertEquals("fileb", fileDiff.getFileHeader().getFilePath(EChangeSide.NEW));
     assertNull(fileDiff.getFileHeader().getAbsoluteFilePath());
     // set up a new fileDiffHeader that has a topLevel folder set
-    IDiffPathInfo diffPathInfo2 = new DiffPathInfoImpl(new File("C:/test"), "filea", "fileb");
+    IDiffPathInfo diffPathInfo2 = new DiffPathInfoImpl(new File("/test"), "filea", "fileb");
     fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo2, diffDetails);
     oldFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     newFileContent = new FileContentInfoImpl(() -> "", () -> StandardCharsets.UTF_8);
     fileDiff = new FileDiffImpl(fileDiffHeader, new EditList(), oldFileContent, newFileContent);
     String absoluteFilePath = fileDiff.getFileHeader().getAbsoluteFilePath();
-    assertEquals(Paths.get("C:/test/fileb"), absoluteFilePath == null ? null : Paths.get(absoluteFilePath));
+    assertEquals(new File("/test/fileb").getAbsolutePath(), absoluteFilePath == null ? null : Paths.get(absoluteFilePath).toString());
   }
 
   /**
