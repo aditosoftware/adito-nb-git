@@ -6,6 +6,12 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.5.4</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: The pull action only recognized changes in the remote on the second try</li>
+    <li>Fix: The titles of the diff dialog when comparing the working directory and HEAD were reverted</li>
+  </ul>
   <p style="font-weight: bold;">v1.5.3</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
