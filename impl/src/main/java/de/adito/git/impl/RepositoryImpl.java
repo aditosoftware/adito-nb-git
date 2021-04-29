@@ -345,7 +345,9 @@ public class RepositoryImpl implements IRepository
     try
     {
       String forkPointId = ObjectId.toString(RepositoryImplHelper.findForkPoint(git, pCommit.getName(), pCompareTo.getName()));
-      return forkPointId.equals(pCompareTo.getId());
+      // get the branch from the repo to refresh the attached id - otherwise the id may be out of date
+      IBranch refreshedRemoteBranch = getBranch(pCompareTo.getName());
+      return forkPointId.equals(refreshedRemoteBranch.getId());
     }
     catch (IOException pE)
     {
