@@ -104,7 +104,7 @@ class DiffToHeadAction extends AbstractTableAction
 
     //Show Dialog in EDT -> Handle gets finished
     SwingUtilities.invokeLater(() -> {
-      IDiffDialogResult<?, ?> dialogResult = dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, null, null, "HEAD", "Working dir", true, false);
+      IDiffDialogResult<?, ?> dialogResult = dialogProvider.showDiffDialog(pRepo.getTopLevelDirectory(), fileDiffs, null, null, "Working dir", "HEAD", true, false);
       if (dialogResult.isPressedOkay())
       {
         for (IFileDiff fileDiff : fileDiffs)
