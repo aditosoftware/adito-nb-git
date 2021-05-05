@@ -184,6 +184,5 @@ public class ChangeDeltaImplTest
     String oldVersion = "v1FFSk+ \n-rRG IaSE8m7' S(pm@jk_ (nAg\" \n>U._me3 $*>Ruo \nJ\\>yHK3x*2 \n";
     List<Integer> list = ChangeDeltaImpl._getUnmodifiedLines(editList, oldVersion.replace(" ", "\n"), new ChangeDeltaImpl.OriginalEditSideInfo());
     assertEquals(List.of(1, 3, 4, 5, 6, 7, 9, 11), list);
-    assertEquals("ha", "ho");
   }
 }
