@@ -1,0 +1,46 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Java CI with Maven
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+          - os: ubuntu-latest
+          - os: windows-latest
+    steps:
+      - name: Setup / Checkout
+        uses: actions/checkout@v2
+      - name: Setup / Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
+      - name: Setup / JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 13
+      - name: Setup / settings.xml
+        uses: s4u/maven-settings-action@v2.2.0
+        with:
+          servers: '[{"id": "default", "username": "${{ secrets.nexus_user }}", "password": "${{ secrets.nexus_password }}"}]'
+          mirrors: '[{"id": "default", "name": "default", "mirrorOf": "*", "url": "https://nexus.adito.cloud/repository/public/"}]'
+      - name: Restore Maven cache
+        uses: skjolber/maven-cache-github-action@v1
+        with:
+          step: restore
+      - name: Native / Compile
+        run: mvn clean package -Pnative "-Dmaven.javadoc.skip=true"
+      - name: Native / Integration Test
+        run: mvn -Pnative test-compile failsafe:integration-test failsafe:verify
+      - name: Save Maven cache
+        uses: skjolber/maven-cache-github-action@v1
+        with:
+          step: save
