@@ -54,7 +54,7 @@
     <dependency>
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-assistedinject</artifactId>
-      <version>4.2.3</version>
+      <version>5.0.1</version>
     </dependency>
 
     <dependency>
