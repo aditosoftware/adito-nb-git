@@ -1,0 +1,106 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: io.reactivex.rxjava3:rxjava
+    versions:
+    - 3.0.11
+  - dependency-name: com.google.inject:guice
+    versions:
+    - 5.0.0
+  - dependency-name: com.google.inject.extensions:guice-assistedinject
+    versions:
+    - 5.0.0
+  - dependency-name: org.mockito:mockito-core
+    versions:
+    - 3.8.0
+  - dependency-name: io.reactivex.rxjava2:rxjava
+    versions:
+    - 2.2.20
+    - 2.2.21
+  - dependency-name: org.eclipse.jgit:org.eclipse.jgit
+    versions:
+    - 5.10.0.202012080955-r
+  - dependency-name: org.netbeans.api:org-netbeans-modules-projectuiapi
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.modules:org-netbeans-modules-versioning-core
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-editor-settings
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-io
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-keyring
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-queries
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-api-progress
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-editor-document
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-text
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-editor-lib2
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-editor-lib
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-awt
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-versioning
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-modules
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-projectuiapi-base
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-loaders
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-util-lookup
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-netbeans-modules-projectapi
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-nodes
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-util-ui
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-filesystems
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-dialogs
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-util
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-windows
+    versions:
+    - RELEASE122
+  - dependency-name: org.netbeans.api:org-openide-filesystems-nb
+    versions:
+    - RELEASE122
+  - dependency-name: de.adito.util:reactive
+    versions:
+    - 1.1.0
