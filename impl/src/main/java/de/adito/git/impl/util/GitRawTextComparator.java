@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class GitRawTextComparator
 {
   private static final List<GitRawTextComparator> INSTANCES;
+  private static final GitRawTextComparator DEFAULT_COMPARATOR = new GitRawTextComparator("Ignore all whitespaces", RawTextComparator.WS_IGNORE_ALL);
   private static GitRawTextComparator current;
 
   private final String displayValue;
@@ -24,13 +25,13 @@ public class GitRawTextComparator
   {
     INSTANCES = new ArrayList<>(5);
     INSTANCES.add(new GitRawTextComparator("No special treatment", RawTextComparator.DEFAULT));
-    INSTANCES.add(new GitRawTextComparator("Ignore all whitespaces", RawTextComparator.WS_IGNORE_ALL));
+    INSTANCES.add(DEFAULT_COMPARATOR);
     INSTANCES.add(new GitRawTextComparator("Ignore whitespaces between characters", RawTextComparator.WS_IGNORE_CHANGE));
     INSTANCES.add(new GitRawTextComparator("Ignore leading whitespaces", RawTextComparator.WS_IGNORE_LEADING));
     INSTANCES.add(new GitRawTextComparator("Ignore trailing whitespaces", RawTextComparator.WS_IGNORE_TRAILING));
 
     if (current == null)
-      current = INSTANCES.get(1);
+      current = DEFAULT_COMPARATOR;
   }
 
   private GitRawTextComparator(String pDisplayValue, RawTextComparator pValue)
@@ -98,7 +99,7 @@ public class GitRawTextComparator
     GitRawTextComparator setComparator = parse(pComparator);
 
     if (setComparator == null)
-      current = INSTANCES.get(0);
+      current = DEFAULT_COMPARATOR;
     else
       current = setComparator;
   }
