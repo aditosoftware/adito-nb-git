@@ -12,7 +12,7 @@ class DialogDisplayerImpl implements IDialogDisplayer
 
   @Override
   public <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier,
-                                                                         String pTitle, EButtons[] pButtons)
+                                                                         String pTitle, Object[] pButtons)
   {
     throw new RuntimeException("de.adito.git.gui.dialogs.DialogDisplayerImpl.showDialog");
   }

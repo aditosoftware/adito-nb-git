@@ -30,7 +30,7 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
    * @return {@code true} if the "okay" button was pressed, {@code false} if the dialogs was cancelled
    */
   @Override
-  public <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier, String pTitle, EButtons[] pButtons)
+  public <S extends AditoBaseDialog<T>, T> DialogResult<S, T> showDialog(Function<IDescriptor, S> pDialogContentSupplier, String pTitle, Object[] pButtons)
   {
     Object[] descriptorButtons = new Object[pButtons.length];
     System.arraycopy(pButtons, 0, descriptorButtons, 0, pButtons.length);
@@ -55,11 +55,11 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     dialog.setVisible(true);
 
     Object pressedButtonObject = dialogDescriptor.getValue();
-    EButtons pressedButton;
+    Object pressedButton;
     if (pressedButtonObject.equals(defaultButton))
       pressedButton = pButtons[0];
     else if (pressedButtonObject instanceof EButtons)
-      pressedButton = (EButtons) pressedButtonObject;
+      pressedButton = pressedButtonObject;
     else
       pressedButton = EButtons.ESCAPE;
 

@@ -1,6 +1,5 @@
 package de.adito.git.gui.dialogs.results;
 
-import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogResult;
 
 /**
@@ -11,5 +10,5 @@ interface IMergeConflictResolutionDialogResult<S, T> extends IDialogResult<S, T>
 {
   boolean isAcceptChanges();
 
-  EButtons getSelectedButton();
+  Object getSelectedButton();
 }

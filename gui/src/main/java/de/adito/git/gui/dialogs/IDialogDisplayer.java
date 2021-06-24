@@ -18,7 +18,7 @@ public interface IDialogDisplayer
    * @return {@code true} if the "okay" button was pressed, {@code false} if the dialogs was cancelled
    */
   <SOURCE_TYPE extends AditoBaseDialog<RESULT_TYPE>, RESULT_TYPE> DialogResult<SOURCE_TYPE, RESULT_TYPE> showDialog(Function<IDescriptor, SOURCE_TYPE> pDialogContentSupplier,
-                                                                                                                    String pTitle, EButtons[] pButtons);
+                                                                                                                    String pTitle, Object[] pButtons);
 
   interface IDescriptor
   {

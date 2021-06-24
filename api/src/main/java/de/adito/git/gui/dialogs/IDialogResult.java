@@ -11,5 +11,5 @@ public interface IDialogResult<SOURCE_TYPE, RESULT_TYPE>
 
   RESULT_TYPE getInformation();
 
-  EButtons getSelectedButton();
+  Object getSelectedButton();
 }
