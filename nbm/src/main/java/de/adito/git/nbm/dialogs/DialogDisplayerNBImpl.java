@@ -35,7 +35,15 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     Object[] descriptorButtons = new Object[pButtons.length];
     System.arraycopy(pButtons, 0, descriptorButtons, 0, pButtons.length);
 
-    JButton defaultButton = new JButton(pButtons[0].toString());
+    JButton defaultButton;
+    if (pButtons[0] instanceof JButton)
+    {
+      defaultButton = (JButton) pButtons[0];
+    }
+    else
+    {
+      defaultButton = new JButton(pButtons[0].toString());
+    }
     descriptorButtons[0] = defaultButton;
 
     DialogDescriptor dialogDescriptor = new DialogDescriptor(null, pTitle, true, descriptorButtons,

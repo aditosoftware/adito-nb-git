@@ -13,6 +13,9 @@ public enum EButtons
   CANCEL("Cancel"),
   ABORT("Abort"),
   DISCARD_CHANGES("Discard Changes"),
+  CONTTINUE_MERGE("Continue Merge"),
+  ACCEPT_REMAINING("Accept remaining non-conflicting changes"),
+  ACCEPT_AS_IS("Accept as is"),
   STASH_CHANGES("Stash Changes"),
   PUSH("Push"),
   CLOSE("Close"),
@@ -31,7 +34,7 @@ public enum EButtons
   SKIP("Skip"),
   AUTO_RESOLVE("Resolve"),
   RESET_HEAD("Reset HEAD"),
-  LEAVE_BE("Leave as-is");
+  LEAVE_BE("Leave as is");
 
   private final String text;
 

@@ -137,13 +137,13 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
    *
    * @param pConflictSide EConflictSide that should be accepted
    */
-  private void _acceptNonConflictingDeltas(EConflictSide pConflictSide)
+  public static void acceptNonConflictingDeltas(@NotNull IMergeData pMergeDiff, @NotNull EConflictSide pConflictSide)
   {
-    for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
+    for (IChangeDelta changeDelta : pMergeDiff.getDiff(pConflictSide).getChangeDeltas())
     {
       if (changeDelta.getChangeStatus() == EChangeStatus.PENDING && changeDelta.getConflictType() != EConflictType.CONFLICTING)
       {
-        mergeDiff.acceptDelta(changeDelta, pConflictSide);
+        pMergeDiff.acceptDelta(changeDelta, pConflictSide);
       }
     }
   }
@@ -165,7 +165,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     @Override
     public void actionPerformed(ActionEvent pEvent)
     {
-      _acceptNonConflictingDeltas(conflictSide);
+      acceptNonConflictingDeltas(mergeDiff, conflictSide);
     }
   }
 
@@ -202,7 +202,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
      */
     private void _acceptSide(EConflictSide pConflictSide)
     {
-      _acceptNonConflictingDeltas(pConflictSide);
+      acceptNonConflictingDeltas(mergeDiff, pConflictSide);
     }
 
     /**

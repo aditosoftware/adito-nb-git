@@ -13,6 +13,7 @@ import de.adito.git.gui.NewFileDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
+import de.adito.git.gui.swing.MergeConflictConditionalButton;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +94,7 @@ class DialogProviderImpl implements IDialogProvider
       result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createMergeConflictResolutionDialog(pMergeDiff, pYoursOrigin, pTheirsOrigin),
                                           "Conflict resolution for file "
                                               + pMergeDiff.getDiff(EConflictSide.YOURS).getFileHeader().getFilePath(),
-                                          List.of(EButtons.ACCEPT_CHANGES, EButtons.ACCEPT_YOURS, EButtons.ACCEPT_THEIRS, EButtons.CANCEL).toArray(new EButtons[0]));
+                                          List.of(new MergeConflictConditionalButton(pMergeDiff, this), EButtons.ACCEPT_YOURS, EButtons.ACCEPT_THEIRS, EButtons.CANCEL).toArray(new Object[0]));
       return new MergeConflictResulutionDialogResultImpl<>(result);
     }
     finally
@@ -108,13 +109,22 @@ class DialogProviderImpl implements IDialogProvider
 
     private MergeConflictResulutionDialogResultImpl(DialogResult<S, T> pDialogResult)
     {
-      super(pDialogResult.getSource(), pDialogResult.getSelectedButton(), pDialogResult.getMessage(), pDialogResult.getInformation());
+      super(pDialogResult.getSource(), getPressedButton(pDialogResult.getSelectedButton()), pDialogResult.getMessage(), pDialogResult.getInformation());
     }
 
     @Override
     public boolean isAcceptChanges()
     {
       return selectedButton == EButtons.ACCEPT_CHANGES;
+    }
+
+    private static Object getPressedButton(@NotNull Object pOriginalPressedButton)
+    {
+      if (pOriginalPressedButton instanceof MergeConflictConditionalButton)
+      {
+        return ((MergeConflictConditionalButton) pOriginalPressedButton).getPressedButton();
+      }
+      return pOriginalPressedButton;
     }
   }
 

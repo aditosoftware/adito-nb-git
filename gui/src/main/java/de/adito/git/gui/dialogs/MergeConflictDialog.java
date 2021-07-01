@@ -177,7 +177,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
           {
             if (resolvedFile != null)
               repository.add(Collections.singletonList(resolvedFile));
-            _removeFromMergeConflicts(pMergeDatas.get(0));
+            pMergeDatas.forEach(this::_removeFromMergeConflicts);
           }
           catch (AditoGitException pE)
           {
@@ -192,9 +192,20 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         else if (result.getSelectedButton().equals(EButtons.ACCEPT_THEIRS))
         {
           _acceptDefaultVersion(EConflictSide.THEIRS);
+          pMergeDatas.forEach(this::_removeFromMergeConflicts);
         }
-        else
-          pMergeDatas.get(0).reset();
+        else if (result.getSelectedButton() == EButtons.ACCEPT_REMAINING)
+        {
+          MergeConflictResolutionDialog.acceptNonConflictingDeltas(pMergeDatas.get(0), EConflictSide.THEIRS);
+          MergeConflictResolutionDialog.acceptNonConflictingDeltas(pMergeDatas.get(0), EConflictSide.YOURS);
+          pMergeDatas.forEach(this::_removeFromMergeConflicts);
+        }
+        else if (result.getSelectedButton() == EButtons.ACCEPT_AS_IS)
+        {
+          pMergeDatas.forEach(this::_removeFromMergeConflicts);
+        }
+        else if (result.getSelectedButton() == EButtons.CANCEL)
+          pMergeDatas.forEach(IMergeData::reset);
       }
     });
   }
