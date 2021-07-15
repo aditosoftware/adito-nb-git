@@ -157,12 +157,13 @@ public interface IDialogProvider
   /**
    * Shows a dialog with the specified message and the passed buttons.
    *
+   * @param pDialogTitle  Title of the dialog, if null a default title is used
    * @param pMessage      message to display for the user
    * @param pShownButtons Buttons that the user can choose from
    * @param pOkayButtons  Buttons that are considered as "User confirmed the dialog"
    * @return DialogResult with information about the choice of the user
    */
-  IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
+  IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@Nullable String pDialogTitle, @NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
                                                                        @NotNull List<EButtons> pOkayButtons);
 
   /**

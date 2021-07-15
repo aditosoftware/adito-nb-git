@@ -65,12 +65,12 @@ public class MergeConflictConditionalButton extends ConditionalDialogButton
     private void _unresolvedConflicts(ActionEvent e)
     {
       IUserPromptDialogResult<NotificationPanel, Object> dialogResult = dialogProvider
-          .showMessageDialog(Util.getResource(MergeConflictConditionalButton.class, "TEXTUnresolvedConflicts"),
-                             List.of(EButtons.CONTTINUE_MERGE, EButtons.LEAVE_BE),
+          .showMessageDialog("Unresolved conflicting changes", Util.getResource(MergeConflictConditionalButton.class, "TEXTUnresolvedConflicts"),
+                             List.of(EButtons.CONTTINUE_MERGE, EButtons.EXIT_ANYWAY),
                              List.of(EButtons.CONTTINUE_MERGE));
-      if (dialogResult.getSelectedButton() == EButtons.LEAVE_BE)
+      if (dialogResult.getSelectedButton() == EButtons.EXIT_ANYWAY)
       {
-        pressedButton = EButtons.LEAVE_BE;
+        pressedButton = EButtons.EXIT_ANYWAY;
         SwingUtilities.invokeLater(() -> actionListeners.forEach(pActionListener -> pActionListener.actionPerformed(e)));
       }
     }
@@ -78,7 +78,7 @@ public class MergeConflictConditionalButton extends ConditionalDialogButton
     private void _unresolvedChanged(ActionEvent e)
     {
       IUserPromptDialogResult<NotificationPanel, Object> dialogResult = dialogProvider
-          .showMessageDialog(Util.getResource(MergeConflictConditionalButton.class, "TEXTUnresolvedChanges"),
+          .showMessageDialog("Unresolved changes", Util.getResource(MergeConflictConditionalButton.class, "TEXTUnresolvedChanges"),
                              List.of(EButtons.CONTTINUE_MERGE, EButtons.ACCEPT_REMAINING, EButtons.ACCEPT_AS_IS),
                              List.of(EButtons.CONTTINUE_MERGE));
       if (dialogResult.getSelectedButton() == EButtons.ACCEPT_AS_IS)

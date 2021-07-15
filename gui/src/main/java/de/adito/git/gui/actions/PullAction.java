@@ -219,7 +219,7 @@ class PullAction extends AbstractAction
     }
     else if (!dialogResult.isAbortMerge())
     {
-      promptDialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
+      promptDialogResult = dialogProvider.showMessageDialog(null, Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
                                                             List.of(EButtons.SAVE, EButtons.ABORT),
                                                             List.of(EButtons.SAVE));
       if (promptDialogResult.isOkay())
@@ -276,7 +276,7 @@ class PullAction extends AbstractAction
       {
         if (repositoryState.get().getCurrentRemoteTrackedBranch() != null)
         {
-          IUserPromptDialogResult<?, ?> dialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "rebaseMergeCommitsWarning"),
+          IUserPromptDialogResult<?, ?> dialogResult = dialogProvider.showMessageDialog(null, Util.getResource(this.getClass(), "rebaseMergeCommitsWarning"),
                                                                                         List.of(EButtons.MERGE_REMOTE, EButtons.CANCEL),
                                                                                         List.of(EButtons.MERGE_REMOTE));
           if (dialogResult.isOkay())

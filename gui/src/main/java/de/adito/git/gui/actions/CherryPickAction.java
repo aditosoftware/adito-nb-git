@@ -150,7 +150,7 @@ class CherryPickAction extends AbstractTableAction
         }
         else if (!conflictResult.isAbortMerge())
         {
-          promptDialogResult = dialogProvider.showMessageDialog(Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
+          promptDialogResult = dialogProvider.showMessageDialog(null, Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
                                                                 List.of(EButtons.SAVE, EButtons.ABORT),
                                                                 List.of(EButtons.SAVE));
           if (promptDialogResult.isOkay())

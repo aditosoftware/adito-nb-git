@@ -367,12 +367,12 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
-                                                                              @NotNull List<EButtons> pOkayButtons)
+  public IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@Nullable String pDialogTitle, @NotNull String pMessage,
+                                                                              @NotNull List<EButtons> pShownButtons, @NotNull List<EButtons> pOkayButtons)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createNotificationPanel(pMessage),
-                                                                       "Git Plugin", pShownButtons.toArray(new EButtons[0])))
+                                                                       pDialogTitle == null ? "Git Plugin" : pDialogTitle, pShownButtons.toArray(new EButtons[0])))
     {
       @Override
       public boolean isOkay()
