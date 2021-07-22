@@ -21,6 +21,8 @@ interface IActionFactory
 
   MergeAction createMergeAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pTargetBranch);
 
+  MergeRemoteAction createMergeRemoteAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<IBranch>> pTargetBranch);
+
   CommitAction createCommitAction(Observable<Optional<IRepository>> pRepository,
                                   Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, String pMessageTemplate);
 

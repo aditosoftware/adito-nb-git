@@ -27,6 +27,16 @@ public interface IActionProvider
   Action getMergeAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pTargetBranch);
 
   /**
+   * This version of the merge Action is specific for merging a remote branch into another branch, as it performs a fetch before the merge to make sure
+   * that the latest version of the remote branch is merged into the selected branch
+   *
+   * @param pRepository   Observable with the current Repository
+   * @param pTargetBranch Observable that contains the remote branch that should be merged into the current one
+   * @return Action whose actionPerformed method merges the two branches and performs a fetch before the merge
+   */
+  Action getMergeRemoteAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pTargetBranch);
+
+  /**
    * @param pRepository              Observable with the current Repository
    * @param pSelectedFilesObservable Observable with the list of selected IFileChangeTypes. Obtainable by i.e. the {@link de.adito.git.gui.rxjava.ObservableListSelectionModel}
    * @param pMessageTemplate         String that will be the text that is pre-set as commit message, "" for no pre-set message

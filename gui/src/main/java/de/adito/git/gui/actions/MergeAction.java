@@ -37,7 +37,7 @@ class MergeAction extends AbstractTableAction
   private final ISaveUtil saveUtil;
   private final INotifyUtil notifyUtil;
   private final MergeConflictSequence mergeConflictSequence;
-  private final Observable<Optional<IRepository>> repositoryObservable;
+  final Observable<Optional<IRepository>> repositoryObservable;
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade progressFacade;
   private final IDialogProvider dialogProvider;

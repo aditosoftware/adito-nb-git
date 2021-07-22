@@ -12,6 +12,7 @@ import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
+import info.clearthought.layout.TableLayoutConstants;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -82,8 +83,8 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   {
     //room between the components
     final double gap = 7;
-    double pref = TableLayout.PREFERRED;
-    double[] cols = {TableLayout.FILL};
+    double pref = TableLayoutConstants.PREFERRED;
+    double[] cols = {TableLayoutConstants.FILL};
     double[] rows = {
         pref,
         pref,
@@ -131,7 +132,10 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
     branchList.setSelectionModel(observableListSelectionModel);
     branchList.setCellRenderer(new BranchCellRenderer());
     branchList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    branchList.addMouseListener(new _BranchMouseListener());
+    if (pType == EBranchType.LOCAL)
+      branchList.addMouseListener(new _LocalBranchMouseListener());
+    else
+      branchList.addMouseListener(new _RemoteBranchMouseListener());
     branchList.addMouseListener(hoverMouseListener);
     branchList.addMouseMotionListener(hoverMouseListener);
     branchLists.add(branchList);
@@ -193,7 +197,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   /**
    * add a {@link MouseAdapter} to the second popup menu at the clicked branch.
    */
-  private class _BranchMouseListener extends MouseAdapter
+  private abstract class _BranchMouseListener extends MouseAdapter
   {
     @Override
     public void mousePressed(MouseEvent pE)
@@ -218,19 +222,22 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
 
       Action checkoutAction = actionProvider.getCheckoutAction(observableOptRepo, selectedBranch);
       Action showAllCommitsAction = actionProvider.getShowAllCommitsForBranchAction(observableOptRepo, selectedBranches);
-      Action mergeAction = actionProvider.getMergeAction(observableOptRepo, selectedBranch);
+      Action mergeAction = getMergeAction(selectedBranch);
       Action deleteBranchAction = actionProvider.getDeleteBranchAction(observableOptRepo, selectedBranch);
 
       JPopupMenu innerPopup = new JPopupMenu();
       innerPopup.add(checkoutAction);
       innerPopup.add(showAllCommitsAction);
-      innerPopup.add(mergeAction);
+      if (mergeAction != null)
+        innerPopup.add(mergeAction);
       innerPopup.addSeparator();
       innerPopup.add(deleteBranchAction);
 
       Point location = _calculateInnerPopupPosition(selectedBranchList);
       innerPopup.show(selectedBranchList, location.x - innerPopup.getPreferredSize().width, location.y);
     }
+
+    abstract Action getMergeAction(Observable<Optional<IBranch>> pSelectedBranch);
 
     private Point _calculateInnerPopupPosition(JList<IBranch> pBranchList)
     {
@@ -247,13 +254,39 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   }
 
   /**
+   * Subclass for a mouselistener for remote branches that has menu options specific for remote branches
+   */
+  private class _RemoteBranchMouseListener extends _BranchMouseListener
+  {
+
+    @Override
+    Action getMergeAction(Observable<Optional<IBranch>> pSelectedBranch)
+    {
+      return actionProvider.getMergeRemoteAction(observableOptRepo, pSelectedBranch);
+    }
+  }
+
+  /**
+   * Subclass for a mouselistener for local branches that has menu options specific for local branches
+   */
+  private class _LocalBranchMouseListener extends _BranchMouseListener
+  {
+
+    @Override
+    Action getMergeAction(Observable<Optional<IBranch>> pSelectedBranch)
+    {
+      return actionProvider.getMergeAction(observableOptRepo, pSelectedBranch);
+    }
+  }
+
+  /**
    * A {@link MouseAdapter} who checks the entry and exit point of a {@link JList}/{@link JLabel} and set at the hover
    * mouse state the look and feel hover color
    */
   static class _HoverMouseListener extends MouseAdapter
   {
     Color hoverColor;
-    Color labelSelectedForeground = new JList().getSelectionForeground();
+    Color labelSelectedForeground = new JList<>().getSelectionForeground();
     Color labelForeground = new JLabel().getForeground();
 
     _HoverMouseListener()

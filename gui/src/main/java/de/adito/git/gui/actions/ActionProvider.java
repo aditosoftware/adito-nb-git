@@ -43,6 +43,15 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
+  public MergeRemoteAction getMergeRemoteAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pTargetBranch)
+  {
+    return actionFactory.createMergeRemoteAction(pRepository, pTargetBranch);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public CommitAction getCommitAction(@NotNull Observable<Optional<IRepository>> pRepository,
                                       @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, String pMessageTemplate)
   {
