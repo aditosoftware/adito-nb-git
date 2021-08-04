@@ -1427,7 +1427,7 @@ public class RepositoryImpl implements IRepository
         if (mergeResult.getConflicts() != null)
         {
           ObjectId mergeBaseId = mergeResult.getBase();
-          if (mergeBaseId == null)
+          if (mergeBaseId == null || !RepositoryImplHelper.isValidCommit(git, mergeBaseId))
           {
             mergeBase = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
           }

@@ -15,6 +15,7 @@ import de.adito.git.impl.util.GitRawTextComparator;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.*;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
@@ -31,6 +32,8 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -448,6 +451,25 @@ public class RepositoryImplHelper
                                               oldParentFCI, pParentDiff.getFileContentInfo(EChangeSide.NEW)),
                              new FileDiffImpl(pToMergeDiff.getFileHeader(), toMergeEditList,
                                               oldToMergeFCI, pToMergeDiff.getFileContentInfo(EChangeSide.NEW)));
+  }
+
+  static boolean isValidCommit(@NotNull Git pGit, @NotNull ObjectId pMergeBaseId)
+  {
+    try
+    {
+      pGit.getRepository().getObjectDatabase().open(pMergeBaseId);
+    }
+    catch (MissingObjectException pE)
+    {
+      Logger.getLogger(RepositoryImplHelper.class.getName()).log(Level.WARNING, pE, () -> "Encountered bad object with ID" + ObjectId.toString(pMergeBaseId));
+      return false;
+    }
+    catch (IOException pIOE)
+    {
+      Logger.getLogger(RepositoryImplHelper.class.getName()).log(Level.WARNING, pIOE, () -> "Failed tto resolve commit with ID" + ObjectId.toString(pMergeBaseId));
+      return false;
+    }
+    return true;
   }
 
   /**
