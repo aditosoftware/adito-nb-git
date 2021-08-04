@@ -46,8 +46,10 @@ public class MergeConflictConditionalButton extends ConditionalDialogButton
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().stream().anyMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
-          || mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().stream().anyMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING))
+      if ((mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().stream().anyMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING
+          && pChangeDelta.getChangeStatus() == EChangeStatus.PENDING))
+          || (mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().stream().anyMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING
+          && pChangeDelta.getChangeStatus() == EChangeStatus.PENDING)))
       {
         executorService.execute(() -> _unresolvedConflicts(e));
       }
