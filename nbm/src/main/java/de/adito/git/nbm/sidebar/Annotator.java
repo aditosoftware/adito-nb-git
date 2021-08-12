@@ -103,7 +103,7 @@ public class Annotator extends JPanel implements IDiscardable
       _buildObservableChain(pRepository, pTarget, pFile);
       if (popupMouseListener == null)
       {
-        popupMouseListener = new PopupMouseListener(pPopupMenu);
+        popupMouseListener = new PopupMouseListener(() -> pPopupMenu);
         addMouseListener(popupMouseListener);
       }
     }

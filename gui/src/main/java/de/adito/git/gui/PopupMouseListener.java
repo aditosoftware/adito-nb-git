@@ -5,6 +5,7 @@ import javax.swing.tree.TreePath;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.function.Supplier;
 
 /**
  * @author m.kaspera 07.11.2018
@@ -12,12 +13,12 @@ import java.awt.event.MouseEvent;
 public class PopupMouseListener extends MouseAdapter
 {
 
-  private final JPopupMenu popupMenu;
+  private final Supplier<JPopupMenu> popupMenuSupplier;
   private Action doubleClickAction;
 
-  public PopupMouseListener(JPopupMenu pPopupMenu)
+  public PopupMouseListener(Supplier<JPopupMenu> pPopupMenuSupplier)
   {
-    popupMenu = pPopupMenu;
+    popupMenuSupplier = pPopupMenuSupplier;
   }
 
   /**
@@ -67,6 +68,7 @@ public class PopupMouseListener extends MouseAdapter
         if (!source.isPathSelected(sourcePath))
           source.getSelectionModel().setSelectionPath(sourcePath);
       }
+      JPopupMenu popupMenu = popupMenuSupplier.get();
       if (popupMenu != null)
       {
         for (Component component : popupMenu.getComponents())
@@ -101,6 +103,7 @@ public class PopupMouseListener extends MouseAdapter
         if (!source.isPathSelected(sourcePath))
           source.getSelectionModel().setSelectionPath(sourcePath);
       }
+      JPopupMenu popupMenu = popupMenuSupplier.get();
       if (popupMenu != null)
       {
         for (Component component : popupMenu.getComponents())

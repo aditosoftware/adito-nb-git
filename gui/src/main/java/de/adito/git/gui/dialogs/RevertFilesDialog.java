@@ -81,7 +81,7 @@ class RevertFilesDialog extends AditoBaseDialog<Object> implements IDiscardable
       add(toolBar, BorderLayout.WEST);
       JPopupMenu popupMenu = new JPopupMenu();
       popupMenu.add(diffToHeadAction);
-      popupMouseListener = new PopupMouseListener(popupMenu);
+      popupMouseListener = new PopupMouseListener(() -> popupMenu);
       fileTree.addMouseListener(popupMouseListener);
     }
     else if (pFilesToRevert.size() == 1)

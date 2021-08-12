@@ -150,7 +150,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn(pMergeDetails.getYoursOrigin())).setPreferredWidth(120);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn(pMergeDetails.getTheirsOrigin())).setPreferredWidth(120);
     mergeConflictTable.setDefaultRenderer(Object.class, new MergeDiffTableCellRenderer());
-    PopupMouseListener popupMouseListener = new PopupMouseListener(new JPopupMenu());
+    PopupMouseListener popupMouseListener = new PopupMouseListener(JPopupMenu::new);
     popupMouseListener.setDoubleClickAction(new ManualResolveAction(pMergeDetails));
     mergeConflictTable.addMouseListener(popupMouseListener);
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);

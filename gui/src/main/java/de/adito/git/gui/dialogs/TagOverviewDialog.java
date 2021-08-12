@@ -117,7 +117,7 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
     selectCommitAction = new _SelectCommitAction(pSelectionModel);
     popupMenu.add(selectCommitAction);
     popupMenu.add(pActionProvider.getDeleteTagAction(pRepository, pSelectedTagObservable));
-    PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
+    PopupMouseListener popupMouseListener = new PopupMouseListener(() -> popupMenu);
     popupMouseListener.setDoubleClickAction(selectCommitAction);
     return popupMouseListener;
   }

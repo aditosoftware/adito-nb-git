@@ -187,7 +187,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     popupMenu.add(diffCommitsAction);
     statusTree.getTree().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
     statusTree.getTree().getActionMap().put(STANDARD_ACTION_STRING, diffCommitsAction);
-    PopupMouseListener popupMouseListener = new PopupMouseListener(popupMenu);
+    PopupMouseListener popupMouseListener = new PopupMouseListener(() -> popupMenu);
     popupMouseListener.setDoubleClickAction(diffCommitsAction);
     statusTree.getTree().addMouseListener(popupMouseListener);
   }

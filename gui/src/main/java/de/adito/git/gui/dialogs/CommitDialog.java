@@ -263,7 +263,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(actionProvider.getDiffToHeadAction(repository, selectionObservable, true));
     popupMenu.add(actionProvider.getRevertWorkDirAction(repository, selectionObservable));
-    pTree.addMouseListener(new PopupMouseListener(popupMenu));
+    pTree.addMouseListener(new PopupMouseListener(() -> popupMenu));
   }
 
   /**
