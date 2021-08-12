@@ -1,5 +1,6 @@
 package de.adito.git.gui.window;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.IUserPreferences;
@@ -10,6 +11,7 @@ import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.Component;
 import java.util.Optional;
 
 /**
@@ -49,7 +51,8 @@ class WindowProviderImpl implements IWindowProvider
   @Override
   public void showStatusWindow(@NotNull Observable<Optional<IRepository>> pRepository)
   {
-    _showInFrame(factory.createStatusWindowContent(pRepository));
+    ArrayListMultimap<Integer, Component> componentMap = ArrayListMultimap.create();
+    _showInFrame(factory.createStatusWindowContent(pRepository, () -> componentMap).getComponent());
   }
 
   private void _showInFrame(JComponent pComponent)

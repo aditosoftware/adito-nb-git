@@ -1,5 +1,7 @@
 package de.adito.git.gui.window.content;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
@@ -16,16 +18,20 @@ import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.models.*;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +40,7 @@ import java.util.stream.Collectors;
  *
  * @author m.kaspera 27.09.2018
  */
-class StatusWindowContent extends ObservableTreePanel implements IDiscardable
+class StatusWindowContent extends ObservableTreePanel implements IDiscardable, ILookupComponent<File>
 {
 
   private static final String STANDARD_ACTION_STRING = "STANDARD_ACTION";
@@ -49,10 +55,18 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
   private Action openFileAction;
   private final List<IDiscardable> discardableActions = new ArrayList<>();
   private ObservableTreeUpdater<IFileChangeType> treeUpdater;
+  private final BehaviorSubject<Observable<Optional<List<IFileChangeType>>>> subject = BehaviorSubject.createDefault(Observable.just(Optional.empty()));
+  private final Observable<Optional<List<File>>> selectedFileObservable = subject.switchMap(pObs -> pObs
+      .map(pOpt -> pOpt
+          .map(pChangeTypes -> pChangeTypes
+              .stream()
+              .map(IFileChangeType::getFile)
+              .collect(Collectors.toList()))));
 
   @Inject
   StatusWindowContent(IIconLoader pIconLoader, IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
-                      IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository)
+                      IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository,
+                      @Assisted Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
   {
     super();
     iconLoader = pIconLoader;
@@ -76,20 +90,21 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
       treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, statusTreeModel, pFileSystemUtil, doAfterJobs, this::showLoading);
 
       selectionObservable = statusTree.getSelectionObservable();
+      subject.onNext(selectionObservable);
       openFileAction = actionProvider.getOpenFileAction(selectionObservable);
       statusTree.getTree().addMouseListener(new _DoubleClickListener());
-      _initGui(projectDirectory);
+      _initGui(projectDirectory, pPopupMenuEntries);
     });
   }
 
-  private void _initGui(File pProjectDirectory)
+  private void _initGui(@NotNull File pProjectDirectory, Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
   {
     setLayout(new BorderLayout());
-    _initActions(pProjectDirectory);
+    _initActions(pProjectDirectory, pPopupMenuEntries);
     add(treeViewPanel, BorderLayout.CENTER);
   }
 
-  private void _initActions(File pProjectDirectory)
+  private void _initActions(@NotNull File pProjectDirectory, Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
   {
     Action commitAction = actionProvider.getCommitAction(repository, selectionObservable, "");
     Action diffToHeadAction = actionProvider.getDiffToHeadAction(repository, selectionObservable, true);
@@ -123,23 +138,23 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
                     .getButton());
     treeViewPanel.add(toolBar, BorderLayout.WEST, 0);
 
-    JPopupMenu popupMenu = new JPopupMenu();
-    popupMenu.add(openFileAction);
-    popupMenu.addSeparator();
-    popupMenu.add(commitAction);
-    popupMenu.add(ignoreAction);
-    popupMenu.add(excludeAction);
-    popupMenu.add(revertWorkDirAction);
-    popupMenu.addSeparator();
-    popupMenu.add(diffToHeadAction);
-    popupMenu.add(showCommitsForFileAction);
-    popupMenu.addSeparator();
-    popupMenu.add(createPatchAction);
-    popupMenu.add(applyPatchAction);
-    popupMenu.addSeparator();
-    popupMenu.add(actionProvider.getResolveConflictsAction(repository, selectionObservable));
-    popupMenu.add(actionProvider.getMarkResolvedAction(repository, selectionObservable));
-    statusTree.getTree().addMouseListener(new PopupMouseListener(popupMenu));
+    Multimap<Integer, Action> actions = ArrayListMultimap.create();
+    actions.put(0, openFileAction);
+    actions.put(100, null);
+    actions.put(200, commitAction);
+    actions.put(300, ignoreAction);
+    actions.put(400, excludeAction);
+    actions.put(500, revertWorkDirAction);
+    actions.put(600, null);
+    actions.put(700, diffToHeadAction);
+    actions.put(800, showCommitsForFileAction);
+    actions.put(900, null);
+    actions.put(1000, createPatchAction);
+    actions.put(1100, applyPatchAction);
+    actions.put(1200, null);
+    actions.put(1300, actionProvider.getResolveConflictsAction(repository, selectionObservable));
+    actions.put(1400, actionProvider.getMarkResolvedAction(repository, selectionObservable));
+    statusTree.getTree().addMouseListener(new PopupMouseListener(() -> _getPopupMenu(actions, pPopupMenuEntries)));
     statusTree.getTree().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), STANDARD_ACTION_STRING);
     statusTree.getTree().getActionMap().put(STANDARD_ACTION_STRING, openFileAction);
 
@@ -152,6 +167,42 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
     discardableActions.add((IDiscardable) openFileAction);
     discardableActions.add((IDiscardable) createPatchAction);
     discardableActions.add((IDiscardable) applyPatchAction);
+  }
+
+  private JPopupMenu _getPopupMenu(@NotNull Multimap<Integer, Action> pActions, @NotNull Supplier<Multimap<Integer, Component>> pAdditionalComponents)
+  {
+    JPopupMenu popupMenu = new JPopupMenu();
+    Multimap<Integer, Component> componentMultimap = pAdditionalComponents.get();
+    List<Integer> actionPositions = new ArrayList<>();
+    actionPositions.addAll(pActions.keySet());
+    actionPositions.addAll(componentMultimap.keySet());
+    actionPositions.sort(Integer::compare);
+    for (Integer actionPosition : actionPositions)
+    {
+      for (Action action : pActions.get(actionPosition))
+      {
+        if (action == null)
+        {
+          popupMenu.addSeparator();
+        }
+        else
+        {
+          popupMenu.add(action);
+        }
+      }
+      for (Component component : componentMultimap.get(actionPosition))
+      {
+        if (component == null)
+        {
+          popupMenu.addSeparator();
+        }
+        else
+        {
+          popupMenu.add(component);
+        }
+      }
+    }
+    return popupMenu;
   }
 
   @Override
@@ -167,6 +218,20 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable
   protected JTree getTree()
   {
     return statusTree.getTree();
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent()
+  {
+    return this;
+  }
+
+  @NotNull
+  @Override
+  public Observable<Optional<List<File>>> observeSelectedItems()
+  {
+    return selectedFileObservable;
   }
 
   private class _DoubleClickListener extends MouseAdapter
