@@ -28,6 +28,7 @@ import java.awt.Component;
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -72,6 +73,7 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent imp
                        .map(pOpt -> pOpt
                            .map(pFileList -> pFileList.stream()
                                .map(FileUtil::toFileObject)
+                               .filter(Objects::nonNull)
                                .collect(Collectors.toList())))
                        .distinctUntilChanged()
                        .subscribe(pOpt -> pOpt.ifPresent(this::_setActiveNodes)));
