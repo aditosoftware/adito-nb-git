@@ -65,7 +65,8 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent imp
       {
         componentMap.put(650, menuComponent);
       }
-      componentMap.put(680, null);
+      if (!componentMap.keySet().isEmpty())
+        componentMap.put(680, null);
       return componentMap;
     };
     ILookupComponent<File> statusWindowContent = pWindowContentProvider.createStatusWindowContent(pRepository, popupMenuEntriesSupplier);
