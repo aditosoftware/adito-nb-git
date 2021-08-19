@@ -6,6 +6,17 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.5.5</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The merge action is now called "Fetch and Merge into Current" when used on a remote branch and performs a fetch before the merge</li>
+    <li>The deploy action can now be used from the "Local Changes" window if the plugin is used in combination with a designer of version later than 2021.1.3</li>
+    <li>Improved the available information about what happens when exiting a merge conflict resolution with unresolved changes or conflicts</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: Sometimes an invalid merge base was used, added a check for these invalid commits and a second way to determine a valid merge base</li>
+  </ul>
   <p style="font-weight: bold;">v1.5.4</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
   <ul>
