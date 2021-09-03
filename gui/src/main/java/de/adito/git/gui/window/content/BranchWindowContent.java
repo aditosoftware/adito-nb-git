@@ -409,7 +409,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
     @Override
     protected void updateLabel(@Nullable IRepository pNewValue)
     {
-      label.setEnabled(pNewValue != null);
+      SwingUtilities.invokeLater(() -> label.setEnabled(pNewValue != null));
     }
   }
 
