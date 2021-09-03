@@ -38,7 +38,7 @@ public class NewRemotePanel extends JPanel implements IDiscardable
       public void updated(DocumentEvent pE)
       {
         if (addRemoteButton != null)
-          addRemoteButton.setEnabled(!remoteNameField.getText().isEmpty()
+          addRemoteButton.setEnabled(!remoteNameField.getText().isEmpty() && !remoteNameField.getText().contains(" ")
                                          && pRemotes.stream().noneMatch(pRemote -> pRemote.getName().equals(remoteNameField.getText()))
                                          && !remoteUrlField.getText().isEmpty());
       }
