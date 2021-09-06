@@ -17,6 +17,7 @@ import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -82,18 +83,35 @@ class CommitAction extends AbstractTableAction
     // if user didn't cancel the dialogs
     if (dialogResult.doCommit())
     {
-      progressFacade.executeInBackground("Committing Changes", pProgress -> {
-        List<File> files = dialogResult.getInformation().getSelectedFiles();
-        IRepository iRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
-        iRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().getUserName(), dialogResult.getInformation().getUserMail(),
-                     dialogResult.getInformation().isDoAmend());
-        prefStore.put(prefStoreInstanceKey, null);
-      });
+      performCommit(repo, progressFacade, prefStore, dialogResult, prefStoreInstanceKey);
     }
     else
     {
       prefStore.put(prefStoreInstanceKey, dialogResult.getMessage());
     }
+  }
+
+  /**
+   * perform a commit based on the dialogResult
+   *
+   * @param repo                 Observable of the Repository, used to trigger the commit
+   * @param pProgressFacade      IAsyncProgessFacade to display the progress of the commit
+   * @param pPrefStore           PrefStore to store the commit message if the user aborts the commit
+   * @param dialogResult         ICommitDialogResult that contains the info about the files the user wants to commit and if the commit should be performed at all
+   * @param prefStoreInstanceKey Key for the stored commit message
+   */
+  static void performCommit(@NotNull Observable<Optional<IRepository>> repo, @NotNull IAsyncProgressFacade pProgressFacade, @NotNull IPrefStore pPrefStore,
+                            @NotNull ICommitDialogResult<?, CommitDialogResult> dialogResult,
+                            @Nullable String prefStoreInstanceKey)
+  {
+    pProgressFacade.executeInBackground("Committing Changes", pProgress -> {
+      List<File> files = dialogResult.getInformation().getSelectedFiles();
+      IRepository iRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(CommitAction.class, "noValidRepoMsg")));
+      iRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().getUserName(), dialogResult.getInformation().getUserMail(),
+                   dialogResult.getInformation().isDoAmend());
+      if (prefStoreInstanceKey != null)
+        pPrefStore.put(prefStoreInstanceKey, null);
+    });
   }
 
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepository,

@@ -12,13 +12,12 @@ import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AmbiguousStashCommitsException;
 import de.adito.git.api.exception.TargetBranchNotFoundException;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.panels.NotificationPanel;
-import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
-import de.adito.git.gui.dialogs.results.IStashedCommitSelectionDialogResult;
-import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
+import de.adito.git.gui.dialogs.results.*;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
@@ -37,14 +36,16 @@ class ResolveConflictsAction extends AbstractTableAction
   private final MergeConflictSequence mergeConflictSequence;
   private final IDialogProvider dialogProvider;
   private final Observable<Optional<IRepository>> repository;
+  private final IPrefStore prefStore;
   private final INotifyUtil notifyUtil;
 
   @Inject
-  public ResolveConflictsAction(IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil, MergeConflictSequence pMergeConflictSequence,
+  public ResolveConflictsAction(IAsyncProgressFacade pProgressFacade, IPrefStore pPrefStore, INotifyUtil pNotifyUtil, MergeConflictSequence pMergeConflictSequence,
                                 IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository,
                                 @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     super(Util.getResource(ResolveConflictsAction.class, "resolveConflictsTitle"), _getIsEnabledObservable(pSelectedFilesObservable));
+    prefStore = pPrefStore;
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     mergeConflictSequence = pMergeConflictSequence;
@@ -107,9 +108,12 @@ class ResolveConflictsAction extends AbstractTableAction
     }
     else if (mergeConflictDialogResult.isFinishMerge())
     {
-      dialogProvider.showCommitDialog(repository, pRepo.getStatus().map(pStatusOpt -> pStatusOpt.map(IFileStatus::getUncommitted)),
-                                      "merged xxx into " + pRepo.getRepositoryState().blockingFirst(Optional.empty())
-                                          .map(pRepoState -> pRepoState.getCurrentBranch().getSimpleName()).orElse(""));
+      ICommitDialogResult<?, CommitDialogResult> dialogResult = dialogProvider
+          .showCommitDialog(repository, pRepo.getStatus().map(pStatusOpt -> pStatusOpt.map(IFileStatus::getUncommitted)),
+                            "merged xxx into " + pRepo.getRepositoryState().blockingFirst(Optional.empty())
+                                .map(pRepoState -> pRepoState.getCurrentBranch().getSimpleName()).orElse(""));
+      if (dialogResult.doCommit())
+        CommitAction.performCommit(repository, progressFacade, prefStore, dialogResult, null);
     }
   }
 
