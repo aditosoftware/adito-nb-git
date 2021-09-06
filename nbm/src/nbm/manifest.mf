@@ -6,6 +6,14 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.5.6</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>Fix: The commit dialog after a merge conflict resolution does not properly commit the files</li>
+    <li>Fix: When exiting a conflict resolution dialog with changes still in place the file is not properly marked as resolved</li>
+    <li>Fix: Do not allow remote names containing spaces</li>
+    <li>Fix: Prevent possible deadlock during project opening</li>
+  </ul>
   <p style="font-weight: bold;">v1.5.5</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
