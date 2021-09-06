@@ -172,17 +172,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         IMergeConflictResolutionDialogResult<?, ?> result = dialogProvider.showMergeConflictResolutionDialog(pMergeDatas.get(0), pYoursOrigin, pTheirsOrigin);
         if (result.isAcceptChanges())
         {
-          File resolvedFile = MergeConflictSequence.acceptManualVersion(pMergeDatas.get(0), repository);
-          try
-          {
-            if (resolvedFile != null)
-              repository.add(Collections.singletonList(resolvedFile));
-            pMergeDatas.forEach(this::_removeFromMergeConflicts);
-          }
-          catch (AditoGitException pE)
-          {
-            throw new RuntimeException(pE);
-          }
+          _acceptManualVersionMarkResolved(pMergeDatas);
         }
         else if (result.getSelectedButton().equals(EButtons.ACCEPT_YOURS))
         {
@@ -198,16 +188,31 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         {
           MergeConflictResolutionDialog.acceptNonConflictingDeltas(pMergeDatas.get(0), EConflictSide.THEIRS);
           MergeConflictResolutionDialog.acceptNonConflictingDeltas(pMergeDatas.get(0), EConflictSide.YOURS);
-          pMergeDatas.forEach(this::_removeFromMergeConflicts);
+          _acceptManualVersionMarkResolved(pMergeDatas);
         }
         else if (result.getSelectedButton() == EButtons.ACCEPT_AS_IS)
         {
-          pMergeDatas.forEach(this::_removeFromMergeConflicts);
+          _acceptManualVersionMarkResolved(pMergeDatas);
         }
         else if (result.getSelectedButton() == EButtons.CANCEL)
           pMergeDatas.forEach(IMergeData::reset);
       }
     });
+  }
+
+  private void _acceptManualVersionMarkResolved(List<IMergeData> pMergeDatas)
+  {
+    File resolvedFile = MergeConflictSequence.acceptManualVersion(pMergeDatas.get(0), repository);
+    try
+    {
+      if (resolvedFile != null)
+        repository.add(Collections.singletonList(resolvedFile));
+      pMergeDatas.forEach(this::_removeFromMergeConflicts);
+    }
+    catch (AditoGitException pE)
+    {
+      throw new RuntimeException(pE);
+    }
   }
 
   private void _acceptDefaultVersion(EConflictSide pConflictSide)
