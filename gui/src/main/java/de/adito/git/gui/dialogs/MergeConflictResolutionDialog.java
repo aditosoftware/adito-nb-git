@@ -54,11 +54,11 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     mergeDiff.markConflicting();
     mergePanel = new MergePanel(pIconLoader, mergeDiff, pYoursOrigin, pTheirsOrigin, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui(pIconLoader);
-    GitProcessExecutors.getDefaultBackgroundExecutor().submit(() ->
-                                                                  pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
-                                                                    Thread.sleep(2000);
-                                                                    mergePanel.finishLoading();
-                                                                  }));
+    GitProcessExecutors.submit(() ->
+                                   pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
+                                     Thread.sleep(2000);
+                                     mergePanel.finishLoading();
+                                   }));
   }
 
   private void _initGui(IIconLoader pIconLoader)

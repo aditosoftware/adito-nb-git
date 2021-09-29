@@ -45,21 +45,19 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
         return defaultRenderer.getTreeCellRendererComponent(pTree, pValue, pSelected, pExpanded, pLeaf, pRow, pHasFocus);
       JPanel panel = new JPanel(new BorderLayout(PANEL_HGAP, 0));
       // icon for the file/folder
-      JLabel iconLabel = new JLabel();
-      Image icon;
-      if (!pLeaf)
-      {
-        icon = fileSystemUtil.getIcon(projectDir, pExpanded);
-      }
-      else
-      {
-        icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
-      }
-      if (icon != null)
-      {
-        iconLabel.setIcon(new ImageIcon(icon));
-        panel.add(iconLabel, BorderLayout.WEST);
-      }
+      JLabel iconLabel = new AsyncIconLabel(() -> {
+        Image icon;
+        if (!pLeaf)
+        {
+          icon = fileSystemUtil.getIcon(projectDir, pExpanded);
+        }
+        else
+        {
+          icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
+        }
+        return icon;
+      });
+      panel.add(iconLabel, BorderLayout.WEST);
       // name of the file/folder, if nodes are collapsed the path from the parentNode to the childNode
       JLabel fileLabel = new JLabel(nodeInfo.getNodeDescription());
       if (!pSelected && pLeaf && !nodeInfo.getMembers().isEmpty())

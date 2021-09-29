@@ -148,11 +148,11 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
       diffPanel.setBorder(null);
       add(diffPanel, BorderLayout.CENTER);
     }
-    GitProcessExecutors.getDefaultBackgroundExecutor().submit(() ->
-                                                                  pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
-                                                                    Thread.sleep(2000);
-                                                                    diffPanel.finishLoading();
-                                                                  }));
+    GitProcessExecutors.submit(() ->
+                                   pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
+                                     Thread.sleep(2000);
+                                     diffPanel.finishLoading();
+                                   }));
   }
 
   private void _setSelectedFile(@Nullable String pSelectedFile)
