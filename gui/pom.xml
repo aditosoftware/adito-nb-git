@@ -7,7 +7,7 @@
   <parent>
     <artifactId>adito-nb-git</artifactId>
     <groupId>de.adito.git</groupId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
   </parent>
 
   <artifactId>gui</artifactId>
@@ -65,7 +65,7 @@
     <dependency>
       <groupId>de.adito.nb-modules</groupId>
       <artifactId>de-adito-netbeans-utilities</artifactId>
-      <version>RELEASE111-1.5.0-1</version>
+      <version>RELEASE122-1.6.2-4</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
