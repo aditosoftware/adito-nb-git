@@ -62,7 +62,7 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
 
     public RemoteBranchImpl(@NotNull IBranch pBranch)
     {
-      name = pBranch.getName();
+      name = pBranch.getSimpleName();
       id = pBranch.getId();
     }
 
