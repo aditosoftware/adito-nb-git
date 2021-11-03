@@ -2,6 +2,7 @@ package de.adito.git.api;
 
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IConfig;
+import de.adito.git.api.data.ITag;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,18 @@ public interface ICloneRepo
    * @throws AditoGitException if any exceptions from JGit occur during branch retrieval (such as wrong password or invalid ssh key)
    */
   @NotNull
-  List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, String pSshPath) throws AditoGitException;
+  List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException;
+
+  /**
+   * Get the tags of one repository which is not cloned or downloaded yet.
+   *
+   * @param pUrl     The URL of the remote repositoryto check the branches
+   * @param pSshPath The path of the SSH file (optional)
+   * @return the list of tags available in the repository
+   * @throws AditoGitException if any exceptions from JGit occur during branch retrieval (such as wrong password or invalid ssh key)
+   */
+  @NotNull
+  List<ITag> getTagsFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException;
 
   /**
    * Clone the repository from a URL to the local path

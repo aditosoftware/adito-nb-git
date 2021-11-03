@@ -4,13 +4,12 @@ import com.google.inject.Inject;
 import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.TrackedBranchStatusCache;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.IConfig;
-import de.adito.git.api.data.TrackedBranchStatus;
+import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.impl.data.BranchImpl;
 import de.adito.git.impl.data.CloneConfig;
+import de.adito.git.impl.data.TagImpl;
 import de.adito.git.impl.ssh.ISshProvider;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -71,6 +70,33 @@ public class CloneRepoImpl implements ICloneRepo
     refs.forEach(branch -> branchesList.add(new BranchImpl(branch, new CloneRepoTrackedBranchStatusCache())));
     branchesList.sort(Comparator.comparing(IBranch::getActualName));
     return branchesList;
+  }
+
+  @Override
+  public @NotNull List<ITag> getTagsFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException
+  {
+    Collection<Ref> refs;
+    LsRemoteCommand lsRemoteCommand = Git.lsRemoteRepository()
+        .setHeads(false)
+        .setTags(true)
+        .setTransportConfigCallback(_getTransportConfigCallBack(pSshPath))
+        .setRemote(pUrl);
+    try
+    {
+      refs = lsRemoteCommand.call();
+    }
+    catch (TransportException pAuthEx)
+    {
+      throw new AditoGitException("Authentication failed, most likely wrong password or invalid ssh key", pAuthEx);
+    }
+    catch (GitAPIException pE)
+    {
+      throw new AditoGitException("Can't get branches from Remote Repository", pE);
+    }
+    List<ITag> tagList = new ArrayList<>();
+    refs.forEach(branch -> tagList.add(new TagImpl(branch)));
+    tagList.sort(Comparator.comparing(ITag::getName));
+    return tagList;
   }
 
   @Override

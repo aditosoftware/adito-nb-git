@@ -2,6 +2,7 @@ package de.adito.git.nbm.designer;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IGitVersioningSupport;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IRemoteBranch;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.ITag;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.exceptions.AditoVersioningException;
 import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
@@ -51,6 +52,23 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     }
   }
 
+  @NotNull
+  @Override
+  public List<ITag> getTagsInRepository(@NotNull String pRemoteUrl) throws AditoVersioningException
+  {
+    try
+    {
+      return repo.getTagsFromRemoteRepo(pRemoteUrl, null)
+          .stream()
+          .map(RemoteTagImpl::new)
+          .collect(Collectors.toList());
+    }
+    catch (AditoGitException pE)
+    {
+      throw new AditoVersioningException(pE);
+    }
+  }
+
   /**
    * Basic Implementation that just stores the name and id of the given branch
    */
@@ -64,6 +82,31 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     {
       name = pBranch.getSimpleName();
       id = pBranch.getId();
+    }
+
+    @Override
+    public String getName()
+    {
+      return name;
+    }
+
+    @Override
+    public String getId()
+    {
+      return id;
+    }
+  }
+
+  private static class RemoteTagImpl implements ITag
+  {
+
+    private final String name;
+    private final String id;
+
+    public RemoteTagImpl(@NotNull de.adito.git.api.data.ITag pTag)
+    {
+      name = pTag.getName();
+      id = pTag.getId();
     }
 
     @Override
