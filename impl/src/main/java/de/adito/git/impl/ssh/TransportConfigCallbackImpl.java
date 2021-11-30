@@ -69,6 +69,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
       // Suppliers are used because when this is called the first time, the username and password is not yet set -> can be re-evaluated once required
       httpTransport.setCredentialsProvider(new AditoUsernamePasswordCredentialsProvider(() -> prefStore.get("org/netbeans/core/authentication", realmName),
                                                                                         () -> keyStore.read("authentication." + realmName)));
+      ClearHttpCacheHandler.clearCache(httpTransport.getURI().toString());
     }
     else throw new RuntimeException("Unsupported Transport protocol, make sure the project is configured to use either ssh or http");
   }
