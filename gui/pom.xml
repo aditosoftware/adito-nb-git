@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.netbeans.api</groupId>
       <artifactId>org-netbeans-modules-editor</artifactId>
-      <version>RELEASE111</version>
+      <version>RELEASE126</version>
     </dependency>
 
     <dependency>
