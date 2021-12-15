@@ -5,6 +5,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.text.*;
 import java.awt.Rectangle;
+import java.awt.Shape;
+import java.util.Optional;
 
 /**
  * @author m.kaspera, 24.01.2020
@@ -20,7 +22,7 @@ public class TextPaneUtil
    * @return Array of LineNumbers, each representing one Line. The LineNumbers are sorted, so position 0 in the array is the LineNumber of line 1
    * @throws BadLocationException if one of the accessed lineNumbers is out of bounds
    */
-  public static LineNumber[] calculateLineYPositions(@NotNull JTextComponent pEditorPane, View pView) throws BadLocationException
+  public static LineNumber[] calculateLineYPositions(@NotNull JTextComponent pEditorPane, @Nullable View pView) throws BadLocationException
   {
     int numLines = pEditorPane.getDocument().getDefaultRootElement().getElementCount();
     return _calculateLineNumbers(pEditorPane, pView, pEditorPane.getFontMetrics(pEditorPane.getFont()).getHeight(), 0,
@@ -41,7 +43,8 @@ public class TextPaneUtil
    * @return Set of LineNumbers
    * @throws BadLocationException if one of the accessed lineNumbers is out of bounds
    */
-  private static LineNumber[] _calculateLineNumbers(@NotNull JTextComponent pEditorPane, View pView, int pLineHeight, int pStartIndex, int pEndIndex, LineNumber[] pLineNumbers)
+  private static LineNumber[] _calculateLineNumbers(@NotNull JTextComponent pEditorPane, @Nullable View pView,
+                                                    int pLineHeight, int pStartIndex, int pEndIndex, LineNumber[] pLineNumbers)
       throws BadLocationException
   {
     LineNumber startNumber = _calculateLineNumberPos(pEditorPane, pView, pStartIndex);
@@ -78,7 +81,7 @@ public class TextPaneUtil
    * @throws BadLocationException if the lineIndex is out of bounds
    */
   @Nullable
-  private static LineNumber _calculateLineNumberPos(@NotNull JTextComponent pEditorPane, @NotNull View pView, int pLineIndex) throws BadLocationException
+  private static LineNumber _calculateLineNumberPos(@NotNull JTextComponent pEditorPane, @Nullable View pView, int pLineIndex) throws BadLocationException
   {
     if (pEditorPane.getDocument().getDefaultRootElement().getElementCount() < pLineIndex)
       return null;
@@ -86,9 +89,17 @@ public class TextPaneUtil
     if (lineElement == null)
       throw new BadLocationException("Element in Document for line was null", pLineIndex);
     int startOffset = lineElement.getStartOffset();
-    int yViewCoordinate = pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle())
-        .getBounds().y;
-    return new LineNumber(pLineIndex + 1, 0, yViewCoordinate);
+    if (pView != null)
+    {
+      int yViewCoordinate = Optional.ofNullable(pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle()))
+          .map(Shape::getBounds)
+          .map(Rectangle::getY)
+          .map(Double::intValue)
+          .orElse(0);
+      return new LineNumber(pLineIndex + 1, 0, yViewCoordinate);
+    }
+    return null;
+
   }
 
 }
