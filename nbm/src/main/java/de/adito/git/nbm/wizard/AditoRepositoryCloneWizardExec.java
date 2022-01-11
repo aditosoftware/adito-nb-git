@@ -3,12 +3,8 @@ package de.adito.git.nbm.wizard;
 import com.google.common.base.Strings;
 import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.IConfig;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.progress.AsyncProgressFacadeImpl;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.WizardDescriptor;
@@ -17,8 +13,6 @@ import org.openide.filesystems.FileUtil;
 
 import java.io.File;
 
-import static de.adito.git.api.data.IConfig.REMOTE_SECTION_KEY;
-import static de.adito.git.api.data.IConfig.SSH_KEY_KEY;
 import static de.adito.git.nbm.wizard.AditoRepositoryCloneWizard.*;
 
 /**
@@ -41,19 +35,8 @@ class AditoRepositoryCloneWizardExec
     IBranch branch = (IBranch) pWizardDescriptor.getProperty(W_BRANCH);
     try
     {
-      IConfig cloneConfig = cloneRepo.getConfig();
       cloneRepo.cloneProject(AsyncProgressFacadeImpl.wrapNBHandle(pHandle), localPath, projectName, repoPath,
                              branch != null ? branch.getName() : null, null, null, sshPath);
-      String sshKeyLocation = cloneConfig.getSshKeyLocation(repoPath);
-      if (sshKeyLocation != null)
-      {
-        try (Git git = new Git(FileRepositoryBuilder.create(new File(localPath + File.separator + ".git"))))
-        {
-          StoredConfig config = git.getRepository().getConfig();
-          config.setString(REMOTE_SECTION_KEY, "origin", SSH_KEY_KEY, sshKeyLocation);
-          config.save();
-        }
-      }
     }
     catch (Exception e)
     {

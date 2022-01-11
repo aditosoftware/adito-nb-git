@@ -19,7 +19,6 @@ public interface IConfig
   String USER_EMAIL_KEY = "email";
   String REMOTE_SECTION_KEY = "remote";
   String FETCH_SUBSECTION_KEY = "fetch";
-  String SSH_KEY_KEY = "puttykeyfile";
   String AUTO_CRLF_SECTION_KEY = "core";
   String AUTO_CRLF_KEY = "autocrlf";
   String REMOTE_URL_KEY = "url";

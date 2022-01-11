@@ -3,6 +3,7 @@ package de.adito.git.impl.data;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IRemote;
+import de.adito.git.api.prefs.IPrefStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,12 +16,13 @@ public class CloneConfig implements IConfig
 {
 
   private final IKeyStore keyStore;
+  private final IPrefStore prefStore;
   private char[] passphrase;
-  private String sshKeyLocation;
 
-  public CloneConfig(IKeyStore pKeyStore)
+  public CloneConfig(@NotNull IKeyStore pKeyStore, @NotNull IPrefStore pPrefStore)
   {
     keyStore = pKeyStore;
+    prefStore = pPrefStore;
   }
 
 
@@ -39,7 +41,7 @@ public class CloneConfig implements IConfig
   @Override
   public @Nullable String getSshKeyLocation(String pRemoteUrl)
   {
-    return sshKeyLocation;
+    return prefStore.get(pRemoteUrl);
   }
 
   @Nullable
@@ -95,9 +97,10 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void setSshKeyLocationForUrl(@Nullable String pSshKeyLocation, String pRemoteUrl)
+  public void setSshKeyLocationForUrl(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl)
   {
-    sshKeyLocation = pSshKeyLocation;
+    if (pRemoteUrl != null)
+      prefStore.put(pRemoteUrl, pSshKeyLocation);
   }
 
   @Override

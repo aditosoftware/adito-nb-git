@@ -6,6 +6,7 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IProgressHandle;
 import de.adito.git.impl.data.BranchImpl;
 import de.adito.git.impl.data.CloneConfig;
@@ -36,10 +37,10 @@ public class CloneRepoImpl implements ICloneRepo
 
 
   @Inject
-  CloneRepoImpl(ISshProvider pSshProvider, IKeyStore pKeyStore)
+  CloneRepoImpl(ISshProvider pSshProvider, IKeyStore pKeyStore, IPrefStore pPrefStore)
   {
     sshProvider = pSshProvider;
-    cloneConfig = new CloneConfig(pKeyStore);
+    cloneConfig = new CloneConfig(pKeyStore, pPrefStore);
   }
 
   /**

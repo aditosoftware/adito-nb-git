@@ -7,6 +7,7 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IRemote;
 import de.adito.git.api.exception.UnknownRemoteRepositoryException;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -35,13 +36,15 @@ public class ConfigImpl implements IConfig
   private final IKeyStore keyStore;
   private final Logger logger = Logger.getLogger(ConfigImpl.class.getName());
   private final INotifyUtil notifyUtil;
+  private final IPrefStore prefStore;
   private final Git git;
 
   @Inject
-  public ConfigImpl(IKeyStore pKeyStore, INotifyUtil pNotifyUtil, @Assisted Git pGit)
+  public ConfigImpl(IKeyStore pKeyStore, INotifyUtil pNotifyUtil, IPrefStore pPrefStore, @Assisted Git pGit)
   {
     keyStore = pKeyStore;
     notifyUtil = pNotifyUtil;
+    prefStore = pPrefStore;
     git = pGit;
   }
 
@@ -58,21 +61,20 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public @Nullable String getSshKeyLocation(String pRemoteUrl)
+  public @Nullable String getSshKeyLocation(@Nullable String pRemoteUrl)
   {
-    try
+    if (pRemoteUrl != null)
     {
-      String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
-      if (remoteName == null)
-        return null;
-      String keyLocation = git.getRepository().getConfig().getString(REMOTE_SECTION_KEY, remoteName, SSH_KEY_KEY);
-      logger.log(Level.INFO, () -> String.format("git: key location for remote \"%s\" is \"%s\"", remoteName, keyLocation));
-      return keyLocation;
+      String sshKeyLocation = prefStore.get(pRemoteUrl);
+      logger.log(Level.INFO, () -> String.format("git: key location for remote with url \"%s\" is \"%s\"", pRemoteUrl, sshKeyLocation));
+      return sshKeyLocation;
     }
-    catch (IOException pE)
+    else
     {
+      logger.log(Level.WARNING, () -> "git: tried to access key location for url with value null");
       return null;
     }
+
   }
 
   @Nullable
@@ -179,37 +181,24 @@ public class ConfigImpl implements IConfig
   @Override
   public void setSshKeyLocationForUrl(@Nullable String pSshKeyLocation, @Nullable String pRemoteUrl)
   {
-    try
+    if (pRemoteUrl != null)
     {
-      String remoteName = RepositoryImplHelper.getRemoteName(git, pRemoteUrl);
-      if (remoteName != null)
-      {
-        setSshKeyLocation(pSshKeyLocation, remoteName);
-      }
-      else
-      {
-        logger.log(Level.INFO, () -> String.format("git: Could not find remote for url \"%s\", ssh key location was not saved", pRemoteUrl));
-      }
+      prefStore.put(pRemoteUrl, pSshKeyLocation);
+      logger.log(Level.INFO, () -> String.format("Git: Set SSH key location for url %s to %s", pRemoteUrl, pSshKeyLocation));
     }
-    catch (IOException pE)
-    {
-      throw new RuntimeException(pE);
-    }
+    logger.log(Level.WARNING, () -> "Git: Tried to set key location for url null, which is not possible. SSH key location was not saved");
   }
 
   @Override
   public void setSshKeyLocation(@Nullable String pSshKeyLocation, @NotNull String pRemoteName)
   {
-    try
-    {
-      logger.log(Level.INFO, () -> String.format("git: Setting ssh key location for remote \"%s\" to %s", pRemoteName, pSshKeyLocation));
-      git.getRepository().getConfig().setString(REMOTE_SECTION_KEY, pRemoteName, SSH_KEY_KEY, pSshKeyLocation);
-      git.getRepository().getConfig().save();
-    }
-    catch (IOException pE)
-    {
-      throw new RuntimeException(pE);
-    }
+    logger.log(Level.INFO, () -> String.format("Git: Setting ssh key location for remote \"%s\" to %s", pRemoteName, pSshKeyLocation));
+    String remoteUrl = git.getRepository().getConfig().getString(REMOTE_SECTION_KEY, pRemoteName, REMOTE_URL_KEY);
+    if (remoteUrl != null)
+      setSshKeyLocationForUrl(pSshKeyLocation, remoteUrl);
+    else
+      logger.log(Level.WARNING, () -> String.format("Git: Tried to set SSH key location for remote %s, but no url could be found for the remote." +
+                                                        " SSH key location not saved", pRemoteName));
   }
 
   @Override
