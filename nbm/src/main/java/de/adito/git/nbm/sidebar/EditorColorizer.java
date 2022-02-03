@@ -296,6 +296,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   public void discard()
   {
     disposable.clear();
+    cachedImage = null;
     targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, null);
     if (chunkPopupMouseListener != null)
       removeMouseListener(chunkPopupMouseListener);
