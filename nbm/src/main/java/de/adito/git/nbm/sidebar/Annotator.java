@@ -126,6 +126,7 @@ public class Annotator extends JPanel implements IDiscardable
   @Override
   public void discard()
   {
+    blameImage = null;
     if (!disposables.isDisposed())
       disposables.clear();
   }
