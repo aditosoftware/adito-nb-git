@@ -63,12 +63,21 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     else if (pTransport instanceof HttpTransport)
     {
       HttpTransport httpTransport = (HttpTransport) pTransport;
-      String realmName = GitHttpUtil.getRealmName(pTransport.getURI().toString());
+      String realmName = "GitLab";
+      try
+      {
+        realmName = GitHttpUtil.getRealmName(pTransport.getURI().toString(), prefStore, keyStore);
+      }
+      catch (Exception pE)
+      {
+        logger.log(Level.WARNING, pE, () -> "Error while determining the realm name for URI" + pTransport.getURI().toString());
+      }
       // netbeans stores the username in the preferences of the org/netbeans/core/authentication node, the key is the realm name. The password is stored in the KeyRing
       // with authentication.realmName as key
       // Suppliers are used because when this is called the first time, the username and password is not yet set -> can be re-evaluated once required
-      httpTransport.setCredentialsProvider(new AditoUsernamePasswordCredentialsProvider(() -> prefStore.get("org/netbeans/core/authentication", realmName),
-                                                                                        () -> keyStore.read("authentication." + realmName)));
+      String finalRealmName = realmName;
+      httpTransport.setCredentialsProvider(new AditoUsernamePasswordCredentialsProvider(() -> prefStore.get("org/netbeans/core/authentication", finalRealmName),
+                                                                                        () -> keyStore.read("authentication." + finalRealmName)));
       ClearHttpCacheHandler.clearCache(httpTransport.getURI().toString());
     }
     else throw new RuntimeException("Unsupported Transport protocol, make sure the project is configured to use either ssh or http");
