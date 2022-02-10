@@ -6,6 +6,14 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.7.1</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: Actions that involve a proxy server and a remote together do not work</li>
+    <li>Fix: The Annotate Sidebar causes a memory leak, the severity of the leak depends on the size of the openened file</li>
+    <li>Fix: A NullPointerException is thrown when calculating the line numbers for an editor that is in the process of being closed</li>
+    <li>Fix: The Push action can fail if the remote address was an http address</li>
+  </ul>
   <p style="font-weight: bold;">v1.7.0</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
