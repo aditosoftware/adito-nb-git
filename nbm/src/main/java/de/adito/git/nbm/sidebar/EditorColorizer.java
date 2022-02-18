@@ -239,8 +239,10 @@ class EditorColorizer extends JPanel implements IDiscardable
     }
     int startIndex = Math.min(pLineNumberPositions.length - 1, startLine);
     int endIndex = Math.min(pLineNumberPositions.length - 1, endLine);
-    int height = pLineNumberPositions[endIndex].getYCoordinate() - pLineNumberPositions[startIndex].getYCoordinate();
-    Rectangle changeRectangle = new Rectangle(0, pLineNumberPositions[startIndex].getYCoordinate(), COLORIZER_WIDTH, Math.max(height, pTarget.getFont().getSize()));
+    int endYCoordinate = Optional.ofNullable(pLineNumberPositions[endIndex]).map(LineNumber::getYCoordinate).orElse(0);
+    int startYCoordinate = Optional.ofNullable(pLineNumberPositions[startIndex]).map(LineNumber::getYCoordinate).orElse(0);
+    int height = endYCoordinate - startYCoordinate;
+    Rectangle changeRectangle = new Rectangle(0, startYCoordinate, COLORIZER_WIDTH, Math.max(height, pTarget.getFont().getSize()));
     return new _ChangeHolder(changeRectangle, pChange);
   }
 
