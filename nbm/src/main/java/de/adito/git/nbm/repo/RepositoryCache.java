@@ -145,9 +145,18 @@ public class RepositoryCache
    */
   private void _doOnProjectClose(@NotNull FileObject pProjectFolder)
   {
-    // todo close repo
-    // Problem here is, that the project is closed and immediately re-opened if e.g. the version of the project is changed -> project/repository shouldn't be disposed in
-    // this case
+    ArrayList<RepositoryProvider> clonedList = new ArrayList<>(providers.getValue());
+    for (RepositoryProvider repositoryProvider : providers.getValue())
+    {
+      if (repositoryProvider.getRepositoryFolder().equals(pProjectFolder))
+      {
+        repositoryProvider.getRepositoryImpl().blockingFirst(Optional.empty()).ifPresent(pRepo -> {
+          pRepo.discard();
+          clonedList.remove(repositoryProvider);
+          providers.onNext(clonedList);
+        });
+      }
+    }
   }
 
   @Nullable
