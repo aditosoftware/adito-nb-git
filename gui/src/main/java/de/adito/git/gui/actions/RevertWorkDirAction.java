@@ -58,7 +58,7 @@ class RevertWorkDirAction extends AbstractTableAction
         .orElse(new File("")));
     if (result.isRevertAccepted())
     {
-      progressFacade.executeInBackground("Reverting", pHandle -> {
+      progressFacade.executeInBackgroundWithoutIndexing("Reverting", pHandle -> {
         repository.blockingFirst()
             .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")))
             .revertWorkDir(filesToRevert

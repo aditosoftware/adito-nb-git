@@ -79,7 +79,7 @@ class PullAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeAndBlockWithProgress(Util.getResource(this.getClass(), "pullHandleTitleMsg"), this::_doRebase);
+    progressFacade.executeAndBlockWithProgressWithoutIndexing(Util.getResource(this.getClass(), "pullHandleTitleMsg"), this::_doRebase);
   }
 
   /**

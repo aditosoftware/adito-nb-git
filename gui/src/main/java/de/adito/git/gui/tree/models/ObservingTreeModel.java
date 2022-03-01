@@ -78,28 +78,28 @@ abstract class ObservingTreeModel<T> extends BaseObservingTreeModel<T>
   HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull HashSet<File> pChangedFiles,
                                                                @NotNull File pStart)
   {
-    Set<File> iterableCopy = pMap.get(pStart) == null ? new HashSet<>() : new HashSet<>(pMap.get(pStart).keySet());
-    for (File pChildFile : iterableCopy)
-    {
-      if (Thread.currentThread().isInterrupted())
-        throw new InterruptedRuntimeException();
-      if (pMap.containsKey(pChildFile) && pMap.get(pChildFile).keySet().size() == 1 && pChildFile.isDirectory() &&
-          !pChangedFiles.contains(pMap.get(pChildFile).keySet().iterator().next()) && !pChildFile.equals(projectDirectory))
-      {
-        Map.Entry<File, FileChangeTypeNodeInfo> theSingleEntry = pMap.get(pChildFile).entrySet().iterator().next();
-        File firstAvailableParent = _getFirstAvailableParent(pMap, pChildFile);
-        if (firstAvailableParent != null)
-        {
-          pMap.get(firstAvailableParent).get(pChildFile).collapse(theSingleEntry.getValue());
-          pMap.remove(pChildFile);
-          FileChangeTypeNodeInfo removed = pMap.get(firstAvailableParent).remove(pChildFile);
-          pMap.get(firstAvailableParent).put(theSingleEntry.getKey(), removed);
-        }
-        pChildFile = pStart;
-      }
-      if (pChildFile.isDirectory() && pMap.containsKey(pChildFile))
-        pMap = _reduce(pMap, pChangedFiles, pChildFile);
-    }
+    //Set<File> iterableCopy = pMap.get(pStart) == null ? new HashSet<>() : new HashSet<>(pMap.get(pStart).keySet());
+    //for (File pChildFile : iterableCopy)
+    //{
+    //  if (Thread.currentThread().isInterrupted())
+    //    throw new InterruptedRuntimeException();
+    //  if (pMap.containsKey(pChildFile) && pMap.get(pChildFile).keySet().size() == 1 && pChildFile.isDirectory() &&
+    //      !pChangedFiles.contains(pMap.get(pChildFile).keySet().iterator().next()) && !pChildFile.equals(projectDirectory))
+    //  {
+    //    Map.Entry<File, FileChangeTypeNodeInfo> theSingleEntry = pMap.get(pChildFile).entrySet().iterator().next();
+    //    File firstAvailableParent = _getFirstAvailableParent(pMap, pChildFile);
+    //    if (firstAvailableParent != null)
+    //    {
+    //      pMap.get(firstAvailableParent).get(pChildFile).collapse(theSingleEntry.getValue());
+    //      pMap.remove(pChildFile);
+    //      FileChangeTypeNodeInfo removed = pMap.get(firstAvailableParent).remove(pChildFile);
+    //      pMap.get(firstAvailableParent).put(theSingleEntry.getKey(), removed);
+    //    }
+    //    pChildFile = pStart;
+    //  }
+    //  if (pChildFile.isDirectory() && pMap.containsKey(pChildFile))
+    //    pMap = _reduce(pMap, pChangedFiles, pChildFile);
+    //}
     return pMap;
   }
 

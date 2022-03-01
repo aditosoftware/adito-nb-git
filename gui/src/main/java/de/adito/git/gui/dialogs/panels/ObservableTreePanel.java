@@ -1,7 +1,5 @@
 package de.adito.git.gui.dialogs.panels;
 
-import de.adito.git.gui.tree.TreeUtil;
-
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -34,7 +32,7 @@ public abstract class ObservableTreePanel extends JPanel
    */
   protected void showTree()
   {
-    TreeUtil.expandTreeInterruptible(getTree());
+    //TreeUtil.expandTreeInterruptible(getTree());
     loadingLabelPanel.setVisible(false);
     treeViewPanel.revalidate();
     treeViewPanel.repaint();

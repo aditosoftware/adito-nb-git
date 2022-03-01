@@ -4,6 +4,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openide.util.NotImplementedException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -31,6 +32,12 @@ public class SimpleAsyncProgressFacade implements IAsyncProgressFacade
     }
   }
 
+  @Override
+  public @NotNull <T, Ex extends Throwable> Future<T> executeInBackgroundWithoutIndexing(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  {
+    throw new NotImplementedException();
+  }
+
   @NotNull
   @Override
   public <T, Ex extends Throwable> T executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
@@ -43,6 +50,13 @@ public class SimpleAsyncProgressFacade implements IAsyncProgressFacade
     {
       throw new RuntimeException("Exception in simple progress facade for task " + pDisplayName, ex);
     }
+  }
+
+  @Override
+  @NotNull
+  public <T, Ex extends Throwable> T executeAndBlockWithProgressWithoutIndexing(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  {
+    throw new NotImplementedException();
   }
 
   private static class _DummyHandle implements IProgressHandle

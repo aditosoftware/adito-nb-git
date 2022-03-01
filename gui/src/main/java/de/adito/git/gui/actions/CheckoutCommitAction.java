@@ -46,7 +46,7 @@ public class CheckoutCommitAction extends AbstractTableAction
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
     if (selectedCommits.size() == 1)
     {
-      progressFacade.executeInBackground("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
+      progressFacade.executeInBackgroundWithoutIndexing("Resetting to commit " + selectedCommits.get(0).getId(), pHandle -> {
         IRepository pRepo = repository.blockingFirst()
             .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
         try

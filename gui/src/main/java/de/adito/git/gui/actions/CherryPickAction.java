@@ -75,7 +75,7 @@ class CherryPickAction extends AbstractTableAction
     List<ICommit> commitsToPick = selectedCommits.blockingFirst().orElse(Collections.emptyList());
     if (repo != null && !commitsToPick.isEmpty())
     {
-      progressFacade.executeInBackground("Cherry picking " + commitsToPick.size() + " commit(s)", pHandle -> {
+      progressFacade.executeInBackgroundWithoutIndexing("Cherry picking " + commitsToPick.size() + " commit(s)", pHandle -> {
         _performCherryPick(repo, commitsToPick, pHandle);
       });
     }

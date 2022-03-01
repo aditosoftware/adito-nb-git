@@ -67,12 +67,12 @@ class MergeAction extends AbstractTableAction
     IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
 
     // execute
-    progressFacade.executeAndBlockWithProgress(MessageFormat.format(Util.getResource(MergeAction.class, "mergeProgressMsg"), selectedBranch.getSimpleName(),
-                                                                    repository.getRepositoryState().blockingFirst(Optional.empty())
-                                                                        .map(pRepositoryState -> pRepositoryState.getCurrentBranch().getSimpleName()).orElse("Current")),
-                                               pHandle -> {
-                                                 _doMerge(pHandle, repository, selectedBranch);
-                                               });
+    progressFacade.executeAndBlockWithProgressWithoutIndexing(MessageFormat.format(Util.getResource(MergeAction.class, "mergeProgressMsg"), selectedBranch.getSimpleName(),
+                                                                                   repository.getRepositoryState().blockingFirst(Optional.empty())
+                                                                                       .map(pRepositoryState -> pRepositoryState.getCurrentBranch().getSimpleName()).orElse("Current")),
+                                                              pHandle -> {
+                                                                _doMerge(pHandle, repository, selectedBranch);
+                                                              });
   }
 
   private void _doMerge(IProgressHandle pProgressHandle, IRepository pRepository, IBranch pSelectedBranch) throws AditoGitException

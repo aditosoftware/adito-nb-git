@@ -58,7 +58,7 @@ public class RevertCommitsAction extends AbstractTableAction
   {
     List<ICommit> selectedCommits = selectedCommitObservable.blockingFirst().orElse(Collections.emptyList());
     IRepository repo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
-    progressFacade.executeInBackground(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
+    progressFacade.executeInBackgroundWithoutIndexing(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
       try
       {
         if (!repo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true)
