@@ -1,6 +1,7 @@
 package de.adito.git.impl;
 
 import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
@@ -102,8 +103,12 @@ public class RepositoryImpl implements IRepository
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
     // listen for changes in the fileSystem for the status command
     status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
-        .observeOn(Schedulers.from(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())))
-        .throttleLatest(500, TimeUnit.MILLISECONDS)
+        .observeOn(Schedulers
+                       .from(Executors
+                                 .newSingleThreadExecutor(new ThreadFactoryBuilder()
+                                                              .setNameFormat("Git-status-computation-%d")
+                                                              .build())))
+        .debounce(500, TimeUnit.MILLISECONDS)
         .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
         .startWithItem(Optional.of(RepositoryImplHelper.status(git)))
         .replay(1)
