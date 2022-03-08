@@ -5,6 +5,8 @@ import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.openide.filesystems.FileObject;
@@ -25,12 +27,14 @@ import java.util.stream.Collectors;
  *
  * @author a.arnold, 25.10.2018
  */
-abstract class NBAction extends NodeAction
+abstract class NBAction extends NodeAction implements Disposable
 {
 
   private static final Observable<Optional<IRepository>> repositoryObservable = RepositoryUtility.getRepositoryObservable();
   private Observable<Optional<Boolean>> isEnabledObservable = null;
   private final BehaviorSubject<Object> doEnableUpdate = BehaviorSubject.createDefault(new Object());
+  private CompositeDisposable disposable;
+  private boolean isCurrentlyEnabled = false;
   // for caching the nodes that are passed when enabled is called by netbeans, these are usually more up-to-date than the ones retrieved by
   // TopComponent.getRegistry.getXXX()
   Node[] lastActivated = new Node[0];
@@ -104,13 +108,17 @@ abstract class NBAction extends NodeAction
   {
     lastActivated = pNodes;
     doEnableUpdate.onNext(new Object());
-    if (isEnabledObservable == null)
+    if (disposable == null && isEnabledObservable == null)
     {
+      disposable = new CompositeDisposable();
       Observable<Optional<IRepository>> combinedObs = Observable.combineLatest(repositoryObservable, doEnableUpdate, (pRepo, pObj) -> pRepo);
       isEnabledObservable = getIsEnabledObservable(combinedObs);
-      isEnabledObservable.subscribe(pOptBoolean -> SwingUtilities.invokeLater(() -> setEnabled(pOptBoolean.orElse(Boolean.FALSE))));
+      disposable.add(isEnabledObservable.subscribe(pOptBoolean -> {
+        isCurrentlyEnabled = pOptBoolean.orElse(false);
+        SwingUtilities.invokeLater(() -> setEnabled(pOptBoolean.orElse(Boolean.FALSE)));
+      }));
     }
-    return isEnabledObservable.blockingFirst().orElse(Boolean.FALSE);
+    return isCurrentlyEnabled;
   }
 
   /**
@@ -118,6 +126,21 @@ abstract class NBAction extends NodeAction
    * @return Observable that tells if the Action should be enabled or disabled (enabled = true)
    */
   protected abstract Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable);
+
+  @Override
+  public void dispose()
+  {
+    if (disposable != null)
+      disposable.dispose();
+  }
+
+  @Override
+  public boolean isDisposed()
+  {
+    if (disposable != null)
+      return disposable.isDisposed();
+    return true;
+  }
 
   @Override
   public abstract String getName();
