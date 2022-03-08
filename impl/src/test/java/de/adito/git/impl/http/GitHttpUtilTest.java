@@ -1,7 +1,11 @@
 package de.adito.git.impl.http;
 
 import com.mashape.unirest.http.Unirest;
+import de.adito.git.api.IKeyStore;
+import de.adito.git.api.prefs.IPrefStore;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -53,20 +57,64 @@ class GitHttpUtilTest
   void testGitLab()
   {
     String repoURL = "https://gitlab.adito.de/xrm/basic.git";
-    assertEquals("GitLab", GitHttpUtil.getRealmName(repoURL));
+    assertEquals("GitLab", GitHttpUtil.getRealmName(repoURL, new DummyPrefStore(), new DummyKeyStore()));
   }
 
   @Test
   void testInvalidGithub()
   {
     String repoURL = "https://githu99b.com/aditosoftware/adito-nb-git.git";
-    assertEquals("", GitHttpUtil.getRealmName(repoURL));
+    assertEquals("", GitHttpUtil.getRealmName(repoURL, new DummyPrefStore(), new DummyKeyStore()));
   }
 
   @Test
   void testGithub()
   {
     String repoURL = "https://github.com/aditosoftware/adito-nb-git.git";
-    assertEquals("GitHub", GitHttpUtil.getRealmName(repoURL));
+    assertEquals("GitHub", GitHttpUtil.getRealmName(repoURL, new DummyPrefStore(), new DummyKeyStore()));
+  }
+
+  class DummyPrefStore implements IPrefStore
+  {
+
+    @Override
+    public @Nullable String get(@NotNull String pKey)
+    {
+      return null;
+    }
+
+    @Override
+    public @Nullable String get(@NotNull String pModulePath, @NotNull String pKey)
+    {
+      return null;
+    }
+
+    @Override
+    public void put(@NotNull String pKey, @Nullable String pValue)
+    {
+
+    }
+  }
+
+  class DummyKeyStore implements IKeyStore
+  {
+
+    @Override
+    public void save(@NotNull String pKey, @NotNull char[] pPassword, @Nullable String pDescription)
+    {
+
+    }
+
+    @Override
+    public void delete(@NotNull String pKey)
+    {
+
+    }
+
+    @Override
+    public char[] read(@NotNull String pKey)
+    {
+      return new char[0];
+    }
   }
 }
