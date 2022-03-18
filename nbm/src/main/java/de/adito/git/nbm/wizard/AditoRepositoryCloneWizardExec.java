@@ -12,6 +12,7 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
 import java.io.File;
+import java.util.Optional;
 
 import static de.adito.git.nbm.wizard.AditoRepositoryCloneWizard.*;
 
@@ -28,10 +29,10 @@ class AditoRepositoryCloneWizardExec
   {
     final ICloneRepo cloneRepo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
     pHandle.start();
-    String localPath = pWizardDescriptor.getProperty(W_PROJECT_PATH).toString();
-    String projectName = pWizardDescriptor.getProperty(W_PROJECT_NAME).toString();
-    String repoPath = pWizardDescriptor.getProperty(W_REPOSITORY_PATH).toString();
-    String sshPath = Strings.emptyToNull(pWizardDescriptor.getProperty(W_SSH_PATH).toString());
+    String localPath = (String) pWizardDescriptor.getProperty(W_PROJECT_PATH);
+    String projectName = (String) pWizardDescriptor.getProperty(W_PROJECT_NAME);
+    String repoPath = (String) pWizardDescriptor.getProperty(W_REPOSITORY_PATH);
+    String sshPath = Strings.emptyToNull(Optional.ofNullable(pWizardDescriptor.getProperty(W_SSH_PATH)).map(String.class::cast).orElse(""));
     IBranch branch = (IBranch) pWizardDescriptor.getProperty(W_BRANCH);
     try
     {
