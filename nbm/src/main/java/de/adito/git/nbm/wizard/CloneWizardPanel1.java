@@ -260,13 +260,19 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
     {
       return;
     }
+    String repositoryPath = _getRepositoryPath();
     wizard.putProperty(AditoRepositoryCloneWizard.W_PROJECT_NAME, _getProjectName());
     wizard.putProperty(AditoRepositoryCloneWizard.W_PROJECT_PATH, _getProjectPath());
     preferences.put(GIT_PROJECT_LOCATION, _getProjectPath());
-    wizard.putProperty(AditoRepositoryCloneWizard.W_REPOSITORY_PATH, _getRepositoryPath());
+    wizard.putProperty(AditoRepositoryCloneWizard.W_REPOSITORY_PATH, repositoryPath);
     String sshPath = _getSshPath();
     char[] sshPassword = _getSSHPassword();
     wizard.putProperty(AditoRepositoryCloneWizard.W_SSH_PATH, sshPath);
+    // save the mapping of ssh key to repository path so the plugin remembers which key to use for the repository in later calls
+    if (sshPath != null && !repositoryPath.isEmpty())
+    {
+      cloneRepo.getConfig().setSshKeyLocationForUrl(sshPath, repositoryPath);
+    }
     preferences.put(GIT_SSH_KEY, sshPath);
     if (sshPath != null && !sshPath.isEmpty() && sshPassword != null)
     {
