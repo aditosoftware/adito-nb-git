@@ -6,6 +6,12 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.8.1</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: Potential Exception during Clone Wizard process</li>
+    <li>Fix: The SSH Key for a given remote is lost when the key is entered in the first panel of the Clone Wizard</li>
+  </ul>
   <p style="font-weight: bold;">v1.8.0</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
