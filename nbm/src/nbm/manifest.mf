@@ -6,6 +6,11 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.8.2</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: The selected SSH key and passphrase are not saved if the key is automatically detected by JGit. In that case the dialog asking for the SSH credentials contains the path of the key</li>
+  </ul>
   <p style="font-weight: bold;">v1.8.1</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
   <ul>

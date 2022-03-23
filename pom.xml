@@ -7,7 +7,7 @@
   <groupId>de.adito.git</groupId>
   <artifactId>adito-nb-git</artifactId>
   <packaging>pom</packaging>
-  <version>1.8.1</version>
+  <version>1.8.2</version>
 
   <properties>
     <netbeans.version>RELEASE111</netbeans.version>
