@@ -166,17 +166,18 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
       {
         setSSHKeyLocation(storedKeyFilePath);
       }
+      /*
+       Remove all identities since the plugin has to handle at least part of getting the credentials, and having half done by JSch and half by the plugin
+       inevitably leads to problems
+       */
+      defaultJSch.removeAllIdentity();
+      defaultJSch.setKnownHosts(new File(new File(System.getProperty("user.home"), ".ssh"), "known_hosts").getAbsolutePath());
       if (sshKeyPath != null)
       {
-        /* if there is a default ssh key available it is in this list, and if we don't remove
-        it the connection defaults back to the first item in the list (would be the default ssh key)
-         */
-        defaultJSch.removeAllIdentity();
         defaultJSch.addIdentity(sshKeyPath);
-        defaultJSch.setKnownHosts(new File(new File(System.getProperty("user.home"), ".ssh"), "known_hosts").getAbsolutePath());
         gitUserInfo.setSshKeyFile(new File(sshKeyPath));
       }
-      if (defaultJSch.getIdentityRepository().getIdentities().isEmpty())
+      else
       {
         String promptString;
         String remoteName = config.getRemoteName(remoteUrl);
