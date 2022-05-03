@@ -6,6 +6,15 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.0</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Added support for ADITODesigner 2022.1.0</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: The Popup showing the previous state of a change now works properly in Linux environments</li>
+  </ul>
   <p style="font-weight: bold;">v1.8.2</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
   <ul>
