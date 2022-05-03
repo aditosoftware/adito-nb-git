@@ -11,6 +11,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -279,7 +280,7 @@ class ChunkPopupWindow extends JWindow
   {
 
     @Override
-    public void eventDispatched(AWTEvent pEvent)
+    public void eventDispatched(@NotNull AWTEvent pEvent)
     {
       if (!_isSourceRecursive(pEvent, ChunkPopupWindow.this))
       {
@@ -288,7 +289,8 @@ class ChunkPopupWindow extends JWindow
           disposeWindow();
         }
         if (pEvent instanceof WindowEvent && pEvent.getID() != WindowEvent.WINDOW_OPENED
-            && !(pEvent.getID() == WindowEvent.WINDOW_CLOSED && pEvent.getSource() instanceof ChunkPopupWindow))
+            && !(pEvent.getID() == WindowEvent.WINDOW_CLOSED && pEvent.getSource() instanceof ChunkPopupWindow)
+            && !(isGainedFocus(pEvent)))
         {
           disposeWindow();
         }
@@ -301,6 +303,12 @@ class ChunkPopupWindow extends JWindow
       {
         disposeWindow();
       }
+    }
+
+    private boolean isGainedFocus(@NotNull AWTEvent pEvent)
+    {
+      return (pEvent.getID() == WindowEvent.WINDOW_LOST_FOCUS && ((WindowEvent) pEvent).getOppositeWindow() instanceof ChunkPopupWindow)
+          || (pEvent.getID() == WindowEvent.WINDOW_GAINED_FOCUS && pEvent.getSource() instanceof ChunkPopupWindow);
     }
 
     /**
