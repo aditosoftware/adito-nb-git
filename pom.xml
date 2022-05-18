@@ -31,6 +31,16 @@
     <module>gui</module>
   </modules>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>de.adito.nb-modules</groupId>
+        <artifactId>nb-adito-interface</artifactId>
+        <version>1.9.4-SNAPSHOT</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
 
     <!-- Core Library -->

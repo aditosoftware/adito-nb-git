@@ -4,15 +4,14 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.jidesoft.swing.CheckBoxTree;
 import com.jidesoft.swing.CheckBoxTreeSelectionModel;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IBeforeCommitAction;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.IEditorKitProvider;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
@@ -66,11 +65,13 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private static final Border DETAILS_PANEL_BORDER = new EmptyBorder(0, 12, 0, 0);
   private static final String AUTHOR_NAME_FIELD_TITLE = "Name:";
   private static final String AUTHOR_EMAIL_FIELD_TITLE = "Email:";
+  private static final String BEFORE_COMMIT_CHECKBOX_PREFS = "de.adito.git.gui.dialogs.";
   private static final int DETAILS_LINE_DECORATOR_HEIGHT = 16;
   private final JPanel tableSearchView = new JPanel(new BorderLayout());
   private final JEditorPane messagePane = new JEditorPane();
   private final JCheckBox amendCheckBox = new JCheckBox("Amend Commit");
   private final IActionProvider actionProvider;
+  private final LookupProvider lookupProvider;
   private final IIconLoader iconLoader;
   private final IPrefStore prefStore;
   private final Observable<Optional<IRepository>> repository;
@@ -78,17 +79,20 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final Observable<List<File>> selectedFiles;
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final JLabel loadingLabel = new JLabel("Loading...");
+  private BeforeCommitActionCheckBox[] beforeCommitActionCheckBoxes;
   private InputFieldTablePanel committerDetailsPanel;
   private ObservableTreeUpdater<IFileChangeType> treeUpdater;
   private ObservableTreeSelectionModel observableTreeSelectionModel;
 
   @Inject
-  public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
+  public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, LookupProvider pLookupProvider,
                       IIconLoader pIconLoader, IPrefStore pPrefStore, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
                       @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                      @Assisted String pMessageTemplate, IEditorKitProvider pEditorKitProvider)
+                      @Assisted String pMessageTemplate, @Assisted DelayedSupplier<List<IBeforeCommitAction>> pSelectedActionsSupplier,
+                      @Assisted DelayedSupplier<List<File>> pDelayedSupplier, IEditorKitProvider pEditorKitProvider)
   {
     actionProvider = pActionProvider;
+    lookupProvider = pLookupProvider;
     iconLoader = pIconLoader;
     prefStore = pPrefStore;
     repository = pRepository;
@@ -127,6 +131,20 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       disposables.add(selectedFiles.subscribe());
     }
     _addAmendCheckbox(pRepository);
+    pDelayedSupplier.setInnerSupplier(this::_getFilesToCommit);
+    pSelectedActionsSupplier.setInnerSupplier(this::getSelectedBeforeCommitActions);
+  }
+
+  /**
+   * @return List with all IBeforeCommitActions that the user selected to be performed
+   */
+  @NotNull
+  private List<IBeforeCommitAction> getSelectedBeforeCommitActions()
+  {
+    return Arrays.stream(beforeCommitActionCheckBoxes)
+        .filter(AbstractButton::isSelected)
+        .map(BeforeCommitActionCheckBox::getBeforeCommitAction)
+        .collect(Collectors.toList());
   }
 
   private void _addAmendCheckbox(@Assisted Observable<Optional<IRepository>> pRepository)
@@ -327,6 +345,12 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                                                      Arrays.asList(pConfig.getUserName(), pConfig.getUserEmail()));
     _addDetailsCategory(details, "Author (This commit only)", committerDetailsPanel);
     _addDetailsCategory(details, "General", amendCheckBox);
+    JComponent[] beforeCommitPanels = getBeforeCommitPanels();
+    // only add the "Before Commit" category in case there actually is an action that can be performed pre-commit
+    if (beforeCommitPanels.length > 0)
+    {
+      _addDetailsCategory(details, "Before Commit", beforeCommitPanels);
+    }
     details.add(Box.createRigidArea(new Dimension(0, Integer.MAX_VALUE)));
 
     return details;
@@ -358,6 +382,24 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     pDetailsPanel.add(wrapperPanel);
   }
 
+  /**
+   * load all actions that can be performed before the actual commit and create panels/checkboxes for them
+   *
+   * @return Array of Checkboxes used for the possible pre-commit actions
+   */
+  private BeforeCommitActionCheckBox[] getBeforeCommitPanels()
+  {
+    IBeforeCommitAction[] beforeCommitActions = lookupProvider.lookupAll(IBeforeCommitAction.class).toArray(new IBeforeCommitAction[0]);
+    beforeCommitActionCheckBoxes = new BeforeCommitActionCheckBox[beforeCommitActions.length];
+    for (int index = 0; index < beforeCommitActions.length; index++)
+    {
+      BeforeCommitActionCheckBox checkBox = new BeforeCommitActionCheckBox(beforeCommitActions[index]);
+      beforeCommitActionCheckBoxes[index] = checkBox;
+      checkBox.setSelected(Boolean.parseBoolean(prefStore.get(BEFORE_COMMIT_CHECKBOX_PREFS + beforeCommitActions[index].getName())));
+    }
+    return beforeCommitActionCheckBoxes;
+  }
+
   @Override
   public String getMessage()
   {
@@ -367,6 +409,11 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   @Override
   public CommitDialogResult getInformation()
   {
+    // store the state of the checkboxes for pre-commit actions so that they can be persisted for when the commit window is opened the next time
+    for (BeforeCommitActionCheckBox beforeCommitActionCheckBox : beforeCommitActionCheckBoxes)
+    {
+      prefStore.put(BEFORE_COMMIT_CHECKBOX_PREFS + beforeCommitActionCheckBox.getBeforeCommitAction().getName(), String.valueOf(beforeCommitActionCheckBox.isSelected()));
+    }
     return new CommitDialogResult(_getFilesToCommit(), amendCheckBox.isSelected(), committerDetailsPanel.getFieldContent(AUTHOR_NAME_FIELD_TITLE),
                                   committerDetailsPanel.getFieldContent(AUTHOR_EMAIL_FIELD_TITLE));
   }
@@ -485,6 +532,28 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
         }
       }
       return elements;
+    }
+  }
+
+  /**
+   * Checkbox that wraps an IBeforeCommitAction
+   */
+  private static class BeforeCommitActionCheckBox extends JCheckBox
+  {
+
+    private final IBeforeCommitAction beforeCommitAction;
+
+    public BeforeCommitActionCheckBox(@NotNull IBeforeCommitAction pBeforeCommitAction)
+    {
+      super(pBeforeCommitAction.getName());
+      beforeCommitAction = pBeforeCommitAction;
+      setToolTipText(beforeCommitAction.getTooltip());
+    }
+
+    @NotNull
+    public IBeforeCommitAction getBeforeCommitAction()
+    {
+      return beforeCommitAction;
     }
   }
 

@@ -4,6 +4,7 @@ import com.bulenkov.darcula.DarculaLaf;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.revivius.nb.darcula.adito.AditoDarkLFCustoms;
+import de.adito.git.gui.DelayedSupplier;
 import de.adito.git.gui.guice.AditoGitModule;
 import io.reactivex.rxjava3.core.Observable;
 import org.netbeans.swing.plaf.Startup;
@@ -30,7 +31,7 @@ public class CommitDialog_Standalone
     IDialogFactory factory = injector.getInstance(IDialogFactory.class);
 
     CommitDialog dialogPane = factory.createCommitDialog(pValid -> {
-    }, Observable.empty(), Observable.just(Optional.of(List.of())), "");
+    }, Observable.empty(), Observable.just(Optional.of(List.of())), "", new DelayedSupplier<>(), new DelayedSupplier<>());
     JFrame dialog = new JFrame();
     dialogPane.setBorder(new CompoundBorder(new EmptyBorder(7, 7, 7, 7), dialogPane.getBorder()));
     dialog.setContentPane(dialogPane);

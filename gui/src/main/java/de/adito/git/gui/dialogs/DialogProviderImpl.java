@@ -3,16 +3,20 @@ package de.adito.git.gui.dialogs;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IBeforeCommitAction;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.*;
+import de.adito.git.gui.DelayedSupplier;
 import de.adito.git.gui.NewFileDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
+import de.adito.git.gui.swing.CommitDialogConditionalButton;
+import de.adito.git.gui.swing.ConditionalDialogButton;
 import de.adito.git.gui.swing.MergeConflictConditionalButton;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -117,15 +121,6 @@ class DialogProviderImpl implements IDialogProvider
     {
       return selectedButton == EButtons.ACCEPT_CHANGES;
     }
-
-    private static Object getPressedButton(@NotNull Object pOriginalPressedButton)
-    {
-      if (pOriginalPressedButton instanceof MergeConflictConditionalButton)
-      {
-        return ((MergeConflictConditionalButton) pOriginalPressedButton).getPressedButton();
-      }
-      return pOriginalPressedButton;
-    }
   }
 
   @Override
@@ -184,9 +179,12 @@ class DialogProviderImpl implements IDialogProvider
     DialogResult<CommitDialog, CommitDialogResult> result = null;
     try
     {
+      DelayedSupplier<List<File>> filesToCommitSupplier = new DelayedSupplier<>();
+      DelayedSupplier<List<IBeforeCommitAction>> beforeCommitActions = new DelayedSupplier<>();
       result = dialogDisplayer.showDialog(pIsValidDescriptor -> dialogFactory.createCommitDialog(pIsValidDescriptor, pRepository, pFilesToCommit,
-                                                                                                 pMessageTemplate),
-                                          "Commit", List.of(EButtons.COMMIT, EButtons.CANCEL).toArray(new EButtons[0]));
+                                                                                                 pMessageTemplate, beforeCommitActions, filesToCommitSupplier),
+                                          "Commit", List.of(new CommitDialogConditionalButton(beforeCommitActions, filesToCommitSupplier),
+                                                            EButtons.CANCEL).toArray(new Object[0]));
       return new CommitDialogResultImpl<>(result);
     }
     finally
@@ -201,7 +199,7 @@ class DialogProviderImpl implements IDialogProvider
 
     private CommitDialogResultImpl(DialogResult<S, T> pDialogResult)
     {
-      super(pDialogResult.getSource(), pDialogResult.getSelectedButton(), pDialogResult.getMessage(), pDialogResult.getInformation());
+      super(pDialogResult.getSource(), getPressedButton(pDialogResult.getSelectedButton()), pDialogResult.getMessage(), pDialogResult.getInformation());
     }
 
     @Override
@@ -648,5 +646,22 @@ class DialogProviderImpl implements IDialogProvider
     {
       return selectedButton == EButtons.ABORT || selectedButton == EButtons.ESCAPE;
     }
+  }
+
+  /**
+   * In case a ConditionalDialogButton is used, this method returns the button that the ConditionalDialogButton signals as set
+   * Can be used to retro-actively change the pressed button in case of an ConditionalDialogButton, e.g. when the user pressed the "Commit" button, but during any of the
+   * pre-commit actions clicks "Cancel" -> the commit should not be performed, and the ConditionalDialogButton will return "Cancel" as the pressed button
+   *
+   * @param pOriginalPressedButton Object/Button to check
+   * @return the object itself in case it is not a ConditionalDialogButton, the button that the ConditionalDialogButton reports as pressed otherwise
+   */
+  private static Object getPressedButton(@NotNull Object pOriginalPressedButton)
+  {
+    if (pOriginalPressedButton instanceof ConditionalDialogButton)
+    {
+      return ((ConditionalDialogButton) pOriginalPressedButton).getPressedButton();
+    }
+    return pOriginalPressedButton;
   }
 }

@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs;
 
 import com.google.inject.assistedinject.Assisted;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IBeforeCommitAction;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
@@ -8,6 +9,7 @@ import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.gui.DelayedSupplier;
 import de.adito.git.gui.NewFileDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import io.reactivex.rxjava3.core.Observable;
@@ -35,7 +37,8 @@ interface IDialogFactory
 
   CommitDialog createCommitDialog(@NotNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
                                   @NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                                  @NotNull String pMessageTemplate);
+                                  @NotNull String pMessageTemplate, @NotNull DelayedSupplier<List<IBeforeCommitAction>> pSelectedCommitActions,
+                                  @NotNull DelayedSupplier<List<File>> pDelayedSupplier);
 
   DiffDialog createDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pDiffs, @Assisted("selectedFile") @Nullable String pSelectedFile,
                               @Assisted("leftHeader") @Nullable String pLeftHeader, @Assisted("rightHeader") @Nullable String pRightHeader,

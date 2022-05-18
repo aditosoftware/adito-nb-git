@@ -15,8 +15,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * This button acts as an in-between that can halt sending a "button pressed" action
@@ -28,7 +26,7 @@ import java.util.concurrent.Executors;
  */
 public class MergeConflictConditionalButton extends ConditionalDialogButton
 {
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
   private final IMergeData mergeData;
   private final IDialogProvider dialogProvider;
   private EButtons pressedButton = EButtons.ACCEPT_CHANGES;
