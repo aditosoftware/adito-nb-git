@@ -2,52 +2,38 @@ package de.adito.git.gui.dialogs;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.jidesoft.swing.CheckBoxTree;
-import com.jidesoft.swing.CheckBoxTreeSelectionModel;
+import com.jidesoft.swing.*;
 import de.adito.git.api.*;
-import de.adito.git.api.data.IConfig;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.IEditorKitProvider;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
-import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
+import de.adito.git.gui.quicksearch.*;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
-import de.adito.git.gui.swing.InputFieldTablePanel;
-import de.adito.git.gui.swing.MutableIconActionButton;
+import de.adito.git.gui.swing.*;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.*;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
-import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
+import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.gui.tree.renderer.*;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.swing.LinedDecorator;
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.border.*;
+import javax.swing.event.*;
 import javax.swing.text.Document;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
+import javax.swing.tree.*;
+import java.awt.*;
 import java.io.File;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,7 +61,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final IPrefStore prefStore;
   private final Observable<Optional<IRepository>> repository;
   private final SearchableCheckboxTree checkBoxTree;
-  private final Observable<List<File>> selectedFiles;
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final JLabel loadingLabel = new JLabel("Loading...");
   private InputFieldTablePanel committerDetailsPanel;
@@ -95,6 +81,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     // disable OK button at the start since the commit message is empty then
     pIsValidDescriptor.setValid(pMessageTemplate != null && !pMessageTemplate.isEmpty());
     checkBoxTree = new SearchableCheckboxTree();
+    disposables.add(new ObservableCacheDisposable(observableCache));
     Optional<IRepository> optRepo = pRepository.blockingFirst();
     Observable<Optional<IFileStatus>> statusObservable = optRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty()));
     Observable<List<IFileChangeType>> filesToCommitObservable = Observable
@@ -112,19 +99,13 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       Observable<Boolean> nonEmptyTextObservable = Observable.create(new DocumentChangeObservable(messagePane))
           .switchMap(pDocument -> Observable.create(new _NonEmptyTextObservable(pDocument)))
           .startWithItem(messagePane.getDocument().getLength() > 0);
-      selectedFiles = Observable.create(new _CBTreeObservable(checkBoxTree))
-          .startWithItem(List.of())
-          .replay(1)
-          .autoConnect(0, disposables::add);
-      disposables.add(Observable.combineLatest(selectedFiles, nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
+      disposables.add(Observable.combineLatest(_observeSelectedFiles(), nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
                           .subscribe(pIsValidDescriptor::setValid));
       _initGui(dir, optRepo.get().getConfig());
     }
     else
     {
-      // in case the repository was not present: Everything is empty, but no exception/crash
-      selectedFiles = Observable.just(List.of());
-      disposables.add(selectedFiles.subscribe());
+      disposables.add(_observeSelectedFiles().subscribe());
     }
     _addAmendCheckbox(pRepository);
   }
@@ -358,6 +339,19 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     pDetailsPanel.add(wrapperPanel);
   }
 
+  @NotNull
+  private Observable<List<File>> _observeSelectedFiles()
+  {
+    return observableCache.calculateParallel("selectedFiles", () -> repository
+        .map(pRepoOpt -> pRepoOpt
+            .map(IRepository::getTopLevelDirectory))
+        .switchMap(pTLDOpt -> pTLDOpt
+            .map(pTLD -> Observable.create(new _CBTreeObservable(checkBoxTree))
+                .startWithItem(List.of()))
+            // in case the repository was not present: Everything is empty, but no exception/crash
+            .orElseGet(() -> Observable.just(List.of()))));
+  }
+
   @Override
   public String getMessage()
   {
@@ -373,7 +367,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
   private List<File> _getFilesToCommit()
   {
-    return selectedFiles.blockingFirst(List.of());
+    return _observeSelectedFiles().blockingFirst(List.of());
   }
 
   @Override

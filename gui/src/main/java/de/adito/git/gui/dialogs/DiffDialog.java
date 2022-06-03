@@ -6,32 +6,27 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.IEditorKitProvider;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.concurrency.GitProcessExecutors;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
-import de.adito.git.gui.tree.StatusTree;
-import de.adito.git.gui.tree.TreeUtil;
+import de.adito.git.gui.tree.*;
 import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import javax.swing.tree.*;
+import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Window that displays the list of changes found during a diff
@@ -55,6 +50,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   private final JPanel searchPanel = new JPanel(new BorderLayout());
   private final ObservableTreeUpdater<IFileChangeType> treeUpdater;
   private DiffPanel diffPanel;
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final List<IFileDiff> diffs;
 
@@ -71,6 +67,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     acceptChange = pAcceptChange;
     showFileTree = pShowFileTree;
     diffs = pDiffs;
+    disposables.add(new ObservableCacheDisposable(observableCache));
     List<IFileChangeType> pList = new ArrayList<>(diffs);
     Observable<List<IFileChangeType>> changedFiles = Observable.just(pList);
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
@@ -99,23 +96,19 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     fileTree.getTree().getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     JScrollPane fileTreeScrollPane = new JScrollPane(fileTree.getTree());
     // pSelectedRows[0] because with SINGLE_SELECTION only one row can be selected
-    Observable<Optional<IFileDiff>> fileDiffObservable = fileTree.getSelectionObservable()
-        .map(pSelectedPaths -> pSelectedPaths.map(pChangeTypes -> pChangeTypes.isEmpty() ? null : (IFileDiff) pChangeTypes.get(0)))
-        .replay(1)
-        .autoConnect(0, disposables::add);
-    Observable<Optional<EditorKit>> editorKitObservable = fileDiffObservable
+    Observable<Optional<EditorKit>> editorKitObservable = _observeFileDiffs()
         .map(pFileDiff -> Optional.of(pFileDiff
                                           .map(pFDiff -> pFDiff.getFileHeader().getAbsoluteFilePath())
                                           .map(editorKitProvider::getEditorKit)
                                           .orElseGet(() -> editorKitProvider.getEditorKitForContentType("text/plain"))));
 
-    diffPanel = new DiffPanel(pIconLoader, fileDiffObservable, acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable,
+    diffPanel = new DiffPanel(pIconLoader, _observeFileDiffs(), acceptChange ? iconLoader.getIcon(ACCEPT_ICON_PATH) : null, editorKitObservable,
                               pLeftHeader, pRightHeader);
 
     // notificationArea for information such as identical files (except whitespaces)
     notificationArea.setEditable(false);
     notificationArea.setForeground(ColorPicker.INFO_TEXT);
-    disposables.add(fileDiffObservable.subscribe(pFileDiff -> {
+    disposables.add(_observeFileDiffs().subscribe(pFileDiff -> {
       if (pFileDiff.isPresent())
       {
         _setNotificationArea(pFileDiff.get());
@@ -153,6 +146,13 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
                                      Thread.sleep(2000);
                                      diffPanel.finishLoading();
                                    }));
+  }
+
+  @NotNull
+  private Observable<Optional<IFileDiff>> _observeFileDiffs()
+  {
+    return observableCache.calculateParallel("fileDiffs", () -> fileTree.getSelectionObservable()
+        .map(pSelectedPaths -> pSelectedPaths.map(pChangeTypes -> pChangeTypes.isEmpty() ? null : (IFileDiff) pChangeTypes.get(0))));
   }
 
   private void _setSelectedFile(@Nullable String pSelectedFile)

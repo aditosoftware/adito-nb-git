@@ -1,14 +1,14 @@
 package de.adito.git.nbm.observables;
 
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.cache.ObservableCache;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 
 import java.beans.PropertyChangeListener;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Observable, welches auf die OpenProjects hört und diese als Liste ausgibt wenn sich diese verändert.
@@ -18,7 +18,7 @@ import java.util.Objects;
 public class OpenProjectsObservable extends AbstractListenerObservable<PropertyChangeListener, OpenProjects, List<Project>>
 {
 
-  private static Observable<List<Project>> instance;
+  private static final ObservableCache _CACHE = new ObservableCache();
 
   private OpenProjectsObservable()
   {
@@ -34,12 +34,8 @@ public class OpenProjectsObservable extends AbstractListenerObservable<PropertyC
   @NotNull
   public static synchronized Observable<List<Project>> create()
   {
-    if (instance == null)
-      instance = Observable.create(new OpenProjectsObservable())
-          .startWithItem(List.of(OpenProjects.getDefault().getOpenProjects()))
-          .replay(1)
-          .autoConnect();
-    return instance;
+    return _CACHE.calculateParallel("create", () -> Observable.create(new OpenProjectsObservable())
+        .startWithItem(List.of(OpenProjects.getDefault().getOpenProjects())));
   }
 
   @NotNull

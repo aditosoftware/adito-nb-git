@@ -3,36 +3,28 @@ package de.adito.git.gui.dialogs.panels;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.ICommit;
-import de.adito.git.api.data.ICommitFilter;
-import de.adito.git.api.data.IDiffInfo;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.DateTimeRenderer;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.models.*;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import de.adito.git.impl.data.DiffInfoImpl;
-import de.adito.git.impl.data.FileChangeTypeImpl;
+import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.impl.data.*;
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
@@ -56,10 +48,10 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
   private final JCheckBox showAllCheckbox = new JCheckBox("Show all changed files");
-  private final Observable<Boolean> showAllCBObservable;
   private final ICommitFilter commitFilter;
   private final _SelectedCommitsPanel commits;
   private final StatusTree statusTree;
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final ObservableTreeUpdater<IDiffInfo> treeUpdater;
 
@@ -77,41 +69,21 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
     commitFilter = pCommitFilter;
+    disposables.add(new ObservableCacheDisposable(observableCache));
     showAllCheckbox.setEnabled(!pCommitFilter.getFiles().isEmpty());
     showAllCheckbox.setSelected(pCommitFilter.getFiles().isEmpty());
-    showAllCBObservable = Observable.create(new _CheckboxObservable(showAllCheckbox)).startWithItem(pCommitFilter.getFiles().isEmpty());
     commits = new _SelectedCommitsPanel(selectedCommitObservable);
     File projectDirectory = repository.blockingFirst().map(IRepository::getTopLevelDirectory)
         .orElseThrow(() -> new RuntimeException("could not determine project root directory"));
-    Observable<List<IDiffInfo>> changedFilesObs = _buildChangedFilesObs(projectDirectory);
     boolean useFlatTree = Constants.TREE_VIEW_FLAT.equals(pPrefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel<IDiffInfo> diffTreeModel = useFlatTree ? new FlatDiffTreeModel(projectDirectory) : new DiffTreeModel(projectDirectory);
     statusTree = new StatusTree(pQuickSearchProvider, pFileSystemUtil, diffTreeModel, useFlatTree, projectDirectory, treeViewPanel, treeScrollpane);
     Runnable[] doAfterJobs = {this::showTree};
-    treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, diffTreeModel, pFileSystemUtil, doAfterJobs, this::showLoading);
+    treeUpdater = new ObservableTreeUpdater<>(_observeChangedFiles(), diffTreeModel, pFileSystemUtil, doAfterJobs, this::showLoading);
     treeViewPanel.add(_getTreeToolbar(projectDirectory), BorderLayout.NORTH, 0);
 
-    _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), changedFilesObs);
+    _initStatusTreeActions((ObservableTreeSelectionModel) statusTree.getTree().getSelectionModel(), _observeChangedFiles());
     _initDetailPanel();
-  }
-
-  @NotNull
-  private Observable<List<IDiffInfo>> _buildChangedFilesObs(File pProjectDirectory)
-  {
-    return Observable
-        .combineLatest(selectedCommitObservable, repository, showAllCBObservable, (pSelectedCommitsOpt, currentRepo, pShowAll) -> {
-          if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
-          {
-            return _getChangedFiles(pProjectDirectory, pSelectedCommitsOpt.get(), currentRepo.get(), pShowAll);
-          }
-          else
-          {
-            return Collections.<IDiffInfo>emptyList();
-          }
-        })
-        .startWithItem(List.of())
-        .replay(1)
-        .autoConnect(0, disposables::add);
   }
 
   @NotNull
@@ -247,6 +219,30 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
       parent = parent.getParent();
     }
     return false;
+  }
+
+  @NotNull
+  private Observable<List<IDiffInfo>> _observeChangedFiles()
+  {
+    return observableCache.calculateParallel("changedFiles", () -> Observable
+        .combineLatest(selectedCommitObservable, repository, _observeShowAllCB(), (pSelectedCommitsOpt, currentRepo, pShowAll) -> {
+          if (pSelectedCommitsOpt.isPresent() && !pSelectedCommitsOpt.get().isEmpty() && currentRepo.isPresent())
+          {
+            return _getChangedFiles(currentRepo.get().getTopLevelDirectory(), pSelectedCommitsOpt.get(), currentRepo.get(), pShowAll);
+          }
+          else
+          {
+            return Collections.<IDiffInfo>emptyList();
+          }
+        })
+        .startWithItem(List.of()));
+  }
+
+  @NotNull
+  private Observable<Boolean> _observeShowAllCB()
+  {
+    return observableCache.calculateParallel("showAllCB", () -> Observable.create(new _CheckboxObservable(showAllCheckbox))
+        .startWithItem(commitFilter.getFiles().isEmpty()));
   }
 
   @Override
