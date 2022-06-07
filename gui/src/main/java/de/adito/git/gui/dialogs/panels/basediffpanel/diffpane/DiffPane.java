@@ -5,17 +5,15 @@ import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.impl.observables.PropertyChangeObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,26 +25,16 @@ import java.util.concurrent.TimeUnit;
  */
 public class DiffPane extends JPanel implements IDiscardable
 {
-
-
-  private final Observable<Dimension> viewPortSizeObservable;
   private final JScrollPane scrollPane = new JScrollPane();
   private final JEditorPane editorPane;
   private final List<IDiscardable> discardables = new ArrayList<>();
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
 
   public DiffPane(JEditorPane pEditorPane)
   {
     editorPane = pEditorPane;
-    Observable<Optional<Integer>> zoomObservable = Observable.create(new PropertyChangeObservable<Integer>(editorPane, "text-zoom"))
-        .startWithItem(Optional.empty())
-        .replay(1)
-        .autoConnect(0, disposables::add);
-    Observable<Dimension> basicViewPortSizeObservable = Observable.create(new ViewPortSizeObservable(scrollPane.getViewport()));
-    viewPortSizeObservable = Observable.combineLatest(zoomObservable, basicViewPortSizeObservable, (pZoom, pViewportSize) -> pViewportSize)
-        .replay(1)
-        .autoConnect(0, disposables::add)
-        .throttleLatest(250, TimeUnit.MILLISECONDS, true);
+    disposables.add(new ObservableCacheDisposable(observableCache));
     setLayout(new OnionColumnLayout());
     scrollPane.setViewportView(editorPane);
     scrollPane.setBorder(null);
@@ -85,7 +73,7 @@ public class DiffPane extends JPanel implements IDiscardable
   public LineNumbersColorModel createLineNumberColorModel(DiffPanelModel pModel, Observable<Optional<Object>> pInitHeightCalcObs, int pModelNumber)
   {
     return new LineNumbersColorModel(pModel, editorPane, scrollPane.getViewport(),
-                                     Observable.combineLatest(pInitHeightCalcObs, viewPortSizeObservable, (pObj, pViewPortSize) -> pViewPortSize),
+                                     Observable.combineLatest(pInitHeightCalcObs, _observeViewPortSize(), (pObj, pViewPortSize) -> pViewPortSize),
                                      pModelNumber);
   }
 
@@ -99,7 +87,7 @@ public class DiffPane extends JPanel implements IDiscardable
    */
   public void addLineNumPanel(LineNumbersColorModel pLineNumbersColorModel, DiffPanelModel pModel, String pLineOrientation)
   {
-    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, scrollPane.getViewport(), viewPortSizeObservable, pLineNumbersColorModel);
+    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, scrollPane.getViewport(), _observeViewPortSize(), pLineNumbersColorModel);
     discardables.add(lineNumPanel);
     add(lineNumPanel, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
   }
@@ -115,7 +103,7 @@ public class DiffPane extends JPanel implements IDiscardable
   public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
                                    LineNumbersColorModel[] pLineNumbersColorModels, @NotNull String pOrientation)
   {
-    ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, scrollPane.getViewport(), viewPortSizeObservable,
+    ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, scrollPane.getViewport(), _observeViewPortSize(),
                                                                 pAcceptIcon, pDiscardIcon, pLineNumbersColorModels, pOrientation);
     discardables.add(choiceButtonPanel);
     add(choiceButtonPanel, pOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
@@ -126,6 +114,17 @@ public class DiffPane extends JPanel implements IDiscardable
   {
     discardables.forEach(IDiscardable::discard);
     disposables.dispose();
+  }
+
+  @NotNull
+  private Observable<Dimension> _observeViewPortSize()
+  {
+    return observableCache.calculateParallel("viewPortSize", () -> Observable
+        .combineLatest(Observable.create(new PropertyChangeObservable<Integer>(editorPane, "text-zoom"))
+                           .startWithItem(Optional.empty()),
+                       Observable.create(new ViewPortSizeObservable(scrollPane.getViewport())),
+                       (pZoom, pViewportSize) -> pViewportSize)
+        .throttleLatest(250, TimeUnit.MILLISECONDS, true));
   }
 
 }

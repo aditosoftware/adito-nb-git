@@ -2,8 +2,8 @@ package de.adito.git.nbm.observables;
 
 import de.adito.git.nbm.util.ProjectUtility;
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
 import org.openide.windows.TopComponent;
@@ -19,8 +19,7 @@ import java.util.Optional;
 public class ActiveProjectObservable extends AbstractListenerObservable<PropertyChangeListener, TopComponent.Registry, Optional<Project>>
 {
 
-  private static final CompositeDisposable DISPOSABLES = new CompositeDisposable();
-  private static Observable<Optional<Project>> observableRef;
+  private static final ObservableCache _CACHE = new ObservableCache();
 
   private ActiveProjectObservable()
   {
@@ -30,18 +29,13 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
   @NotNull
   public static Observable<Optional<Project>> create()
   {
-    if (observableRef == null)
-    {
-      Observable<Optional<Project>> activeProjectObs = Observable.create(new ActiveProjectObservable())
-          .distinctUntilChanged()
-          .filter(Optional::isPresent)
-          .startWithItem(ProjectUtility.findProjectFromActives(TopComponent.getRegistry()));
-      observableRef = Observable.combineLatest(activeProjectObs, OpenProjectsObservable.create(),
-                                               (pOptionalProject, pProjects) -> pOptionalProject.map(pProject -> pProjects.contains(pProject) ? pProject : null))
-          .replay(1)
-          .autoConnect(0, DISPOSABLES::add);
-    }
-    return observableRef;
+    return _CACHE.calculateParallel("create", () -> Observable
+        .combineLatest(Observable.create(new ActiveProjectObservable())
+                           .distinctUntilChanged()
+                           .filter(Optional::isPresent)
+                           .startWithItem(ProjectUtility.findProjectFromActives(TopComponent.getRegistry())),
+                       OpenProjectsObservable.create(),
+                       (pOptionalProject, pProjects) -> pOptionalProject.map(pProject -> pProjects.contains(pProject) ? pProject : null)));
   }
 
   @NotNull
@@ -62,6 +56,6 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
 
   public static void dispose()
   {
-    ActiveProjectObservable.DISPOSABLES.clear();
+    new ObservableCacheDisposable(_CACHE).dispose();
   }
 }

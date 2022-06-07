@@ -1,7 +1,6 @@
 package de.adito.git.gui.window.content;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
@@ -9,26 +8,25 @@ import de.adito.git.api.data.IFileStatus;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.Constants;
-import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.*;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.ObservableTreePanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.models.*;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -56,12 +54,8 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
   private final List<IDiscardable> discardableActions = new ArrayList<>();
   private ObservableTreeUpdater<IFileChangeType> treeUpdater;
   private final BehaviorSubject<Observable<Optional<List<IFileChangeType>>>> subject = BehaviorSubject.createDefault(Observable.just(Optional.empty()));
-  private final Observable<Optional<List<File>>> selectedFileObservable = subject.switchMap(pObs -> pObs
-      .map(pOpt -> pOpt
-          .map(pChangeTypes -> pChangeTypes
-              .stream()
-              .map(IFileChangeType::getFile)
-              .collect(Collectors.toList()))));
+  private final ObservableCache observableCache = new ObservableCache();
+  private final CompositeDisposable disposables = new CompositeDisposable();
 
   @Inject
   StatusWindowContent(IIconLoader pIconLoader, IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider,
@@ -73,6 +67,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
     prefStore = pPrefStore;
     repository = pRepository;
     actionProvider = pActionProvider;
+    disposables.add(new ObservableCacheDisposable(observableCache));
     pProgressFacade.executeInBackground("Preparing status window", pHandle -> {
       Observable<Optional<IFileStatus>> status = repository
           .switchMap(pRepo -> pRepo
@@ -212,6 +207,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
     statusTree.discard();
     discardableActions.forEach(IDiscardable::discard);
     treeUpdater.discard();
+    disposables.dispose();
   }
 
   @Override
@@ -231,7 +227,12 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
   @Override
   public Observable<Optional<List<File>>> observeSelectedItems()
   {
-    return selectedFileObservable;
+    return observableCache.calculateParallel("selectedItems", () -> subject.switchMap(pObs -> pObs
+        .map(pOpt -> pOpt
+            .map(pChangeTypes -> pChangeTypes
+                .stream()
+                .map(IFileChangeType::getFile)
+                .collect(Collectors.toList())))));
   }
 
   private class _DoubleClickListener extends MouseAdapter

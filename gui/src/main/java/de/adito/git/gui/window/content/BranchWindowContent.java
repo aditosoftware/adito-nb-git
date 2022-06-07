@@ -3,27 +3,22 @@ package de.adito.git.gui.window.content;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.EBranchType;
-import de.adito.git.api.data.IBranch;
-import de.adito.git.api.data.IRepositoryState;
+import de.adito.git.api.data.*;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.swing.TableLayoutUtil;
-import info.clearthought.layout.TableLayout;
-import info.clearthought.layout.TableLayoutConstants;
+import de.adito.util.reactive.cache.*;
+import info.clearthought.layout.*;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.Nullable;
+import io.reactivex.rxjava3.disposables.*;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,9 +37,9 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   private final IActionProvider actionProvider;
   private final INotifyUtil notifyUtil;
   private final Observable<Optional<IRepository>> observableOptRepo;
-  private final Observable<Optional<List<IBranch>>> observableBranches;
   private ObservableListSelectionModel observableListSelectionModel;
   private final List<JList<IBranch>> branchLists = new ArrayList<>();
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
@@ -55,21 +50,9 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
     actionProvider = pProvider;
     notifyUtil = pNotifyUtil;
     observableOptRepo = pObservableOptRepo;
+    disposable.add(new ObservableCacheDisposable(observableCache));
     Observable<Optional<IRepositoryState>> repoStateObservable = observableOptRepo
         .switchMap(pRepository -> pRepository.map(IRepository::getRepositoryState)
-            .orElse(Observable.just(Optional.empty())));
-    observableBranches = observableOptRepo
-        .switchMap(pOptRepo -> pOptRepo
-            .map(pRepo -> {
-              try
-              {
-                return pRepo.getBranches();
-              }
-              catch (Exception e)
-              {
-                return Observable.just(Optional.<List<IBranch>>empty());
-              }
-            })
             .orElse(Observable.just(Optional.empty())));
     _initGUI(repoStateObservable);
   }
@@ -112,6 +95,24 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
     return jLabel;
   }
 
+  @NotNull
+  private Observable<Optional<List<IBranch>>> _observeBranches()
+  {
+    return observableCache.calculateParallel("branches", () -> observableOptRepo
+        .switchMap(pOptRepo -> pOptRepo
+            .map(pRepo -> {
+              try
+              {
+                return pRepo.getBranches();
+              }
+              catch (Exception e)
+              {
+                return Observable.just(Optional.<List<IBranch>>empty());
+              }
+            })
+            .orElse(Observable.just(Optional.empty()))));
+  }
+
   /**
    * Create and fill a list of branches
    *
@@ -122,7 +123,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
   {
     _HoverMouseListener hoverMouseListener = new _HoverMouseListener();
     JList<IBranch> branchList = new JList<>();
-    ObservingBranchListModel branchListModel = new ObservingBranchListModel(observableBranches.map(pBranches -> pBranches.orElse(Collections.emptyList())
+    ObservingBranchListModel branchListModel = new ObservingBranchListModel(_observeBranches().map(pBranches -> pBranches.orElse(Collections.emptyList())
         .stream()
         .filter(pBranch -> pBranch.getType().equals(pType))
         .collect(Collectors.toList())));
