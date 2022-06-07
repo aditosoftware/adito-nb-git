@@ -1,0 +1,11 @@
+import { ContextUtils, AdminViewUtils  } from "Context_lib";
+import { AttributeUtil , AttributeRelationUtils , AttributeType , AttributeTypeUtil , AttributeUsageUtil , AttributeRelationQuery , AttributeRelation  } from "Attribute_lib";
+import { neon } from "@aditosoftware/jdito-types";
+import { vars } from "@aditosoftware/jdito-types";
+import { ActivityUtils, TaskUtils  } from "ActivityTask_lib";
+
+if(vars.get("$sys.recordstate") == neon.OPERATINGSTATE_OLD)
+{
+    ActivityUtils.addLinkRecords("$param.ObjectId_param", "$param.RowId_param", "$param.PresetLinks_param", "$field.PARENT_CONTEXT", "$field.PARENT_ID");
+    AttributeRelationUtils.presetMandatoryAttributes(ContextUtils.getCurrentContextId(), "Attributes");
+}

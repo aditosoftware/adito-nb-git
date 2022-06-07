@@ -29,6 +29,11 @@
       <artifactId>nb-adito-interface</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+
     <!-- https://mvnrepository.com/artifact/info.clearthought/table-layout -->
     <dependency>
       <groupId>info.clearthought</groupId>
