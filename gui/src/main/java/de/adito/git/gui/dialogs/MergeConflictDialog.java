@@ -3,35 +3,30 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.IFileStatus;
-import de.adito.git.api.data.IMergeDetails;
-import de.adito.git.api.data.diff.EConflictSide;
-import de.adito.git.api.data.diff.IFileDiff;
-import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.api.data.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
-import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTable;
+import de.adito.git.gui.quicksearch.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.sequences.MergeConflictSequence;
-import de.adito.git.gui.swing.ComponentResizeListener;
-import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
+import de.adito.git.gui.swing.*;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
 import de.adito.git.impl.Util;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import io.reactivex.rxjava3.subjects.Subject;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.subjects.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +43,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final IAsyncProgressFacade progressFacade;
   private final INotifyUtil notifyUtil;
   private final IDialogDisplayer.IDescriptor isValidDescriptor;
+  private final boolean onlyConflicting;
   private final IRepository repository;
   private final Subject<List<IMergeData>> mergeConflictDiffs;
   private final SearchableTable mergeConflictTable = new SearchableTable(this);
@@ -55,10 +51,9 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final JButton acceptYoursButton = new JButton("Accept Yours");
   private final JButton acceptTheirsButton = new JButton("Accept Theirs");
   private final JButton autoResolveButton = new JButton("Auto-Resolve");
-  private final Observable<Optional<List<IMergeData>>> selectedMergeDiffObservable;
   private final MergeDiffStatusModel mergeDiffStatusModel;
-  private final Disposable disposable;
-  private final Disposable selectionDisposable;
+  private final ObservableCache observableCache = new ObservableCache();
+  private final CompositeDisposable disposables = new CompositeDisposable();
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IPrefStore prefStore;
 
@@ -73,41 +68,19 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     progressFacade = pProgressFacade;
     notifyUtil = pNotifyUtil;
     isValidDescriptor = pIsValidDescriptor;
+    onlyConflicting = pOnlyConflicting;
+    disposables.add(new ObservableCacheDisposable(observableCache));
     repository = pRepository.blockingFirst().orElseThrow(() -> new RuntimeException(NO_REPO_ERROR_MSG));
     observableListSelectionModel = new ObservableListSelectionModel(mergeConflictTable.getSelectionModel());
     mergeConflictTable.setSelectionModel(observableListSelectionModel);
     mergeConflictDiffs = BehaviorSubject.createDefault(pMergeDetails.getMergeConflicts());
-    Observable<Optional<IFileStatus>> obs = repository.getStatus();
-    Observable<List<IMergeData>> mergeDiffListObservable = Observable
-        .combineLatest(obs, mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
-            .filter(pMergeDiff -> !pOnlyConflicting || pStatus
-                .map(IFileStatus::getConflicting)
-                .orElse(Collections.emptySet())
-                .stream().anyMatch(pFilePath -> IFileDiff.isSameFile(pFilePath, pMergeDiff.getDiff(EConflictSide.YOURS))))
-            .collect(Collectors.toList()));
-    selectedMergeDiffObservable = Observable
-        .combineLatest(observableListSelectionModel.selectedRows(), mergeDiffListObservable, (pSelectedRows, pMergeDiffList) -> {
-          // if either the list or selection is null, more than one element is selected or the list has 0 elements
-          if (pSelectedRows == null || pMergeDiffList == null || pMergeDiffList.isEmpty())
-          {
-            return Optional.empty();
-            // if no element is selected (and at least one element is in the list, this follows from the if above)
-          }
-          List<IMergeData> selectedMergeDiffs = new ArrayList<>();
-          for (Integer pSelectedRow : pSelectedRows)
-          {
-            if (pSelectedRow < pMergeDiffList.size())
-              selectedMergeDiffs.add(pMergeDiffList.get(pSelectedRow));
-          }
-          return Optional.of(selectedMergeDiffs);
-        });
-    selectionDisposable = selectedMergeDiffObservable.subscribe(pSelectedMergeDiffs -> {
+    disposables.add(_observeSelectedMergeDiff().subscribe(pSelectedMergeDiffs -> {
       manualMergeButton.setEnabled(pSelectedMergeDiffs.map(pList -> pList.size() == 1).orElse(false));
       acceptYoursButton.setEnabled(pSelectedMergeDiffs.map(pList -> !pList.isEmpty()).orElse(false));
       acceptTheirsButton.setEnabled(pSelectedMergeDiffs.map(pList -> !pList.isEmpty()).orElse(false));
-    });
-    disposable = mergeDiffListObservable.subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty()));
-    mergeDiffStatusModel = new MergeDiffStatusModel(mergeDiffListObservable, pMergeDetails);
+    }));
+    disposables.add(_observeMergeDiffList().subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty())));
+    mergeDiffStatusModel = new MergeDiffStatusModel(_observeMergeDiffList(), pMergeDetails);
     _initGui(pMergeDetails, pShowAutoResolve, pQuickSearchProvider);
   }
 
@@ -118,7 +91,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     addComponentListener(new ComponentResizeListener(prefStore, PREF_STORE_SIZE_KEY));
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
-    manualMergeButton.addActionListener(e -> _doManualResolve(selectedMergeDiffObservable, pMergeDetails.getYoursOrigin(), pMergeDetails.getTheirsOrigin()));
+    manualMergeButton.addActionListener(e -> _doManualResolve(_observeSelectedMergeDiff(), pMergeDetails.getYoursOrigin(), pMergeDetails.getTheirsOrigin()));
     acceptYoursButton.addActionListener(e -> _acceptDefaultVersion(EConflictSide.YOURS));
     acceptTheirsButton.addActionListener(e -> _acceptDefaultVersion(EConflictSide.THEIRS));
     manualMergeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) manualMergeButton.getMaximumSize().getHeight()));
@@ -156,6 +129,39 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
     add(mergeConflictTableScrollPane, BorderLayout.CENTER);
     pQuickSearchProvider.attach(this, BorderLayout.SOUTH, new QuickSearchCallbackImpl(mergeConflictTable, List.of(0)));
+  }
+
+  @NotNull
+  private Observable<Optional<List<IMergeData>>> _observeSelectedMergeDiff()
+  {
+    return observableCache.calculateParallel("selectedMergeDiff", () -> Observable
+        .combineLatest(observableListSelectionModel.selectedRows(), _observeMergeDiffList(), (pSelectedRows, pMergeDiffList) -> {
+          // if either the list or selection is null, more than one element is selected or the list has 0 elements
+          if (pSelectedRows == null || pMergeDiffList == null || pMergeDiffList.isEmpty())
+          {
+            return Optional.empty();
+            // if no element is selected (and at least one element is in the list, this follows from the if above)
+          }
+          List<IMergeData> selectedMergeDiffs = new ArrayList<>();
+          for (Integer pSelectedRow : pSelectedRows)
+          {
+            if (pSelectedRow < pMergeDiffList.size())
+              selectedMergeDiffs.add(pMergeDiffList.get(pSelectedRow));
+          }
+          return Optional.of(selectedMergeDiffs);
+        }));
+  }
+
+  @NotNull
+  private Observable<List<IMergeData>> _observeMergeDiffList()
+  {
+    return observableCache.calculateParallel("mergeDiffList", () -> Observable
+        .combineLatest(repository.getStatus(), mergeConflictDiffs, (pStatus, pMergeDiffs) -> pMergeDiffs.stream()
+            .filter(pMergeDiff -> !onlyConflicting || pStatus
+                .map(IFileStatus::getConflicting)
+                .orElse(Collections.emptySet())
+                .stream().anyMatch(pFilePath -> IFileDiff.isSameFile(pFilePath, pMergeDiff.getDiff(EConflictSide.YOURS))))
+            .collect(Collectors.toList())));
   }
 
   /**
@@ -217,7 +223,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   private void _acceptDefaultVersion(EConflictSide pConflictSide)
   {
-    Optional<List<IMergeData>> mergeDiffOptional = selectedMergeDiffObservable.blockingFirst(Optional.empty());
+    Optional<List<IMergeData>> mergeDiffOptional = _observeSelectedMergeDiff().blockingFirst(Optional.empty());
     mergeDiffOptional.ifPresent(pIMergeData -> {
       MergeConflictSequence.acceptDefaultVersion(pIMergeData, pConflictSide, repository);
       mergeDiffOptional.get().forEach(this::_removeFromMergeConflicts);
@@ -234,8 +240,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   @Override
   public void discard()
   {
-    disposable.dispose();
-    selectionDisposable.dispose();
+    disposables.dispose();
     mergeDiffStatusModel.discard();
     observableListSelectionModel.discard();
   }
@@ -265,7 +270,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      _doManualResolve(selectedMergeDiffObservable, mergeDetails.getYoursOrigin(), mergeDetails.getTheirsOrigin());
+      _doManualResolve(_observeSelectedMergeDiff(), mergeDetails.getYoursOrigin(), mergeDetails.getTheirsOrigin());
     }
   }
 }

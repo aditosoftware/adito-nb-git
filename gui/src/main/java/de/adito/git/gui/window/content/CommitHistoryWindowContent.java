@@ -9,35 +9,27 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.panels.CommitDetailsPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.menu.IMenuProvider;
-import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
-import de.adito.git.gui.quicksearch.SearchableTable;
+import de.adito.git.gui.quicksearch.*;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.swing.SimpleBranchNameListCellRenderer;
 import de.adito.git.gui.tablemodels.CommitHistoryTreeListTableModel;
 import de.adito.git.impl.data.CommitFilterImpl;
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.*;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
+import javax.swing.event.*;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -64,11 +56,9 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final IMenuProvider menuProvider;
   private final Observable<Optional<IRepository>> repository;
   private final Runnable loadMoreCallback;
-  private final Observable<Optional<List<CommitHistoryTreeListItem>>> selectedCommitHistoryItems;
-  private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
-  private final Observable<Optional<IFileStatus>> statusObservable;
   private final QuickSearchCallbackImpl quickSearchCallback;
   private final List<IDiscardable> popupDiscardables = new ArrayList<>();
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final ObservableListSelectionModel observableCommitListSelectionModel;
   private final JPopupMenu commitListPopupMenu = new JPopupMenu();
@@ -77,7 +67,6 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private final JTextField authorField = new JTextField();
   private final JComboBox<IBranch> branchSelectionBox = new JComboBox<>();
   private final List<File> chosenFiles = new ArrayList<>();
-  private final Observable<ICommitFilter> commitFilterObs;
   private final Disposable branchObservable;
 
   /**
@@ -97,6 +86,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     menuProvider = pMenuProvider;
     repository = pRepository;
     loadMoreCallback = pLoadMoreCallback;
+    disposables.add(new ObservableCacheDisposable(observableCache));
     if (pStartFilter.getAuthor() != null) authorField.setText(pStartFilter.getAuthor());
     if (!pStartFilter.getFiles().isEmpty()) chosenFiles.addAll(pStartFilter.getFiles());
     branchSelectionBox.setRenderer(new SimpleBranchNameListCellRenderer());
@@ -112,36 +102,13 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     pQuickSearchProvider.attach(commitTableView, BorderLayout.SOUTH, quickSearchCallback);
     observableCommitListSelectionModel = new ObservableListSelectionModel(commitTable.getSelectionModel());
     commitTable.setSelectionModel(observableCommitListSelectionModel);
-    selectedCommitHistoryItems = observableCommitListSelectionModel.selectedRows().map(selectedRows -> {
-      List<CommitHistoryTreeListItem> selectedCommits = new ArrayList<>();
-      for (int selectedRow : selectedRows)
-      {
-        selectedCommits.add(((CommitHistoryTreeListItem) commitTable.getValueAt(selectedRow, 0)));
-      }
-      return Optional.of(selectedCommits);
-    });
-    branchObservable = repository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getBranches).orElse(Observable.just(Optional.of(List.of()))))
-        .subscribe(pOptBranches -> pOptBranches.ifPresent(pIBranches -> _resetSelectableBranches(pStartFilter, pIBranches)));
-    selectedCommitObservable = selectedCommitHistoryItems.map(pOptSelectedItems ->
-                                                                  pOptSelectedItems
-                                                                      .map(pSelectedItems -> pSelectedItems
-                                                                          .stream()
-                                                                          .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList())));
-    commitFilterObs = Observable.combineLatest(
-        Observable.create(new _ComboBoxObservable(branchSelectionBox))
-            .startWithItem(branchSelectionBox.getSelectedItem() == null ? Optional.empty() : Optional.of((IBranch) branchSelectionBox.getSelectedItem())),
-        Observable.create(new _JTextFieldObservable(authorField))
-            .startWithItem("")
-            .debounce(500, TimeUnit.MILLISECONDS),
-        (pBranch, pAuthor) -> (ICommitFilter) new CommitFilterImpl()
-            .setAuthor(pAuthor.isEmpty() ? null : pAuthor)
-            .setBranch(pBranch.orElse(null))
-            .setFileList(chosenFiles))
-        .replay(1)
-        .autoConnect(0, disposables::add);
-    statusObservable = pRepository.switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
-        .debounce(500, TimeUnit.MILLISECONDS);
-    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, selectedCommitObservable, pStartFilter);
+    branchObservable = repository
+        .switchMap(pOptRepo -> pOptRepo
+            .map(IRepository::getBranches)
+            .orElse(Observable.just(Optional.of(List.of()))))
+        .subscribe(pOptBranches -> pOptBranches
+            .ifPresent(pIBranches -> _resetSelectableBranches(pStartFilter, pIBranches)));
+    commitDetailsPanel = pPanelFactory.createCommitDetailsPanel(pRepository, _observeSelectedCommits(), pStartFilter);
     _initGUI(pLoadMoreCallback, pRefreshContentCallBack, pIconLoader);
   }
 
@@ -209,9 +176,9 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   {
     toolBar.setOrientation(JToolBar.HORIZONTAL);
     toolBar.setFloatable(false);
-    toolBar.add(actionProvider.getRefreshContentAction(() -> pRefreshContentCallBack.accept(commitFilterObs.blockingFirst())));
+    toolBar.add(actionProvider.getRefreshContentAction(() -> pRefreshContentCallBack.accept(_observeCommitFilter().blockingFirst())));
     toolBar.addSeparator();
-    toolBar.add(actionProvider.getCherryPickAction(repository, selectedCommitObservable));
+    toolBar.add(actionProvider.getCherryPickAction(repository, _observeSelectedCommits()));
     toolBar.add(actionProvider.getShowTagWindowAction(pCommit -> _selectCommit(pCommit, 0), repository));
     toolBar.addSeparator();
     JLabel branchLabel = new JLabel("Branch");
@@ -224,7 +191,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     toolBar.add(authorLabel);
     authorField.setPreferredSize(new Dimension(400, 26));
     toolBar.add(authorField);
-    disposables.add(Observable.combineLatest(commitFilterObs, statusObservable, (pFilter, pStatus) -> pFilter).subscribe(pRefreshContentCallBack::accept));
+    disposables.add(Observable.combineLatest(_observeCommitFilter(), _observeStatus(), (pFilter, pStatus) -> pFilter).subscribe(pRefreshContentCallBack::accept));
   }
 
   private void _selectCommit(ICommit pCommit, int startIndex)
@@ -275,14 +242,14 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
 
   private void _buildPopupMenu()
   {
-    Action diffCommitToHeadAction = actionProvider.getDiffCommitToHeadAction(repository, selectedCommitObservable, Observable.just(Optional.empty()));
-    Action checkoutCommitAction = actionProvider.getCheckoutCommitAction(repository, selectedCommitObservable);
-    Action resetAction = actionProvider.getResetAction(repository, selectedCommitObservable);
-    Action addTagAction = actionProvider.getAddTagAction(repository, selectedCommitObservable);
-    JMenu deleteTagsMenu = menuProvider.getDeleteTagsMenu("Delete Tag", repository, selectedCommitHistoryItems);
-    Action cherryPickAction = actionProvider.getCherryPickAction(repository, selectedCommitObservable);
-    Action newBranchAction = actionProvider.getNewBranchAction(repository, selectedCommitObservable);
-    Action revertCommitsAction = actionProvider.getRevertCommitsAction(repository, selectedCommitObservable);
+    Action diffCommitToHeadAction = actionProvider.getDiffCommitToHeadAction(repository, _observeSelectedCommits(), Observable.just(Optional.empty()));
+    Action checkoutCommitAction = actionProvider.getCheckoutCommitAction(repository, _observeSelectedCommits());
+    Action resetAction = actionProvider.getResetAction(repository, _observeSelectedCommits());
+    Action addTagAction = actionProvider.getAddTagAction(repository, _observeSelectedCommits());
+    JMenu deleteTagsMenu = menuProvider.getDeleteTagsMenu("Delete Tag", repository, _observeSelectedCommitHistoryItems());
+    Action cherryPickAction = actionProvider.getCherryPickAction(repository, _observeSelectedCommits());
+    Action newBranchAction = actionProvider.getNewBranchAction(repository, _observeSelectedCommits());
+    Action revertCommitsAction = actionProvider.getRevertCommitsAction(repository, _observeSelectedCommits());
     popupDiscardables.add((IDiscardable) diffCommitToHeadAction);
     popupDiscardables.add((IDiscardable) resetAction);
     popupDiscardables.add((IDiscardable) addTagAction);
@@ -303,6 +270,53 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitListPopupMenu.add(resetAction);
     commitListPopupMenu.add(revertCommitsAction);
     commitTable.addMouseListener(new PopupMouseListener(() -> commitListPopupMenu));
+  }
+
+  @NotNull
+  private Observable<Optional<IFileStatus>> _observeStatus()
+  {
+    return observableCache.calculateParallel("status", () -> repository
+        .switchMap(pOptRepo -> pOptRepo.map(IRepository::getStatus).orElse(Observable.just(Optional.empty())))
+        .debounce(500, TimeUnit.MILLISECONDS));
+  }
+
+  @NotNull
+  private Observable<ICommitFilter> _observeCommitFilter()
+  {
+    return observableCache.calculateParallel("commitFilter", () -> Observable.combineLatest(
+        Observable.create(new _ComboBoxObservable(branchSelectionBox))
+            .startWithItem(branchSelectionBox.getSelectedItem() == null ? Optional.empty() : Optional.of((IBranch) branchSelectionBox.getSelectedItem())),
+        Observable.create(new _JTextFieldObservable(authorField))
+            .startWithItem("")
+            .debounce(500, TimeUnit.MILLISECONDS),
+        (pBranch, pAuthor) -> new CommitFilterImpl()
+            .setAuthor(pAuthor.isEmpty() ? null : pAuthor)
+            .setBranch(pBranch.orElse(null))
+            .setFileList(chosenFiles)));
+  }
+
+  @NotNull
+  private Observable<Optional<List<ICommit>>> _observeSelectedCommits()
+  {
+    return observableCache.calculateParallel("selectedCommits", () -> _observeSelectedCommitHistoryItems()
+        .map(pOptSelectedItems -> pOptSelectedItems
+            .map(pSelectedItems -> pSelectedItems
+                .stream()
+                .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList()))));
+  }
+
+  @NotNull
+  private Observable<Optional<List<CommitHistoryTreeListItem>>> _observeSelectedCommitHistoryItems()
+  {
+    return observableCache.calculateParallel("selectedCommitHistoryItems", () -> observableCommitListSelectionModel.selectedRows()
+        .map(selectedRows -> {
+          List<CommitHistoryTreeListItem> selectedCommits = new ArrayList<>();
+          for (int selectedRow : selectedRows)
+          {
+            selectedCommits.add(((CommitHistoryTreeListItem) commitTable.getValueAt(selectedRow, 0)));
+          }
+          return Optional.of(selectedCommits);
+        }));
   }
 
   /**

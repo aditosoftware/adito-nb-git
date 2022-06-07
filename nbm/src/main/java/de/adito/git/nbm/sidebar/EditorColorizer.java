@@ -1,38 +1,30 @@
 package de.adito.git.nbm.sidebar;
 
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.data.IRepositoryState;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.*;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
-import de.adito.git.gui.swing.LineNumber;
-import de.adito.git.gui.swing.TextPaneUtil;
+import de.adito.git.gui.swing.*;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.actions.ShowAnnotationNBAction;
 import de.adito.git.nbm.icon.NBIconLoader;
 import de.adito.git.nbm.util.DocumentObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jetbrains.annotations.NotNull;
 import org.openide.loaders.DataObject;
 import org.openide.windows.WindowManager;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Position;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static de.adito.git.gui.Constants.ARROW_RIGHT;
@@ -46,16 +38,14 @@ class EditorColorizer extends JPanel implements IDiscardable
   private static final int THROTTLE_LATEST_TIMER = 500;
   private final Observable<Optional<IRepository>> repository;
   private final JTextComponent targetEditor;
-  private Observable<List<IChangeDelta>> chunkObservable;
   private final JViewport editorViewPort;
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposable = new CompositeDisposable();
   private final File file;
   private final ImageIcon rightArrow = new NBIconLoader().getIcon(ARROW_RIGHT);
   private List<_ChangeHolder> changeList = new ArrayList<>();
-  private Observable<List<_ChangeHolder>> rectanglesObs;
   private BufferedImage cachedImage;
   private _ChunkPopupMouseListener chunkPopupMouseListener;
-  private Observable<EChangeType> changeTypeObservable;
 
   /**
    * A JPanel to show all the git changes in the editor
@@ -68,6 +58,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     repository = pRepository;
     targetEditor = pTarget;
     editorViewPort = _getJScrollPane(targetEditor).getViewport();
+    disposable.add(new ObservableCacheDisposable(observableCache));
     setMinimumSize(new Dimension(COLORIZER_WIDTH, 0));
     setPreferredSize(new Dimension(COLORIZER_WIDTH, 0));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
@@ -87,7 +78,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     else if (evt.getOldValue() == null)
     {
       _buildObservables();
-      targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, rectanglesObs);
+      targetEditor.putClientProperty(IGitConstants.CHANGES_LOCATIONS_OBSERVABLE, _observeRectangles());
       if (chunkPopupMouseListener == null)
       {
         chunkPopupMouseListener = new _ChunkPopupMouseListener(pRepository, targetEditor);
@@ -98,51 +89,63 @@ class EditorColorizer extends JPanel implements IDiscardable
 
   private void _buildObservables()
   {
-    Observable<String> actualText = Observable.create(new DocumentChangeObservable(targetEditor))
-        .startWithItem(targetEditor.getDocument())
-        .switchMap(DocumentObservable::create);
-    // An observable that only triggers if the viewPort changes its size (not if it moves)
-    Observable<Dimension> viewPortSizeObs = Observable.create(new ViewPortSizeObservable(editorViewPort));
-
-    Observable<Optional<IRepositoryState>> repoState = repository
-        .switchMap(pOptRepo -> pOptRepo.map(IRepository::getRepositoryState).orElse(Observable.just(Optional.empty())));
-    // pass the repositoryState here because otherwise the Observable does not notice commits (the contents of the file do not change, but the chunks have to be updated
-    // nevertheless)
-    changeTypeObservable = repoState
-        .switchMap(pRepoState -> repository
-            .map(pRepoOpt -> pRepoOpt
-                .map(pRepo -> pRepo.getStatusOfSingleFile(file).getChangeType())
-                .orElse(EChangeType.SAME)));
-    chunkObservable = Observable
-        .combineLatest(repository, changeTypeObservable, actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pChangeType, pText) -> {
-          if (pRepoOpt.isPresent() && pChangeType != EChangeType.ADD && pChangeType != EChangeType.NEW)
-          {
-            try
-            {
-              IRepository repo = pRepoOpt.get();
-              return repo.diff(pText, file);
-            }
-            catch (Exception pE)
-            {
-              // do nothing on error, the EditorColorizer should just show nothing in that case
-            }
-          }
-          return new ArrayList<IChangeDelta>();
-        })
-        .replay(1)
-        .autoConnect(0, disposable::add)
-        .distinctUntilChanged()
-        .observeOn(Schedulers.computation());
-
-    rectanglesObs = Observable.combineLatest(chunkObservable, viewPortSizeObs, (pChunks, pScroll) -> pChunks)
-        .map(chunkList -> _calculateRectangles(targetEditor, chunkList));
-
-    disposable.add(rectanglesObs
+    disposable.add(_observeRectangles()
                        .subscribe(pChangeList -> {
                          changeList = pChangeList;
                          cachedImage = _createBufferedImage(changeList, targetEditor.getHeight());
                          repaint();
                        }));
+  }
+
+  @NotNull
+  private Observable<EChangeType> _observeChangeType()
+  {
+    return observableCache.calculateParallel("changeType", () -> repository
+        .switchMap(pOptRepo -> pOptRepo.map(IRepository::getRepositoryState).orElse(Observable.just(Optional.empty())))
+        // pass the repositoryState here because otherwise the Observable does not notice commits
+        // (the contents of the file do not change, but the chunks have to be updated  nevertheless)
+        .switchMap(pRepoState -> repository
+            .map(pRepoOpt -> pRepoOpt
+                .map(pRepo -> pRepo.getStatusOfSingleFile(file).getChangeType())
+                .orElse(EChangeType.SAME))));
+  }
+
+  @NotNull
+  private Observable<List<IChangeDelta>> _observeChunks()
+  {
+    return observableCache.calculateParallel("chunks", () -> {
+      Observable<String> actualText = Observable.create(new DocumentChangeObservable(targetEditor))
+          .startWithItem(targetEditor.getDocument())
+          .switchMap(DocumentObservable::create);
+
+      return Observable
+          .combineLatest(repository, _observeChangeType(), actualText.debounce(THROTTLE_LATEST_TIMER, TimeUnit.MILLISECONDS), (pRepoOpt, pChangeType, pText) -> {
+            if (pRepoOpt.isPresent() && pChangeType != EChangeType.ADD && pChangeType != EChangeType.NEW)
+            {
+              try
+              {
+                IRepository repo = pRepoOpt.get();
+                return repo.diff(pText, file);
+              }
+              catch (Exception pE)
+              {
+                // do nothing on error, the EditorColorizer should just show nothing in that case
+              }
+            }
+            return new ArrayList<IChangeDelta>();
+          })
+          .distinctUntilChanged();
+    });
+  }
+
+  @NotNull
+  private Observable<List<_ChangeHolder>> _observeRectangles()
+  {
+    return observableCache.calculateParallel("rectangles", () -> Observable.combineLatest(_observeChunks(),
+                                                                                          // An observable that only triggers if the viewPort changes its size (not if it moves)
+                                                                                          Observable.create(new ViewPortSizeObservable(editorViewPort)),
+                                                                                          (pChunks, pScroll) -> pChunks)
+        .map(chunkList -> _calculateRectangles(targetEditor, chunkList)));
   }
 
   /**
@@ -322,7 +325,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     @Override
     public void mousePressed(MouseEvent pEvent)
     {
-      EChangeType eChangeType = changeTypeObservable.blockingFirst(EChangeType.SAME);
+      EChangeType eChangeType = _observeChangeType().blockingFirst(EChangeType.SAME);
       if (pEvent.isPopupTrigger() && eChangeType != EChangeType.ADD && eChangeType != EChangeType.NEW)
       {
         JPopupMenu popupMenu = new JPopupMenu();
@@ -334,7 +337,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     @Override
     public void mouseReleased(MouseEvent pEvent)
     {
-      EChangeType eChangeType = changeTypeObservable.blockingFirst(EChangeType.SAME);
+      EChangeType eChangeType = _observeChangeType().blockingFirst(EChangeType.SAME);
       if (SwingUtilities.isLeftMouseButton(pEvent))
       {
         Point point = pEvent.getPoint();
@@ -345,7 +348,7 @@ class EditorColorizer extends JPanel implements IDiscardable
             Point locationOnScreen = pEvent.getLocationOnScreen();
             locationOnScreen.y = locationOnScreen.y + (changeHolder.rectangle.y + changeHolder.rectangle.height - point.y);
             ChunkPopupWindow menu = new ChunkPopupWindow(repository, WindowManager.getDefault().getMainWindow(),
-                                                         locationOnScreen, changeHolder.changeChunk, chunkObservable, target,
+                                                         locationOnScreen, changeHolder.changeChunk, _observeChunks(), target,
                                                          EditorColorizer.this, file);
             menu.setVisible(true);
           }

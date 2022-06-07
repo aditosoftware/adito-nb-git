@@ -11,12 +11,11 @@ import de.adito.git.api.exception.*;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.TrackingRefUpdate;
 import de.adito.git.impl.data.*;
-import de.adito.git.impl.data.diff.FileContentInfoImpl;
-import de.adito.git.impl.data.diff.FileDiffHeaderImpl;
-import de.adito.git.impl.data.diff.FileDiffImpl;
+import de.adito.git.impl.data.diff.*;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -29,30 +28,23 @@ import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
-import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.*;
 import org.eclipse.jgit.treewalk.filter.*;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -70,12 +62,9 @@ public class RepositoryImpl implements IRepository
   private final Logger logger = Logger.getLogger(RepositoryImpl.class.getName());
   private final IStandAloneDiffProvider standAloneDiffProvider;
   private final Git git;
-  private final Observable<Optional<List<IBranch>>> branchList;
-  private final Observable<List<ITag>> tagList;
-  private final Observable<Optional<IFileStatus>> status;
-  private final Observable<Optional<IRepositoryState>> currentStateObservable;
   private final IFileSystemUtil fileSystemUtil;
   private final IFileSystemObserver fileSystemObserver;
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final TrackedBranchStatusCache trackedBranchStatusCache = new TrackedBranchStatusCacheImpl();
   private final IUserInputPrompt userInputPrompt;
@@ -99,35 +88,9 @@ public class RepositoryImpl implements IRepository
     dataFactory = pDataFactory;
     standAloneDiffProvider = pStandAloneDiffProvider;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
-
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
-    // listen for changes in the fileSystem for the status command
-    status = Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
-        .observeOn(Schedulers
-                       .from(Executors
-                                 .newSingleThreadExecutor(new ThreadFactoryBuilder()
-                                                              .setNameFormat("Git-status-computation-%d")
-                                                              .build())))
-        .debounce(500, TimeUnit.MILLISECONDS)
-        .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
-        .startWithItem(Optional.of(RepositoryImplHelper.status(git)))
-        .replay(1)
-        .autoConnect(0, disposables::add);
 
-    branchList = status.map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
-        .startWithItem(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
-        .replay(1)
-        .autoConnect(0, disposables::add);
-    currentStateObservable = status.map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
-        .startWithItem(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
-        .replay(1)
-        .autoConnect(0, disposables::add);
-    tagList = status.map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
-        .distinctUntilChanged()
-        .startWithItem(List.<ITag>of())
-        .replay(1)
-        .autoConnect(0, disposables::add);
-
+    disposables.add(new ObservableCacheDisposable(observableCache));
     _validateGitAttributes();
   }
 
@@ -163,7 +126,9 @@ public class RepositoryImpl implements IRepository
   @Override
   public Observable<Optional<IRepositoryState>> getRepositoryState()
   {
-    return currentStateObservable;
+    return observableCache.calculateParallel("getRepositoryState", () -> getStatus()
+        .map(pStatus -> RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache))
+        .startWithItem(RepositoryImplHelper.currentState(git, this::getBranch, trackedBranchStatusCache)));
   }
 
   /**
@@ -213,7 +178,7 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
-      Optional<IFileStatus> statusOptional = status.blockingFirst(Optional.empty());
+      Optional<IFileStatus> statusOptional = getStatus().blockingFirst(Optional.empty());
       if (statusOptional.map(pIFileStatus -> !pIFileStatus.isClean()).orElse(true))
       {
         throw new AditoGitException("Please make sure there are no changed tracked or untracked files first");
@@ -245,7 +210,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       // add all untracked files
-      List<File> files = status.blockingFirst()
+      List<File> files = getStatus().blockingFirst()
           .map(IFileStatus::getUntracked)
           .orElse(Set.of())
           .stream()
@@ -412,7 +377,7 @@ public class RepositoryImpl implements IRepository
       else
       {
         logger.log(Level.INFO, "git rebase --continue");
-        Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
+        Set<String> conflictingFiles = getStatus().blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
         String targetName;
         String currentHeadName;
         try (BufferedReader reader = new BufferedReader(new FileReader(RepositoryImplHelper.getRebaseMergeHead(git))))
@@ -953,7 +918,13 @@ public class RepositoryImpl implements IRepository
   @Override
   public @NotNull Observable<Optional<IFileStatus>> getStatus()
   {
-    return status;
+    return observableCache.calculateParallel("getStatus", () -> Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
+        .observeOn(Schedulers.from(Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
+                                                                         .setNameFormat("Git-status-computation-%d")
+                                                                         .build())))
+        .debounce(500, TimeUnit.MILLISECONDS)
+        .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
+        .startWithItem(Optional.of(RepositoryImplHelper.status(git))));
   }
 
   /**
@@ -998,7 +969,7 @@ public class RepositoryImpl implements IRepository
   {
     List<String> filesToCheckout = new ArrayList<>();
     List<String> newFiles = new ArrayList<>();
-    Optional<IFileStatus> statusOptional = status.blockingFirst();
+    Optional<IFileStatus> statusOptional = getStatus().blockingFirst();
     if (statusOptional.isPresent() && _isAllUncommittedFilesSelected(pFiles, statusOptional.get().getUncommitted()))
     {
       reset(getCommit(null).getId(), EResetType.HARD);
@@ -1091,7 +1062,7 @@ public class RepositoryImpl implements IRepository
     try
     {
       // add all untracked files to the index, else git cannot revert/reset those files
-      add(status.blockingFirst().map(IFileStatus::getUntracked).orElse(Set.of())
+      add(getStatus().blockingFirst().map(IFileStatus::getUntracked).orElse(Set.of())
               .stream()
               .map(pString -> new File(getTopLevelDirectory(), pString))
               .collect(Collectors.toList()));
@@ -1285,7 +1256,7 @@ public class RepositoryImpl implements IRepository
   {
     try
     {
-      Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
+      Set<String> conflictingFiles = getStatus().blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
       logger.log(Level.INFO, () -> String.format("found conflicting files: %s", conflictingFiles));
       if (!conflictingFiles.isEmpty())
       {
@@ -1366,7 +1337,7 @@ public class RepositoryImpl implements IRepository
   @NotNull
   public IMergeDetails getStashConflicts(String pStashedCommitId) throws AditoGitException
   {
-    Set<String> conflictingFiles = status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
+    Set<String> conflictingFiles = getStatus().blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
     try
     {
       return new MergeDetailsImpl(RepositoryImplHelper.getStashConflictMerge(git, conflictingFiles, pStashedCommitId, this::diff), "HEAD", pStashedCommitId);
@@ -1394,11 +1365,11 @@ public class RepositoryImpl implements IRepository
       String parentID = pParentBranch.getId();
       String toMergeID = pBranchToMerge.getId();
       List<IMergeData> mergeConflicts = new ArrayList<>();
-      if (!status.blockingFirst().map(pStatus -> pStatus.getConflicting().isEmpty()).orElse(true))
+      if (!getStatus().blockingFirst().map(pStatus -> pStatus.getConflicting().isEmpty()).orElse(true))
       {
         RevCommit forkCommit = RepositoryImplHelper.findForkPoint(git, parentID, toMergeID);
         return RepositoryImplHelper.getMergeConflicts(git, parentID, toMergeID, forkCommit == null ? CommitImpl.VOID_COMMIT : new CommitImpl(forkCommit),
-                                                      status.blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet()),
+                                                      getStatus().blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet()),
                                                       this::diff);
       }
       // only checkout the parent branch if the current branch is some other branch
@@ -1650,7 +1621,9 @@ public class RepositoryImpl implements IRepository
   @Override
   public Observable<Optional<List<IBranch>>> getBranches()
   {
-    return branchList;
+    return observableCache.calculateParallel("getBranches", () -> getStatus()
+        .map(pStatus -> Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache)))
+        .startWithItem(Optional.of(RepositoryImplHelper.branchList(git, trackedBranchStatusCache))));
   }
 
   @Override
@@ -1690,7 +1663,10 @@ public class RepositoryImpl implements IRepository
   @Override
   public Observable<List<ITag>> getTags()
   {
-    return tagList;
+    return observableCache.calculateParallel("getTags", () -> getStatus()
+        .map(pStatus -> git.tagList().call().stream().map(TagImpl::new).collect(Collectors.<ITag>toList()))
+        .distinctUntilChanged()
+        .startWithItem(List.<ITag>of()));
   }
 
   /**

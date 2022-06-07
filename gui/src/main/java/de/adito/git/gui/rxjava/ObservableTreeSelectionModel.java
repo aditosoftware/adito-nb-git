@@ -2,14 +2,13 @@ package de.adito.git.gui.rxjava;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.util.reactive.AbstractListenerObservable;
+import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.RowMapper;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
 import java.beans.PropertyChangeListener;
 
 /**
@@ -18,7 +17,7 @@ import java.beans.PropertyChangeListener;
 public class ObservableTreeSelectionModel implements TreeSelectionModel, IDiscardable
 {
 
-  private final Observable<TreePath[]> selectedPaths;
+  private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final TreeSelectionModel delegate;
 
@@ -26,18 +25,15 @@ public class ObservableTreeSelectionModel implements TreeSelectionModel, IDiscar
   public ObservableTreeSelectionModel(TreeSelectionModel pDelegate)
   {
     delegate = pDelegate;
-    selectedPaths = Observable.create(new _TreeSelectionObservable(this))
-        .startWithItem(pDelegate.getSelectionPaths())
-        .replay(1)
-        .autoConnect(0, disposables::add);
+    disposables.add(new ObservableCacheDisposable(observableCache));
   }
 
 
   public Observable<TreePath[]> getSelectedPaths()
   {
-    return selectedPaths;
+    return observableCache.calculateParallel("selectedPaths", () -> Observable.create(new _TreeSelectionObservable(this))
+        .startWithItem(delegate.getSelectionPaths()));
   }
-
 
   @Override
   public void setSelectionMode(int pMode)

@@ -6,17 +6,12 @@ import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import io.reactivex.rxjava3.subjects.Subject;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionRegistration;
+import io.reactivex.rxjava3.subjects.*;
+import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * An action class which opens the commit dialog, responsible for the action in the toolbar
@@ -39,8 +34,7 @@ public class CommitNBToolbarAction extends CommitNBAction
   {
     Observable<Optional<IRepository>> repository = getCurrentRepository(pActivatedNodes);
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
-    Subject<Optional<List<IFileChangeType>>> listNodes;
-    listNodes = BehaviorSubject.createDefault(Optional.of(repository.blockingFirst()
+    Subject<Optional<List<IFileChangeType>>> listNodes = BehaviorSubject.createDefault(Optional.of(repository.blockingFirst()
                                                               .orElseThrow(() -> new RuntimeException(
                                                                   NbBundle.getMessage(CommitNBToolbarAction.class, "Invalid.RepositoryNotValid")))
                                                               .getStatus()
