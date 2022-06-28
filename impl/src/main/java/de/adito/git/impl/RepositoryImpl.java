@@ -17,7 +17,7 @@ import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
@@ -89,7 +89,7 @@ public class RepositoryImpl implements IRepository
     standAloneDiffProvider = pStandAloneDiffProvider;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
     fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
-
+    disposables.add(Disposable.fromRunnable(fileSystemObserver::discard));
     disposables.add(new ObservableCacheDisposable(observableCache));
     _validateGitAttributes();
   }
