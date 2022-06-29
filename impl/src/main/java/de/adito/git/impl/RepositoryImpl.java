@@ -19,6 +19,7 @@ import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.rxjava3.subjects.*;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
@@ -64,6 +65,7 @@ public class RepositoryImpl implements IRepository
   private final Git git;
   private final IFileSystemUtil fileSystemUtil;
   private final IFileSystemObserver fileSystemObserver;
+  private final IgnoreFacadeImpl ignoreFacade = new IgnoreFacadeImpl();
   private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final TrackedBranchStatusCache trackedBranchStatusCache = new TrackedBranchStatusCacheImpl();
@@ -88,8 +90,9 @@ public class RepositoryImpl implements IRepository
     dataFactory = pDataFactory;
     standAloneDiffProvider = pStandAloneDiffProvider;
     git = new Git(FileRepositoryBuilder.create(new File(pRepositoryDescription.getPath() + File.separator + ".git")));
-    fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription);
+    fileSystemObserver = pFileSystemObserverProvider.getFileSystemObserver(pRepositoryDescription, ignoreFacade);
     disposables.add(Disposable.fromRunnable(fileSystemObserver::discard));
+    disposables.add(Disposable.fromRunnable(ignoreFacade::discard));
     disposables.add(new ObservableCacheDisposable(observableCache));
     _validateGitAttributes();
   }
@@ -737,24 +740,10 @@ public class RepositoryImpl implements IRepository
    */
   private void _checkExcludedIgnoredFiles(List<File> pFileList) throws IOException
   {
-    File gitIgnore = new File(getTopLevelDirectory(), ".gitignore");
-    File gitExclude = new File(git.getRepository().getDirectory(), "info/exclude");
-    IgnoreNode ignoreNode = new IgnoreNode();
-    if (gitIgnore.exists())
-      ignoreNode.parse(new FileInputStream(gitIgnore));
-    if (gitExclude.exists())
-      ignoreNode.parse(new FileInputStream(gitExclude));
     if (pFileList != null)
-    {
       for (File file : pFileList)
-      {
-        Boolean isIgnored = ignoreNode.checkIgnored(getRelativePath(file, git), false);
-        if (isIgnored != null && isIgnored)
-        {
+        if (ignoreFacade.isIgnored(file))
           throw new RuntimeException("File " + file.getAbsolutePath() + " is in exclude or ignore file, cannot perform a diff");
-        }
-      }
-    }
   }
 
   /**
@@ -934,14 +923,7 @@ public class RepositoryImpl implements IRepository
   public void ignore(@NotNull List<File> pFiles) throws IOException
   {
     logger.log(Level.INFO, () -> String.format("git: Writing files %s into the .gitignore", pFiles));
-    File gitIgnore = new File(git.getRepository().getDirectory().getParent(), ".gitignore");
-    try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
-    {
-      for (File file : pFiles)
-      {
-        outputStream.write((getRelativePath(file, git) + "\n").getBytes());
-      }
-    }
+    ignoreFacade.ignore(pFiles);
   }
 
   /**
@@ -951,14 +933,7 @@ public class RepositoryImpl implements IRepository
   public void exclude(@NotNull List<File> pFiles) throws IOException
   {
     logger.log(Level.INFO, () -> String.format("git: Writing files %s into the exclude file (info/exclude)", pFiles));
-    File gitIgnore = new File(git.getRepository().getDirectory(), "info/exclude");
-    try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
-    {
-      for (File file : pFiles)
-      {
-        outputStream.write((getRelativePath(file, git) + "\n").getBytes());
-      }
-    }
+    ignoreFacade.exclude(pFiles);
   }
 
   /**
@@ -1895,6 +1870,105 @@ public class RepositoryImpl implements IRepository
       }
       return trackingStatus == null ? TrackedBranchStatus.NONE : new TrackedBranchStatus(trackingStatus.getRemoteTrackingBranch(),
                                                                                          trackingStatus.getBehindCount(), trackingStatus.getAheadCount());
+    }
+  }
+
+  private class IgnoreFacadeImpl implements IIgnoreFacade, IDiscardable
+  {
+    private final Subject<Long> changedSubject = PublishSubject.create();
+    private long lastModified = 0;
+    private IgnoreNode ignoreNode;
+
+    @Override
+    public boolean isIgnored(@NotNull File pFile)
+    {
+      File gitIgnore = new File(getTopLevelDirectory(), ".gitignore");
+      File gitExclude = new File(git.getRepository().getDirectory(), "info/exclude");
+      long oldLastModified = lastModified;
+      lastModified = Math.max(gitIgnore.lastModified(), gitExclude.lastModified());
+      if(oldLastModified != lastModified)
+      {
+        ignoreNode = new IgnoreNode();
+
+        // Parse .gitignore
+        if (gitIgnore.exists())
+        {
+          try(FileInputStream is = new FileInputStream(gitIgnore))
+          {
+            ignoreNode.parse(is);
+          }
+          catch(Exception e)
+          {
+            logger.log(Level.WARNING, "Failed to parse .gitignore", e);
+          }
+        }
+
+        // Parse git exclude
+        if (gitExclude.exists())
+        {
+          try(FileInputStream is = new FileInputStream(gitExclude))
+          {
+            ignoreNode.parse(is);
+          }
+          catch(Exception e)
+          {
+            logger.log(Level.WARNING, "Failed to parse git exclude", e);
+          }
+        }
+
+        _setLastModified(lastModified);
+      }
+
+      return ignoreNode.checkIgnored(getRelativePath(pFile, git), false) == Boolean.TRUE;
+    }
+
+    @Override
+    public void ignore(@NotNull List<File> pFiles) throws IOException
+    {
+      File gitIgnore = new File(git.getRepository().getDirectory().getParent(), ".gitignore");
+      try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
+      {
+        for (File file : pFiles)
+        {
+          outputStream.write((getRelativePath(file, git) + "\n").getBytes());
+        }
+      }
+
+      _setLastModified(0);
+    }
+
+    @Override
+    public void exclude(@NotNull List<File> pFiles) throws IOException
+    {
+      File gitIgnore = new File(git.getRepository().getDirectory(), "info/exclude");
+      try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
+      {
+        for (File file : pFiles)
+        {
+          outputStream.write((getRelativePath(file, git) + "\n").getBytes());
+        }
+      }
+
+      _setLastModified(0);
+    }
+
+    @NotNull
+    @Override
+    public Observable<Long> observeIgnorationChange()
+    {
+      return changedSubject;
+    }
+
+    private void _setLastModified(long pLastModified)
+    {
+      lastModified = pLastModified;
+      changedSubject.onNext(System.currentTimeMillis());
+    }
+
+    @Override
+    public void discard()
+    {
+      ignoreNode = null;
     }
   }
 }

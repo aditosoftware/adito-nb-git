@@ -1,6 +1,6 @@
 package de.adito.git.nbm;
 
-import de.adito.git.api.IFileSystemObserver;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.impl.IFileSystemObserverProvider;
 
@@ -11,9 +11,9 @@ public class FileSystemObserverProviderImpl implements IFileSystemObserverProvid
 {
 
   @Override
-  public IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription)
+  public IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription, IIgnoreFacade pGitIgnoreFacade)
   {
-    return new FileSystemObserverImpl(pRepositoryDescription);
+    return new FileSystemObserverImpl(pRepositoryDescription, pGitIgnoreFacade);
   }
 
 }
