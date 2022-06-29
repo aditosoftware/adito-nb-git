@@ -1,7 +1,9 @@
 package de.adito.git.impl.data.diff;
 
+import com.google.inject.Guice;
 import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.*;
+import de.adito.git.impl.data.DataModule;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawTextComparator;
@@ -19,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  */
 public class MergeDataImplTest
 {
+
+  private static final ResolveOptionsProvider RESOLVE_OPTIONS_PROVIDER = Guice.createInjector(new DataModule()).getInstance(ResolveOptionsProvider.class);
 
   /**
    * test if accepting a change is applied to both sides of the merge as intended
@@ -177,7 +181,7 @@ public class MergeDataImplTest
     String yourVersion = "Hello there, this is a test\nSo here are several words\nNo use taking a break\nWe're not creating any turds";
     String theirVersion = "Hello there, this is a test\nNo use taking a rest\nWe're not creating any turds";
     IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
-    mergeData.markConflicting();
+    mergeData.markConflicting(RESOLVE_OPTIONS_PROVIDER);
     assertEquals(originalVersion, mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
     assertEquals(mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD));
@@ -434,7 +438,7 @@ public class MergeDataImplTest
     String yourVersion = "int main:\nif(a)\n  doStuff\nreturn";
     String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNottin'\nreturn";
     IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
-    mergeData.markConflicting();
+    mergeData.markConflicting(RESOLVE_OPTIONS_PROVIDER);
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
     assertEquals(EChangeStatus.ACCEPTED, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus());
     assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
@@ -448,7 +452,7 @@ public class MergeDataImplTest
     String yourVersion = "int main:\nif(a)\n  doStuff\nreturn";
     String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNottin'\nreturn";
     IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
-    mergeData.markConflicting();
+    mergeData.markConflicting(RESOLVE_OPTIONS_PROVIDER);
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
     // the NEW version of the THEIRS version is theirVersion above, this should be the result in both cases
@@ -463,7 +467,7 @@ public class MergeDataImplTest
     String yourVersion = "int main:\nif(a)\n  doStuff\nels\n  doNothing\nreturn";
     String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNothing\nreturn";
     IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
-    mergeData.markConflicting();
+    mergeData.markConflicting(RESOLVE_OPTIONS_PROVIDER);
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
     assertEquals(EChangeStatus.ACCEPTED, mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0).getChangeStatus());
     assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));
@@ -477,7 +481,7 @@ public class MergeDataImplTest
     String yourVersion = "int main:\nif(a)\n  doStuff\nels\n  doNothing\nreturn";
     String theirVersion = "int main:\nif(a)\n  doStuff\nelse\n  doNothing\nreturn";
     IMergeData mergeData = getMergeData(originalVersion, yourVersion, theirVersion);
-    mergeData.markConflicting();
+    mergeData.markConflicting(RESOLVE_OPTIONS_PROVIDER);
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas().get(0), EConflictSide.YOURS);
     mergeData.acceptDelta(mergeData.getDiff(EConflictSide.THEIRS).getChangeDeltas().get(0), EConflictSide.THEIRS);
     assertEquals(mergeData.getDiff(EConflictSide.THEIRS).getText(EChangeSide.OLD), mergeData.getDiff(EConflictSide.YOURS).getText(EChangeSide.OLD));

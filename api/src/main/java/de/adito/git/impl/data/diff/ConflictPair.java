@@ -12,10 +12,10 @@ public class ConflictPair
 
   private final int indexYours;
   private final int indexTheirs;
-  private final EConflictType type;
+  private final ConflictType type;
 
 
-  ConflictPair(int pIndexYours, int pIndexTheirs, EConflictType pType)
+  ConflictPair(int pIndexYours, int pIndexTheirs, ConflictType pType)
   {
     indexYours = pIndexYours;
     indexTheirs = pIndexTheirs;
@@ -40,7 +40,7 @@ public class ConflictPair
   /**
    * @return Type of conflict the both deltas have
    */
-  public EConflictType getType()
+  public ConflictType getType()
   {
     return type;
   }

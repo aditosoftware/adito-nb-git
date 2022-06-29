@@ -292,7 +292,7 @@ public class FileDiffImpl implements IFileDiff
       prefix = changedSideString.substring(0, startIndex);
     }
     // calculate the changed text. ADD and DELETE have a special treatment here, because they are changes that cover only a point on one side of the change (e.g. an
-    // insert happens between characters, doesnt affect the characters around it). To make highlighting easier, the indices of the ChangeDelta do not cover that
+    // insert happens between characters, doesn't affect the surrounding characters). To make highlighting easier, the indices of the ChangeDelta do not cover that
     // behaviour -> special treatment here
     if (isPointChange)
       infix = "";
@@ -355,6 +355,22 @@ public class FileDiffImpl implements IFileDiff
     {
       IChangeDelta changeDelta = changeDeltas.get(deltaIndex);
       changeDeltas.set(deltaIndex, changeDelta.discardChange());
+    }
+    // empty change on both, to notify both sides to adjust the highlights
+    _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.OLD));
+    _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.NEW));
+  }
+
+  @Override
+  public void setResolved(@NotNull IChangeDelta pChangeDelta)
+  {
+    int deltaIndex = changeDeltas.indexOf(pChangeDelta);
+    if (deltaIndex != -1)
+    {
+      IChangeDelta changeDelta = changeDeltas.get(deltaIndex);
+      if (changeDelta.getConflictType() == EConflictType.CONFLICTING || changeDelta.getConflictType() == EConflictType.NONE)
+        throw new IllegalArgumentException("ChangeDelta is of a non-resolvable type " + pChangeDelta);
+      changeDeltas.set(deltaIndex, changeDelta.setChangeStatus(new ChangeStatusImpl(EChangeStatus.ACCEPTED, changeDelta.getChangeType(), changeDelta.getConflictType())));
     }
     // empty change on both, to notify both sides to adjust the highlights
     _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, EChangeSide.OLD));
@@ -494,7 +510,8 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull List<ConflictPair> markConflicting(@NotNull IFileDiff pOtherFileDiff, @NotNull EConflictSide pConflictSide)
+  public @NotNull List<ConflictPair> markConflicting(@NotNull IFileDiff pOtherFileDiff, @NotNull EConflictSide pConflictSide,
+                                                     @NotNull ResolveOptionsProvider pResolveOptionsProvider)
   {
     List<ConflictPair> conflictPairs = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
@@ -504,33 +521,23 @@ public class FileDiffImpl implements IFileDiff
       IChangeDelta changeDelta = changeDeltas.get(index);
       for (int otherDiffIndex = 0; otherDiffIndex < pOtherFileDiff.getChangeDeltas().size(); otherDiffIndex++)
       {
-        EConflictType conflictType = pOtherFileDiff.getChangeDeltas().get(otherDiffIndex).isConflictingWith(changeDelta, pConflictSide);
-        if (conflictType == EConflictType.CONFLICTING)
+        ConflictType conflictType = pOtherFileDiff.getChangeDeltas().get(otherDiffIndex).isConflictingWith(changeDelta, pConflictSide, pResolveOptionsProvider);
+        //EConflictType conflictType = EConflictType.CONFLICTING;
+        if (conflictType.getConflictType() == EConflictType.CONFLICTING)
         {
-          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus(), changeDelta.getChangeType(), conflictType)));
-          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.CONFLICTING));
+          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus(), changeDelta.getChangeType(), conflictType.getConflictType())));
+          conflictPairs.add(new ConflictPair(index, otherDiffIndex, conflictType));
           break;
         }
-        else if (conflictType == EConflictType.ENCLOSED_BY_YOURS)
+        else if (conflictType.getConflictType() == EConflictType.RESOLVABLE)
         {
-          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus(), changeDelta.getChangeType(), conflictType)));
-          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.ENCLOSED_BY_YOURS));
+          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus(), changeDelta.getChangeType(), conflictType.getConflictType())));
+          conflictPairs.add(new ConflictPair(index, otherDiffIndex, conflictType));
           break;
         }
-        else if (conflictType == EConflictType.ENCLOSED_BY_THEIRS)
+        else if (conflictType.getConflictType() == EConflictType.SAME)
         {
-          changeDeltas.set(index, changeDelta.setChangeStatus(new ChangeStatusImpl(changeDelta.getChangeStatus(), changeDelta.getChangeType(), conflictType)));
-          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.ENCLOSED_BY_THEIRS));
-          break;
-        }
-        else if (conflictType == EConflictType.RESOLVABLE)
-        {
-          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.RESOLVABLE));
-          break;
-        }
-        else if (conflictType == EConflictType.SAME)
-        {
-          conflictPairs.add(new ConflictPair(index, otherDiffIndex, EConflictType.SAME));
+          conflictPairs.add(new ConflictPair(index, otherDiffIndex, conflictType));
           break;
         }
       }

@@ -1,6 +1,7 @@
 package de.adito.git.api.data.diff;
 
 
+import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +65,6 @@ public interface IMergeData
   /**
    * goes through the changes and marks all changes that conflict with a change from the other side as conflicting
    */
-  void markConflicting();
+  void markConflicting(@NotNull ResolveOptionsProvider pResolveOptionsProvider);
 
 }

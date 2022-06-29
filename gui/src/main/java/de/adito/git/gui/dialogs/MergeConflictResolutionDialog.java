@@ -14,6 +14,7 @@ import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.ComponentResizeListener;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
+import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -44,14 +45,15 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
 
   @Inject
   MergeConflictResolutionDialog(IPrefStore pPrefStore, IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff,
-                                IAsyncProgressFacade pProgressFacade, @Assisted("yoursOrigin") String pYoursOrigin, @Assisted("theirsOrigin") String pTheirsOrigin)
+                                IAsyncProgressFacade pProgressFacade, ResolveOptionsProvider pResolveOptionsProvider, @Assisted("yoursOrigin") String pYoursOrigin,
+                                @Assisted("theirsOrigin") String pTheirsOrigin)
   {
     prefStore = pPrefStore;
     mergeDiff = pMergeDiff;
     ImageIcon acceptYoursIcon = pIconLoader.getIcon(ACCEPT_CHANGE_YOURS_ICON);
     ImageIcon acceptTheirsIcon = pIconLoader.getIcon(ACCEPT_CHANGE_THEIRS_ICON);
     ImageIcon discardIcon = pIconLoader.getIcon(DISCARD_CHANGE_ICON);
-    mergeDiff.markConflicting();
+    mergeDiff.markConflicting(pResolveOptionsProvider);
     mergePanel = new MergePanel(pIconLoader, mergeDiff, pYoursOrigin, pTheirsOrigin, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui(pIconLoader);
     GitProcessExecutors.submit(() ->

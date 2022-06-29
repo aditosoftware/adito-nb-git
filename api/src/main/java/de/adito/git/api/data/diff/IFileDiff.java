@@ -2,6 +2,7 @@ package de.adito.git.api.data.diff;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.impl.data.diff.ConflictPair;
+import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,6 +109,14 @@ public interface IFileDiff extends IFileChangeType
   void discardDelta(@NotNull IChangeDelta pChangeDelta);
 
   /**
+   * Changes the status of the delta to resolved
+   *
+   * @param pChangeDelta IChangeDelta to set as resolved
+   * @throws IllegalArgumentException if the IChangeDelta has a conflict type that cannot be resolved
+   */
+  void setResolved(@NotNull IChangeDelta pChangeDelta);
+
+  /**
    * Incorporates the changes done in the DocumentEvent into this diff
    * The text should be filtered in such a way that it contains only \n as newlines (indices still have to match)
    *
@@ -136,7 +145,7 @@ public interface IFileDiff extends IFileChangeType
    * @return List of conflictPairs, denoting the indices of the list of deltas of both diffs that are conflicting
    */
   @NotNull
-  List<ConflictPair> markConflicting(@NotNull IFileDiff pOtherFileDiff, @NotNull EConflictSide pConflictSide);
+  List<ConflictPair> markConflicting(@NotNull IFileDiff pOtherFileDiff, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider);
 
   /**
    * checks if the IFileDiff matches the filePath, works with renames

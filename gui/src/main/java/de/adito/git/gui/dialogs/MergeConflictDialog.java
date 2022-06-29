@@ -3,30 +3,38 @@ package de.adito.git.gui.dialogs;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
-import de.adito.git.api.data.*;
-import de.adito.git.api.data.diff.*;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.IMergeDetails;
+import de.adito.git.api.data.diff.EConflictSide;
+import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.data.diff.IMergeData;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
-import de.adito.git.gui.quicksearch.*;
+import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableTable;
 import de.adito.git.gui.rxjava.ObservableListSelectionModel;
 import de.adito.git.gui.sequences.MergeConflictSequence;
-import de.adito.git.gui.swing.*;
+import de.adito.git.gui.swing.ComponentResizeListener;
+import de.adito.git.gui.swing.MergeDiffTableCellRenderer;
 import de.adito.git.gui.tablemodels.MergeDiffStatusModel;
 import de.adito.git.impl.Util;
-import de.adito.util.reactive.cache.*;
+import de.adito.git.impl.data.diff.ResolveOptionsProvider;
+import de.adito.util.reactive.cache.ObservableCache;
+import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.subjects.*;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +50,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final IDialogProvider dialogProvider;
   private final IAsyncProgressFacade progressFacade;
   private final INotifyUtil notifyUtil;
+  private final ResolveOptionsProvider resolveOptionsProvider;
   private final IDialogDisplayer.IDescriptor isValidDescriptor;
   private final boolean onlyConflicting;
   private final IRepository repository;
@@ -59,14 +68,15 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   @Inject
   MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, IQuickSearchProvider pQuickSearchProvider,
-                      INotifyUtil pNotifyUtil, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor, @Assisted Observable<Optional<IRepository>> pRepository,
-                      @Assisted IMergeDetails pMergeDetails, @Assisted("onlyConflictingFlag") boolean pOnlyConflicting,
-                      @Assisted("autoResolveFlag") boolean pShowAutoResolve)
+                      INotifyUtil pNotifyUtil, ResolveOptionsProvider pResolveOptionsProvider, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted IMergeDetails pMergeDetails,
+                      @Assisted("onlyConflictingFlag") boolean pOnlyConflicting, @Assisted("autoResolveFlag") boolean pShowAutoResolve)
   {
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     progressFacade = pProgressFacade;
     notifyUtil = pNotifyUtil;
+    resolveOptionsProvider = pResolveOptionsProvider;
     isValidDescriptor = pIsValidDescriptor;
     onlyConflicting = pOnlyConflicting;
     disposables.add(new ObservableCacheDisposable(observableCache));
@@ -98,7 +108,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
     autoResolveButton.addActionListener(e -> {
-      MergeConflictSequence.performAutoResolve(mergeConflictDiffs.blockingFirst(List.of()), repository, progressFacade, notifyUtil);
+      MergeConflictSequence.performAutoResolve(mergeConflictDiffs.blockingFirst(List.of()), repository, progressFacade, notifyUtil, resolveOptionsProvider);
       autoResolveButton.setEnabled(false);
     });
     autoResolveButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) autoResolveButton.getMaximumSize().getHeight()));

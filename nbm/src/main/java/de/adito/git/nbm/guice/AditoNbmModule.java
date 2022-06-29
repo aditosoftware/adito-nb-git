@@ -4,16 +4,20 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.assistedinject.FactoryProvider;
+import com.google.inject.multibindings.Multibinder;
 import de.adito.git.api.*;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.data.diff.ImportResolveOption;
+import de.adito.git.data.diff.ResolveOptionsProviderImpl;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.IDialogDisplayer;
 import de.adito.git.gui.guice.AditoGitModule;
 import de.adito.git.gui.guice.GuiceUtil;
+import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.window.IWindowProvider;
 import de.adito.git.impl.IFileSystemObserverProvider;
+import de.adito.git.impl.data.diff.*;
 import de.adito.git.nbm.*;
 import de.adito.git.nbm.dialogs.NBDialogsModule;
 import de.adito.git.nbm.icon.NBIconLoader;
@@ -57,5 +61,11 @@ public class AditoNbmModule extends AbstractModule
     bind(IKeyStore.class).to(KeyStoreImpl.class);
     bind(IQuickSearchProvider.class).to(QuickSearchProviderImpl.class);
     bind(ISaveUtil.class).to(SaveUtilImpl.class);
+    Multibinder<ResolveOption> resolveOptionMultibinder = Multibinder.newSetBinder(binder(), ResolveOption.class);
+    resolveOptionMultibinder.addBinding().to(WordBasedResolveOption.class);
+    resolveOptionMultibinder.addBinding().to(SameResolveOption.class);
+    resolveOptionMultibinder.addBinding().to(EnclosedResolveOption.class);
+    resolveOptionMultibinder.addBinding().to(ImportResolveOption.class);
+    bind(ResolveOptionsProvider.class).to(ResolveOptionsProviderImpl.class);
   }
 }

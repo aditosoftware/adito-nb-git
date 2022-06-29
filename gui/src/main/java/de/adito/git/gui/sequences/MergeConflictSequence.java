@@ -17,6 +17,7 @@ import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
+import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,14 +41,17 @@ public class MergeConflictSequence
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade asyncProgressFacade;
   private final INotifyUtil notifyUtil;
+  private final ResolveOptionsProvider resolveOptionsProvider;
 
   @Inject
-  public MergeConflictSequence(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IAsyncProgressFacade pAsyncProgressFacade, INotifyUtil pNotifyUtil)
+  public MergeConflictSequence(IDialogProvider pDialogProvider, IPrefStore pPrefStore, IAsyncProgressFacade pAsyncProgressFacade, INotifyUtil pNotifyUtil,
+                               ResolveOptionsProvider pResolveOptionsProvider)
   {
     dialogProvider = pDialogProvider;
     prefStore = pPrefStore;
     asyncProgressFacade = pAsyncProgressFacade;
     notifyUtil = pNotifyUtil;
+    resolveOptionsProvider = pResolveOptionsProvider;
   }
 
   /**
@@ -87,7 +91,7 @@ public class MergeConflictSequence
     if (repositoryOptional.isPresent() && (EAutoResolveOptions.ALWAYS.equals(autoResolveSettingsFlag) || (promptDialogResult != null && promptDialogResult.isOkay())))
     {
       showAutoResolveButton = false;
-      performAutoResolve(pMergeDetails.getMergeConflicts(), repositoryOptional.get(), asyncProgressFacade, notifyUtil);
+      performAutoResolve(pMergeDetails.getMergeConflicts(), repositoryOptional.get(), asyncProgressFacade, notifyUtil, resolveOptionsProvider);
     }
     return dialogProvider.showMergeConflictDialog(pRepo, pMergeDetails, pShowOnlyConflicting, showAutoResolveButton, pDialogTitle);
   }
@@ -100,7 +104,7 @@ public class MergeConflictSequence
    * @param pRepository     Repository, used to perform an add one the conflicting files to mark them as resolved
    */
   public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository, @NotNull IAsyncProgressFacade pProgressFacade,
-                                        @NotNull INotifyUtil pNotifyUtil)
+                                        @NotNull INotifyUtil pNotifyUtil, @NotNull ResolveOptionsProvider pResolveOptionsProvider)
   {
     int numConflictsTotal = pMergeConflicts.size();
     List<IMergeData> resolvedConflicts = new ArrayList<>();
@@ -115,7 +119,7 @@ public class MergeConflictSequence
         {
           if (!_isSkipMergeData(mergeData))
           {
-            mergeData.markConflicting();
+            mergeData.markConflicting(pResolveOptionsProvider);
             if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas()
                 .stream()
                 .noneMatch(pChangeDelta -> pChangeDelta.getConflictType() == EConflictType.CONFLICTING)
@@ -140,6 +144,7 @@ public class MergeConflictSequence
       }
       pRepository.add(resolvedFiles);
       pMergeConflicts.removeAll(resolvedConflicts);
+      return List.of();
     });
     pNotifyUtil.notify("Auto-resolve", "Auto-resolve managed to resolve " + resolvedConflicts.size() + " of " + numConflictsTotal + " conflicts", false);
   }

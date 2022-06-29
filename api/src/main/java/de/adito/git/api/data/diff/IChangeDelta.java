@@ -1,6 +1,7 @@
 package de.adito.git.api.data.diff;
 
-import de.adito.git.impl.data.diff.EConflictType;
+import de.adito.git.impl.data.diff.ConflictType;
+import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -165,11 +166,12 @@ public interface IChangeDelta extends IDelta
   /**
    * Checks wether this delta is in conflict with another delta (affects same indizes)
    *
-   * @param pOtherChangeDelta the other IChangeDelta
-   * @param pConflictSide     Side of the conflict pOtherChangeDelta ist from
+   * @param pOtherChangeDelta       the other IChangeDelta
+   * @param pConflictSide           Side of the conflict pOtherChangeDelta ist from
+   * @param pResolveOptionsProvider
    * @return EConflictType denoting the type of conflict the deltas have. Can also be NONE, indicating there is no conflict
    */
-  EConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide);
+  ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider);
 
   /**
    * get the text of one side of this delta

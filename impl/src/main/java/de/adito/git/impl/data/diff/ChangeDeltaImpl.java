@@ -286,46 +286,25 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public EConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide)
+  public ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider)
   {
-    EConflictType conflictType;
+
+    ConflictType conflictType;
     // check if the two deltas have any overlap at all
     if (pOtherChangeDelta.getStartTextIndex(EChangeSide.OLD) < endTextIndexOld && pOtherChangeDelta.getEndTextIndex(EChangeSide.OLD) > startTextIndexOld)
     {
-      if (isSameChange(pOtherChangeDelta))
+      for (ResolveOption resolveOption : pResolveOptionsProvider.getResolveOptions())
       {
-        conflictType = EConflictType.SAME;
+        if (resolveOption.canResolveConflict(this, pOtherChangeDelta, pConflictSide))
+        {
+          return new ConflictType(resolveOption, EConflictType.RESOLVABLE);
+        }
       }
-      else if (checkEnclosed(pOtherChangeDelta, EConflictSide.YOURS))
-      {
-        if (pConflictSide == EConflictSide.THEIRS)
-          conflictType = EConflictType.ENCLOSED_BY_THEIRS;
-        else
-          conflictType = EConflictType.ENCLOSED_BY_YOURS;
-      }
-      else if (checkEnclosed(pOtherChangeDelta, EConflictSide.THEIRS))
-      {
-        if (pConflictSide == EConflictSide.THEIRS)
-          conflictType = EConflictType.ENCLOSED_BY_YOURS;
-        else
-          conflictType = EConflictType.ENCLOSED_BY_THEIRS;
-      }
-      // if the changes aren't the same and one change does not contain the other, do any of the actually changed parts overlap and are conflicting?
-      else if (pOtherChangeDelta.getLinePartChanges()
-          .stream().anyMatch(pLinePartChangeDelta -> getLinePartChanges()
-              .stream().anyMatch(pOwnLinePartChangeDelta -> pOwnLinePartChangeDelta.isConflictingWith(pLinePartChangeDelta))))
-      {
-        conflictType = EConflictType.CONFLICTING;
-      }
-      // The actual changes are either all disjunct or the same
-      else
-      {
-        conflictType = EConflictType.RESOLVABLE;
-      }
+      conflictType = ConflictType.CONFLICTING;
     }
     else
     {
-      conflictType = EConflictType.NONE;
+      conflictType = ConflictType.NONE;
     }
     return conflictType;
   }
@@ -348,25 +327,6 @@ public final class ChangeDeltaImpl implements IChangeDelta
   {
     return (startTextIndexOld == pOtherChangeDelta.getStartTextIndex(EChangeSide.OLD) && endTextIndexOld == pOtherChangeDelta.getEndTextIndex(EChangeSide.OLD)
         && getText(EChangeSide.NEW).equals(pOtherChangeDelta.getText(EChangeSide.NEW)));
-  }
-
-  /**
-   * @param pOtherChangeDelta the other ChangeDelta
-   * @param pConflictSide     YOURS here means "check if this text contains the text of pOtherChangeDelta", the opposite for THEIRS
-   * @return true if the text of the requested ChangeDelta contains the text of the other ChangeDelta
-   */
-  private boolean checkEnclosed(@NotNull IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide)
-  {
-    if (pOtherChangeDelta.getChangeType() == EChangeType.DELETE || getChangeType() == EChangeType.DELETE)
-      return false;
-    if (pConflictSide == EConflictSide.YOURS)
-    {
-      return getText(EChangeSide.NEW).contains(pOtherChangeDelta.getText(EChangeSide.NEW));
-    }
-    else
-    {
-      return pOtherChangeDelta.getText(EChangeSide.NEW).contains(getText(EChangeSide.NEW));
-    }
   }
 
   private List<ILinePartChangeDelta> _calculateLinePartChangeDeltas()

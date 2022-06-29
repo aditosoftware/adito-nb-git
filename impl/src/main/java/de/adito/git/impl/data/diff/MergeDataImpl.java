@@ -81,109 +81,28 @@ public class MergeDataImpl implements IMergeData
    */
   private void _acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide)
   {
-    Runnable executeAfterTextUpdates = () -> {
-    };
     List<IDeltaTextChangeEvent> deltaTextChangeEvents;
     AtomicBoolean trySnapToDelta = new AtomicBoolean(false);
     Optional<ConflictPair> conflictPairOpt = _getConflictPair(acceptedDelta, pAcceptedDiff, pConflictSide);
-    if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.SAME)
+    deltaTextChangeEvents = conflictPairOpt.map(ConflictPair::getType)
+        .map(ConflictType::getResolveOption)
+        .map(pResolveOption -> pResolveOption.resolveConflict(acceptedDelta, pAcceptedDiff, pOtherDiff, pConflictSide, conflictPairOpt.get())).orElse(null);
+    if (deltaTextChangeEvents == null)
     {
-      pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false);
-      pOtherDiff.acceptDelta(pOtherDiff.getChangeDeltas().get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide))), false, false, false);
-      // no deltaTextChangeEvent here because the other side has the change applied "manually" in the line above
-      deltaTextChangeEvents = List.of();
-    }
-    else if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.CONFLICTING &&
-        _isCounterPartAccepted(conflictPairOpt.get(), pOtherDiff, pConflictSide))
-    {
-      deltaTextChangeEvents = List.of(pAcceptedDiff.appendDeltaText(acceptedDelta));
-      trySnapToDelta.getAndSet(true);
-    }
-    else if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType() == EConflictType.RESOLVABLE)
-    {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, true, true, false);
-    }
-    else if (conflictPairOpt.isPresent() && _enclosesAcceptedOther(conflictPairOpt.get(), pOtherDiff, pConflictSide))
-    {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false, true, true);
-    }
-    else if (conflictPairOpt.isPresent() && _enclosedByOther(conflictPairOpt.get(), pOtherDiff, pConflictSide))
-    {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false);
-      trySnapToDelta.getAndSet(true);
-    }
-    else
-    {
-      deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false);
-      // if the other change is not yet accepted, but is enclosed by this (accepted) change, then the other change should also count as accepted
-      // (since all changes of the other were implicitly accepted as well)
-      // setting the accepted state and the text event do have to happen after processing the textChangeEvent that was triggered by accepting this change
-      if (conflictPairOpt.isPresent() && _isEnclosing(conflictPairOpt.get(), pConflictSide))
+      if (conflictPairOpt.isPresent() && conflictPairOpt.get().getType().getConflictType() == EConflictType.CONFLICTING &&
+          _isCounterPartAccepted(conflictPairOpt.get(), pOtherDiff, pConflictSide))
       {
-        executeAfterTextUpdates = () -> {
-          IChangeDelta otherChangeDelta = pOtherDiff.getChangeDeltas().get(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide)));
-          IChangeDelta changedChangeDelta = otherChangeDelta.setChangeStatus(new ChangeStatusImpl(EChangeStatus.ACCEPTED, otherChangeDelta.getChangeType(), otherChangeDelta.getConflictType()));
-          pOtherDiff.getChangeDeltas().set(conflictPairOpt.get().getIndexOfSide(EConflictSide.getOpposite(pConflictSide)), changedChangeDelta);
-          pOtherDiff.processTextEvent(0, 0, "", EChangeSide.NEW, false);
-        };
+        deltaTextChangeEvents = List.of(pAcceptedDiff.appendDeltaText(acceptedDelta));
+        trySnapToDelta.getAndSet(true);
+      }
+      else
+      {
+        deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false);
       }
     }
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
                                                                                        pDeltaTextChangeEvent.getLength(),
                                                                                        pDeltaTextChangeEvent.getText(), EChangeSide.OLD, trySnapToDelta.get()));
-    executeAfterTextUpdates.run();
-  }
-
-  /**
-   * checks if this change is enclosed by the other, conflicting change and checks if that other change is still pending
-   *
-   * @param pConflictPair EConflictType giving the ENCLOSED_BY_XXX type
-   * @param pOtherDiff    the other, conflicting IFileDiff
-   * @param pConflictSide conflict side of this change
-   * @return true if this change is enclosed by the other, conflicting change and the other change is still pending and not accepted
-   */
-  private boolean _enclosedByOther(ConflictPair pConflictPair, IFileDiff pOtherDiff, EConflictSide pConflictSide)
-  {
-    return !_isCounterPartAccepted(pConflictPair, pOtherDiff, pConflictSide) && _isEnclosed(pConflictPair, pConflictSide);
-  }
-
-  /**
-   * checks if the change encloses the other, conflicting change and checks if that other change is already accepted
-   *
-   * @param pConflictPair EConflictType giving the ENCLOSED_BY_XXX type
-   * @param pOtherDiff    the other, conflicting IFileDiff
-   * @param pConflictSide conflict side of this change
-   * @return true if this change encloses the other, conflicting change and the other change is also already accepted
-   */
-  private boolean _enclosesAcceptedOther(ConflictPair pConflictPair, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide)
-  {
-    return _isCounterPartAccepted(pConflictPair, pOtherDiff, pConflictSide) && _isEnclosing(pConflictPair, pConflictSide);
-  }
-
-  /**
-   * true if this change encloses the other change (this change contains all changes included in the other change and more)
-   *
-   * @param pConflictPair EConflictType giving the ENCLOSED_BY_XXX type
-   * @param pConflictSide conflict side of this change
-   * @return true if this change encloses the other (conflicting) change
-   */
-  private boolean _isEnclosing(ConflictPair pConflictPair, EConflictSide pConflictSide)
-  {
-    return (pConflictPair.getType() == EConflictType.ENCLOSED_BY_THEIRS && pConflictSide == EConflictSide.THEIRS)
-        || (pConflictPair.getType() == EConflictType.ENCLOSED_BY_YOURS && pConflictSide == EConflictSide.YOURS);
-  }
-
-  /**
-   * true if this change is enclosed by the other change (the other change contains all changes included in this one and more)
-   *
-   * @param pConflictPair EConflictType giving the ENCLOSED_BY_XXX type
-   * @param pConflictSide conflict side of this change
-   * @return true if this change is enclosed by the other (conflicting) change
-   */
-  private boolean _isEnclosed(ConflictPair pConflictPair, EConflictSide pConflictSide)
-  {
-    return (pConflictPair.getType() == EConflictType.ENCLOSED_BY_THEIRS && pConflictSide == EConflictSide.YOURS)
-        || (pConflictPair.getType() == EConflictType.ENCLOSED_BY_YOURS && pConflictSide == EConflictSide.THEIRS);
   }
 
   /**
@@ -250,10 +169,10 @@ public class MergeDataImpl implements IMergeData
   }
 
   @Override
-  public void markConflicting()
+  public void markConflicting(@NotNull ResolveOptionsProvider pResolveOptionsProvider)
   {
-    theirSideDiff.markConflicting(yourSideDiff, EConflictSide.YOURS);
-    conflictPairs = yourSideDiff.markConflicting(theirSideDiff, EConflictSide.THEIRS);
+    theirSideDiff.markConflicting(yourSideDiff, EConflictSide.YOURS, pResolveOptionsProvider);
+    conflictPairs = yourSideDiff.markConflicting(theirSideDiff, EConflictSide.THEIRS, pResolveOptionsProvider);
   }
 
   /**
