@@ -1,9 +1,7 @@
 package de.adito.git.nbm;
 
-import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IFileSystemChangeListener;
-import de.adito.git.api.IFileSystemObserver;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryDescription;
 import org.openide.filesystems.*;
 import org.openide.util.NbBundle;
@@ -16,21 +14,24 @@ import java.util.ArrayList;
  *
  * @author m.kaspera 15.10.2018
  */
-public class FileSystemObserverImpl implements IFileSystemObserver
+class FileSystemObserverImpl implements IFileSystemObserver
 {
 
   private final ArrayList<IFileSystemChangeListener> fileSystemChangeListeners = new ArrayList<>();
+  private final _FileSystemListener fsListener;
+  private final FileObject root;
 
-  @Inject
   public FileSystemObserverImpl(@Assisted IRepositoryDescription pRepositoryDescription)
   {
-    FileObject fileObject = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
-    if (fileObject != null)
+    root = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
+    if (root != null)
     {
-      fileObject.addRecursiveListener(new _FileSystemListener());
+      fsListener = new _FileSystemListener();
+      root.addRecursiveListener(fsListener);
     }
     else
     {
+      fsListener = null;
       System.err.println(NbBundle.getMessage(FileSystemObserverImpl.class, "Invalid.RecursiveListener"));
     }
   }
@@ -57,6 +58,18 @@ public class FileSystemObserverImpl implements IFileSystemObserver
   public void fireChange()
   {
     _notifyListeners();
+  }
+
+  @Override
+  public void discard()
+  {
+    synchronized (fileSystemChangeListeners)
+    {
+      fileSystemChangeListeners.clear();
+    }
+
+    if(root != null && fsListener != null)
+      root.removeRecursiveListener(fsListener);
   }
 
   private void _notifyListeners()
