@@ -1,6 +1,6 @@
 package de.adito.git.impl;
 
-import de.adito.git.api.IFileSystemObserver;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryDescription;
 
 /**
@@ -9,5 +9,5 @@ import de.adito.git.api.data.IRepositoryDescription;
 public interface IFileSystemObserverProvider
 {
 
-  IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription);
+  IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription, IIgnoreFacade pGitIgnoreFacade);
 }

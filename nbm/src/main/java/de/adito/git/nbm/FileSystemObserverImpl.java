@@ -1,8 +1,9 @@
 package de.adito.git.nbm;
 
-import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryDescription;
+import io.reactivex.rxjava3.disposables.*;
+import org.jetbrains.annotations.NotNull;
 import org.openide.filesystems.*;
 import org.openide.util.NbBundle;
 
@@ -20,14 +21,25 @@ class FileSystemObserverImpl implements IFileSystemObserver
   private final ArrayList<IFileSystemChangeListener> fileSystemChangeListeners = new ArrayList<>();
   private final _FileSystemListener fsListener;
   private final FileObject root;
+  private final IIgnoreFacade gitIgnoreFacade;
+  private final CompositeDisposable disposable = new CompositeDisposable();
 
-  public FileSystemObserverImpl(@Assisted IRepositoryDescription pRepositoryDescription)
+  public FileSystemObserverImpl(IRepositoryDescription pRepositoryDescription, @NotNull IIgnoreFacade pGitIgnoreFacade)
   {
     root = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
+    gitIgnoreFacade = pGitIgnoreFacade;
     if (root != null)
     {
       fsListener = new _FileSystemListener();
-      root.addRecursiveListener(fsListener);
+      _addFSListener();
+
+      disposable.add(Disposable.fromRunnable(this::_removeFSListener));
+      disposable.add(gitIgnoreFacade.observeIgnorationChange()
+                         .distinctUntilChanged()
+                         .subscribe(pTime -> {
+                           _removeFSListener();
+                           _addFSListener();
+                         }));
     }
     else
     {
@@ -68,8 +80,26 @@ class FileSystemObserverImpl implements IFileSystemObserver
       fileSystemChangeListeners.clear();
     }
 
-    if(root != null && fsListener != null)
-      root.removeRecursiveListener(fsListener);
+    if(!disposable.isDisposed())
+      disposable.dispose();
+  }
+
+  private void _addFSListener()
+  {
+    FileUtil.addRecursiveListener(fsListener, FileUtil.toFile(root),
+                                  pFile -> !gitIgnoreFacade.isIgnored(pFile), disposable::isDisposed);
+  }
+
+  private void _removeFSListener()
+  {
+    try
+    {
+      FileUtil.removeRecursiveListener(fsListener, FileUtil.toFile(root));
+    }
+    catch(Exception e)
+    {
+      // ignore
+    }
   }
 
   private void _notifyListeners()

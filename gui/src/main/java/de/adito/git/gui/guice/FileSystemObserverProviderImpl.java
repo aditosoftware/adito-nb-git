@@ -1,7 +1,7 @@
 package de.adito.git.gui.guice;
 
 import com.google.inject.Singleton;
-import de.adito.git.api.IFileSystemObserver;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.impl.IFileSystemObserverProvider;
 
@@ -16,7 +16,7 @@ class FileSystemObserverProviderImpl implements IFileSystemObserverProvider
 {
 
   @Override
-  public IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription)
+  public IFileSystemObserver getFileSystemObserver(IRepositoryDescription pRepositoryDescription, IIgnoreFacade pIgnoreFacade)
   {
     throw new RuntimeException("de.adito.git.gui.guice.FileSystemObserverProviderImpl.getFileSystemObserver");
   }
