@@ -6,6 +6,16 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.2</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>The Auto-Resolve for conflicts can now resolve import conflicts</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The plugin no longer observes file changes in ignored or excluded files and nodejs dependencies</li>
+    <li>Projects that are NodeJs dependencies are also ignored by the plugin</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.1</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
