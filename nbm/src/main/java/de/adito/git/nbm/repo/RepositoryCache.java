@@ -2,29 +2,20 @@ package de.adito.git.nbm.repo;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.guice.IRepositoryProviderFactory;
-import de.adito.git.nbm.guice.RepositoryProvider;
+import de.adito.git.nbm.guice.*;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.filesystems.FileObject;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.beans.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.logging.*;
+import java.util.stream.*;
 
 /**
  * This class is a cache for all Repositories. If a project has a repository the cache put it in his own map.
@@ -125,7 +116,7 @@ public class RepositoryCache
   {
     try
     {
-      if (_isGitRepository(pProjectDirectory))
+      if (_isGitRepository(pProjectDirectory) && !_isDependencyProject(pProjectDirectory))
       {
         RepositoryProvider provider = _getProvider(pProjectDirectory, true);
         assert provider != null;
@@ -219,6 +210,25 @@ public class RepositoryCache
       if (GIT_FOLDER_NAME.equals(childFolder.getName()))
         return true;
     }
+    return false;
+  }
+
+  /**
+   * checks if a folder is a dependency folder (of nodejs).
+   * Those folders have to be ignored, because we dont want to load the repositories from there
+   *
+   * @param pProjectDirectory Directory
+   * @return true if it is a dependency project inside node_modules
+   */
+  private boolean _isDependencyProject(FileObject pProjectDirectory)
+  {
+    for(FileObject fo = pProjectDirectory; fo != null; fo = fo.getParent())
+    {
+      //todo should not be hardcoded, but here is currently no other way to achieve this behavior
+      if(fo.getName().equalsIgnoreCase("node_modules"))
+        return true;
+    }
+
     return false;
   }
 
