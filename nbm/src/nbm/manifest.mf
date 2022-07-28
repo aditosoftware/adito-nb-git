@@ -6,6 +6,11 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.3</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: Pushing a branch that does not exist on the remote leads to a 401 error when pushing with HTTPS. When pushing the inital commit to a new remote this still fails on the first attempt, but works otherwise. A fix for this will be included in the next version</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.2</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
