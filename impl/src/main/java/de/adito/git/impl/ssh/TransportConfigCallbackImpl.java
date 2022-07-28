@@ -76,8 +76,17 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
       // with authentication.realmName as key
       // Suppliers are used because when this is called the first time, the username and password is not yet set -> can be re-evaluated once required
       String finalRealmName = realmName;
-      httpTransport.setCredentialsProvider(new AditoUsernamePasswordCredentialsProvider(() -> prefStore.get("org/netbeans/core/authentication", finalRealmName),
-                                                                                        () -> keyStore.read("authentication." + finalRealmName)));
+      AditoUsernamePasswordCredentialsProvider passwordCredentialsProvider = new AditoUsernamePasswordCredentialsProvider(
+          () -> prefStore.get("org/netbeans/core/authentication", finalRealmName),
+          () -> keyStore.read("authentication." + finalRealmName));
+      // set the credentialsprovider as default, and set preemptive basic authentication to fix issues with authentication that occur in the two-stage push
+      CredentialsProvider.setDefault(passwordCredentialsProvider);
+      if (pTransport instanceof TransportHttp)
+      {
+        ((TransportHttp) pTransport).setPreemptiveBasicAuthentication(prefStore.get("org/netbeans/core/authentication", finalRealmName),
+                                                                      String.valueOf(keyStore.read("authentication." + finalRealmName)));
+      }
+      httpTransport.setCredentialsProvider(passwordCredentialsProvider);
       ClearHttpCacheHandler.clearCache(httpTransport.getURI().toString());
     }
     else throw new RuntimeException("Unsupported Transport protocol, make sure the project is configured to use either ssh or http");
