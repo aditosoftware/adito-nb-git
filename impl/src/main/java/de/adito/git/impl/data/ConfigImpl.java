@@ -10,6 +10,7 @@ import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.impl.RepositoryImplHelper;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.UserConfig;
@@ -252,8 +253,9 @@ public class ConfigImpl implements IConfig
     try
     {
       config.save();
+      config.load();
     }
-    catch (IOException pE)
+    catch (IOException | ConfigInvalidException pE)
     {
       logger.log(Level.SEVERE, pE, () -> CONFIG_WRITE_ERROR_MSG);
       return false;
