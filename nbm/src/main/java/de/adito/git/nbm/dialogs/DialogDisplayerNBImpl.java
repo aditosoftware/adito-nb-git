@@ -1,13 +1,20 @@
 package de.adito.git.nbm.dialogs;
 
 import com.google.inject.Inject;
+import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.dialogs.*;
+import de.adito.git.gui.swing.SwingUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -19,9 +26,13 @@ import java.util.function.Function;
 class DialogDisplayerNBImpl implements IDialogDisplayer
 {
 
+  private static final String RECT_STRING_SEPARATOR = ";";
+  private final IPrefStore prefStore;
+
   @Inject
-  DialogDisplayerNBImpl()
+  DialogDisplayerNBImpl(IPrefStore pPrefStore)
   {
+    prefStore = pPrefStore;
   }
 
 
@@ -49,6 +60,10 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     DialogDescriptor dialogDescriptor = new DialogDescriptor(null, pTitle, true, descriptorButtons,
                                                              descriptorButtons[0], DialogDescriptor.BOTTOM_ALIGN, null, null);
     S content = pDialogContentSupplier.apply(defaultButton::setEnabled);
+    String preferencesKey = content.getClass().getName();
+    Rectangle storedBounds = Optional.ofNullable(prefStore.get(preferencesKey))
+        .map(DialogDisplayerNBImpl::parseRectangle)
+        .orElse(null);
 
     JPanel borderPane = new _NonScrollablePanel(new BorderLayout())
     {
@@ -59,6 +74,13 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
     dialog.setResizable(true);
     dialog.setMinimumSize(new Dimension(250, 50));
+    if (storedBounds != null && SwingUtil.isCompletelyVisible(storedBounds))
+    {
+      dialog.setBounds(storedBounds);
+      dialog.setPreferredSize(storedBounds.getSize());
+    }
+    ResizeListener resizeListener = new ResizeListener(prefStore, preferencesKey);
+    dialog.addComponentListener(resizeListener);
     dialog.pack();
     dialog.setVisible(true);
 
@@ -70,6 +92,7 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
       pressedButton = pressedButtonObject;
     else
       pressedButton = EButtons.ESCAPE;
+    dialog.removeComponentListener(resizeListener);
 
     return new DialogResult<>(content, pressedButton, content.getMessage(), content.getInformation());
   }
@@ -118,6 +141,89 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
       return true;
     }
 
+  }
+
+  /**
+   * Listen for resize or move events and update the preferences with the new bounds
+   */
+  private static class ResizeListener implements ComponentListener
+  {
+
+    private final IPrefStore prefStore;
+    private final String preferencesKey;
+
+    /**
+     * @param pPrefStore      PrefStore for storing the current bounds
+     * @param pPreferencesKey this is the key for storing the bounds value
+     */
+    public ResizeListener(@NotNull IPrefStore pPrefStore, @NotNull String pPreferencesKey)
+    {
+      prefStore = pPrefStore;
+      preferencesKey = pPreferencesKey;
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e)
+    {
+      prefStore.put(preferencesKey, DialogDisplayerNBImpl.rectangleToString(e.getComponent().getBounds()));
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e)
+    {
+      prefStore.put(preferencesKey, DialogDisplayerNBImpl.rectangleToString(e.getComponent().getBounds()));
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e)
+    {
+      // no-op - this listener only cares about resize and move events
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e)
+    {
+      // no-op - this listener only cares about resize and move events
+    }
+  }
+
+  /**
+   * Creates a string representing the rectangle. This string can be used to store the rectangle in the preferences, the string can be reverted to a rectangle by
+   * calling the DialogDisplayerNBImpl.parseRectangle method
+   *
+   * @param pRectangle rectangle that should be transformed to a string
+   * @return string representation of the rectangle
+   */
+  @NotNull
+  static String rectangleToString(@NotNull Rectangle pRectangle)
+  {
+    return (int) pRectangle.getX() + RECT_STRING_SEPARATOR + (int) pRectangle.getY() + RECT_STRING_SEPARATOR
+        + (int) pRectangle.getWidth() + RECT_STRING_SEPARATOR + (int) pRectangle.getHeight();
+  }
+
+  /**
+   * Parses a string created for representing a rectangle by the DialogDisplayerNBImpl.rectangleToString method for storing the rectangle
+   *
+   * @param pStringVersion String to be converted back into a rectangle
+   * @return Rectangle representation of the string, or null if no rectangle can be parsed from the string
+   */
+  @Nullable
+  static Rectangle parseRectangle(@NotNull String pStringVersion)
+  {
+    // remove spaces and split the string along the separator
+    String[] splits = pStringVersion.replaceAll(" ", "").split(RECT_STRING_SEPARATOR);
+    if (splits.length == 4)
+    {
+      try
+      {
+        return new Rectangle(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]), Integer.parseInt(splits[2]), Integer.parseInt(splits[3]));
+      }
+      catch (NumberFormatException ignored)
+      {
+        // ignore the exception and just return null
+      }
+    }
+    return null;
   }
 
 }
