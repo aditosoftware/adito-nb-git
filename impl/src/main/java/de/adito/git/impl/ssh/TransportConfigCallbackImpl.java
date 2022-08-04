@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,27 +66,29 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
     {
       HttpTransport httpTransport = (HttpTransport) pTransport;
       String realmName = "GitLab";
+      URIish transportURI = pTransport.getURI();
       try
       {
-        realmName = GitHttpUtil.getRealmName(pTransport.getURI().toString(), prefStore, keyStore);
+        realmName = GitHttpUtil.getRealmName(transportURI.toString(), prefStore, keyStore);
       }
       catch (Exception pE)
       {
-        logger.log(Level.WARNING, pE, () -> "Error while determining the realm name for URI" + pTransport.getURI().toString());
+        logger.log(Level.WARNING, pE, () -> "Error while determining the realm name for URI" + transportURI.toString());
       }
       // netbeans stores the username in the preferences of the org/netbeans/core/authentication node, the key is the realm name. The password is stored in the KeyRing
       // with authentication.realmName as key
       // Suppliers are used because when this is called the first time, the username and password is not yet set -> can be re-evaluated once required
-      String finalRealmName = realmName;
-      AditoUsernamePasswordCredentialsProvider passwordCredentialsProvider = new AditoUsernamePasswordCredentialsProvider(
-          () -> prefStore.get("org/netbeans/core/authentication", finalRealmName),
-          () -> keyStore.read("authentication." + finalRealmName));
+      PasswordAuthentication passwordAuthentication = Authenticator.requestPasswordAuthentication(transportURI.getHost(), null, transportURI.getPort(),
+                                                                                                  transportURI.getScheme(), realmName, "Basic");
+      UsernamePasswordCredentialsProvider passwordCredentialsProvider = new UsernamePasswordCredentialsProvider(passwordAuthentication.getUserName(),
+                                                                                                                passwordAuthentication.getPassword());
       // set the credentialsprovider as default, and set preemptive basic authentication to fix issues with authentication that occur in the two-stage push
       CredentialsProvider.setDefault(passwordCredentialsProvider);
       if (pTransport instanceof TransportHttp)
       {
-        ((TransportHttp) pTransport).setPreemptiveBasicAuthentication(prefStore.get("org/netbeans/core/authentication", finalRealmName),
-                                                                      String.valueOf(keyStore.read("authentication." + finalRealmName)));
+        char[] password = passwordAuthentication.getPassword();
+        if (password != null)
+          ((TransportHttp) pTransport).setPreemptiveBasicAuthentication(passwordAuthentication.getUserName(), String.valueOf(password));
       }
       httpTransport.setCredentialsProvider(passwordCredentialsProvider);
       ClearHttpCacheHandler.clearCache(httpTransport.getURI().toString());
