@@ -136,7 +136,8 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, ILineNumberColor
         if (fileChange.getChangeStatus() == EChangeStatus.PENDING && pEditorPane.getDocument().getLength() > 0)
         {
           int characterStartOffset = fileChange.getStartTextIndex(model.getChangeSide());
-          int yViewCoordinate = view.modelToView(characterStartOffset, Position.Bias.Forward, characterStartOffset + 1,
+          int maxSize = pEditorPane.getText().length();
+          int yViewCoordinate = view.modelToView(Math.min(characterStartOffset, maxSize), Position.Bias.Forward, Math.min(characterStartOffset + 1, maxSize),
                                                  Position.Bias.Forward, new Rectangle()).getBounds().y + 2;
           if (acceptIcon != null)
             iconInfos.add(new IconInfo(acceptIcon, yViewCoordinate, acceptChangeIconXVal, fileChange));
