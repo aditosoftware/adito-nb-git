@@ -6,6 +6,16 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.4</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The dialog windows now remember their size and position</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: The option "Create New Branch" when pushing a branch that tracks a branch with some other name does not create a new branch</li>
+    <li>Fix: Pushing/Pulling/Fetching via HTTPS does not always work due to a NullPointerException</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.3</p>
   <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
   <ul>
