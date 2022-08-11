@@ -1,9 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel;
 
 import de.adito.git.api.IDiscardable;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EConflictSide;
-import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
@@ -14,6 +12,8 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
+import de.adito.git.impl.data.diff.ConflictPair;
+import de.adito.git.impl.data.diff.EConflictType;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
@@ -49,11 +51,16 @@ public class MergePanel extends JPanel implements IDiscardable
   private final IDiffPaneUtil.ScrollBarCoupling yoursCoupling;
   private final IDiffPaneUtil.ScrollBarCoupling theirsCoupling;
   private final Subject<Optional<Object>> initHeightsObs;
+  private final UseLeftChunkAction useLeftChunk = new UseLeftChunkAction();
+  private final UseRightChunkAction useRightChunk = new UseRightChunkAction();
+  private final UseLeftThenRightAction useLeftThenRightChunk = new UseLeftThenRightAction();
+  private final UseRightThenLeftAction useRightThenLeftChunk = new UseRightThenLeftAction();
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
   private LineNumbersColorModel leftForkPointLineNumColorModel;
   private LineNumbersColorModel rightForkPointLineNumColorModel;
+  private CaretMovedListener caretListener;
 
   public MergePanel(@NotNull IIconLoader pIconLoader, @NotNull IMergeData pMergeDiff, @NotNull String pYoursOrigin, @NotNull String pTheirsOrigin,
                     @Nullable ImageIcon pAcceptYoursIcon, @Nullable ImageIcon pAcceptTheirsIcon, @Nullable ImageIcon pDiscardIcon,
@@ -117,6 +124,10 @@ public class MergePanel extends JPanel implements IDiscardable
     );
     SwingUtil.invokeASAP(() -> yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().setValue(0));
     add(yoursTheirsPanel, BorderLayout.NORTH);
+    caretListener = new CaretMovedListener();
+    yoursPaneWrapper.getEditorPane().addCaretListener(caretListener);
+    theirsPaneWrapper.getEditorPane().addCaretListener(caretListener);
+    forkPointPaneWrapper.getEditorPane().addCaretListener(caretListener);
   }
 
   public void finishLoading()
@@ -203,6 +214,18 @@ public class MergePanel extends JPanel implements IDiscardable
   }
 
   /**
+   * This list should contain the list of actions that resolve both sides of a conflict at once (by either accepting both sides in a certain order,
+   * or accepting one side and discarding the other)
+   *
+   * @return List of Actions
+   */
+  @NotNull
+  public List<MergeChunkAction> getMergeChunkActions()
+  {
+    return List.of(useLeftChunk, useRightChunk, useLeftThenRightChunk, useRightThenLeftChunk);
+  }
+
+  /**
    * @param pForkPoint    PaneWrapper that should get its caret set
    * @param pOtherSide    PaneWrapper representing the "opposite" side of the diff
    * @param pRangeModel   SynchronizedBoundedRangeModel of the forkPoint that contains both the yours and theirs scrollBars
@@ -233,6 +256,9 @@ public class MergePanel extends JPanel implements IDiscardable
   @Override
   public void discard()
   {
+    yoursPaneWrapper.getEditorPane().removeCaretListener(caretListener);
+    theirsPaneWrapper.getEditorPane().removeCaretListener(caretListener);
+    forkPointPaneWrapper.getEditorPane().removeCaretListener(caretListener);
     yoursPaneWrapper.discard();
     theirsPaneWrapper.discard();
     forkPointPaneWrapper.discard();
@@ -246,9 +272,10 @@ public class MergePanel extends JPanel implements IDiscardable
   private static class EnhancedAbstractAction extends AbstractAction
   {
 
+    @NotNull
     private final Consumer<ActionEvent> doOnActionPerformed;
 
-    EnhancedAbstractAction(String pTitle, ImageIcon pIcon, String pShortDescription, Consumer<ActionEvent> pDoOnActionPerformed)
+    EnhancedAbstractAction(@Nullable String pTitle, @Nullable ImageIcon pIcon, @Nullable String pShortDescription, @NotNull Consumer<ActionEvent> pDoOnActionPerformed)
     {
       super(pTitle, pIcon);
       doOnActionPerformed = pDoOnActionPerformed;
@@ -260,5 +287,154 @@ public class MergePanel extends JPanel implements IDiscardable
     {
       doOnActionPerformed.accept(pEvent);
     }
+  }
+
+  /**
+   * Listener that checks if the caret is positioned inside a conflicting delta, and enables or disables the MergeChunkActions accordingly
+   */
+  private class CaretMovedListener implements CaretListener
+  {
+
+    @Override
+    public void caretUpdate(CaretEvent e)
+    {
+      IChangeDelta changeDelta = null;
+      if (yoursPaneWrapper.isEditorFocusOwner())
+      {
+        changeDelta = yoursPaneWrapper.getCurrentChunk();
+      }
+      else if (theirsPaneWrapper.isEditorFocusOwner())
+      {
+        changeDelta = theirsPaneWrapper.getCurrentChunk();
+      }
+      for (MergeChunkAction pAction : getMergeChunkActions())
+      {
+        pAction.setCurrentDelta(changeDelta);
+      }
+
+    }
+  }
+
+  private class UseLeftChunkAction extends MergeChunkAction
+  {
+
+    public UseLeftChunkAction()
+    {
+      super("Use Left");
+      putValue(SHORT_DESCRIPTION, "Apply the Left Change and discard the Left Change");
+    }
+
+    @Override
+    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    {
+      IChangeDelta yoursDelta = yoursPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.YOURS));
+      mergeDiff.acceptDelta(yoursDelta, EConflictSide.YOURS);
+      IChangeDelta theirsDelta = theirsPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.THEIRS));
+      mergeDiff.discardChange(theirsDelta, EConflictSide.THEIRS);
+    }
+  }
+
+  private class UseRightChunkAction extends MergeChunkAction
+  {
+
+    public UseRightChunkAction()
+    {
+      super("Use Right");
+      putValue(SHORT_DESCRIPTION, "Apply the Right Change and discard the Left Change");
+    }
+
+    @Override
+    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    {
+      IChangeDelta theirsDelta = theirsPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.THEIRS));
+      mergeDiff.acceptDelta(theirsDelta, EConflictSide.THEIRS);
+      IChangeDelta yoursDelta = yoursPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.YOURS));
+      mergeDiff.discardChange(yoursDelta, EConflictSide.YOURS);
+    }
+  }
+
+  private class UseLeftThenRightAction extends MergeChunkAction
+  {
+
+    public UseLeftThenRightAction()
+    {
+      super("Apply Left then Right");
+      putValue(SHORT_DESCRIPTION, "Apply the Left Change, then the Right Change");
+    }
+
+    @Override
+    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    {
+      IChangeDelta yoursDelta = yoursPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.YOURS));
+      mergeDiff.acceptDelta(yoursDelta, EConflictSide.YOURS);
+      IChangeDelta theirsDelta = theirsPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.THEIRS));
+      mergeDiff.acceptDelta(theirsDelta, EConflictSide.THEIRS);
+    }
+  }
+
+  private class UseRightThenLeftAction extends MergeChunkAction
+  {
+
+    public UseRightThenLeftAction()
+    {
+      super("Apply Right then Left");
+      putValue(SHORT_DESCRIPTION, "Apply the Right Change, then the Left Change");
+    }
+
+    @Override
+    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    {
+      IChangeDelta theirsDelta = theirsPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.THEIRS));
+      mergeDiff.acceptDelta(theirsDelta, EConflictSide.THEIRS);
+      IChangeDelta yoursDelta = yoursPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.YOURS));
+      mergeDiff.acceptDelta(yoursDelta, EConflictSide.YOURS);
+    }
+  }
+
+
+  /**
+   * Basic class for all actions that resolve both sides of a conflict at the press of one button
+   */
+  public abstract class MergeChunkAction extends AbstractAction
+  {
+
+    IChangeDelta currentDelta = null;
+
+    public MergeChunkAction(String name)
+    {
+      super(name);
+    }
+
+    public void setCurrentDelta(@Nullable IChangeDelta pChangeDelta)
+    {
+      currentDelta = pChangeDelta;
+      setEnabled(currentDelta != null && currentDelta.getConflictType() != EConflictType.NONE);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      if (yoursPaneWrapper.isEditorFocusOwner())
+      {
+        ConflictPair conflictPair = mergeDiff.getConflictPair(currentDelta, yoursPaneWrapper.getFileDiff(), EConflictSide.YOURS);
+        if (conflictPair != null)
+        {
+          actionPerformed0(conflictPair);
+        }
+      }
+      else if (theirsPaneWrapper.isEditorFocusOwner())
+      {
+        ConflictPair conflictPair = mergeDiff.getConflictPair(currentDelta, theirsPaneWrapper.getFileDiff(), EConflictSide.THEIRS);
+        if (conflictPair != null)
+        {
+          actionPerformed0(conflictPair);
+        }
+      }
+    }
+
+    /**
+     * @param pConflictPair ConflictPair denoting the indices of the currently selected deltas that should be resolved
+     */
+    abstract void actionPerformed0(@NotNull ConflictPair pConflictPair);
   }
 }

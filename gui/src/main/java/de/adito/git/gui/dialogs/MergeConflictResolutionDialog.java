@@ -98,11 +98,6 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
           toolbar.add(Box.createHorizontalStrut(3));
         });
 
-    for (Component component : toolbar.getComponents())
-    {
-      component.setFocusable(false);
-    }
-
     toolbar.addSeparator();
     toolbar.add(Box.createHorizontalStrut(3));
 
@@ -113,6 +108,21 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     toolbar.add(Box.createHorizontalStrut(3));
     toolbar.add(new JButton(new _AcceptAllActionImpl(EConflictSide.THEIRS, pIconLoader)));
 
+    toolbar.addSeparator();
+    toolbar.add(Box.createHorizontalStrut(3));
+
+    // Merge-Panel-Actions that accept the current chunk selected by the caret (Left | Right | Left then Right | Right then Left)
+    mergePanel.getMergeChunkActions().stream()
+        .map(JButton::new)
+        .forEach(comp -> {
+          toolbar.add(comp);
+          toolbar.add(Box.createHorizontalStrut(3));
+        });
+
+    for (Component component : toolbar.getComponents())
+    {
+      component.setFocusable(false);
+    }
     return toolbar;
   }
 

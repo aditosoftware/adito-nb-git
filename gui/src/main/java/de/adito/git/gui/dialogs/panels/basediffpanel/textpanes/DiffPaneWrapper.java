@@ -126,6 +126,22 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   }
 
   /**
+   * get the IChangeDelta that the caret is currently marking/inside, or null if no IChangeDelta is at the current position of the caret
+   *
+   * @return IChangeDelta at the current caret position, or null if none is
+   */
+  @Nullable
+  public IChangeDelta getCurrentChunk()
+  {
+    return IDiffPaneUtil.getCurrentDelta(editorPane, currentFileDiff.getChangeDeltas(), model.getChangeSide());
+  }
+
+  public IFileDiff getFileDiff()
+  {
+    return currentFileDiff;
+  }
+
+  /**
    * moves the caret to the position of the given chunk
    *
    * @param pTextPane textPane that displays the other side of the diff

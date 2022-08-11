@@ -1,6 +1,7 @@
 package de.adito.git.api.data.diff;
 
 
+import de.adito.git.impl.data.diff.ConflictPair;
 import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,15 @@ public interface IMergeData
    * @param conflictSide  CONFLICT_SIDE from which the chunk originates
    */
   void acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide);
+
+  /**
+   * @param pDelta        Delta whose ConflictPair should be calculated
+   * @param pFileDiff     FileDiff that pDelta is part of
+   * @param pConflictSide The side of the FileDiff that pDelta originates from
+   * @return The ConflictPair that pDelta is part of, or null if pDelta is not part of a conflict
+   */
+  @Nullable
+  ConflictPair getConflictPair(@NotNull IChangeDelta pDelta, @NotNull IFileDiff pFileDiff, @NotNull EConflictSide pConflictSide);
 
   /**
    * discards the specified changes by the given chunk

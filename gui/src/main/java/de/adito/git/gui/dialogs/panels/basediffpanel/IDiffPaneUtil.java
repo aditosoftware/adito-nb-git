@@ -30,6 +30,25 @@ import java.util.function.Function;
 public interface IDiffPaneUtil
 {
 
+
+  /**
+   * @param pTextComponent TextComponent whose caret position should be used
+   * @param pChangeDeltas  List of ChangeDeltas represented in the TextComponent
+   * @param pChangeSide    which side of the ChangeDelta the textComponent represents
+   * @return ChangeDelta that the caret of the textPane is positioned at, or null if the caret is positioned in a place without ChangeDelta
+   */
+  @Nullable
+  static IChangeDelta getCurrentDelta(@NotNull JTextComponent pTextComponent, @NotNull List<IChangeDelta> pChangeDeltas, @NotNull EChangeSide pChangeSide)
+  {
+    int currentDotIndex = pTextComponent.getCaret().getDot();
+    for (IChangeDelta changeDelta : pChangeDeltas)
+    {
+      if (changeDelta.getChangeStatus() == EChangeStatus.PENDING && changeDelta.isPartOfDelta(currentDotIndex, pChangeSide))
+        return changeDelta;
+    }
+    return null;
+  }
+
   /**
    * retrieves the position of the next changed chunk, as seen from the current position of the caret
    *

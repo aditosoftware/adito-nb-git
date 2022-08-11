@@ -83,7 +83,7 @@ public class MergeDataImpl implements IMergeData
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents;
     AtomicBoolean trySnapToDelta = new AtomicBoolean(false);
-    Optional<ConflictPair> conflictPairOpt = _getConflictPair(acceptedDelta, pAcceptedDiff, pConflictSide);
+    Optional<ConflictPair> conflictPairOpt = Optional.ofNullable(getConflictPair(acceptedDelta, pAcceptedDiff, pConflictSide));
     deltaTextChangeEvents = conflictPairOpt.map(ConflictPair::getType)
         .map(ConflictType::getResolveOption)
         .map(pResolveOption -> pResolveOption.resolveConflict(acceptedDelta, pAcceptedDiff, pOtherDiff, pConflictSide, conflictPairOpt.get())).orElse(null);
@@ -121,14 +121,16 @@ public class MergeDataImpl implements IMergeData
 
   }
 
-  private Optional<ConflictPair> _getConflictPair(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, EConflictSide pConflictSide)
+  @Override
+  @Nullable
+  public ConflictPair getConflictPair(@NotNull IChangeDelta pDelta, @NotNull IFileDiff pFileDiff, @NotNull EConflictSide pConflictSide)
   {
-    int deltaIndex = pAcceptedDiff.getChangeDeltas().indexOf(acceptedDelta);
+    int deltaIndex = pFileDiff.getChangeDeltas().indexOf(pDelta);
     if (conflictPairs != null)
     {
-      return conflictPairs.stream().filter(pConflictPair -> pConflictPair.getIndexOfSide(pConflictSide) == deltaIndex).findFirst();
+      return conflictPairs.stream().filter(pConflictPair -> pConflictPair.getIndexOfSide(pConflictSide) == deltaIndex).findFirst().orElse(null);
     }
-    return Optional.empty();
+    return null;
   }
 
   @Override

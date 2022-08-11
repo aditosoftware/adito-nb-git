@@ -220,4 +220,13 @@ public interface IChangeDelta extends IDelta
    * @return new ChangeDelta
    */
   IChangeDelta setChangeStatus(IChangeStatus pChangeStatus);
+
+  /**
+   * check if the given index is part of this changeDelta. If the index matches the first or last position of this change, the index is considered part of this change
+   *
+   * @param pIndex      index to check
+   * @param pChangeSide EChangeSide that the index should be checked for
+   * @return true if the index is part of this change, false otherwise
+   */
+  boolean isPartOfDelta(int pIndex, @NotNull EChangeSide pChangeSide);
 }

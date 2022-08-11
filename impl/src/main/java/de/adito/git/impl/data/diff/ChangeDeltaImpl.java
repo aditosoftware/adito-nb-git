@@ -600,6 +600,19 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
+  public boolean isPartOfDelta(int pIndex, @NotNull EChangeSide pChangeSide)
+  {
+    if (pChangeSide.equals(EChangeSide.NEW))
+    {
+      return pIndex >= startTextIndexNew && pIndex <= endTextIndexNew;
+    }
+    else
+    {
+      return pIndex >= startTextIndexOld && pIndex <= endTextIndexOld;
+    }
+  }
+
+  @Override
   public boolean equals(Object pO)
   {
     if (this == pO) return true;
