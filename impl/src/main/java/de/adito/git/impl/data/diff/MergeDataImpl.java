@@ -102,7 +102,7 @@ public class MergeDataImpl implements IMergeData
     }
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
                                                                                        pDeltaTextChangeEvent.getLength(),
-                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD, trySnapToDelta.get()));
+                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD, trySnapToDelta.get(), false));
   }
 
   /**
@@ -139,12 +139,12 @@ public class MergeDataImpl implements IMergeData
     if (conflictSide == EConflictSide.YOURS)
     {
       yourSideDiff.discardDelta(discardedDelta);
-      theirSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false);
+      theirSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false, false);
     }
     else
     {
       theirSideDiff.discardDelta(discardedDelta);
-      yourSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false);
+      yourSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false, false);
     }
   }
 
@@ -160,13 +160,13 @@ public class MergeDataImpl implements IMergeData
   {
     if (text == null)
     {
-      yourSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD, false);
-      theirSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD, false);
+      yourSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD, false, false);
+      theirSideDiff.processTextEvent(offset, length, null, EChangeSide.OLD, false, false);
     }
     else
     {
-      yourSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD, false);
-      theirSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD, false);
+      yourSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD, false, false);
+      theirSideDiff.processTextEvent(offset, length, text, EChangeSide.OLD, false, false);
     }
   }
 

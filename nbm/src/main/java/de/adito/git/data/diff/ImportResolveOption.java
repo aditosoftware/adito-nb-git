@@ -28,10 +28,10 @@ public class ImportResolveOption implements ResolveOption
       String combinedImports = jsParserUtility.appendImports("", parsedImports);
       if (combinedImports.endsWith("null"))
         combinedImports = combinedImports.substring(0, Math.max(0, combinedImports.length() - 4));
-      pAcceptedDiff.processTextEvent(acceptedDelta.getStartTextIndex(EChangeSide.OLD), acceptedDelta.getEndTextIndex(EChangeSide.OLD) - acceptedDelta.getStartTextIndex(EChangeSide.OLD), combinedImports, EChangeSide.OLD, false);
-      pOtherDiff.processTextEvent(otherDelta.getStartTextIndex(EChangeSide.OLD), otherDelta.getEndTextIndex(EChangeSide.OLD) - otherDelta.getStartTextIndex(EChangeSide.OLD), combinedImports, EChangeSide.OLD, false);
       pAcceptedDiff.setResolved(acceptedDelta);
       pOtherDiff.setResolved(otherDelta);
+      pAcceptedDiff.processTextEvent(acceptedDelta.getStartTextIndex(EChangeSide.OLD), acceptedDelta.getEndTextIndex(EChangeSide.OLD) - acceptedDelta.getStartTextIndex(EChangeSide.OLD), combinedImports, EChangeSide.OLD, false, true);
+      pOtherDiff.processTextEvent(otherDelta.getStartTextIndex(EChangeSide.OLD), otherDelta.getEndTextIndex(EChangeSide.OLD) - otherDelta.getStartTextIndex(EChangeSide.OLD), combinedImports, EChangeSide.OLD, false, true);
     }
     catch (Exception pE)
     {

@@ -43,7 +43,7 @@ public class EnclosedResolveOption implements ResolveOption
         IChangeDelta otherChangeDelta = pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)));
         IChangeDelta changedChangeDelta = otherChangeDelta.setChangeStatus(new ChangeStatusImpl(EChangeStatus.ACCEPTED, otherChangeDelta.getChangeType(), otherChangeDelta.getConflictType()));
         pOtherDiff.getChangeDeltas().set(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)), changedChangeDelta);
-        pOtherDiff.processTextEvent(0, 0, "", EChangeSide.NEW, false);
+        pOtherDiff.processTextEvent(0, 0, "", EChangeSide.NEW, false, false);
       };
 
     }
@@ -51,7 +51,7 @@ public class EnclosedResolveOption implements ResolveOption
     {
       deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
                                                                                          pDeltaTextChangeEvent.getLength(),
-                                                                                         pDeltaTextChangeEvent.getText(), EChangeSide.OLD, isTryToSnapToDelta.get()));
+                                                                                         pDeltaTextChangeEvent.getText(), EChangeSide.OLD, isTryToSnapToDelta.get(), false));
       executeAfterTextUpdates.run();
     }
     return List.of();

@@ -16,7 +16,7 @@ public class WordBasedResolveOption implements ResolveOption
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, true, true, false);
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
                                                                                        pDeltaTextChangeEvent.getLength(),
-                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD, false));
+                                                                                       pDeltaTextChangeEvent.getText(), EChangeSide.OLD, false, false));
     return List.of();
   }
 

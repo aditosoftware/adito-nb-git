@@ -378,7 +378,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide, boolean pTrySnapToDelta)
+  public void processTextEvent(int pOffset, int pLength, @Nullable String pText, EChangeSide pChangeSide, boolean pTrySnapToDelta, boolean pPropagateChange)
   {
     if (newVersion == null || oldVersion == null)
       _loadFileContent();
@@ -411,8 +411,15 @@ public class FileDiffImpl implements IFileDiff
       else
         oldVersion = prefix + pText + postfix;
     }
+    if (pPropagateChange)
+    {
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(pOffset, pLength, pText, this, pChangeSide));
+    }
+    else
     // signal an empty change for UI updates, this method should be called in response to an update in a document or similar, not the other way round
-    _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, pChangeSide));
+    {
+      _fireTextChangeEvent(new DeltaTextChangeEventImpl(0, 0, "", this, pChangeSide));
+    }
   }
 
   /**
