@@ -140,11 +140,13 @@ public class MergeDataImpl implements IMergeData
     {
       yourSideDiff.discardDelta(discardedDelta);
       theirSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false, false);
+      theirSideDiff.processTextEvent(0, 0, null, EChangeSide.NEW, false, false);
     }
     else
     {
       theirSideDiff.discardDelta(discardedDelta);
       yourSideDiff.processTextEvent(0, 0, null, EChangeSide.OLD, false, false);
+      yourSideDiff.processTextEvent(0, 0, null, EChangeSide.NEW, false, false);
     }
   }
 
