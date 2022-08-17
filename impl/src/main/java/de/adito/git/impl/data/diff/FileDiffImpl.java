@@ -304,7 +304,7 @@ public class FileDiffImpl implements IFileDiff
       replacedText = changedSideString.substring(changedStartTextIndex, changedEndTextIndex);
     int postFixStartIndex;
     int textEventRemovalLength;
-    if (!pOverride && ((!isChangeNewVersion && deltaChangeType == EChangeType.ADD) || (isChangeNewVersion && deltaChangeType == EChangeType.DELETE)))
+    if (isPointChangeReverse)
     {
       postFixStartIndex = Math.min(changedSideLength, changedStartTextIndex);
       textEventRemovalLength = 0;
