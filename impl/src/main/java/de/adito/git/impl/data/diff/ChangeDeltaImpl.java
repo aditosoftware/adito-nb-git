@@ -312,13 +312,14 @@ public final class ChangeDeltaImpl implements IChangeDelta
   @Override
   public String getText(EChangeSide pChangeSide)
   {
+    int length = textVersionProvider.getVersion(pChangeSide).length();
     if (pChangeSide == EChangeSide.NEW)
     {
-      return textVersionProvider.getVersion(pChangeSide).substring(startTextIndexNew, endTextIndexNew);
+      return textVersionProvider.getVersion(pChangeSide).substring(Math.min(length, startTextIndexNew), Math.min(length, endTextIndexNew));
     }
     else
     {
-      return textVersionProvider.getVersion(pChangeSide).substring(startTextIndexOld, endTextIndexOld);
+      return textVersionProvider.getVersion(pChangeSide).substring(Math.min(length, startTextIndexOld), Math.min(length, endTextIndexOld));
     }
   }
 

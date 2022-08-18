@@ -190,6 +190,23 @@ public class FileDiffImplTest
   }
 
   /**
+   * Tests if the line index of the deleted side is not out of bounds when the last newline is deleted
+   */
+  @Test
+  void testDeleteLastNewline()
+  {
+    String oldVersion = "Hello there!\nThere is some stuff here\n ";
+    String newVersion = "Hello there!\nThere is some stuff here";
+    EditList editList = new EditList();
+    editList.add(new Edit(2, 3, 2, 2));
+    IFileDiff fileDiff = _createFileDiff(editList, oldVersion, newVersion);
+    List<IChangeDelta> changeDeltas = fileDiff.getChangeDeltas();
+    assertEquals(1, changeDeltas.size());
+    IChangeDelta changeDelta = changeDeltas.get(0);
+    assertEquals("", changeDelta.getText(EChangeSide.NEW));
+  }
+
+  /**
    * Tests if the line and text indices are as expected for an insert of a new line if the first line didn't end on a newline
    */
   @Test
