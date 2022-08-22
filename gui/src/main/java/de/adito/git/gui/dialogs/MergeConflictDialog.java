@@ -34,6 +34,8 @@ import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,6 +67,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IPrefStore prefStore;
+  private int bufferedSelection = 0;
 
   @Inject
   MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, IQuickSearchProvider pQuickSearchProvider,
@@ -92,6 +95,10 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     disposables.add(_observeMergeDiffList().subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty())));
     mergeDiffStatusModel = new MergeDiffStatusModel(_observeMergeDiffList(), pMergeDetails);
     _initGui(pMergeDetails, pShowAutoResolve, pQuickSearchProvider);
+    // the enter key should trigger the manual resolve action
+    mergeConflictTable.addKeyListener(new EnterKeyAdapter(pMergeDetails));
+    // need focus for keyboard interactivity
+    mergeConflictTable.requestFocus();
   }
 
   private void _initGui(@NotNull IMergeDetails pMergeDetails, boolean pShowAutoResolve, IQuickSearchProvider pQuickSearchProvider)
@@ -139,6 +146,26 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     JScrollPane mergeConflictTableScrollPane = new JScrollPane(mergeConflictTable);
     add(mergeConflictTableScrollPane, BorderLayout.CENTER);
     pQuickSearchProvider.attach(this, BorderLayout.SOUTH, new QuickSearchCallbackImpl(mergeConflictTable, List.of(0)));
+    keepTableSelection();
+  }
+
+  /**
+   * sets listeners such that if the content of the table changes, the last selected index stays selected (instead of the selection being completely reset)
+   */
+  private void keepTableSelection()
+  {
+    mergeConflictTable.getSelectionModel().addListSelectionListener(e -> {
+      if (e.getFirstIndex() >= 0)
+      {
+        bufferedSelection = e.getFirstIndex();
+      }
+    });
+    mergeDiffStatusModel.addTableModelListener(e -> SwingUtilities.invokeLater(() -> {
+      // make sure the selection we set is not out of bounds (e.g. if the last entry was selected and subsequently removed)
+      int safeSelection = Math.min(bufferedSelection, mergeConflictTable.getModel().getRowCount());
+      mergeConflictTable.setRowSelectionInterval(safeSelection, safeSelection);
+      mergeConflictTable.requestFocus();
+    }));
   }
 
   @NotNull
@@ -281,6 +308,29 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     public void actionPerformed(ActionEvent e)
     {
       _doManualResolve(_observeSelectedMergeDiff(), mergeDetails.getYoursOrigin(), mergeDetails.getTheirsOrigin());
+    }
+  }
+
+  /**
+   * Listens for Enter key input, consumes the event and triggers the manual resolve option
+   */
+  private class EnterKeyAdapter extends KeyAdapter
+  {
+    private final IMergeDetails mergeDetails;
+
+    public EnterKeyAdapter(IMergeDetails pMergeDetails)
+    {
+      mergeDetails = pMergeDetails;
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e)
+    {
+      if (e.getKeyCode() == KeyEvent.VK_ENTER)
+      {
+        e.consume();
+        _doManualResolve(_observeSelectedMergeDiff(), mergeDetails.getYoursOrigin(), mergeDetails.getTheirsOrigin());
+      }
     }
   }
 }
