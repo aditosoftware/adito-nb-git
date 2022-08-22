@@ -5,8 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import de.adito.git.api.IKeyStore;
-import de.adito.git.api.IUserInputPrompt;
+import de.adito.git.api.*;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.impl.http.GitHttpUtil;
@@ -17,8 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,6 +29,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
 {
 
   private final Logger logger = Logger.getLogger(TransportConfigCallbackImpl.class.getName());
+  private final IAuthUtil authUtil;
   private final IPrefStore prefStore;
   private final IKeyStore keyStore;
   private final GitUserInfo gitUserInfo;
@@ -40,8 +38,9 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   private String sshKeyPath;
 
   @Inject
-  TransportConfigCallbackImpl(IPrefStore pPrefStore, IKeyStore pKeyStore, IUserInputPrompt pUserInputPrompt, ISshProvider pSshProvider, @Assisted IConfig pConfig)
+  TransportConfigCallbackImpl(IAuthUtil pAuthUtil, IPrefStore pPrefStore, IKeyStore pKeyStore, IUserInputPrompt pUserInputPrompt, ISshProvider pSshProvider, @Assisted IConfig pConfig)
   {
+    authUtil = pAuthUtil;
     prefStore = pPrefStore;
     keyStore = pKeyStore;
     gitUserInfo = pSshProvider.getUserInfo(null, null);
@@ -75,23 +74,10 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
       {
         logger.log(Level.WARNING, pE, () -> "Error while determining the realm name for URI" + transportURI.toString());
       }
-      // netbeans stores the username in the preferences of the org/netbeans/core/authentication node, the key is the realm name. The password is stored in the KeyRing
-      // with authentication.realmName as key
-      // Suppliers are used because when this is called the first time, the username and password is not yet set -> can be re-evaluated once required
-      PasswordAuthentication passwordAuthentication = Authenticator.requestPasswordAuthentication(transportURI.getHost(), null, transportURI.getPort(),
-                                                                                                  transportURI.getScheme(), realmName, "Basic");
-      UsernamePasswordCredentialsProvider passwordCredentialsProvider = new UsernamePasswordCredentialsProvider(passwordAuthentication.getUserName(),
-                                                                                                                passwordAuthentication.getPassword());
-      // set the credentialsprovider as default, and set preemptive basic authentication to fix issues with authentication that occur in the two-stage push
-      CredentialsProvider.setDefault(passwordCredentialsProvider);
-      if (pTransport instanceof TransportHttp)
-      {
-        char[] password = passwordAuthentication.getPassword();
-        if (password != null)
-          ((TransportHttp) pTransport).setPreemptiveBasicAuthentication(passwordAuthentication.getUserName(), String.valueOf(password));
-      }
-      httpTransport.setCredentialsProvider(passwordCredentialsProvider);
-      ClearHttpCacheHandler.clearCache(httpTransport.getURI().toString());
+
+      httpTransport.setCredentialsProvider(new AditoCredentialsProvider(authUtil,
+                                                                        transportURI.getHost(), null, transportURI.getPort(),
+                                                                        transportURI.getScheme(), realmName, "Basic"));
     }
     else throw new RuntimeException("Unsupported Transport protocol, make sure the project is configured to use either ssh or http");
   }

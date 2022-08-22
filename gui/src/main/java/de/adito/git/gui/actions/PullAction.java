@@ -2,9 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.INotifyUtil;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.ISaveUtil;
+import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AuthCancelledException;
@@ -43,6 +41,7 @@ class PullAction extends AbstractAction
   private static final String NO_VALID_REPO_MSG = "no valid repository found";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final Observable<Optional<IRepository>> repository;
+  private final IAuthUtil authUtil;
   private final IPrefStore prefStore;
   private final IDialogProvider dialogProvider;
   private final IActionProvider actionProvider;
@@ -58,9 +57,10 @@ class PullAction extends AbstractAction
    * @param pRepository the repository where the pull command should work
    */
   @Inject
-  PullAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IActionProvider pActionProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
+  PullAction(IAuthUtil pAuthUtil, IPrefStore pPrefStore, IDialogProvider pDialogProvider, IActionProvider pActionProvider, INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
              ISaveUtil pSaveUtil, MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepository)
   {
+    authUtil = pAuthUtil;
     prefStore = pPrefStore;
     dialogProvider = pDialogProvider;
     actionProvider = pActionProvider;
@@ -79,7 +79,7 @@ class PullAction extends AbstractAction
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    progressFacade.executeAndBlockWithProgressWithoutIndexing(Util.getResource(this.getClass(), "pullHandleTitleMsg"), this::_doRebase);
+    authUtil.reuseAuthIfNeededMoreThanOnce(() -> progressFacade.executeAndBlockWithProgressWithoutIndexing(Util.getResource(this.getClass(), "pullHandleTitleMsg"), this::_doRebase));
   }
 
   /**

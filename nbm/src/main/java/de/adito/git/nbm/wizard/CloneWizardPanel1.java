@@ -28,7 +28,7 @@ import static de.adito.git.nbm.IGitConstants.GIT_SSH_KEY;
  */
 public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<WizardDescriptor>
 {
-  private static final Pattern HTTP_URL_PATTERN = Pattern.compile("(https://[\\w\\s.%&&[^ ]]+(/[\\w\\s%&\\-&&[^ ]]+){0,7}[.]git)");
+  private static final Pattern HTTP_URL_PATTERN = Pattern.compile("(https://[\\w\\s.%&&[^ ]]+(/[\\w\\s\\.%&\\-&&[^ ]]+){0,7}[.]git)");
   private static final Pattern SSH_URL_PATTERN = Pattern.compile("(ssh://)?git@.*:?.*/+.*[.]git");
 
   private final ICloneRepo cloneRepo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
