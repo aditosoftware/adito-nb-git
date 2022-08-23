@@ -163,7 +163,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   /**
    * AcceptAll-ActionImpl
    */
-  private class _AcceptAllActionImpl extends AbstractAction
+  private class _AcceptAllActionImpl extends AcceptSideAction
   {
     private final EConflictSide conflictSide;
 
@@ -179,12 +179,19 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     {
       acceptNonConflictingDeltas(mergeDiff, conflictSide);
     }
+
+    // TODO find a way to re-evaluate isEnabled if a delta is accepted without too much of a performance drain if e.g. all non-conflicting changes are accepted
+    @Override
+    public boolean isEnabled()
+    {
+      return _containsNonConflicting(conflictSide);
+    }
   }
 
   /**
    * Action that accepts all non-conflicting changes of both sides
    */
-  private class _AcceptNonConflictingChangesAction extends AbstractAction
+  private class _AcceptNonConflictingChangesAction extends AcceptSideAction
   {
 
     _AcceptNonConflictingChangesAction(IIconLoader pIconLoader)
@@ -217,13 +224,27 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
       acceptNonConflictingDeltas(mergeDiff, pConflictSide);
     }
 
+
+  }
+
+  /**
+   * Base Action for all actions that accept all non-conflicting changes of one or both sides of a conflict
+   * Offers methods for determining the status that the action should have
+   */
+  private abstract class AcceptSideAction extends AbstractAction
+  {
+    public AcceptSideAction(String name, Icon icon)
+    {
+      super(name, icon);
+    }
+
     /**
      * checks if there are any as-of-yet unaccepted non-conflicting changes on the given conflict side
      *
      * @param pConflictSide CONFLICT_SIDE to check
      * @return true if there are any non-conflicting changes that are not accepted, false otherwise
      */
-    private boolean _containsNonConflicting(EConflictSide pConflictSide)
+    boolean _containsNonConflicting(EConflictSide pConflictSide)
     {
       for (IChangeDelta changeDelta : mergeDiff.getDiff(pConflictSide).getChangeDeltas())
       {
