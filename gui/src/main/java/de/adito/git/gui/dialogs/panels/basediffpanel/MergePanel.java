@@ -51,10 +51,10 @@ public class MergePanel extends JPanel implements IDiscardable
   private final IDiffPaneUtil.ScrollBarCoupling yoursCoupling;
   private final IDiffPaneUtil.ScrollBarCoupling theirsCoupling;
   private final Subject<Optional<Object>> initHeightsObs;
-  private final UseLeftChunkAction useLeftChunk = new UseLeftChunkAction();
-  private final UseRightChunkAction useRightChunk = new UseRightChunkAction();
-  private final UseLeftThenRightAction useLeftThenRightChunk = new UseLeftThenRightAction();
-  private final UseRightThenLeftAction useRightThenLeftChunk = new UseRightThenLeftAction();
+  private final UseLeftChunkAction useLeftChunk;
+  private final UseRightChunkAction useRightChunk;
+  private final UseLeftThenRightAction useLeftThenRightChunk;
+  private final UseRightThenLeftAction useRightThenLeftChunk;
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
@@ -72,6 +72,10 @@ public class MergePanel extends JPanel implements IDiscardable
     acceptTheirsIcon = pAcceptTheirsIcon;
     discardIcon = pDiscardIcon;
     editorKitObservable = BehaviorSubject.createDefault(Optional.empty());
+    useLeftChunk = new UseLeftChunkAction();
+    useRightChunk = new UseRightChunkAction();
+    useLeftThenRightChunk = new UseLeftThenRightAction();
+    useRightThenLeftChunk = new UseRightThenLeftAction();
     _initGui(pYoursOrigin, pTheirsOrigin);
     initHeightsObs = BehaviorSubject.create();
     initHeightsObs.onNext(Optional.empty());
@@ -320,7 +324,7 @@ public class MergePanel extends JPanel implements IDiscardable
 
     public UseLeftChunkAction()
     {
-      super("Use Left");
+      super(iconLoader.getIcon(Constants.ACCEPT_LEFT_CONFLICT));
       putValue(SHORT_DESCRIPTION, "Apply the Left Change and discard the Left Change");
     }
 
@@ -339,7 +343,7 @@ public class MergePanel extends JPanel implements IDiscardable
 
     public UseRightChunkAction()
     {
-      super("Use Right");
+      super(iconLoader.getIcon(Constants.ACCEPT_RIGHT_CONFLICT));
       putValue(SHORT_DESCRIPTION, "Apply the Right Change and discard the Left Change");
     }
 
@@ -358,7 +362,7 @@ public class MergePanel extends JPanel implements IDiscardable
 
     public UseLeftThenRightAction()
     {
-      super("Apply Left then Right");
+      super(iconLoader.getIcon(Constants.ACCEPT_LEFT_THEN_RIGHT_CONFLICT));
       putValue(SHORT_DESCRIPTION, "Apply the Left Change, then the Right Change");
     }
 
@@ -377,7 +381,7 @@ public class MergePanel extends JPanel implements IDiscardable
 
     public UseRightThenLeftAction()
     {
-      super("Apply Right then Left");
+      super(iconLoader.getIcon(Constants.ACCEPT_RIGHT_THEN_LEFT_CONFLICT));
       putValue(SHORT_DESCRIPTION, "Apply the Right Change, then the Left Change");
     }
 
@@ -400,9 +404,9 @@ public class MergePanel extends JPanel implements IDiscardable
 
     IChangeDelta currentDelta = null;
 
-    public MergeChunkAction(String name)
+    public MergeChunkAction(Icon icon)
     {
-      super(name);
+      super(null, icon);
     }
 
     public void setCurrentDelta(@Nullable IChangeDelta pChangeDelta)

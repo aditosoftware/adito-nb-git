@@ -35,9 +35,13 @@ public class Constants
   public static final String EXPAND_TREE_ACTION_ICON = "de/adito/git/gui/icons/expand.png";
   public static final String COLLAPSE_TREE_ACTION_ICON = "de/adito/git/gui/icons/compress.png";
   public static final String CHERRY_PICK = "de/adito/git/gui/icons/cherrypick.png";
-  public static final String ACCEPT_ALL_LEFT = "de/adito/git/gui/icons/acceptLeft.png";
-  public static final String ACCEPT_ALL_RIGHT = "de/adito/git/gui/icons/acceptRight.png";
-  public static final String ACCEPT_ALL_NON_CONFLICTING = "de/adito/git/gui/icons/accept-non-conflicting.png";
+  public static final String ACCEPT_ALL_LEFT = "de/adito/git/gui/icons/left-nonConflicting.png";
+  public static final String ACCEPT_ALL_RIGHT = "de/adito/git/gui/icons/right-nonConflicting.png";
+  public static final String ACCEPT_ALL_NON_CONFLICTING = "de/adito/git/gui/icons/left_right-nonConflicting.png";
+  public static final String ACCEPT_LEFT_CONFLICT = "de/adito/git/gui/icons/left-conflicting.png";
+  public static final String ACCEPT_RIGHT_CONFLICT = "de/adito/git/gui/icons/right-conflicting.png";
+  public static final String ACCEPT_LEFT_THEN_RIGHT_CONFLICT = "de/adito/git/gui/icons/left_right-conflicting.png";
+  public static final String ACCEPT_RIGHT_THEN_LEFT_CONFLICT = "de/adito/git/gui/icons/right_left-conflicting.png";
   public static final String SWITCH_TREE_VIEW_FLAT = "de/adito/git/gui/icons/tree_view_flat.png";
   public static final String SWITCH_TREE_VIEW_HIERARCHICAL = "de/adito/git/gui/icons/tree_view_hierarchical.png";
   public static final String SHOW_MORE_DIALOG_OPTION = "de/adito/git/gui/icons/arrowRightSmall12.png";
