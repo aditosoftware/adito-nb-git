@@ -1,5 +1,5 @@
 import { ContextUtils, AdminViewUtils  } from "Context_lib";
-import { AttributeUtil, AttributeRelationUtils, AttributeType, AttributeTypeUtil, AttributeUsageUtil, AttributeRelationQuery, AttributeRelation, AttributeTypes } from "Attribute_lib";
+import { AttributeUtil, AttributeRelationUtils, AttributeTypes, AttributeTypeUtil, AttributeUsageUtil, AttributeRelationQuery, AttributeRelation, AttributeType } from "Attribute_lib";
 import { neon } from "@aditosoftware/jdito-types";
 import { vars } from "@aditosoftware/jdito-types";
 import { ActivityUtils, TaskUtils  } from "ActivityTask_lib";
