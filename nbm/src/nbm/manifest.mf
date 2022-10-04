@@ -6,6 +6,19 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.5</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Added buttons for resolving both sides of a conflict in a merge at once</li>
+    <li>The table that shows the merge conflicts now keeps its selection when the contents of the table are changed and retains focus after a conflict is resolved</li>
+    <li>Added additional logging to the actions that are performed prior to a push</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: Accepting resolveable conflicts with imports leads to a disconnect between displayed content and actual content of the textPanes</li>
+    <li>Fix: Discarding changes from the right side of a merge can lead to wrong indices for the changed chunks</li>
+    <li>Fix: In some circumstances the calculation of the chunks can lead to an Exception that prevents displaying all other chunks</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.4</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
