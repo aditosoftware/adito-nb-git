@@ -11,15 +11,20 @@ import de.adito.git.api.exception.*;
 import de.adito.git.impl.dag.DAGFilterIterator;
 import de.adito.git.impl.data.TrackingRefUpdate;
 import de.adito.git.impl.data.*;
-import de.adito.git.impl.data.diff.*;
+import de.adito.git.impl.data.diff.FileContentInfoImpl;
+import de.adito.git.impl.data.diff.FileDiffHeaderImpl;
+import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.ssh.ISshProvider;
 import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.util.reactive.AbstractListenerObservable;
-import de.adito.util.reactive.cache.*;
+import de.adito.util.reactive.cache.ObservableCache;
+import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.*;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.reactivex.rxjava3.subjects.*;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
@@ -29,23 +34,30 @@ import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
-import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
-import org.eclipse.jgit.treewalk.*;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.*;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -314,12 +326,16 @@ public class RepositoryImpl implements IRepository
   @Override
   public boolean isUpToDate(@NotNull IBranch pCommit, @NotNull IBranch pCompareTo) throws AditoGitException
   {
-    fetch();
     try
     {
+      logger.log(Level.INFO, "git up to date check has commit {0} before fetch",
+                 ObjectId.toString(RepositoryImplHelper.findForkPoint(git, pCommit.getName(), pCompareTo.getName())));
+      fetch();
       String forkPointId = ObjectId.toString(RepositoryImplHelper.findForkPoint(git, pCommit.getName(), pCompareTo.getName()));
+      logger.log(Level.INFO, "git up to date check has commit {0} after fetch", forkPointId);
       // get the branch from the repo to refresh the attached id - otherwise the id may be out of date
       IBranch refreshedRemoteBranch = getBranch(pCompareTo.getName());
+      logger.log(Level.INFO, "git up to date check has commit {0} for the remote branch", refreshedRemoteBranch.getId());
       return forkPointId.equals(refreshedRemoteBranch.getId());
     }
     catch (IOException pE)
@@ -1886,18 +1902,18 @@ public class RepositoryImpl implements IRepository
       File gitExclude = new File(git.getRepository().getDirectory(), "info/exclude");
       long oldLastModified = lastModified;
       lastModified = Math.max(gitIgnore.lastModified(), gitExclude.lastModified());
-      if(oldLastModified != lastModified)
+      if (oldLastModified != lastModified)
       {
         ignoreNode = new IgnoreNode();
 
         // Parse .gitignore
         if (gitIgnore.exists())
         {
-          try(FileInputStream is = new FileInputStream(gitIgnore))
+          try (FileInputStream is = new FileInputStream(gitIgnore))
           {
             ignoreNode.parse(is);
           }
-          catch(Exception e)
+          catch (Exception e)
           {
             logger.log(Level.WARNING, "Failed to parse .gitignore", e);
           }
@@ -1906,11 +1922,11 @@ public class RepositoryImpl implements IRepository
         // Parse git exclude
         if (gitExclude.exists())
         {
-          try(FileInputStream is = new FileInputStream(gitExclude))
+          try (FileInputStream is = new FileInputStream(gitExclude))
           {
             ignoreNode.parse(is);
           }
-          catch(Exception e)
+          catch (Exception e)
           {
             logger.log(Level.WARNING, "Failed to parse git exclude", e);
           }
