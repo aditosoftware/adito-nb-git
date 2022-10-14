@@ -7,13 +7,14 @@
   <groupId>de.adito.git</groupId>
   <artifactId>adito-nb-git</artifactId>
   <packaging>pom</packaging>
-  <version>1.9.5</version>
+  <version>${revision}</version>
 
   <properties>
     <netbeans.version>RELEASE111</netbeans.version>
     <maven.plugin.version>3.2.0</maven.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <revision>1.9.6</revision>
   </properties>
 
   <repositories>
@@ -199,6 +200,32 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.2</version>
+      </plugin>
+
+      <!-- resolves the revision variables to their actual values on build. Without this, the POMs in the built modules still have the revision property as version value -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
