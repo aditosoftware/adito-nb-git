@@ -5,3 +5,4 @@
 !/.idea/projectCodeStyle.xml
 target/
 */keystore
+*.flattened-pom.xml
