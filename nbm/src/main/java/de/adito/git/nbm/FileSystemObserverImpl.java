@@ -3,7 +3,7 @@ package de.adito.git.nbm;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IRepositoryDescription;
 import io.reactivex.rxjava3.disposables.*;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 import org.openide.filesystems.*;
 import org.openide.util.NbBundle;
 
@@ -32,14 +32,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
     {
       fsListener = new _FileSystemListener();
       _addFSListener();
-
       disposable.add(Disposable.fromRunnable(this::_removeFSListener));
-      disposable.add(gitIgnoreFacade.observeIgnorationChange()
-                         .distinctUntilChanged()
-                         .subscribe(pTime -> {
-                           _removeFSListener();
-                           _addFSListener();
-                         }));
     }
     else
     {
@@ -69,7 +62,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
   @Override
   public void fireChange()
   {
-    _notifyListeners();
+    _notifyListeners(null);
   }
 
   @Override
@@ -86,24 +79,34 @@ class FileSystemObserverImpl implements IFileSystemObserver
 
   private void _addFSListener()
   {
-    FileUtil.addRecursiveListener(fsListener, FileUtil.toFile(root),
-                                  pFile -> !gitIgnoreFacade.isIgnored(pFile), disposable::isDisposed);
+    FileUtil.addFileChangeListener(fsListener);
   }
 
   private void _removeFSListener()
   {
-    try
-    {
-      FileUtil.removeRecursiveListener(fsListener, FileUtil.toFile(root));
-    }
-    catch(Exception e)
-    {
-      // ignore
-    }
+    FileUtil.removeFileChangeListener(fsListener);
   }
 
-  private void _notifyListeners()
+  /**
+   * Notifies, that the file system has changed
+   *
+   * @param pFileObject file that has changed, null to force-trigger an event
+   */
+  private void _notifyListeners(@Nullable FileObject pFileObject)
   {
+    // Check if notification has to be scheduled
+    // null triggers a notification every time, because we do not know which fileobject has changed
+    if (pFileObject != null)
+    {
+      // check: is located under root?
+      if (!FileUtil.isParentOf(root, pFileObject))
+        return;
+
+      // check: file ignored?
+      if (gitIgnoreFacade.isIgnored(FileUtil.toFile(pFileObject)))
+        return;
+    }
+
     ArrayList<IFileSystemChangeListener> copy;
 
     synchronized (fileSystemChangeListeners)
@@ -122,37 +125,37 @@ class FileSystemObserverImpl implements IFileSystemObserver
     @Override
     public void fileFolderCreated(FileEvent pEvent)
     {
-      _notifyListeners();
+      _notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileDataCreated(FileEvent pEvent)
     {
-      _notifyListeners();
+      _notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileChanged(FileEvent pEvent)
     {
-      _notifyListeners();
+      _notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileDeleted(FileEvent pEvent)
     {
-      _notifyListeners();
+      _notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileRenamed(FileRenameEvent pEvent)
     {
-      _notifyListeners();
+      _notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileAttributeChanged(FileAttributeEvent pEvent)
     {
-      _notifyListeners();
+      _notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
   }
 }
