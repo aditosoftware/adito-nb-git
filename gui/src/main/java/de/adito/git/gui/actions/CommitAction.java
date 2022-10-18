@@ -116,14 +116,10 @@ class CommitAction extends AbstractTableAction
       if (prefStoreInstanceKey != null)
         pPrefStore.put(prefStoreInstanceKey, null);
       Optional<IRepositoryState> repositoryState = pRepo.getRepositoryState().blockingFirst();
-      if (repositoryState.isPresent())
+      if (repositoryState.isPresent() && dialogResult.isPush())
       {
         PushAction._performPush(pProgress, pRepo, false, repositoryState.map(IRepositoryState::getCurrentRemoteTrackedBranch).map(IBranch::getRemoteName).orElse(null),
                                 repositoryState.get(), pNotifyUtil);
-      }
-      if (dialogResult.isPush())
-      {
-        pRepo.push(false, repositoryState.map(IRepositoryState::getCurrentRemoteTrackedBranch).map(IBranch::getRemoteName).orElse(null));
       }
     });
   }
