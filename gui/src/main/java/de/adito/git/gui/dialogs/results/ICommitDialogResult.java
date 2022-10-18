@@ -9,4 +9,6 @@ public
 interface ICommitDialogResult<S, T> extends IDialogResult<S, T>
 {
   boolean doCommit();
+
+  boolean isPush();
 }

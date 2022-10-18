@@ -1,5 +1,7 @@
 package de.adito.git.api.data;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Definition about what methods a Branch object should provide
  *
@@ -20,6 +22,14 @@ public interface IBranch
    * @return the identifier of the Branch as String
    */
   String getId();
+
+  /**
+   * Determine from which remote this branch is, if this is a remote branch. Returns null if this branch is not a remote branch or the remote cannot be determined
+   *
+   * @return Remote this branch belongs to, or null if this is not a remote branch
+   */
+  @Nullable
+  String getRemoteName();
 
   /**
    * @return a String of the short Name, i.e. master. If the branch is a remote branch, the name of the remote is preprended, e.g. origin/master
@@ -67,6 +77,12 @@ public interface IBranch
 
     @Override
     public String getId()
+    {
+      return null;
+    }
+
+    @Override
+    public @Nullable String getRemoteName()
     {
       return null;
     }

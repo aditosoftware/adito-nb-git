@@ -2,8 +2,10 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
+import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
@@ -38,6 +40,7 @@ class CommitAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final IPrefStore prefStore;
   private final ISaveUtil saveUtil;
+  private INotifyUtil notifyUtil;
   private String messageTemplate;
   private final Observable<Optional<IRepository>> repository;
   private final IDialogProvider dialogProvider;
@@ -45,12 +48,13 @@ class CommitAction extends AbstractTableAction
 
   @Inject
   CommitAction(IPrefStore pPrefStore, IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil,
-               @Assisted Observable<Optional<IRepository>> pRepository,
+               INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository,
                @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @Assisted String pMessageTemplate)
   {
     super("Commit", _getIsEnabledObservable(pRepository, pSelectedFilesObservable));
     prefStore = pPrefStore;
     saveUtil = pSaveUtil;
+    notifyUtil = pNotifyUtil;
     messageTemplate = pMessageTemplate;
     putValue(Action.SMALL_ICON, pIconLoader.getIcon(Constants.COMMIT_ACTION_ICON));
     putValue(Action.SHORT_DESCRIPTION, "Commit selected changed files");
@@ -83,7 +87,8 @@ class CommitAction extends AbstractTableAction
     // if user didn't cancel the dialogs
     if (dialogResult.doCommit())
     {
-      performCommit(repo, progressFacade, prefStore, dialogResult, prefStoreInstanceKey);
+      IRepository currentRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(CommitAction.class, "noValidRepoMsg")));
+      performCommit(currentRepo, progressFacade, prefStore, dialogResult, prefStoreInstanceKey, notifyUtil);
     }
     else
     {
@@ -94,23 +99,32 @@ class CommitAction extends AbstractTableAction
   /**
    * perform a commit based on the dialogResult
    *
-   * @param repo                 Observable of the Repository, used to trigger the commit
+   * @param pRepo                Observable of the Repository, used to trigger the commit
    * @param pProgressFacade      IAsyncProgessFacade to display the progress of the commit
    * @param pPrefStore           PrefStore to store the commit message if the user aborts the commit
    * @param dialogResult         ICommitDialogResult that contains the info about the files the user wants to commit and if the commit should be performed at all
    * @param prefStoreInstanceKey Key for the stored commit message
+   * @param pNotifyUtil          NotifyUtil for telling the user if the action succeeded or which problems occurred
    */
-  static void performCommit(@NotNull Observable<Optional<IRepository>> repo, @NotNull IAsyncProgressFacade pProgressFacade, @NotNull IPrefStore pPrefStore,
-                            @NotNull ICommitDialogResult<?, CommitDialogResult> dialogResult,
-                            @Nullable String prefStoreInstanceKey)
+  static void performCommit(@NotNull IRepository pRepo, @NotNull IAsyncProgressFacade pProgressFacade, @NotNull IPrefStore pPrefStore,
+                            @NotNull ICommitDialogResult<?, CommitDialogResult> dialogResult, @Nullable String prefStoreInstanceKey, @NotNull INotifyUtil pNotifyUtil)
   {
     pProgressFacade.executeInBackground("Committing Changes", pProgress -> {
       List<File> files = dialogResult.getInformation().getSelectedFiles();
-      IRepository iRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(CommitAction.class, "noValidRepoMsg")));
-      iRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().getUserName(), dialogResult.getInformation().getUserMail(),
+      pRepo.commit(dialogResult.getMessage(), files, dialogResult.getInformation().getUserName(), dialogResult.getInformation().getUserMail(),
                    dialogResult.getInformation().isDoAmend());
       if (prefStoreInstanceKey != null)
         pPrefStore.put(prefStoreInstanceKey, null);
+      Optional<IRepositoryState> repositoryState = pRepo.getRepositoryState().blockingFirst();
+      if (repositoryState.isPresent())
+      {
+        PushAction._performPush(pProgress, pRepo, false, repositoryState.map(IRepositoryState::getCurrentRemoteTrackedBranch).map(IBranch::getRemoteName).orElse(null),
+                                repositoryState.get(), pNotifyUtil);
+      }
+      if (dialogResult.isPush())
+      {
+        pRepo.push(false, repositoryState.map(IRepositoryState::getCurrentRemoteTrackedBranch).map(IBranch::getRemoteName).orElse(null));
+      }
     });
   }
 

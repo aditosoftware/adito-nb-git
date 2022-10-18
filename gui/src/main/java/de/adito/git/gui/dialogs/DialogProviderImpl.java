@@ -183,7 +183,8 @@ class DialogProviderImpl implements IDialogProvider
       DelayedSupplier<List<IBeforeCommitAction>> beforeCommitActions = new DelayedSupplier<>();
       result = dialogDisplayer.showDialog(pIsValidDescriptor -> dialogFactory.createCommitDialog(pIsValidDescriptor, pRepository, pFilesToCommit,
                                                                                                  pMessageTemplate, beforeCommitActions, filesToCommitSupplier),
-                                          "Commit", List.of(new CommitDialogConditionalButton(beforeCommitActions, filesToCommitSupplier),
+                                          "Commit", List.of(new CommitDialogConditionalButton(EButtons.COMMIT, beforeCommitActions, filesToCommitSupplier),
+                                                            new CommitDialogConditionalButton(EButtons.COMMIT_AND_PUSH, beforeCommitActions, filesToCommitSupplier),
                                                             EButtons.CANCEL).toArray(new Object[0]));
       return new CommitDialogResultImpl<>(result);
     }
@@ -205,7 +206,13 @@ class DialogProviderImpl implements IDialogProvider
     @Override
     public boolean doCommit()
     {
-      return selectedButton == EButtons.COMMIT;
+      return selectedButton == EButtons.COMMIT || selectedButton == EButtons.COMMIT_AND_PUSH;
+    }
+
+    @Override
+    public boolean isPush()
+    {
+      return selectedButton == EButtons.COMMIT_AND_PUSH;
     }
   }
 

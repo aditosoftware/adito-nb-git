@@ -14,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -88,7 +89,7 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
     Object pressedButton;
     if (pressedButtonObject.equals(defaultButton))
       pressedButton = pButtons[0];
-    else if (pressedButtonObject instanceof EButtons)
+    else if (Arrays.asList(descriptorButtons).contains(pressedButtonObject))
       pressedButton = pressedButtonObject;
     else
       pressedButton = EButtons.ESCAPE;

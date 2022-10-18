@@ -26,6 +26,7 @@ public enum EButtons
   DELETE("Delete"),
   SAVE("Save"),
   COMMIT("Commit"),
+  COMMIT_AND_PUSH("Commit & Push"),
   UNSTASH("Unstash commit"),
   CREATE_NEW_BRANCH("Create new remote branch"),
   KEEP_TRACKING("Keep tracking the selected branch"),

@@ -113,7 +113,10 @@ class ResolveConflictsAction extends AbstractTableAction
                             "merged xxx into " + pRepo.getRepositoryState().blockingFirst(Optional.empty())
                                 .map(pRepoState -> pRepoState.getCurrentBranch().getSimpleName()).orElse(""));
       if (dialogResult.doCommit())
-        CommitAction.performCommit(repository, progressFacade, prefStore, dialogResult, null);
+      {
+        IRepository currentRepo = repository.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(ResolveConflictsAction.class, "noValidRepoMsg")));
+        CommitAction.performCommit(currentRepo, progressFacade, prefStore, dialogResult, null, notifyUtil);
+      }
     }
   }
 

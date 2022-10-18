@@ -24,6 +24,8 @@ public class BranchImpl implements IBranch
   private final TrackedBranchStatusCache trackedBranchStatusCache;
   private EBranchType branchType;
   private final String simpleName;
+  @Nullable
+  private String remoteName = null;
 
   public BranchImpl(@NotNull Ref pBranchRef, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
@@ -43,6 +45,7 @@ public class BranchImpl implements IBranch
       {
         simpleNameRaw = simpleNameRaw.substring(REMOTE_STRING.length());
         branchType = EBranchType.REMOTE;
+        remoteName = simpleNameRaw.substring(0, simpleNameRaw.indexOf("/"));
       }
     }
     if (getName().split("/").length == 1 && "DETACHED".equals(branchRef.getName()))
@@ -85,6 +88,12 @@ public class BranchImpl implements IBranch
       return ObjectId.toString(branchRef.getObjectId());
     else
       return simpleName;
+  }
+
+  @Override
+  public @Nullable String getRemoteName()
+  {
+    return remoteName;
   }
 
   /**

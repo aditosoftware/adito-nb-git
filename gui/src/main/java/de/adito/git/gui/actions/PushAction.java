@@ -16,7 +16,6 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IChangeTrackedBranchDialogResult;
 import de.adito.git.gui.dialogs.results.IPushDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
-import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +39,7 @@ class PushAction extends AbstractAction
 
   private static final String BRANCH_STRING = "branch";
   private static final String FAILURE_HEADER = "Push failed";
-  private final Logger logger = Logger.getLogger(PushAction.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(PushAction.class.getName());
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
@@ -94,7 +93,7 @@ class PushAction extends AbstractAction
         }
         catch (InterruptedException | ExecutionException pE)
         {
-          logger.log(Level.WARNING, pE, () -> "Exception while waiting for the job that determines the unpushed commits");
+          LOGGER.log(Level.WARNING, pE, () -> "Exception while waiting for the job that determines the unpushed commits");
           Thread.currentThread().interrupt();
         }
       }
@@ -105,7 +104,7 @@ class PushAction extends AbstractAction
 
         final String remoteNameFinal = remoteName;
         progressFacade.executeInBackground("Pushing Commits", pHandle -> {
-          _performPush(pHandle, pRepo, dialogResult, remoteNameFinal, repoState);
+          _performPush(pHandle, pRepo, dialogResult.getInformation(), remoteNameFinal, repoState, notifyUtil);
         });
       }
       else
@@ -137,53 +136,50 @@ class PushAction extends AbstractAction
   }
 
   /**
-   * @param pHandle       handle of the progressFacade
-   * @param pRepo         current repo
-   * @param pDialogResult dialogResult of the PushDialog
-   * @param pRemoteName   name of the remote to push to
-   * @param repoState     current state of the repo
+   * @param pHandle     handle of the progressFacade
+   * @param pRepo       current repo
+   * @param pIsPushTags determines whether tags are pushed or not
+   * @param pRemoteName name of the remote to push to
+   * @param repoState   current state of the repo
    */
-  private void _performPush(@NotNull IProgressHandle pHandle, @NotNull IRepository pRepo, @NotNull IPushDialogResult<?, Boolean> pDialogResult,
-                            @Nullable String pRemoteName, @Nullable IRepositoryState repoState)
+  static void _performPush(@NotNull IProgressHandle pHandle, @NotNull IRepository pRepo, boolean pIsPushTags,
+                           @Nullable String pRemoteName, @Nullable IRepositoryState repoState, @NotNull INotifyUtil pNotifyUtil)
   {
     try
     {
 
-      if (pDialogResult.isPush())
+      pHandle.setDescription("Pushing");
+      _doPush(pRepo, pIsPushTags, pRemoteName, pNotifyUtil);
+      if (pRepo.getRepositoryState().blockingFirst().map(pRepoState -> pRepoState.getCurrentRemoteTrackedBranch() == null).orElse(false) && pRemoteName != null
+          && repoState != null)
       {
-        pHandle.setDescription("Pushing");
-        _doPush(pDialogResult.getInformation(), pRemoteName);
-        if (pRepo.getRepositoryState().blockingFirst().map(pRepoState -> pRepoState.getCurrentRemoteTrackedBranch() == null).orElse(false) && pRemoteName != null
-            && repoState != null)
-        {
 
-          pRepo.getConfig().establishTrackingRelationship(repoState.getCurrentBranch().getSimpleName(), repoState.getCurrentBranch().getName(), pRemoteName);
-        }
-        notifyUtil.notify("Push", "Push was successful", true);
+        pRepo.getConfig().establishTrackingRelationship(repoState.getCurrentBranch().getSimpleName(), repoState.getCurrentBranch().getName(), pRemoteName);
       }
+      pNotifyUtil.notify("Push", "Push was successful", true);
     }
     catch (GitTransportFailureException pE)
     {
       if (pE.getCause().getMessage().endsWith("push not permitted"))
       {
-        notifyUtil.notify(pE, FAILURE_HEADER + " You may have insufficient rights for pushing to the remote. ", false);
+        pNotifyUtil.notify(pE, FAILURE_HEADER + " You may have insufficient rights for pushing to the remote. ", false);
       }
       else
       {
-        notifyUtil.notify(pE, FAILURE_HEADER + " An error occurred during transport, check your credentials and rights on the remote. ",
-                          false);
+        pNotifyUtil.notify(pE, FAILURE_HEADER + " An error occurred during transport, check your credentials and rights on the remote. ",
+                           false);
       }
-      logger.log(Level.SEVERE, pE, () -> "failed to push to remote");
+      LOGGER.log(Level.SEVERE, pE, () -> "failed to push to remote");
     }
     catch (PushRejectedOtherReasonException pE)
     {
-      notifyUtil.notify(pE, "Push failed with status: Rejected other reason. A possible cause can be pushing to a protected branch with insufficient permissions.\n" +
+      pNotifyUtil.notify(pE, "Push failed with status: Rejected other reason. A possible cause can be pushing to a protected branch with insufficient permissions.\n" +
           "Detailed message: " + pE.getMessage(), false);
     }
     catch (AditoGitException pE)
     {
       String errorMessage = "Error while finding un-pushed commits";
-      notifyUtil.notify(pE, errorMessage + ". ", false);
+      pNotifyUtil.notify(pE, errorMessage + ". ", false);
     }
   }
 
@@ -218,12 +214,9 @@ class PushAction extends AbstractAction
     return false;
   }
 
-  private void _doPush(Boolean pIsPushTags, String pRemoteName) throws AditoGitException
+  private static void _doPush(@NotNull IRepository pRepo, Boolean pIsPushTags, String pRemoteName, @NotNull INotifyUtil pNotifyUtil) throws AditoGitException
   {
-    Map<String, EPushResult> failedPushResults = repository
-        .blockingFirst()
-        .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")))
-        .push(pIsPushTags, pRemoteName);
+    Map<String, EPushResult> failedPushResults = pRepo.push(pIsPushTags, pRemoteName);
 
     if (!failedPushResults.isEmpty())
     {
@@ -242,7 +235,7 @@ class PushAction extends AbstractAction
       }
       String infoString = infoText.toString();
       RuntimeException pE = new RuntimeException(infoString);
-      notifyUtil.notify(pE, "Push failed. " + infoString, false);
+      pNotifyUtil.notify(pE, "Push failed. " + infoString, false);
     }
   }
 }

@@ -20,11 +20,13 @@ public class CommitDialogConditionalButton extends ConditionalDialogButton
 
   private final DelayedSupplier<List<IBeforeCommitAction>> beforeCommitActions;
   private final DelayedSupplier<List<File>> selectedFiles;
-  private EButtons pressedButton = EButtons.COMMIT;
+  private EButtons pressedButton;
 
-  public CommitDialogConditionalButton(@NotNull DelayedSupplier<List<IBeforeCommitAction>> pBeforeCommitActions, @NotNull DelayedSupplier<List<File>> pSelectedFiles)
+  public CommitDialogConditionalButton(@NotNull EButtons pButton, @NotNull DelayedSupplier<List<IBeforeCommitAction>> pBeforeCommitActions,
+                                       @NotNull DelayedSupplier<List<File>> pSelectedFiles)
   {
-    super(EButtons.COMMIT.toString());
+    super(pButton.toString());
+    pressedButton = pButton;
     beforeCommitActions = pBeforeCommitActions;
     selectedFiles = pSelectedFiles;
   }
