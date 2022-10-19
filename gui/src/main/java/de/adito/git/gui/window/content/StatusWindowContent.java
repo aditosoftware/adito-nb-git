@@ -16,8 +16,9 @@ import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.models.*;
 import de.adito.util.reactive.cache.*;
+import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.*;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,7 +85,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
       Runnable[] doAfterJobs = {this::showTree};
       treeUpdater = new ObservableTreeUpdater<>(changedFilesObs, statusTreeModel, pFileSystemUtil, doAfterJobs, this::showLoading);
       // after file changes the NoLocalChangesPanel needs to set visible or not
-      changedFilesObs.subscribe(files -> setNoLocalChangesPanelVisible(files.isEmpty()));
+      disposables.add(changedFilesObs.subscribe(files -> setNoLocalChangesPanelVisible(files.isEmpty())));
 
       selectionObservable = statusTree.getSelectionObservable();
       subject.onNext(selectionObservable);
