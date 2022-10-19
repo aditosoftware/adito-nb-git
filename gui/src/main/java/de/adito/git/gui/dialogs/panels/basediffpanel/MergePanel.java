@@ -325,7 +325,7 @@ public class MergePanel extends JPanel implements IDiscardable
     public UseLeftChunkAction()
     {
       super(iconLoader.getIcon(Constants.ACCEPT_LEFT_CONFLICT));
-      putValue(SHORT_DESCRIPTION, "Apply the Left Change and discard the Left Change");
+      putValue(SHORT_DESCRIPTION, "Apply the Left Change and discard the Right Change");
     }
 
     @Override
