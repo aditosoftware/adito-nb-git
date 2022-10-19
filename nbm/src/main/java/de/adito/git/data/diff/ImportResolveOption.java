@@ -44,7 +44,7 @@ public class ImportResolveOption implements ResolveOption
   public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide)
   {
     IJsParserUtility jsParserUtility = IJsParserUtility.getInstance();
-    // The nullable annotation is wrong here - at least in the only available implementation now. Lookups can return null if no service is found
+    //noinspection ConstantConditions The nullable annotation is wrong here - at least in the only available implementation now. Lookups can return null if no service is found
     if (jsParserUtility == null)
       return false;
     return Arrays.stream(pChangeDelta.getText(EChangeSide.NEW).split("\n"))
