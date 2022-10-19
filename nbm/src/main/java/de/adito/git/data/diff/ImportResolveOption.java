@@ -2,9 +2,11 @@ package de.adito.git.data.diff;
 
 import com.google.common.collect.Multimap;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.javascript.IJsParserUtility;
+import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.data.diff.ConflictPair;
 import de.adito.git.impl.data.diff.ResolveOption;
+import de.adito.git.nbm.IGitConstants;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -35,7 +37,7 @@ public class ImportResolveOption implements ResolveOption
     }
     catch (Exception pE)
     {
-      pE.printStackTrace();
+      IGitConstants.INJECTOR.getInstance(INotifyUtil.class).notify(pE, "Git: Error during conflict resolution", true);
     }
     return List.of();
   }
