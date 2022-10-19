@@ -6,7 +6,6 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.ISaveUtil;
 import de.adito.git.api.data.IBranch;
-import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
@@ -22,30 +21,22 @@ import java.util.Optional;
  */
 public class MergeRemoteAction extends MergeAction
 {
+  private final IActionProvider actionProvider;
+
   @Inject
   MergeRemoteAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil, INotifyUtil pNotifyUtil,
-                    MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepoObs,
+                    MergeConflictSequence pMergeConflictSequence, IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepoObs,
                     @Assisted Observable<Optional<IBranch>> pTargetBranch)
   {
     super(pPrefStore, pProgressFacade, pDialogProvider, pSaveUtil, pNotifyUtil, pMergeConflictSequence, pRepoObs, pTargetBranch);
+    actionProvider = pActionProvider;
     putValue(Action.NAME, "Fetch and merge into Current");
   }
 
   @Override
   public void actionPerformed(ActionEvent pEvent)
   {
-    repositoryObservable.blockingFirst().ifPresent(pIRepository -> {
-      try
-      {
-        pIRepository.fetch();
-      }
-      catch (AditoGitException pE)
-      {
-        pE.printStackTrace();
-      }
-    });
+    actionProvider.getFetchAction(repositoryObservable).actionPerformed(null);
     super.actionPerformed(pEvent);
   }
-
-
 }
