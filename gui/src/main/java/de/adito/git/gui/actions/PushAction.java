@@ -102,6 +102,8 @@ class PushAction extends AbstractAction
         IPushDialogResult<?, Boolean> dialogResult = dialogProvider.showPushDialog(Observable.just(repository.blockingFirst()),
                                                                                    commitList);
 
+        GitIndexLockUtil.checkAndHandleLockedIndexFile(pRepo, dialogProvider, notifyUtil);
+
         final String remoteNameFinal = remoteName;
         progressFacade.executeInBackground("Pushing Commits", pHandle -> {
           _performPush(pHandle, pRepo, dialogResult.getInformation(), remoteNameFinal, repoState, notifyUtil);

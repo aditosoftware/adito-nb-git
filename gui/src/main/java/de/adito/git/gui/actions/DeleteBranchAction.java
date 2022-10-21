@@ -65,6 +65,7 @@ class DeleteBranchAction extends AbstractTableAction
       }
       if (!hasRemoteTrackedBranch || dialogResult.isOkay())
       {
+        GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
         boolean isDeleteRemoteBranch = hasRemoteTrackedBranch && dialogResult.getSelectedButton() == EButtons.YES;
         progressFacade.executeInBackground(PROGRESS_MESSAGE_STRING + " " + branchName, pHandle -> {
           _deleteBranch(branchName, isDeleteRemoteBranch, repo);

@@ -8,6 +8,7 @@ import de.adito.git.api.data.ITrackingRefUpdate;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.exception.AuthCancelledException;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
 import org.apache.commons.lang3.StringUtils;
@@ -31,14 +32,16 @@ class FetchAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
   private final Logger logger = Logger.getLogger(FetchAction.class.getName());
+  private final IDialogProvider dialogProvider;
 
   @Inject
-  FetchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository)
+  FetchAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade, @Assisted Observable<Optional<IRepository>> pRepository, IDialogProvider pDialogProvider)
   {
     super(Util.getResource(FetchAction.class, "fetchTitle"), _getIsEnabledObservable(pRepository));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     repository = pRepository;
+    dialogProvider = pDialogProvider;
   }
 
   @Override
@@ -59,6 +62,8 @@ class FetchAction extends AbstractTableAction
   {
     try
     {
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(pRepo, dialogProvider, notifyUtil);
+
       List<ITrackingRefUpdate> fetchResults = pRepo.fetch();
       List<ITrackingRefUpdate> failedUpdates = fetchResults.stream()
           .filter(pITrackingRefUpdate -> !pITrackingRefUpdate.getResult().isSuccessfull())

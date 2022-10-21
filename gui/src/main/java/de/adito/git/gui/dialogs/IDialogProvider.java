@@ -148,11 +148,23 @@ public interface IDialogProvider
   /**
    * Shows a basic yes no dialog with the specified message as information for the user
    *
-   * @param pMessage message to display for the user
+   * @param pMessage message to display for the user. This message will also be the title
    * @return DialogResult with information about the choice of the user
+   * @see #showYesNoDialog(String, String)
    */
   @NotNull
   IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pMessage);
+
+  /**
+   * Shows a basic yes no dialog with the specified title and message as information for the user
+   *
+   * @param pTitle   the title of the dialog
+   * @param pMessage message to display for the user
+   * @return DialogResult with information about the choice of the user
+   * @see #showYesNoDialog(String)
+   */
+  @NotNull
+  IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pTitle, @NotNull String pMessage);
 
   /**
    * Shows a dialog with the specified message and the passed buttons.

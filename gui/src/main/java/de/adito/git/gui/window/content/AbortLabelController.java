@@ -5,6 +5,8 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.EResetType;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.actions.GitIndexLockUtil;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +19,7 @@ import java.util.Optional;
 /**
  * Label logic for the abort action in the branch menu, if the repository is in a safe state the contained label is set to show nothing,
  * otherwise this class tries to display text that is suitable for the current state (e.g. "Abort merge" if the repo is in an unsafe merging state)
- *
+ * <p>
  * The MouseListeners that execute the actual abort are also already included
  *
  * @author m.kaspera, 07.01.2020
@@ -29,9 +31,11 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
   private final INotifyUtil notifyUtil;
   private final IAsyncProgressFacade progressFacade;
   private MouseListener mouseListener = voidListener;
+  private final IDialogProvider dialogProvider;
 
   public AbortLabelController(@NotNull BranchWindowContent pBranchWindowContent, @NotNull Observable<Optional<IRepositoryState>> pRepoStateObservable,
-                              @NotNull Observable<Optional<IRepository>> pRepositoryObservable, @NotNull INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade)
+                              @NotNull Observable<Optional<IRepository>> pRepositoryObservable, @NotNull INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
+                              @NotNull IDialogProvider pDialogProvider)
   {
     super("", pRepoStateObservable);
     branchWindowContent = pBranchWindowContent;
@@ -40,6 +44,7 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
     progressFacade = pProgressFacade;
     label.addMouseListener(new BranchWindowContent._HoverMouseListener());
     label.addMouseMotionListener(new BranchWindowContent._HoverMouseListener());
+    dialogProvider = pDialogProvider;
   }
 
   @Override
@@ -86,6 +91,8 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
     {
       branchWindowContent.closeWindow();
       repositoryObservable.blockingFirst(Optional.empty()).ifPresent(repository -> progressFacade.executeAndBlockWithProgress("Resetting repository", pHandle -> {
+        GitIndexLockUtil.checkAndHandleLockedIndexFile(repository, dialogProvider, notifyUtil);
+
         repository.reset(repository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch().getId(), EResetType.HARD);
         notifyUtil.notify("Abort success", "Abort was successful", true);
       }));

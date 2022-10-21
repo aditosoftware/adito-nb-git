@@ -37,7 +37,7 @@ class ActionUtility
    * @param pDialogProvider DialogProvider to get the stash dialog
    * @param pRepository     repository to retrieve the changed files
    * @param pStashKey       Key with which the stash commit id should be saved
-   * @param pHandle         ProgressHandle to the the status to stashing, may be null
+   * @param pHandle         ProgressHandle to the status to stashing, may be null
    * @return true if the user selected an option that allows the action to continue, false if the user aborted
    * @throws AditoGitException thrown when trying to discard the changes and either HEAD cannot be determined or some other error occurs during the reset
    */

@@ -88,6 +88,11 @@ class CommitAction extends AbstractTableAction
     if (dialogResult.doCommit())
     {
       IRepository currentRepo = repo.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(CommitAction.class, "noValidRepoMsg")));
+
+      // check for locked index file
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(currentRepo, dialogProvider, notifyUtil);
+
+      // perform the commit
       performCommit(currentRepo, progressFacade, prefStore, dialogResult, prefStoreInstanceKey, notifyUtil);
     }
     else

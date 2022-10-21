@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
@@ -28,16 +29,19 @@ public class CheckoutCommitAction extends AbstractTableAction
   private final IAsyncProgressFacade progressFacade;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<ICommit>>> selectedCommitObservable;
+  private final IDialogProvider dialogProvider;
 
   @Inject
   public CheckoutCommitAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
-                              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+                              @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                              @NotNull IDialogProvider pDialogProvider)
   {
     super("Checkout Commit", _getIsEnabledObservable(pSelectedCommitObservable, pRepository));
     notifyUtil = pNotifyUtil;
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedCommitObservable = pSelectedCommitObservable;
+    dialogProvider = pDialogProvider;
   }
 
   @Override
@@ -51,6 +55,7 @@ public class CheckoutCommitAction extends AbstractTableAction
             .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
         try
         {
+          GitIndexLockUtil.checkAndHandleLockedIndexFile(pRepo, dialogProvider, notifyUtil);
           pRepo.setUpdateFlag(false);
           pRepo.checkout(selectedCommits.get(0).getId());
           notifyUtil.notify("Checkout successful", "Checkout of commit with id "

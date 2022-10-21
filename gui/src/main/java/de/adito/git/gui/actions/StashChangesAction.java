@@ -43,12 +43,15 @@ class StashChangesAction extends AbstractAction
     IRepository repo = repository.blockingFirst().orElse(null);
     if (repo != null)
     {
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
+
       IStashChangesDialogResult<?, StashChangesResult> dialogResult = dialogProvider.showStashChangesDialog();
       if (dialogResult.doStash())
       {
         progressFacade.executeAndBlockWithProgress(Util.getResource(StashChangesAction.class, "stashProgressMsg"), pHandle -> {
           try
           {
+            GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
             repo.stashChanges(dialogResult.getInformation().getStashMessage(), dialogResult.getInformation().isIncludeUnTracked());
           }
           catch (AditoGitException pE)

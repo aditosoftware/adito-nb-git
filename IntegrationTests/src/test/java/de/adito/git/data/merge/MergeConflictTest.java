@@ -7,6 +7,7 @@ import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.data.diff.ImportResolveOption;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.guice.dummies.SimpleNotifyUtil;
 import de.adito.git.gui.progress.SimpleAsyncProgressFacade;
 import de.adito.git.gui.sequences.MergeConflictSequence;
@@ -109,9 +110,12 @@ public class MergeConflictTest
       IFileDiff theirDiff = new FileDiffImpl(fileDiffHeader, StandAloneDiffProviderImpl.getChangedLines(pOriginalContents, pVersionBContents), oldFileContent, secondNewFileContent);
       IMergeData mergeData = new MergeDataImpl(yourFileDiff, theirDiff);
 
+      IDialogProvider dialogProvider = Mockito.mock(IDialogProvider.class);
+
       List<IMergeData> mergeDataList = new ArrayList<>();
       mergeDataList.add(mergeData);
-      MergeConflictSequence.performAutoResolve(mergeDataList, repository, asyncProgressFacade, notifyUtil, () -> List.of(new SameResolveOption(), new EnclosedResolveOption(), new WordBasedResolveOption(), new ImportResolveOption()));
+      MergeConflictSequence.performAutoResolve(mergeDataList, repository, asyncProgressFacade, notifyUtil,
+                                               () -> List.of(new SameResolveOption(), new EnclosedResolveOption(), new WordBasedResolveOption(), new ImportResolveOption()), dialogProvider);
 
       if (pExpectedResult != null)
       {

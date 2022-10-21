@@ -359,9 +359,15 @@ class DialogProviderImpl implements IDialogProvider
   @Override
   public @NotNull IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pMessage)
   {
+    return this.showYesNoDialog(pMessage, pMessage);
+  }
+
+  @Override
+  public @NotNull IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pTitle, @NotNull String pMessage)
+  {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createNotificationPanel(pMessage),
-                                                                       pMessage, List.of(EButtons.YES, EButtons.NO).toArray(new EButtons[0])))
+                                                                       pTitle, List.of(EButtons.YES, EButtons.NO).toArray(new EButtons[0])))
     {
       @Override
       public boolean isOkay()

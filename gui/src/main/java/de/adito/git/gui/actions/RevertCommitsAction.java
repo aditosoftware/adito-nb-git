@@ -61,6 +61,7 @@ public class RevertCommitsAction extends AbstractTableAction
     progressFacade.executeInBackgroundWithoutIndexing(String.format("Reverting %s commits", selectedCommits.size()), pHandle -> {
       try
       {
+        GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
         if (!repo.getStatus().blockingFirst().map(pStatus -> pStatus.getUncommitted().isEmpty()).orElse(true)
             && !ActionUtility.handleStash(prefStore, dialogProvider, repo, STASH_ID_KEY, pHandle))
         {

@@ -2,7 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IRepository;
+import de.adito.git.api.*;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.rxjava3.core.Observable;
@@ -24,9 +24,9 @@ class NewBranchAction extends AbstractNewBranchAction
    * @param pRepository     The repository where the new branch should exists
    */
   @Inject
-  NewBranchAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository)
+  NewBranchAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository, INotifyUtil pNotifyUtil)
   {
-    super(pProgressFacade, pDialogProvider, pRepository, Observable.just(Optional.empty()));
+    super(pProgressFacade, pDialogProvider, pRepository, Observable.just(Optional.empty()), pNotifyUtil);
     putValue(Action.NAME, "New Branch");
     putValue(Action.SHORT_DESCRIPTION, "Create a new branch in the repository");
   }
