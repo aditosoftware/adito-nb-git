@@ -57,6 +57,7 @@ class UnStashChangesAction extends AbstractAction
                                                                                                                       repo.getStashedCommits());
         if (dialogResult.doUnStash())
         {
+          GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
           _executeUnstash(repo, (DialogResult<?, String>) dialogResult);
         }
       }

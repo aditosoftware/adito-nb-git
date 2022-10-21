@@ -2,8 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.ISaveUtil;
+import de.adito.git.api.*;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
@@ -13,6 +12,7 @@ import de.adito.git.gui.dialogs.results.IRevertDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -33,10 +33,11 @@ class RevertWorkDirAction extends AbstractTableAction
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
   private final IDialogProvider dialogProvider;
   private final ISaveUtil saveUtil;
+  private final INotifyUtil notifyUtil;
 
   @Inject
   RevertWorkDirAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @NotNull INotifyUtil pNotifyUtil)
   {
     super("Revert", _getIsEnabledObservable(pSelectedFilesObservable));
     dialogProvider = pDialogProvider;
@@ -46,6 +47,7 @@ class RevertWorkDirAction extends AbstractTableAction
     progressFacade = pProgressFacade;
     repository = pRepository;
     selectedFilesObservable = pSelectedFilesObservable;
+    notifyUtil = pNotifyUtil;
   }
 
   @Override
@@ -58,10 +60,14 @@ class RevertWorkDirAction extends AbstractTableAction
         .orElse(new File("")));
     if (result.isRevertAccepted())
     {
+
       progressFacade.executeInBackgroundWithoutIndexing("Reverting", pHandle -> {
-        repository.blockingFirst()
-            .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")))
-            .revertWorkDir(filesToRevert
+        IRepository repo = repository.blockingFirst()
+            .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
+        
+        GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
+
+        repo.revertWorkDir(filesToRevert
                                .stream()
                                .map(IFileChangeType::getFile)
                                .collect(Collectors.toList()));

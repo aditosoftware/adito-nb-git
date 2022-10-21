@@ -73,6 +73,8 @@ class ResetAction extends AbstractTableAction
         .orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
     try
     {
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(pRepo, dialogProvider, notifyUtil);
+
       pRepo.setUpdateFlag(false);
       pRepo.reset(pSelectedCommits.get(0).getId(), pDialogResult.getInformation());
       notifyUtil.notify(Util.getResource(ResetAction.class, "resetSuccessTitle"),

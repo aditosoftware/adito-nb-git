@@ -9,6 +9,7 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
+import de.adito.git.gui.actions.GitIndexLockUtil;
 import de.adito.git.gui.dialogs.EButtons;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.panels.CheckboxPanel;
@@ -91,7 +92,7 @@ public class MergeConflictSequence
     if (repositoryOptional.isPresent() && (EAutoResolveOptions.ALWAYS.equals(autoResolveSettingsFlag) || (promptDialogResult != null && promptDialogResult.isOkay())))
     {
       showAutoResolveButton = false;
-      performAutoResolve(pMergeDetails.getMergeConflicts(), repositoryOptional.get(), asyncProgressFacade, notifyUtil, resolveOptionsProvider);
+      performAutoResolve(pMergeDetails.getMergeConflicts(), repositoryOptional.get(), asyncProgressFacade, notifyUtil, resolveOptionsProvider, dialogProvider);
     }
     return dialogProvider.showMergeConflictDialog(pRepo, pMergeDetails, pShowOnlyConflicting, showAutoResolveButton, pDialogTitle);
   }
@@ -104,7 +105,7 @@ public class MergeConflictSequence
    * @param pRepository     Repository, used to perform an add one the conflicting files to mark them as resolved
    */
   public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository, @NotNull IAsyncProgressFacade pProgressFacade,
-                                        @NotNull INotifyUtil pNotifyUtil, @NotNull ResolveOptionsProvider pResolveOptionsProvider)
+                                        @NotNull INotifyUtil pNotifyUtil, @NotNull ResolveOptionsProvider pResolveOptionsProvider, @NotNull IDialogProvider pDialogProvider)
   {
     int numConflictsTotal = pMergeConflicts.size();
     List<IMergeData> resolvedConflicts = new ArrayList<>();
@@ -142,6 +143,7 @@ public class MergeConflictSequence
         }
         pProgressHandle.progress(pMergeConflicts.size() - index);
       }
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(pRepository, pDialogProvider, pNotifyUtil);
       pRepository.add(resolvedFiles);
       pMergeConflicts.removeAll(resolvedConflicts);
       return List.of();

@@ -218,15 +218,6 @@ public interface IRepository extends IDiscardable
   void createPatch(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith, @NotNull OutputStream pWriteTo);
 
   /**
-   * compare two commits and write their differences to the provided outputStream as patch
-   *
-   * @param pOriginal  the older ICommit
-   * @param pCompareTo the later ICommit
-   * @param pWriteTo   OutputStream that the patch will be written to
-   */
-  void createPatch(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo, @NotNull OutputStream pWriteTo);
-
-  /**
    * Diff two strings, one coming from a file
    *
    * @param pString String to be compared with pFile
@@ -303,16 +294,6 @@ public interface IRepository extends IDiscardable
   String getFileVersion(String pCommitId, String pFilename) throws IOException;
 
   /**
-   * clones the repository located at the given url to the pDest directory
-   *
-   * @param pUrl  the url from which to pull from, as String
-   * @param pDest the location on the local disk
-   * @return {@code true} if the operation was successful, {@code false} otherwise
-   * @throws IOException if an error occurs during transport/reading of the file
-   */
-  boolean clone(@NotNull String pUrl, @NotNull File pDest) throws IOException;
-
-  /**
    * Represents the status of the observable
    *
    * @return List of IFileStatus that describe the different staging states of the local files
@@ -352,14 +333,6 @@ public interface IRepository extends IDiscardable
   void revertCommit(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException;
 
   /**
-   * resets all given files (basically the opposite of "git add")
-   *
-   * @param pFiles List of files that should be reset. Can also be null, in which case all changes are reset
-   * @throws AditoGitException if an error occurs
-   */
-  void reset(@NotNull List<File> pFiles) throws AditoGitException;
-
-  /**
    * Resets HEAD/the current branch to the given ID. The exact nature of the reset depends on the passed EResetType, check that Enum for more information about the
    * available types
    *
@@ -389,7 +362,6 @@ public interface IRepository extends IDiscardable
    */
   void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException;
 
-
   /**
    * get the blame annotations for one file
    *
@@ -406,15 +378,6 @@ public interface IRepository extends IDiscardable
    * @throws AditoGitException if an error occurs, such as a CheckoutConflict or the id cannot be resolved
    */
   void checkout(@NotNull String pId) throws AditoGitException;
-
-  /**
-   * Checks out the version of the files under pPaths as it was in the commit with pId
-   *
-   * @param pId    String with identifier of the object/commit to checkout
-   * @param pPaths paths of the files to checkout
-   * @throws AditoGitException if an error occurs, such as a CheckoutConflict or the id cannot be resolved
-   */
-  void checkoutFileVersion(@NotNull String pId, List<String> pPaths) throws AditoGitException;
 
   /**
    * check out a branch
@@ -573,15 +536,6 @@ public interface IRepository extends IDiscardable
   List<ICommit> getStashedCommits() throws AditoGitException;
 
   /**
-   * check if there is any stashed commit and return the id of the latest stashed commit if any exist
-   *
-   * @return String with the sha-1 id of latest stashed commit if at least one stashed commits exists, else null
-   * @throws AditoGitException if an error occurs
-   */
-  @Nullable
-  String peekStash() throws AditoGitException;
-
-  /**
    * Stash the uncommitted changes in the current working directory
    *
    * @param pMessage          Message that should be used as commit message for the stash commit
@@ -591,15 +545,6 @@ public interface IRepository extends IDiscardable
    */
   @Nullable
   String stashChanges(@Nullable String pMessage, boolean pIncludeUnTracked) throws AditoGitException;
-
-  /**
-   * un-stashed the latest stashed commit
-   *
-   * @return list with IMergeDatas if a conflict occurs during un-stashing, empty list if successful
-   * @throws AditoGitException if an error occurs
-   */
-  @NotNull
-  List<IMergeData> unStashIfAvailable() throws AditoGitException;
 
   /**
    * un-stash the changes of the specified stashed commit and drop the commit if the changes
@@ -644,4 +589,22 @@ public interface IRepository extends IDiscardable
    * @param pIsActive true if updates should be enabled, false otherwise
    */
   void setUpdateFlag(boolean pIsActive);
+
+  /**
+   * Checks if the index.lock file exists. The path to this file is {@code .git/index.lock}.
+   * <p>
+   * The index.lock file normally indicates that a git process is runnning. There is also a possibility where this file is not correctly removed after a git action, so the user needs to delete this file manually.
+   *
+   * @return {@code true} if an index.lock file exists, otherwise {@code false}
+   */
+  boolean checkForLockedIndexFile();
+
+  /**
+   * Deletes the  {@code .git/index.lock} file.
+   * You should check before if the file exists via {@link #checkForLockedIndexFile()}.
+   *
+   * @throws IOException if there is an error deleting this file
+   */
+  void deleteLockedIndexFile() throws IOException;
+
 }

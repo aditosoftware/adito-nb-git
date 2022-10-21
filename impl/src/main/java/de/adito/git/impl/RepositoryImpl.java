@@ -1,5 +1,6 @@
 package de.adito.git.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -596,13 +597,6 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public void createPatch(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo, @NotNull OutputStream pWriteTo)
-  {
-    logger.log(Level.INFO, () -> String.format("git creating patch for diff of %s %s", pCompareTo == null ? "" : pCompareTo.getId(), pOriginal));
-    diff(pOriginal, pCompareTo, pWriteTo);
-  }
-
-  @Override
   public IFileDiff diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException
   {
     return standAloneDiffProvider.diffOffline(new String(Files.readAllBytes(pFile.toPath()), fileSystemUtil.getEncoding(pFile)), pString);
@@ -894,33 +888,6 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public boolean clone(@NotNull String pUrl, @NotNull File pLocalPath)
-  {
-    logger.log(Level.INFO, () -> String.format("git clone %s %s", pUrl, pLocalPath));
-    if (Util.isDirEmpty(pLocalPath))
-    {
-      try
-      {
-        TransportConfigCallback transportConfigCallback = sshProvider.getTransportConfigCallBack(getConfig());
-        CloneCommand cloneRepo = Git.cloneRepository()
-            .setTransportConfigCallback(transportConfigCallback)
-            .setURI(pUrl)
-            .setDirectory(new File(pLocalPath, ""));
-        cloneRepo.call();
-      }
-      catch (GitAPIException e)
-      {
-        throw new RuntimeException(e);
-      }
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public @NotNull Observable<Optional<IFileStatus>> getStatus()
   {
     return observableCache.calculateParallel("getStatus", () -> Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
@@ -1014,28 +981,6 @@ public class RepositoryImpl implements IRepository
     try
     {
       revertCommand.call();
-    }
-    catch (GitAPIException pE)
-    {
-      throw new AditoGitException(pE);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void reset(@NotNull List<File> pFiles) throws AditoGitException
-  {
-    try
-    {
-      // add the files to the index, in case they are still untracked. JGit cannot reset untracked files
-      add(pFiles);
-      ResetCommand resetCommand = git.reset();
-      for (File file : pFiles)
-        resetCommand.addPath(Util.getRelativePath(file, git));
-      logger.log(Level.INFO, () -> String.format("git reset -- %s", pFiles));
-      resetCommand.call();
     }
     catch (GitAPIException pE)
     {
@@ -1168,23 +1113,6 @@ public class RepositoryImpl implements IRepository
     try
     {
       git.checkout().setName(pId).call();
-    }
-    catch (GitAPIException pE)
-    {
-      throw new AditoGitException(pE);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void checkoutFileVersion(@NotNull String pId, List<String> pPaths) throws AditoGitException
-  {
-    logger.log(Level.INFO, () -> String.format("git checkout %s %s", pId, pPaths));
-    try
-    {
-      git.checkout().setStartPoint(pId).addPaths(pPaths).call();
     }
     catch (GitAPIException pE)
     {
@@ -1674,27 +1602,6 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @Nullable String peekStash() throws AditoGitException
-  {
-    try
-    {
-      Collection<RevCommit> stashedCommits = git.stashList().call();
-      if (!stashedCommits.isEmpty())
-      {
-        return stashedCommits.iterator().next().getName();
-      }
-    }
-    catch (GitAPIException pE)
-    {
-      throw new AditoGitException(pE);
-    }
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public @Nullable String stashChanges(String pMessage, boolean pIncludeUnTracked) throws AditoGitException
   {
     logger.log(Level.INFO, () -> "trying to stash local changes to the working tree");
@@ -1720,21 +1627,6 @@ public class RepositoryImpl implements IRepository
     {
       throw new AditoGitException(pE);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @NotNull
-  @Override
-  public List<IMergeData> unStashIfAvailable() throws AditoGitException
-  {
-    String topMostStashedCommitId = peekStash();
-    if (topMostStashedCommitId != null)
-    {
-      return unStashChanges(topMostStashedCommitId);
-    }
-    return Collections.emptyList();
   }
 
   /**
@@ -1823,6 +1715,34 @@ public class RepositoryImpl implements IRepository
     }
     else
       UpdateFlag.getInstance().deactivate();
+  }
+
+  @Override
+  public boolean checkForLockedIndexFile()
+  {
+    File indexLock = _getIndexLockFile();
+    return indexLock.exists();
+  }
+
+  @Override
+  public void deleteLockedIndexFile() throws IOException
+  {
+    File indexLock = _getIndexLockFile();
+
+    Files.delete(indexLock.toPath());
+  }
+
+  /**
+   * Returns a File where the {@code index.lock} file should be.
+   * <p>
+   * This method should be used as a private method and is only package-visible, because it is needed in tests.
+   *
+   * @return the file for further interactions
+   */
+  @VisibleForTesting
+  @NotNull File _getIndexLockFile()
+  {
+    return new File(git.getRepository().getDirectory(), "index.lock");
   }
 
   @Override

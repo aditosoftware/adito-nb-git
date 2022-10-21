@@ -58,6 +58,9 @@ class ResolveConflictsAction extends AbstractTableAction
   {
     progressFacade.executeInBackground(NOTIFY_MESSAGE, pHandle -> {
       IRepository repo = repository.blockingFirst().orElseThrow();
+
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
+
       _resolveConflicts(repo);
     });
   }

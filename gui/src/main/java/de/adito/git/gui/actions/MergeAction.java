@@ -66,6 +66,7 @@ class MergeAction extends AbstractTableAction
       return;
     IRepository repository = repositoryObservable.blockingFirst().orElseThrow(() -> new RuntimeException(Util.getResource(this.getClass(), "noValidRepoMsg")));
 
+    GitIndexLockUtil.checkAndHandleLockedIndexFile(repository, dialogProvider, notifyUtil);
     // execute
     progressFacade.executeAndBlockWithProgressWithoutIndexing(MessageFormat.format(Util.getResource(MergeAction.class, "mergeProgressMsg"), selectedBranch.getSimpleName(),
                                                                                    repository.getRepositoryState().blockingFirst(Optional.empty())

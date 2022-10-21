@@ -94,6 +94,8 @@ class PullAction extends AbstractAction
     boolean doAbort = false;
     try
     {
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(pRepo, dialogProvider, notifyUtil);
+
       ICommit head = pRepo.getCommit(null);
       IRepositoryState repositoryState = pRepo.getRepositoryState().blockingFirst(Optional.empty()).orElse(null);
       if (repositoryState == null || repositoryState.getCurrentRemoteTrackedBranch() == null)

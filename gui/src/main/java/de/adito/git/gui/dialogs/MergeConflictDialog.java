@@ -12,6 +12,7 @@ import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.PopupMouseListener;
+import de.adito.git.gui.actions.GitIndexLockUtil;
 import de.adito.git.gui.dialogs.results.IMergeConflictResolutionDialogResult;
 import de.adito.git.gui.quicksearch.QuickSearchCallbackImpl;
 import de.adito.git.gui.quicksearch.SearchableTable;
@@ -115,7 +116,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     acceptYoursButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptYoursButton.getMaximumSize().getHeight()));
     acceptTheirsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) acceptTheirsButton.getMaximumSize().getHeight()));
     autoResolveButton.addActionListener(e -> {
-      MergeConflictSequence.performAutoResolve(mergeConflictDiffs.blockingFirst(List.of()), repository, progressFacade, notifyUtil, resolveOptionsProvider);
+      MergeConflictSequence.performAutoResolve(mergeConflictDiffs.blockingFirst(List.of()), repository, progressFacade, notifyUtil, resolveOptionsProvider, dialogProvider);
       autoResolveButton.setEnabled(false);
     });
     autoResolveButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int) autoResolveButton.getMaximumSize().getHeight()));
@@ -249,7 +250,10 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     try
     {
       if (resolvedFile != null)
+      {
+        GitIndexLockUtil.checkAndHandleLockedIndexFile(repository, dialogProvider, notifyUtil);
         repository.add(Collections.singletonList(resolvedFile));
+      }
       pMergeDatas.forEach(this::_removeFromMergeConflicts);
     }
     catch (AditoGitException pE)
@@ -262,6 +266,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   {
     Optional<List<IMergeData>> mergeDiffOptional = _observeSelectedMergeDiff().blockingFirst(Optional.empty());
     mergeDiffOptional.ifPresent(pIMergeData -> {
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(repository, dialogProvider, notifyUtil);
       MergeConflictSequence.acceptDefaultVersion(pIMergeData, pConflictSide, repository);
       mergeDiffOptional.get().forEach(this::_removeFromMergeConflicts);
     });

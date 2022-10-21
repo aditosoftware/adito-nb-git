@@ -2,8 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import de.adito.git.api.IRepository;
-import de.adito.git.api.ISaveUtil;
+import de.adito.git.api.*;
 import de.adito.git.api.data.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.prefs.IPrefStore;
@@ -41,6 +40,7 @@ class CheckoutAction extends AbstractTableAction
   private final ISaveUtil saveUtil;
   private final MergeConflictSequence mergeConflictSequence;
   private final Observable<Optional<IBranch>> branchObservable;
+  private final INotifyUtil notifyUtil;
 
   /**
    * @param pRepository The repository where the branch is
@@ -48,7 +48,8 @@ class CheckoutAction extends AbstractTableAction
    */
   @Inject
   CheckoutAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFactory, ISaveUtil pSaveUtil,
-                 MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch)
+                 MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch,
+                 @NotNull INotifyUtil pNotifyUtil)
   {
     super(Util.getResource(CheckoutAction.class, "checkoutTitle"), _getIsEnabledObservable(pRepository, pBranch));
     prefStore = pPrefStore;
@@ -60,6 +61,7 @@ class CheckoutAction extends AbstractTableAction
     putValue(Action.NAME, Util.getResource(CheckoutAction.class, "checkoutTitle"));
     putValue(Action.SHORT_DESCRIPTION, Util.getResource(CheckoutAction.class, "checkoutTooltip"));
     repositoryObservable = pRepository;
+    notifyUtil = pNotifyUtil;
   }
 
   @Override
@@ -74,6 +76,7 @@ class CheckoutAction extends AbstractTableAction
       progressFactory.executeAndBlockWithProgressWithoutIndexing(Util.getResource(CheckoutAction.class, "checkoutProgressMsg") + " " + branch.getSimpleName(), pProgress -> {
         try
         {
+          GitIndexLockUtil.checkAndHandleLockedIndexFile(repository, dialogProvider, notifyUtil);
           repository.setUpdateFlag(false);
           if (repository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false) &&
               !ActionUtility.handleStash(prefStore, dialogProvider, repository, STASH_ID_KEY, pProgress))

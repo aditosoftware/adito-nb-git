@@ -7,6 +7,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.progress.IAsyncProgressFacade;
+import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.rxjava3.core.Observable;
 
 import java.awt.event.ActionEvent;
@@ -27,16 +28,18 @@ public class MarkResolvedAction extends AbstractTableAction
   private final INotifyUtil notifyUtil;
   private final Observable<Optional<IRepository>> repository;
   private final Observable<Optional<List<IFileChangeType>>> selectedFilesObservable;
+  private final IDialogProvider dialogProvider;
 
   @Inject
   public MarkResolvedAction(IAsyncProgressFacade pProgressFacade, INotifyUtil pNotifyUtil, @Assisted Observable<Optional<IRepository>> pRepository,
-                            @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+                            @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, IDialogProvider pDialogProvider)
   {
     super("Mark resolved", _getIsEnabledObservable(pSelectedFilesObservable));
     progressFacade = pProgressFacade;
     notifyUtil = pNotifyUtil;
     repository = pRepository;
     selectedFilesObservable = pSelectedFilesObservable;
+    dialogProvider = pDialogProvider;
   }
 
   @Override
@@ -44,6 +47,7 @@ public class MarkResolvedAction extends AbstractTableAction
   {
     progressFacade.executeInBackground(NOTIFY_MESSAGE, pHandle -> {
       IRepository repo = repository.blockingFirst().orElseThrow();
+      GitIndexLockUtil.checkAndHandleLockedIndexFile(repo, dialogProvider, notifyUtil);
       repo.add(selectedFilesObservable.blockingFirst().orElse(List.of()).stream().map(IFileChangeType::getFile).collect(Collectors.toList()));
     });
     notifyUtil.notify("Mark resolved", "Selected conflicting files were marked as resolved", false);
