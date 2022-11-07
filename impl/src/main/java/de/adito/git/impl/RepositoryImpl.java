@@ -171,6 +171,7 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  @Override
   public void remove(List<File> pList) throws AditoGitException
   {
     logger.log(Level.FINE, () -> String.format("git rm %s", pList));
@@ -1084,6 +1085,7 @@ public class RepositoryImpl implements IRepository
     }
   }
 
+  @Override
   @NotNull
   public Optional<IBlame> getBlame(@NotNull File pFile)
   {
@@ -1253,6 +1255,7 @@ public class RepositoryImpl implements IRepository
     return null;
   }
 
+  @Override
   @NotNull
   public IMergeDetails getStashConflicts(String pStashedCommitId) throws AditoGitException
   {
@@ -1749,6 +1752,8 @@ public class RepositoryImpl implements IRepository
   public void discard()
   {
     disposables.clear();
+
+    git.getRepository().close();
   }
 
 
@@ -1789,6 +1794,7 @@ public class RepositoryImpl implements IRepository
   private class TrackedBranchStatusCacheImpl extends TrackedBranchStatusCache
   {
 
+    @Override
     @NotNull
     public TrackedBranchStatus getTrackedBranchStatus(@NotNull IBranch pBranch)
     {

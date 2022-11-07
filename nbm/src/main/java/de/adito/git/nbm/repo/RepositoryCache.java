@@ -31,7 +31,7 @@ public class RepositoryCache
   private static final ThreadPoolExecutor executorService = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 30, TimeUnit.SECONDS,
                                                                                    new ArrayBlockingQueue<>(20));
   private static RepositoryCache instance;
-  private final PropertyChangeListener pcl = new _OpenProjectListener();
+  private final PropertyChangeListener openProjectListener = new _OpenProjectListener();
   private final IRepositoryProviderFactory repositoryProviderFactory = IGitConstants.INJECTOR.getInstance(IRepositoryProviderFactory.class);
   private final BehaviorSubject<List<RepositoryProvider>> providers = BehaviorSubject.createDefault(List.of());
 
@@ -56,7 +56,7 @@ public class RepositoryCache
    */
   public void init()
   {
-    OpenProjects.getDefault().addPropertyChangeListener(pcl);
+    OpenProjects.getDefault().addPropertyChangeListener(openProjectListener);
     executorService.submit(RepositoryCache.this::_update);
   }
 
@@ -79,7 +79,7 @@ public class RepositoryCache
    */
   public void clear()
   {
-    OpenProjects.getDefault().removePropertyChangeListener(pcl);
+    OpenProjects.getDefault().removePropertyChangeListener(openProjectListener);
     for (Project project : OpenProjects.getDefault().getOpenProjects())
       _doOnProjectClose(project.getProjectDirectory());
     providers.onComplete();
@@ -222,10 +222,10 @@ public class RepositoryCache
    */
   private boolean _isDependencyProject(FileObject pProjectDirectory)
   {
-    for(FileObject fo = pProjectDirectory; fo != null; fo = fo.getParent())
+    for (FileObject fo = pProjectDirectory; fo != null; fo = fo.getParent())
     {
       //todo should not be hardcoded, but here is currently no other way to achieve this behavior
-      if(fo.getName().equalsIgnoreCase("node_modules"))
+      if (fo.getName().equalsIgnoreCase("node_modules"))
         return true;
     }
 
@@ -241,7 +241,7 @@ public class RepositoryCache
     public void propertyChange(PropertyChangeEvent pEvent)
     {
       if (pEvent.getPropertyName().equals(OpenProjects.PROPERTY_OPEN_PROJECTS))
-        executorService.submit(RepositoryCache.this::_update);
+        _update();
     }
   }
 }
