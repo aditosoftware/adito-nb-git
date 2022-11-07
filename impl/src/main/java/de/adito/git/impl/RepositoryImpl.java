@@ -1754,8 +1754,6 @@ public class RepositoryImpl implements IRepository
     disposables.clear();
 
     git.getRepository().close();
-    git.close();
-
   }
 
 
