@@ -1,8 +1,12 @@
 package de.adito.git.impl.data.diff;
 
+import lombok.*;
+
 /**
  * Pair of two integers for the first and last index of a line
  */
+@EqualsAndHashCode
+@ToString
 final class LineInfo
 {
 

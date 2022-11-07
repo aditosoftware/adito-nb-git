@@ -1,10 +1,14 @@
 package de.adito.git.impl.data.diff;
 
+import lombok.*;
+
 /**
  * Combines information about the start- and endTextOffsets of the two sides of a diff into one immutable data object
  *
  * @author m.kaspera, 27.02.2020
  */
+@EqualsAndHashCode
+@ToString
 final class ChangeDeltaTextOffsets
 {
 

@@ -1,28 +1,27 @@
 package de.adito.git.nbm.sidebar;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileChanges;
-import de.adito.git.api.data.diff.EChangeSide;
-import de.adito.git.api.data.diff.EChangeType;
-import de.adito.git.api.data.diff.IChangeDelta;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
+import lombok.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.logging.*;
 
 /**
  * PopupWindow for the EditorColorizer, basically a popup for the lines that are marked as changed.
@@ -33,6 +32,7 @@ import java.util.Optional;
 class ChunkPopupWindow extends JWindow
 {
 
+  private static final Logger LOGGER = Logger.getLogger(ChunkPopupWindow.class.getName());
   private static final int DEFAULT_MIN_WIDTH = 50;
   private static final int INSET_RIGHT = 25;
   private static final int MIN_HEIGHT = 16;
@@ -150,9 +150,11 @@ class ChunkPopupWindow extends JWindow
       _performRollback(pRollbackInformation, pTextComponent);
       windowDisposer.disposeWindow();
     });
+
     toolBar = new JToolBar(SwingConstants.HORIZONTAL);
     toolBar.setFloatable(false);
     toolBar.add(button);
+
     JButton nextChangeButton = new JButton(iconLoader.getIcon(Constants.NEXT_OCCURRENCE));
     IChangeDelta nextDelta = IFileChanges.getNextChangedChunk(this.changeDelta, changeChunkList.blockingFirst());
     if (nextDelta != null)
@@ -163,6 +165,7 @@ class ChunkPopupWindow extends JWindow
     {
       nextChangeButton.setEnabled(false);
     }
+
     JButton previousChangeButton = new JButton(iconLoader.getIcon(Constants.PREVIOUS_OCCURRENCE));
     IChangeDelta previousDelta = IFileChanges.getPreviousChangedChunk(changeDelta, changeChunkList.blockingFirst());
     if (previousDelta != null)
@@ -173,6 +176,7 @@ class ChunkPopupWindow extends JWindow
     {
       previousChangeButton.setEnabled(false);
     }
+
     toolBar.add(nextChangeButton);
     toolBar.add(previousChangeButton);
     return toolBar;
@@ -182,13 +186,18 @@ class ChunkPopupWindow extends JWindow
    * @param pRollbackInformation Information about which parts of the text to delete and what to insert
    * @param pTextComponent       JTextComponent on which to perform the rollback
    */
-  private void _performRollback(_RollbackInformation pRollbackInformation, JTextComponent pTextComponent)
+  @VisibleForTesting
+  void _performRollback(@NotNull _RollbackInformation pRollbackInformation, @NotNull JTextComponent pTextComponent)
   {
     try
     {
+      LOGGER.info("Performing inline rollback: Text in component: \'" + pTextComponent.getText().replace("\n", "\\n").replace("\r", "\\r") + "\' Rollback information: " + pRollbackInformation);
+
       pTextComponent.getDocument().remove(pRollbackInformation.getStartOffset(),
                                           Math.min(pRollbackInformation.getLength(), pTextComponent.getDocument().getLength() - pRollbackInformation.getStartOffset()));
       pTextComponent.getDocument().insertString(pRollbackInformation.getStartOffset(), pRollbackInformation.getReplacement(), null);
+
+      LOGGER.info("Rollback performed. Text in component: \'" + pTextComponent.getText().replace("\n", "\\n").replace("\r", "\\r") + "\'");
     }
     catch (BadLocationException pE)
     {
@@ -200,9 +209,10 @@ class ChunkPopupWindow extends JWindow
    * @param pRepo        IRepository from which to retrieve the HEAD version of the file
    * @param pChangeDelta IChangeDelta describing the changed lines
    * @param pFile        File that is opened in the JTextComponent, needed to retrieve the version in HEAD
-   * @return _RollbackInformation with which the roll back can be performed
+   * @return _RollbackInformation with which the rollback can be performed
    */
-  private _RollbackInformation _calculateRollbackInfo(IRepository pRepo, IChangeDelta pChangeDelta, File pFile)
+  @VisibleForTesting
+  @NotNull _RollbackInformation _calculateRollbackInfo(@NotNull IRepository pRepo, @NotNull IChangeDelta pChangeDelta, @NotNull File pFile)
   {
     int startOffset;
     int length;
@@ -225,6 +235,7 @@ class ChunkPopupWindow extends JWindow
     // If it is an insert, remove the newline at the end as well (because else the newline is still an insertion)
     if (pChangeDelta.getEndLine(EChangeSide.OLD) == pChangeDelta.getStartLine(EChangeSide.OLD))
       length += 1;
+    LOGGER.info("calculating rollback information for file " + pFile + " with ChangeDelta " + pChangeDelta);
     return new _RollbackInformation(startOffset, length, _getAffectedContents(content, pChangeDelta));
   }
 
@@ -233,7 +244,8 @@ class ChunkPopupWindow extends JWindow
    * @param pChangeDelta IChangeDelta with information about the affected lines
    * @return String containing all the lines marked as affected by the IFileChangeChunk
    */
-  private String _getAffectedContents(String pContents, IChangeDelta pChangeDelta)
+  @VisibleForTesting
+  @NotNull String _getAffectedContents(@NotNull String pContents, @NotNull IChangeDelta pChangeDelta)
   {
     if (pContents.contains("\n"))
     {
@@ -243,12 +255,14 @@ class ChunkPopupWindow extends JWindow
     {
       pContents = pContents.replace("\r", "\n");
     }
-    String[] lines = pContents.replace("\r", "").split("\n");
+    String[] lines = pContents.split("\n");
+
     StringBuilder builder = new StringBuilder();
     for (int index = pChangeDelta.getStartLine(EChangeSide.OLD); index < pChangeDelta.getEndLine(EChangeSide.OLD); index++)
     {
       builder.append(lines[index]).append("\n");
     }
+
     if (pChangeDelta.getChangeType() == EChangeType.MODIFY)
       builder.deleteCharAt(builder.lastIndexOf("\n"));
     return builder.toString();
@@ -370,7 +384,9 @@ class ChunkPopupWindow extends JWindow
   /**
    * Stores Information for rolling back a changed part of a file to the HEAD state
    */
-  private static class _RollbackInformation
+  @VisibleForTesting
+  @EqualsAndHashCode
+  static class _RollbackInformation
   {
 
     private final int startOffset;
@@ -407,6 +423,19 @@ class ChunkPopupWindow extends JWindow
     {
       return replacement;
     }
+
+    /**
+     * added toString because of logging purposes.
+     * Lombok could not be used, because {@link #replacement} will have all the new lines ({@code \r \n}) replaced as ({@code \\r \\n}, so the information will be there what line breaks where used.
+     *
+     * @return a simple string with all the fields of the class
+     */
+    @Override
+    public String toString()
+    {
+      return "startOffset: " + startOffset + ", length: " + length + ", replacement:\'" + replacement.replace("\n", "\\n").replace("\r", "\\r") + '\'';
+    }
+
   }
 
 }
