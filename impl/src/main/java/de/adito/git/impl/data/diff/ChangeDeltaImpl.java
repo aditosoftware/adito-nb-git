@@ -2,24 +2,21 @@ package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.EnumMappings;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.diff.Edit;
-import org.eclipse.jgit.diff.EditList;
-import org.eclipse.jgit.diff.RawTextComparator;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.jgit.diff.*;
+import org.jetbrains.annotations.*;
 
-import java.awt.Color;
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
+import java.util.*;
+import java.util.function.*;
 import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera, 20.02.2020
  */
+@ToString
 public final class ChangeDeltaImpl implements IChangeDelta
 {
 
@@ -33,7 +30,9 @@ public final class ChangeDeltaImpl implements IChangeDelta
   private final int startTextIndexOld;
   private final int endTextIndexOld;
   private List<ILinePartChangeDelta> linePartChangeDeltas;
+  @ToString.Exclude
   private final ITextVersionProvider textVersionProvider;
+  @ToString.Exclude
   private final TextEventIndexUpdater textEventIndexUpdater = new TextEventIndexUpdater();
 
   public ChangeDeltaImpl(@NotNull Edit pEdit, @NotNull IChangeStatus pChangeStatus, @NotNull ChangeDeltaTextOffsets pChangeDeltaTextOffsets,
@@ -56,12 +55,6 @@ public final class ChangeDeltaImpl implements IChangeDelta
     endTextIndexNew = pChangeDeltaTextOffsets.getEndIndexChanged();
     textVersionProvider = pTextVersionProvider;
     linePartChangeDeltas = pLinePartChangeDeltas;
-  }
-
-  public static Edit getLineInfo(IChangeDelta pChangeDelta)
-  {
-    return new Edit(pChangeDelta.getStartLine(EChangeSide.OLD), pChangeDelta.getEndLine(EChangeSide.OLD),
-                    pChangeDelta.getStartLine(EChangeSide.NEW), pChangeDelta.getEndLine(EChangeSide.NEW));
   }
 
   @Override

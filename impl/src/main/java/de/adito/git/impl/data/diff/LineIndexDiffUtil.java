@@ -1,6 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import org.eclipse.jgit.diff.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,17 +12,21 @@ import java.util.List;
 final class LineIndexDiffUtil
 {
 
+  private LineIndexDiffUtil()
+  {
+  }
+
   /**
    * Creates a list of a kind of changeType from the given edits and information about the text
    *
    * @param pOriginalContent    Original version of the String or text
-   * @param pChangedContent     Changed version of the String or tetx
+   * @param pChangedContent     Changed version of the String or text
    * @param pEditList           EditList containing information about the changed lines between pOriginalContent and pChangedContent
-   * @param pChangeDeltaFactory IChangeDeltaFactory that creates some kind of chnangeType from the edits and line and text offsets
-   * @param <T>                 Tyoe of the ChangeType created by the IChangeDeltaFactory
+   * @param pChangeDeltaFactory IChangeDeltaFactory that creates some kind of changeType from the edits and line and text offsets
+   * @param <T>                 Type of the ChangeType created by the IChangeDeltaFactory
    * @return List of IChangeTypes
    */
-  static <T> List<T> getTextOffsets(String pOriginalContent, String pChangedContent, EditList pEditList, IChangeDeltaFactory<T> pChangeDeltaFactory)
+  static <T> @NotNull List<T> getTextOffsets(@NotNull String pOriginalContent, @NotNull String pChangedContent, @NotNull EditList pEditList, @NotNull IChangeDeltaFactory<T> pChangeDeltaFactory)
   {
     List<T> list = new ArrayList<>();
     List<LineInfo> oldTextLineInfos = LineIndexDiffUtil.getLineInfos(pOriginalContent);
@@ -47,7 +52,7 @@ final class LineIndexDiffUtil
    * @param pIndex     index of the line
    * @return start index of the line, or +1 to the endIndex of the last line if index is out of bounds
    */
-  static int getStartIndexSafely(List<LineInfo> pLineInfos, int pIndex)
+  static int getStartIndexSafely(@NotNull List<LineInfo> pLineInfos, int pIndex)
   {
     if (pLineInfos.size() > pIndex)
     {
@@ -66,7 +71,7 @@ final class LineIndexDiffUtil
    * @param pText String or text for which to generate a list of LineInfos
    * @return List of LineInfos with the start and endIndices of the lines in the String or text
    */
-  static List<LineInfo> getLineInfos(String pText)
+  static @NotNull List<LineInfo> getLineInfos(@NotNull String pText)
   {
     List<LineInfo> lineInfos = new ArrayList<>();
     int startIndex = 0;
@@ -82,7 +87,7 @@ final class LineIndexDiffUtil
   }
 
   /**
-   * Performs a basic diff and returns an editlist denoting the changed lines
+   * Performs a basic diff and returns an EditList denoting the changed lines
    *
    * @param pVersion1       String in original version
    * @param pVersion2       String in changed version

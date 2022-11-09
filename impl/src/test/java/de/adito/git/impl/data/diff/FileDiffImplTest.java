@@ -22,12 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * @author m.kaspera, 24.02.2020
  */
-public class FileDiffImplTest
+class FileDiffImplTest
 {
-
-  //StandAloneDiffProviderImpl diffProvider = new StandAloneDiffProviderImpl(new FileSystemUtilTestStub());
-  //  diffProvider.diff(oldVersion, newVersion, true);
-
 
   /*
    *************************************  GET DELTAS TESTS  *************************************
@@ -807,8 +803,8 @@ public class FileDiffImplTest
     IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
     String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                            fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
-    Edit firstDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(0));
-    Edit secondDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(1));
+    Edit firstDeltaEdit = _getLineInfo(fileDiff.getChangeDeltas().get(0));
+    Edit secondDeltaEdit = _getLineInfo(fileDiff.getChangeDeltas().get(1));
     fileDiff.processTextEvent("Hello there, this is a test\nSo here are ".length(), "a few words\nNo use ".length(), null, EChangeSide.NEW, false, false);
     assertEquals("So here are ", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
                                                                              fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
@@ -966,8 +962,8 @@ public class FileDiffImplTest
                                                                        fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW));
     String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                            fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
-    Edit firstDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(0));
-    Edit secondDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(1));
+    Edit firstDeltaEdit = _getLineInfo(fileDiff.getChangeDeltas().get(0));
+    Edit secondDeltaEdit = _getLineInfo(fileDiff.getChangeDeltas().get(1));
     fileDiff.processTextEvent(6, 4, "you\n", EChangeSide.NEW, false, false);
     assertEquals(versionBefore, fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
                                                                             fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
@@ -990,8 +986,8 @@ public class FileDiffImplTest
     IFileDiff fileDiff = TestUtil._createFileDiff(changedLines, originalVersion, changedVersion);
     String secondChunkBefore = fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(1).getStartTextIndex(EChangeSide.NEW),
                                                                            fileDiff.getChangeDeltas().get(1).getEndTextIndex(EChangeSide.NEW));
-    Edit firstDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(0));
-    Edit secondDeltaEdit = ChangeDeltaImpl.getLineInfo(fileDiff.getChangeDeltas().get(1));
+    Edit firstDeltaEdit = _getLineInfo(fileDiff.getChangeDeltas().get(0));
+    Edit secondDeltaEdit = _getLineInfo(fileDiff.getChangeDeltas().get(1));
     fileDiff.processTextEvent("Hello there, this is a test\nSo here are a few ".length(), 0, "\nmore\n", EChangeSide.NEW, false, false);
     assertEquals("So here are a few \nmore\nwords\n", fileDiff.getText(EChangeSide.NEW).substring(fileDiff.getChangeDeltas().get(0).getStartTextIndex(EChangeSide.NEW),
                                                                                                   fileDiff.getChangeDeltas().get(0).getEndTextIndex(EChangeSide.NEW)));
@@ -1063,6 +1059,13 @@ public class FileDiffImplTest
     assertEquals(pEdit.getEndB(), pChangeDelta.getEndLine(EChangeSide.NEW));
     assertEquals(pNewTextStartIndex, pChangeDelta.getStartTextIndex(EChangeSide.NEW));
     assertEquals(pNewTextEndIndex, pChangeDelta.getEndTextIndex(EChangeSide.NEW));
+  }
+
+
+  private static Edit _getLineInfo(IChangeDelta pChangeDelta)
+  {
+    return new Edit(pChangeDelta.getStartLine(EChangeSide.OLD), pChangeDelta.getEndLine(EChangeSide.OLD),
+                    pChangeDelta.getStartLine(EChangeSide.NEW), pChangeDelta.getEndLine(EChangeSide.NEW));
   }
 
 }

@@ -1,7 +1,7 @@
 package de.adito.git.api.data.diff;
 
 /**
- * Represents a the kind of line ending used
+ * Represents a kind of line ending used
  *
  * @author m.kaspera, 20.02.2020
  */
