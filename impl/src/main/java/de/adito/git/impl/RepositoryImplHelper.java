@@ -501,10 +501,12 @@ public class RepositoryImplHelper
         }
         else
         {
-          parentsToParse.addAll(Arrays.stream(commit.getParents())
-                                    .map(RevObject::getId)
-                                    .filter(pObjectId -> !parsedIds.contains(pObjectId))
-                                    .collect(Collectors.toList()));
+          List<ObjectId> filteredCommitParents = Arrays.stream(commit.getParents())
+              .map(RevObject::getId)
+              .filter(pObjectId -> !parsedIds.contains(pObjectId))
+              .collect(Collectors.toList());
+          parentsToParse.addAll(filteredCommitParents);
+          parsedIds.addAll(filteredCommitParents);
         }
       }
     }
