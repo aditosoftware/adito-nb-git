@@ -62,6 +62,8 @@ public class AditoNbmModule extends AbstractModule
     resolveOptionMultibinder.addBinding().to(SameResolveOption.class);
     resolveOptionMultibinder.addBinding().to(EnclosedResolveOption.class);
     resolveOptionMultibinder.addBinding().to(ImportResolveOption.class);
+    resolveOptionMultibinder.addBinding().to(LiquibaseResolveOption.class);
+    resolveOptionMultibinder.addBinding().to(LanguageFileResolveOption.class);
     bind(ResolveOptionsProvider.class).to(ResolveOptionsProviderImpl.class);
   }
 }

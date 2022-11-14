@@ -38,6 +38,10 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
+ * Simulates different merges that can or cannot be resolved by the auto-resolve. Each test case is its owm folder with up to 4 specific files.
+ * For adding a test case, just add another folder to the resources, set up the files to simulate the wanted merge case and add the folder name to the
+ * stream in getConflictFiles
+ *
  * @author m.kaspera, 08.05.2020
  */
 public class MergeConflictTest
@@ -55,7 +59,14 @@ public class MergeConflictTest
             //createFullFileNames("MultilineResolvable"),
             createFullFileNames("ImportJsUpgradeConflict"),
             createFullFileNames("ImportsConflict"),
-            createFullFileNames("MultipleConflicts"))
+            createFullFileNames("MultipleConflicts"),
+            createFullFileNames("LiquibaseSimpleResolve"),
+            createFullFileNames("LiquibaseNonResolvable"),
+            createFullFileNames("LanguageDifferentKeysResolvable"),
+            createFullFileNames("LanguageDifferentMultiKeysResolvable"),
+            createFullFileNames("LanguageSameKeyValueResolvable"),
+            createFullFileNames("LanguageMissingValueTagNonResolvable"),
+            createFullFileNames("LanguageSameKeyNonResolvable"))
         .map(pFileList -> Arguments.of(pFileList.get(0),
                                        readResourceFile(pFileList.get(1)),
                                        readResourceFile(pFileList.get(2)),
@@ -63,11 +74,17 @@ public class MergeConflictTest
                                        readResourceFile(pFileList.get(4))));
   }
 
+  /**
+   * reads the contents of a file, returns null if any exception occurred during the read instead of throwing an exception
+   *
+   * @param pFileName name of the file to read
+   * @return contents of the file as string, or null if any exception occurred while trying to read the file
+   */
+  @Nullable
   private static String readResourceFile(@NotNull String pFileName)
   {
-    try
+    try (InputStream resourceAsStream = MergeConflictTest.class.getResourceAsStream(pFileName))
     {
-      InputStream resourceAsStream = MergeConflictTest.class.getResourceAsStream(pFileName);
       if (resourceAsStream != null)
         return new String(resourceAsStream.readAllBytes());
     }
@@ -77,6 +94,16 @@ public class MergeConflictTest
     return null;
   }
 
+  /**
+   * create a list with paths to the 4 files used for setting up a conflict for testing. These files are:
+   * Original: contains the "Base" of the conflict, i.e. the file before the two branches diverged
+   * VersionA: contains the file as it is in Branch A
+   * VersionB: contains the file as it is in Branch B
+   * Expected: Contains the expected outcome of the autoresolve merge. If the autoresolve should not be able to resolve the conflict, this file has to be missing
+   *
+   * @param pCoreFileName name of the folder that contains the files, should be relevant to what happens inside the test since this name is displayed as the name of the test
+   * @return List with paths to the relevant files for setting up a test merge
+   */
   private static List<String> createFullFileNames(@NotNull String pCoreFileName)
   {
     return List.of(pCoreFileName, pCoreFileName + "/Original", pCoreFileName + "/VersionA", pCoreFileName + "/VersionB", pCoreFileName + "/Expected");
@@ -114,8 +141,13 @@ public class MergeConflictTest
 
       List<IMergeData> mergeDataList = new ArrayList<>();
       mergeDataList.add(mergeData);
-      MergeConflictSequence.performAutoResolve(mergeDataList, repository, asyncProgressFacade, notifyUtil,
-                                               () -> List.of(new SameResolveOption(), new EnclosedResolveOption(), new WordBasedResolveOption(), new ImportResolveOption()), dialogProvider);
+      MergeConflictSequence.performAutoResolve(mergeDataList, repository, asyncProgressFacade, notifyUtil, () -> List.of(new SameResolveOption(),
+                                                                                                                         new EnclosedResolveOption(),
+                                                                                                                         new WordBasedResolveOption(),
+                                                                                                                         new ImportResolveOption(),
+                                                                                                                         new LiquibaseResolveOption(),
+                                                                                                                         new LanguageFileResolveOption()),
+                                               dialogProvider);
 
       if (pExpectedResult != null)
       {
