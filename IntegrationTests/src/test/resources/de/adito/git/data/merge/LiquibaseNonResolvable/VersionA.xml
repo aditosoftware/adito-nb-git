@@ -6,6 +6,5 @@
   <include relativeToChangelogFile="true" file="insert_keyword_memberrole_first_contact.xml"/>
   <include relativeToChangelogFile="true" file="DigitalSigning/changelog.xml"/>
   <include relativeToChangelogFile="true" file="alter_visitplanentry.xml"/>
-  <include relativeToChangelogFile="true" file="insert_mealallowance_keywordattributes.xml"/>
-</test>
-    </databaseChangeLog>
+  <include relativeToChangelogFile="true" file="insert_mealallowance_keywordattributes.xml"/
+</databaseChangeLog>
