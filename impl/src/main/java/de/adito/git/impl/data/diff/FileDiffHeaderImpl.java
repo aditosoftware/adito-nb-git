@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 /**
  * @author m.kaspera, 23.08.2019
@@ -92,6 +93,17 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
 
     String path = getFilePath();
     return new File(diffPathInfo.getTopLevelDirectory(), path).toPath().toAbsolutePath().toString();
+  }
+
+  @Nullable
+  @Override
+  public String getFileExtension(@NotNull EChangeSide pChangeSide)
+  {
+    String[] nameParts = Paths.get(getFilePath(pChangeSide)).getFileName().toString().split("[.]");
+    if (nameParts.length <= 1)
+      return null;
+    else
+      return nameParts[nameParts.length - 1];
   }
 
 }

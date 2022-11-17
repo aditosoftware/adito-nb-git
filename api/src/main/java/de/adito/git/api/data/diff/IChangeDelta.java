@@ -168,10 +168,12 @@ public interface IChangeDelta extends IDelta
    *
    * @param pOtherChangeDelta       the other IChangeDelta
    * @param pConflictSide           Side of the conflict pOtherChangeDelta ist from
-   * @param pResolveOptionsProvider
+   * @param pResolveOptionsProvider ResolveOptionsProvider for getting the options for resolving a conflict
+   * @param pFileDiffHeader         IFileDiffHeader containing information about the path and extension of the file
    * @return EConflictType denoting the type of conflict the deltas have. Can also be NONE, indicating there is no conflict
    */
-  ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider);
+  ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider,
+                                 @NotNull IFileDiffHeader pFileDiffHeader);
 
   /**
    * get the text of one side of this delta

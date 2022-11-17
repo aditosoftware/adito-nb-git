@@ -50,24 +50,25 @@ public class MergeConflictTest
   public static Stream<Arguments> getConflictFiles()
   {
     return Stream.of(
-            createFullFileNames("AddRemoveLines"),
-            createFullFileNames("EqualLineConflict"),
-            createFullFileNames("NotResolvableConflict"),
-            createFullFileNames("NoConflicts"),
-            createFullFileNames("SameLineConflict"),
-            createFullFileNames("MoreChangesInOneLine"),
+            createFullFileNames("AddRemoveLines", ""),
+            createFullFileNames("EqualLineConflict", ""),
+            createFullFileNames("NotResolvableConflict", ""),
+            createFullFileNames("NoConflicts", ""),
+            createFullFileNames("SameLineConflict", ""),
+            createFullFileNames("MoreChangesInOneLine", ""),
             //createFullFileNames("MultilineResolvable"),
-            createFullFileNames("ImportJsUpgradeConflict"),
-            createFullFileNames("ImportsConflict"),
-            createFullFileNames("MultipleConflicts"),
-            createFullFileNames("LiquibaseSimpleResolve"),
-            createFullFileNames("LiquibaseNonResolvable"),
-            createFullFileNames("LanguageDifferentKeysResolvable"),
-            createFullFileNames("LanguageDifferentMultiKeysResolvable"),
-            createFullFileNames("LanguageSameKeyValueResolvable"),
-            createFullFileNames("LanguageMissingValueTagNonResolvable"),
-            createFullFileNames("LanguageSameKeyNonResolvable"))
+            createFullFileNames("ImportJsUpgradeConflict", ".js"),
+            createFullFileNames("ImportsConflict", ".js"),
+            createFullFileNames("MultipleConflicts", ""),
+            createFullFileNames("LiquibaseSimpleResolve", ".xml"),
+            createFullFileNames("LiquibaseNonResolvable", ".xml"),
+            createFullFileNames("LanguageDifferentKeysResolvable", ".aod"),
+            createFullFileNames("LanguageDifferentMultiKeysResolvable", ".aod"),
+            createFullFileNames("LanguageSameKeyValueResolvable", ".aod"),
+            createFullFileNames("LanguageMissingValueTagNonResolvable", ".aod"),
+            createFullFileNames("LanguageSameKeyNonResolvable", ".aod"))
         .map(pFileList -> Arguments.of(pFileList.get(0),
+                                       pFileList.get(1),
                                        readResourceFile(pFileList.get(1)),
                                        readResourceFile(pFileList.get(2)),
                                        readResourceFile(pFileList.get(3)),
@@ -104,15 +105,17 @@ public class MergeConflictTest
    * @param pCoreFileName name of the folder that contains the files, should be relevant to what happens inside the test since this name is displayed as the name of the test
    * @return List with paths to the relevant files for setting up a test merge
    */
-  private static List<String> createFullFileNames(@NotNull String pCoreFileName)
+  private static List<String> createFullFileNames(@NotNull String pCoreFileName, @NotNull String pFileExtension)
   {
-    return List.of(pCoreFileName, pCoreFileName + "/Original", pCoreFileName + "/VersionA", pCoreFileName + "/VersionB", pCoreFileName + "/Expected");
+    return List.of(pCoreFileName, pCoreFileName + "/Original" + pFileExtension, pCoreFileName + "/VersionA" + pFileExtension,
+                   pCoreFileName + "/VersionB" + pFileExtension, pCoreFileName + "/Expected" + pFileExtension);
   }
 
   @SuppressWarnings("unused") // pName wird zur besseren Lesbarkeit des Testnamens verwendet, siehe name in der ParameterizedTest Annotation
   @ParameterizedTest(name = "{index} : {0}")
   @MethodSource("getConflictFiles")
-  void performAutoResolve(@NotNull String pName, @NotNull String pOriginalContents, @NotNull String pVersionAContents, @NotNull String pVersionBContents, @Nullable String pExpectedResult)
+  void performAutoResolve(@NotNull String pName, @NotNull String pFileName, @NotNull String pOriginalContents, @NotNull String pVersionAContents,
+                          @NotNull String pVersionBContents, @Nullable String pExpectedResult)
       throws AditoGitException, IOException
   {
     SimpleAsyncProgressFacade asyncProgressFacade = new SimpleAsyncProgressFacade();
@@ -127,7 +130,7 @@ public class MergeConflictTest
       lookupMockedStatic.when(Lookup::getDefault).thenReturn(lookupMock);
       when(repository.getTopLevelDirectory()).thenReturn(tempDirectory.toFile());
 
-      IDiffPathInfo diffPathInfo = new DiffPathInfoImpl(tempDirectory.toFile(), "filea", "filea");
+      IDiffPathInfo diffPathInfo = new DiffPathInfoImpl(tempDirectory.toFile(), pFileName, pFileName);
       IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);
       FileDiffHeaderImpl fileDiffHeader = new FileDiffHeaderImpl(diffPathInfo, diffDetails);
       IFileContentInfo oldFileContent = new FileContentInfoImpl(() -> pOriginalContents, () -> StandardCharsets.UTF_8);
@@ -151,7 +154,7 @@ public class MergeConflictTest
 
       if (pExpectedResult != null)
       {
-        assertEquals(pExpectedResult, new String(Files.readAllBytes(new File(tempDirectory.toFile(), "filea").toPath())));
+        assertEquals(pExpectedResult, new String(Files.readAllBytes(new File(tempDirectory.toFile(), pFileName).toPath())));
         assertEquals(0, mergeDataList.size());
       }
       else

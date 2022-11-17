@@ -19,7 +19,7 @@ import java.util.Map;
 public class ImportResolveOption implements ResolveOption
 {
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide, ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
   {
     IJsParserUtility jsParserUtility = IJsParserUtility.getInstance();
     IChangeDelta otherDelta = pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)));
@@ -43,8 +43,11 @@ public class ImportResolveOption implements ResolveOption
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide)
+  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
+                                    @NotNull IFileDiffHeader pFileDiffHeader)
   {
+    if (!"js".equals(pFileDiffHeader.getFileExtension(EChangeSide.NEW)))
+      return false;
     IJsParserUtility jsParserUtility = IJsParserUtility.getInstance();
     //noinspection ConstantConditions The nullable annotation is wrong here - at least in the only available implementation now. Lookups can return null if no service is found
     if (jsParserUtility == null)

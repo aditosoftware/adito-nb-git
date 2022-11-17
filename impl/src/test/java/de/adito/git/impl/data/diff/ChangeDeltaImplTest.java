@@ -3,11 +3,13 @@ package de.adito.git.impl.data.diff;
 import com.google.inject.Guice;
 import de.adito.git.api.data.diff.EConflictSide;
 import de.adito.git.api.data.diff.IFileDiff;
+import de.adito.git.api.data.diff.IFileDiffHeader;
 import de.adito.git.impl.data.DataModule;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -38,7 +40,9 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hellou there, this is a test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.RESOLVABLE, conflictType.getConflictType());
     assertNotNull(conflictType.getResolveOption());
     assertEquals(WordBasedResolveOption.class, conflictType.getResolveOption().getClass());
@@ -57,7 +61,9 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, t'is a test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.RESOLVABLE, conflictType.getConflictType());
     assertNotNull(conflictType.getResolveOption());
     assertEquals(WordBasedResolveOption.class, conflictType.getResolveOption().getClass());
@@ -76,7 +82,9 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, t'is some test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.CONFLICTING, conflictType.getConflictType());
     assertNull(conflictType.getResolveOption());
   }
@@ -94,11 +102,14 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some Words\nNo use taking a rest\nWe are not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.RESOLVABLE, conflictType.getConflictType());
     assertNotNull(conflictType.getResolveOption());
     assertEquals(WordBasedResolveOption.class, conflictType.getResolveOption().getClass());
-    ConflictType conflictType2 = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    ConflictType conflictType2 = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                      fileDiffHeader);
     assertEquals(EConflictType.NONE, conflictType2.getConflictType());
     assertNull(conflictType2.getResolveOption());
   }
@@ -116,7 +127,9 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some Words\nNo use taking a stop\nWe are not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.CONFLICTING, conflictType.getConflictType());
     assertNull(conflictType.getResolveOption());
   }
@@ -134,11 +147,14 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some Words\nNo use taking a rest\nWe are not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.RESOLVABLE, conflictType.getConflictType());
     assertNotNull(conflictType.getResolveOption());
     assertEquals(WordBasedResolveOption.class, conflictType.getResolveOption().getClass());
-    ConflictType conflictType2 = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    ConflictType conflictType2 = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(1), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                      fileDiffHeader);
     assertEquals(EConflictType.NONE, conflictType2.getConflictType());
     assertNull(conflictType2.getResolveOption());
   }
@@ -156,7 +172,9 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "hello there, this is a test\n";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.CONFLICTING, conflictType.getConflictType());
     assertNull(conflictType.getResolveOption());
   }
@@ -174,10 +192,13 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is test\nSo here are some words\nNo use taking a rest\nWe are not creating a turd";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.CONFLICTING, conflictType.getConflictType());
     assertNull(conflictType.getResolveOption());
-    ConflictType conflictType2 = fileDiff1.getChangeDeltas().get(1).isConflictingWith(fileDiff2.getChangeDeltas().get(1), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    ConflictType conflictType2 = fileDiff1.getChangeDeltas().get(1).isConflictingWith(fileDiff2.getChangeDeltas().get(1), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                      fileDiffHeader);
     assertEquals(EConflictType.RESOLVABLE, conflictType2.getConflictType());
     assertNotNull(conflictType2.getResolveOption());
     assertEquals(SameResolveOption.class, conflictType2.getResolveOption().getClass());
@@ -196,7 +217,9 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some words\nTesting enclosing\nNo use taking a rest\nWe're not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.RESOLVABLE, conflictType.getConflictType());
     assertNotNull(conflictType.getResolveOption());
     assertEquals(EnclosedResolveOption.class, conflictType.getResolveOption().getClass());
@@ -216,7 +239,9 @@ public class ChangeDeltaImplTest
     String changedVersion2 = "Hello there, this is a test\nSo here are some words\nTesting enclosing\nSo here is an additional line\nNo use taking a rest\nWe're not creating any turds";
     EditList changedLines2 = LineIndexDiffUtil.getChangedLines(originalVersion, changedVersion2, RawTextComparator.DEFAULT);
     IFileDiff fileDiff2 = TestUtil._createFileDiff(changedLines2, originalVersion, changedVersion2);
-    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER);
+    IFileDiffHeader fileDiffHeader = Mockito.mock(IFileDiffHeader.class);
+    ConflictType conflictType = fileDiff1.getChangeDeltas().get(0).isConflictingWith(fileDiff2.getChangeDeltas().get(0), EConflictSide.THEIRS, RESOLVE_OPTIONS_PROVIDER,
+                                                                                     fileDiffHeader);
     assertEquals(EConflictType.RESOLVABLE, conflictType.getConflictType());
     assertNotNull(conflictType.getResolveOption());
     assertEquals(EnclosedResolveOption.class, conflictType.getResolveOption().getClass());

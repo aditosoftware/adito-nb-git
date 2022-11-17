@@ -41,7 +41,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   private static final String PREF_STORE_INNER_SIZE_KEY = Util.getResource(MergeConflictResolutionDialog.class, "mergeResolutionPanelInnerSizeKey");
   private final IPrefStore prefStore;
   private final IMergeData mergeDiff;
-  private final MergePanel mergePanel;
+  private MergePanel mergePanel;
 
   @Inject
   MergeConflictResolutionDialog(IPrefStore pPrefStore, IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff,
@@ -56,10 +56,13 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     mergeDiff.markConflicting(pResolveOptionsProvider);
     mergePanel = new MergePanel(pIconLoader, mergeDiff, pYoursOrigin, pTheirsOrigin, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui(pIconLoader);
+    //AtomicReference<MergePanel> panelRef = new AtomicReference<>(mergePanel);
     GitProcessExecutors.submit(() ->
                                    pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
                                      Thread.sleep(2000);
                                      mergePanel.finishLoading();
+                                     //panelRef.get().finishLoading();
+                                     //panelRef.set(null);
                                    }));
   }
 
@@ -142,6 +145,9 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   public void discard()
   {
     mergePanel.discard();
+    // clean up
+    remove(mergePanel);
+    mergePanel = null;
   }
 
   /**

@@ -61,6 +61,14 @@ public interface IFileDiffHeader
   @Nullable
   String getAbsoluteFilePath();
 
+  /**
+   * Determine the file extension by parsing the path on the given side
+   *
+   * @param pChangeSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
+   * @return File extension of the file on the specified side
+   */
+  @Nullable String getFileExtension(@NotNull EChangeSide pChangeSide);
+
   IFileDiffHeader EMPTY_HEADER = new IFileDiffHeader()
   {
     @Override
@@ -95,6 +103,12 @@ public interface IFileDiffHeader
 
     @Override
     public @Nullable String getAbsoluteFilePath()
+    {
+      return null;
+    }
+
+    @Override
+    public @Nullable String getFileExtension(@NotNull EChangeSide pChangeSide)
     {
       return null;
     }

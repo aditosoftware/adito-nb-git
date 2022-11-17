@@ -17,7 +17,7 @@ public class EnclosedResolveOption implements ResolveOption
   private EConflictType conflictType;
 
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide, ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = null;
     AtomicBoolean isTryToSnapToDelta = new AtomicBoolean(false);
@@ -58,7 +58,8 @@ public class EnclosedResolveOption implements ResolveOption
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide)
+  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
+                                    @NotNull IFileDiffHeader pFileDiffHeader)
   {
     return determineConflictType(pChangeDelta, pOtherDelta, pConflictSide) != null;
   }

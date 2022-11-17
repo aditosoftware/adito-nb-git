@@ -11,7 +11,7 @@ import java.util.List;
 public class SameResolveOption implements ResolveOption
 {
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide, ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
   {
     pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false);
     pOtherDiff.acceptDelta(pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide))), false, false, false);
@@ -20,7 +20,8 @@ public class SameResolveOption implements ResolveOption
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide)
+  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
+                                    @NotNull IFileDiffHeader pFileDiffHeader)
   {
     return pChangeDelta.getStartTextIndex(EChangeSide.OLD) == pOtherDelta.getStartTextIndex(EChangeSide.OLD)
         && pChangeDelta.getEndTextIndex(EChangeSide.OLD) == pOtherDelta.getEndTextIndex(EChangeSide.OLD)

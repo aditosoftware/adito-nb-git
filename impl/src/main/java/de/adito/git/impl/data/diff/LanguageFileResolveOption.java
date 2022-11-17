@@ -22,14 +22,17 @@ import java.util.stream.Collectors;
 public class LanguageFileResolveOption extends XMLBasedResolveOption
 {
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide, ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
   {
     return new ArrayList<>(pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false));
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide)
+  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
+                                    @NotNull IFileDiffHeader pFileDiffHeader)
   {
+    if (!"aod".equals(pFileDiffHeader.getFileExtension(EChangeSide.NEW)))
+      return false;
     try
     {
       NodeList nodeList = getStringEntryList(pChangeDelta.getText(EChangeSide.NEW));

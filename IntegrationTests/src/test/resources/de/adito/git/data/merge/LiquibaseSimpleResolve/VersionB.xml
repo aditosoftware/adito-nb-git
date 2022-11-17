@@ -1,0 +1,10 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+  <include relativeToChangelogFile="true" file="create_turnovertarget.xml"/>
+  <include relativeToChangelogFile="true" file="insert_ab_currency.xml"/>
+  <include relativeToChangelogFile="true" file="add_salesproject_campaign.xml"/>
+  <include relativeToChangelogFile="true" file="insert_keyword_memberrole_first_contact.xml"/>
+  <include relativeToChangelogFile="true" file="DigitalSigning/changelog.xml"/>
+  <include relativeToChangelogFile="true" file="alter_visitplanentry.xml"/>
+  <include relativeToChangelogFile="true" file="ApproveWorkflow/changelog.xml"/>
+</databaseChangeLog>

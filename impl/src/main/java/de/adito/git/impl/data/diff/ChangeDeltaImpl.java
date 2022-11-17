@@ -279,7 +279,8 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider)
+  public ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider,
+                                        @NotNull IFileDiffHeader pFileDiffHeader)
   {
 
     ConflictType conflictType;
@@ -288,7 +289,7 @@ public final class ChangeDeltaImpl implements IChangeDelta
     {
       for (ResolveOption resolveOption : pResolveOptionsProvider.getResolveOptions())
       {
-        if (resolveOption.canResolveConflict(this, pOtherChangeDelta, pConflictSide))
+        if (resolveOption.canResolveConflict(this, pOtherChangeDelta, pConflictSide, pFileDiffHeader))
         {
           return new ConflictType(resolveOption, EConflictType.RESOLVABLE);
         }
