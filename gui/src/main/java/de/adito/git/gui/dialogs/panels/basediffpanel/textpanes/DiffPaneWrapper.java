@@ -30,7 +30,7 @@ import java.util.Optional;
 public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
 {
 
-  private final JEditorPane editorPane;
+  private JEditorPane editorPane;
   private final DiffPaneContainer diffPaneContainer;
   private final DiffPanelModel model;
   private final Disposable fileChangeDisposable;
@@ -161,6 +161,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     fileChangeDisposable.dispose();
     editorKitDisposable.dispose();
     scrollbarMarkingsModel.discard();
+    editorPane = null;
   }
 
   private void _setEditorKit(EditorKit pEditorKit)

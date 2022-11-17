@@ -24,7 +24,7 @@ import java.util.Optional;
 public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
 {
 
-  private final JEditorPane editorPane;
+  private JEditorPane editorPane;
   private final DiffPaneContainer diffPaneContainer;
   private final IMergeData mergeDiff;
   private final Disposable mergeDiffDisposable;
@@ -94,6 +94,8 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
   {
     mergeDiffDisposable.dispose();
     editorKitDisposable.dispose();
+    diffPaneContainer.discard();
+    editorPane = null;
   }
 
   /**

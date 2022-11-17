@@ -7,7 +7,7 @@ import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.gui.swing.TextPaneUtil;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,8 +30,7 @@ import java.util.concurrent.TimeUnit;
 class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsListener
 {
 
-  private final Disposable areaDisposable;
-  private final Disposable sizeDisposable;
+  private final CompositeDisposable disposable = new CompositeDisposable();
   private final Insets panelInsets = new Insets(0, 0, 0, 0);
   private final Insets editorInsets;
   private Rectangle cachedViewRectangle = new Rectangle();
@@ -62,18 +61,18 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
     setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
-    sizeDisposable = Observable.combineLatest(
-        pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
-        .throttleLatest(250, TimeUnit.MILLISECONDS, true)
-        .subscribe(
-            pFileChangeEvent -> SwingUtil.invokeASAP(() -> {
-              lineNumFacadeWidth = _calculateLineWidth();
-              setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
-              lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
-              revalidate();
-              repaint();
-            }));
-    areaDisposable = pModel.getFileChangesObservable().subscribe(pChangeEvent -> _recalcAndRedraw(pEditorPane, viewport));
+    disposable.add(Observable.combineLatest(
+            pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
+                       .throttleLatest(250, TimeUnit.MILLISECONDS, true)
+                       .subscribe(
+                           pFileChangeEvent -> SwingUtil.invokeASAP(() -> {
+                             lineNumFacadeWidth = _calculateLineWidth();
+                             setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
+                             lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
+                             revalidate();
+                             repaint();
+                           })));
+    disposable.add(pModel.getFileChangesObservable().subscribe(pChangeEvent -> _recalcAndRedraw(pEditorPane, viewport)));
     pViewport.addChangeListener(e -> _recalcAndRedraw(pEditorPane, viewport));
   }
 
@@ -102,10 +101,10 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   @Override
   public void discard()
   {
-    areaDisposable.dispose();
-    sizeDisposable.dispose();
+    disposable.dispose();
     lineNumbersColorModel.removeListener(this);
     lineNumbersColorModel.discard();
+    System.out.println("discard linenumPanel " + System.identityHashCode(this));
   }
 
   @Override

@@ -5,15 +5,19 @@ import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
 import de.adito.git.impl.observables.PropertyChangeObservable;
-import de.adito.util.reactive.cache.*;
+import de.adito.util.reactive.cache.ObservableCache;
+import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -114,6 +118,7 @@ public class DiffPane extends JPanel implements IDiscardable
   {
     discardables.forEach(IDiscardable::discard);
     disposables.dispose();
+    removeAll();
   }
 
   @NotNull

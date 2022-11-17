@@ -80,6 +80,8 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
       dialog.setBounds(storedBounds);
       dialog.setPreferredSize(storedBounds.getSize());
     }
+    if (dialog instanceof JDialog)
+      ((JDialog) dialog).setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     ResizeListener resizeListener = new ResizeListener(prefStore, preferencesKey);
     dialog.addComponentListener(resizeListener);
     dialog.pack();
