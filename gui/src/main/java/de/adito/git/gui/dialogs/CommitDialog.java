@@ -38,6 +38,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -179,6 +180,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                                  @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @NotNull Observable<List<IFileChangeType>> pFilesToCommitObs,
                                  @NotNull File pProjectDir)
   {
+    AtomicBoolean firstDrawingDone = new AtomicBoolean(false);
+    
     boolean useFlatTreeModel = Constants.TREE_VIEW_FLAT.equals(prefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel<IFileChangeType> statusTreeModel = useFlatTreeModel ? new FlatStatusTreeModel(pProjectDir)
         : new StatusTreeModel(pProjectDir);
@@ -197,12 +200,13 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
     Runnable[] doAfterJobs = new Runnable[3];
     doAfterJobs[0] = () -> TreeUtil.expandTreeInterruptible(checkBoxTree);
-    doAfterJobs[1] = () -> _markPreselectedAndExpand(statusTreeModel, !selectedFiles.isEmpty() ? selectedFiles : preSelectedFiles);
+    doAfterJobs[1] = () -> _markPreselectedAndExpand(statusTreeModel, firstDrawingDone.get() ? selectedFiles : preSelectedFiles);
     doAfterJobs[2] = () -> {
       tableSearchView.remove(loadingLabel);
       tableSearchView.add(scrollPane, BorderLayout.CENTER);
       revalidate();
       repaint();
+      firstDrawingDone.set(true);
     };
 
     treeUpdater = new ObservableTreeUpdater<>(pFilesToCommitObs, statusTreeModel, pFileSystemUtil, doAfterJobs, doBeforeJob);
