@@ -230,7 +230,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
       {
         // adding the selected File to the selected Files
         FileChangeTypeNode fileChangeTypeNode = (FileChangeTypeNode) selectionPath.getLastPathComponent();
-        selectedFiles.add(fileChangeTypeNode.getInfo().getNodeFile());
+        for (IFileChangeType fileChangeType : fileChangeTypeNode.getInfo().getMembers())
+        {
+          selectedFiles.add(fileChangeType.getFile());
+        }
       }
     }
   }

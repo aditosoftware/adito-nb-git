@@ -2,9 +2,10 @@ package de.adito.git.gui.dialogs;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IBeforeCommitAction;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.diff.IFileChangeType;
+import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.DelayedSupplier;
 import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.impl.data.FileChangeTypeImpl;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -46,11 +47,13 @@ class CommitDialogTest
     List<File> selectedFiles = new ArrayList<>();
     selectedFiles.add(new File("c:/projects/basic/readme.md"));
 
-    
+
     commitDialog._detectSelectedFiles(selectedFiles);
+    Collections.sort(selectedFiles);
 
-
-    assertEquals(Arrays.asList(packageJson, entityValueChange), selectedFiles);
+    List<File> expected = Arrays.asList(packageJson, entityValueChange);
+    Collections.sort(expected);
+    assertEquals(expected, selectedFiles);
   }
 
   /**
@@ -62,6 +65,7 @@ class CommitDialogTest
   @NotNull
   private static TreePath createTreePath(@NotNull File nodeFile)
   {
-    return new TreePath(new FileChangeTypeNode(new FileChangeTypeNodeInfo("not relevant", nodeFile, List.of())));
+    IFileChangeType iFileChangeType = new FileChangeTypeImpl(nodeFile, nodeFile, EChangeType.CHANGED);
+    return new TreePath(new FileChangeTypeNode(new FileChangeTypeNodeInfo("not relevant", new File("C:/should/not/be/used"), List.of(iFileChangeType))));
   }
 }
