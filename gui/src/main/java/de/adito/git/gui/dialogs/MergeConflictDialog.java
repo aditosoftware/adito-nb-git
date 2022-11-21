@@ -163,8 +163,9 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     });
     mergeDiffStatusModel.addTableModelListener(e -> SwingUtilities.invokeLater(() -> {
       // make sure the selection we set is not out of bounds (e.g. if the last entry was selected and subsequently removed)
-      int safeSelection = Math.min(bufferedSelection, mergeConflictTable.getModel().getRowCount());
-      mergeConflictTable.setRowSelectionInterval(safeSelection, safeSelection);
+      int safeSelection = Math.min(bufferedSelection, mergeConflictTable.getModel().getRowCount() - 1);
+      if (safeSelection >= 0)
+        mergeConflictTable.setRowSelectionInterval(safeSelection, safeSelection);
       mergeConflictTable.requestFocus();
     }));
   }
