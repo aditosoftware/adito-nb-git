@@ -104,7 +104,6 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
     disposable.dispose();
     lineNumbersColorModel.removeListener(this);
     lineNumbersColorModel.discard();
-    System.out.println("discard linenumPanel " + System.identityHashCode(this));
   }
 
   @Override
