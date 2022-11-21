@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.jidesoft.swing.*;
@@ -25,6 +26,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import lombok.*;
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;
@@ -36,6 +38,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +66,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private final IIconLoader iconLoader;
   private final IPrefStore prefStore;
   private final Observable<Optional<IRepository>> repository;
+  @Getter(AccessLevel.PROTECTED)
   private final SearchableCheckboxTree checkBoxTree;
   private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
@@ -74,10 +78,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
   @Inject
   public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, LookupProvider pLookupProvider,
-                      IIconLoader pIconLoader, IPrefStore pPrefStore, @Assisted IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                      @Assisted String pMessageTemplate, @Assisted DelayedSupplier<List<IBeforeCommitAction>> pSelectedActionsSupplier,
-                      @Assisted DelayedSupplier<List<File>> pDelayedSupplier, IEditorKitProvider pEditorKitProvider)
+                      IIconLoader pIconLoader, IPrefStore pPrefStore, @Assisted @NotNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                      @Assisted @NotNull Observable<Optional<IRepository>> pRepository, @Assisted @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                      @Assisted String pMessageTemplate, @Assisted @NotNull DelayedSupplier<List<IBeforeCommitAction>> pSelectedActionsSupplier,
+                      @Assisted @NotNull DelayedSupplier<List<File>> pDelayedSupplier, IEditorKitProvider pEditorKitProvider)
   {
     actionProvider = pActionProvider;
     lookupProvider = pLookupProvider;
@@ -176,6 +180,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                                  @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @NotNull Observable<List<IFileChangeType>> pFilesToCommitObs,
                                  @NotNull File pProjectDir)
   {
+    AtomicBoolean firstDrawingDone = new AtomicBoolean(false);
+    
     boolean useFlatTreeModel = Constants.TREE_VIEW_FLAT.equals(prefStore.get(this.getClass().getName() + Constants.TREE_VIEW_TYPE_KEY));
     BaseObservingTreeModel<IFileChangeType> statusTreeModel = useFlatTreeModel ? new FlatStatusTreeModel(pProjectDir)
         : new StatusTreeModel(pProjectDir);
@@ -188,20 +194,52 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
             .collect(Collectors.toList()))
         .orElse(List.of());
     JScrollPane scrollPane = new JScrollPane(checkBoxTree);
+
+    List<File> selectedFiles = new ArrayList<>();
+    Runnable doBeforeJob = () -> _detectSelectedFiles(selectedFiles);
+
     Runnable[] doAfterJobs = new Runnable[3];
     doAfterJobs[0] = () -> TreeUtil.expandTreeInterruptible(checkBoxTree);
-    doAfterJobs[1] = () -> _markPreselectedAndExpand(statusTreeModel, preSelectedFiles);
+    doAfterJobs[1] = () -> _markPreselectedAndExpand(statusTreeModel, firstDrawingDone.get() ? selectedFiles : preSelectedFiles);
     doAfterJobs[2] = () -> {
       tableSearchView.remove(loadingLabel);
       tableSearchView.add(scrollPane, BorderLayout.CENTER);
       revalidate();
       repaint();
+      firstDrawingDone.set(true);
     };
-    treeUpdater = new ObservableTreeUpdater<>(pFilesToCommitObs, statusTreeModel, pFileSystemUtil, doAfterJobs);
+
+    treeUpdater = new ObservableTreeUpdater<>(pFilesToCommitObs, statusTreeModel, pFileSystemUtil, doAfterJobs, doBeforeJob);
     loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
     tableSearchView.add(loadingLabel, BorderLayout.CENTER);
     pQuickSearchProvider.attach(tableSearchView, BorderLayout.SOUTH, new QuickSearchTreeCallbackImpl(checkBoxTree));
     _attachPopupMenu(checkBoxTree);
+  }
+
+  /**
+   * Detects the selected files from the {@link #checkBoxTree} and adds them to the given list. This method is run before the tree is changed,
+   * so the selection will be stored and can later be applied to the new tree.
+   *
+   * @param selectedFiles the list with the selected file. Because call-by-reference the list has the changed elements which don't needed to be returned.
+   */
+  @VisibleForTesting
+  void _detectSelectedFiles(@NotNull List<File> selectedFiles)
+  {
+    // clears the old selection
+    selectedFiles.clear();
+    // goes over all selected TreePaths
+    for (TreePath selectionPath : checkBoxTree.getCheckBoxTreeSelectionModel().getSelectionPaths())
+    {
+      if (selectionPath.getLastPathComponent() instanceof FileChangeTypeNode)
+      {
+        // adding the selected File to the selected Files
+        FileChangeTypeNode fileChangeTypeNode = (FileChangeTypeNode) selectionPath.getLastPathComponent();
+        for (IFileChangeType fileChangeType : fileChangeTypeNode.getInfo().getMembers())
+        {
+          selectedFiles.add(fileChangeType.getFile());
+        }
+      }
+    }
   }
 
   /**
