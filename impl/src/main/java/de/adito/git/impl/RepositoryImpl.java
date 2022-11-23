@@ -1284,6 +1284,7 @@ public class RepositoryImpl implements IRepository
       String forkPointId = ObjectId.toString(RepositoryImplHelper.findForkPoint(git, pParentBranch.getName(), pBranchToMerge.getName()));
       if (forkPointId.equals(pBranchToMerge.getId()))
         throw new AlreadyUpToDateAditoGitException("Already up-to-date");
+      logger.log(Level.INFO, () -> String.format("Git: merge-base used for the merge conflict data is: %s", forkPointId));
       String parentID = pParentBranch.getId();
       String toMergeID = pBranchToMerge.getId();
       List<IMergeData> mergeConflicts = new ArrayList<>();
