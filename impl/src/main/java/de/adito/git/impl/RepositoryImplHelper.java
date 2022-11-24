@@ -1,5 +1,6 @@
 package de.adito.git.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.*;
@@ -519,6 +520,7 @@ public class RepositoryImplHelper
    * @param pCommits    list of objectIds representing commits to add to the other list. Does not have to be sorted and will not be changed
    * @param pParentList list of commits to add to, has to be pre-sorted in descending order (the latest commits come first). This list will be changed, and it is best if
    *                    this list is a linked list (complexity on insert)
+   * @param pRevWalk    RevWalk that allows a lookup of the commits that are associated with ObjectIds
    */
   private static void addCommitsSortedByTime(@NotNull List<ObjectId> pCommits, @NotNull List<RevCommit> pParentList, @NotNull RevWalk pRevWalk)
   {
@@ -531,12 +533,14 @@ public class RepositoryImplHelper
    * @param pCommit     Commit to insert into the list
    * @param pCommitList List of Commits, will be changed -> has to be mutable. Also has to be sorted for this method to work (sorted by commit time, latest commits come first)
    */
-  private static void addCommitByTime(@NotNull RevCommit pCommit, @NotNull List<RevCommit> pCommitList)
+  @VisibleForTesting
+  static void addCommitByTime(@NotNull RevCommit pCommit, @NotNull List<RevCommit> pCommitList)
   {
     ListIterator<RevCommit> commitListIterator = pCommitList.listIterator();
     while (commitListIterator.hasNext())
     {
-      if (commitListIterator.next().getCommitTime() < pCommit.getCommitTime())
+      RevCommit next = commitListIterator.next();
+      if (next.getCommitTime() < pCommit.getCommitTime())
       {
         commitListIterator.previous();
         commitListIterator.add(pCommit);
