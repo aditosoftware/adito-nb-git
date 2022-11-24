@@ -1,5 +1,6 @@
 package de.adito.git.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.*;
@@ -486,12 +487,12 @@ public class RepositoryImplHelper
     try (RevWalk walk = new RevWalk(pGit.getRepository()))
     {
       RevCommit foreignCommit = walk.lookupCommit(pGit.getRepository().resolve(pForeignBranchName));
-      LinkedList<ObjectId> parentsToParse = new LinkedList<>();
-      parentsToParse.add(pGit.getRepository().resolve(pParentBranchName));
+      LinkedList<RevCommit> parentsToParse = new LinkedList<>();
+      parentsToParse.add(walk.lookupCommit(pGit.getRepository().resolve(pParentBranchName)));
       while (!parentsToParse.isEmpty())
       {
-        parsedIds.add(parentsToParse.peekFirst());
-        RevCommit commit = walk.lookupCommit(parentsToParse.poll());
+        parsedIds.add(parentsToParse.peekFirst().getId());
+        RevCommit commit = parentsToParse.poll();
         // check if foreignCommit is reachable from the currently selected commit
         if (walk.isMergedInto(commit, foreignCommit))
         {
@@ -505,12 +506,48 @@ public class RepositoryImplHelper
               .map(RevObject::getId)
               .filter(pObjectId -> !parsedIds.contains(pObjectId))
               .collect(Collectors.toList());
-          parentsToParse.addAll(filteredCommitParents);
+          addCommitsSortedByTime(filteredCommitParents, parentsToParse, walk);
           parsedIds.addAll(filteredCommitParents);
         }
       }
     }
     return null;
+  }
+
+  /**
+   * Add all commits from list pCommits to pParentsList, sorted by time
+   *
+   * @param pCommits    list of objectIds representing commits to add to the other list. Does not have to be sorted and will not be changed
+   * @param pParentList list of commits to add to, has to be pre-sorted in descending order (the latest commits come first). This list will be changed, and it is best if
+   *                    this list is a linked list (complexity on insert)
+   * @param pRevWalk    RevWalk that allows a lookup of the commits that are associated with ObjectIds
+   */
+  private static void addCommitsSortedByTime(@NotNull List<ObjectId> pCommits, @NotNull List<RevCommit> pParentList, @NotNull RevWalk pRevWalk)
+  {
+    pCommits.stream().map(pRevWalk::lookupCommit).forEach(pCommit -> addCommitByTime(pCommit, pParentList));
+  }
+
+  /**
+   * Insert the commit into a pre-sorted list, according to commit time
+   *
+   * @param pCommit     Commit to insert into the list
+   * @param pCommitList List of Commits, will be changed -> has to be mutable. Also has to be sorted for this method to work (sorted by commit time, latest commits come first)
+   */
+  @VisibleForTesting
+  static void addCommitByTime(@NotNull RevCommit pCommit, @NotNull List<RevCommit> pCommitList)
+  {
+    ListIterator<RevCommit> commitListIterator = pCommitList.listIterator();
+    while (commitListIterator.hasNext())
+    {
+      RevCommit next = commitListIterator.next();
+      if (next.getCommitTime() < pCommit.getCommitTime())
+      {
+        commitListIterator.previous();
+        commitListIterator.add(pCommit);
+        return;
+      }
+    }
+    pCommitList.add(pCommit);
   }
 
   /**
