@@ -158,6 +158,7 @@ public class MergePanel extends JPanel implements IDiscardable
     yoursPaneWrapper.getPaneContainer().addChoiceButtonPanel(pYoursModel, acceptYoursIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumColorModels[0]},
                                                              BorderLayout.EAST);
     yoursPaneWrapper.getPaneContainer().addLineNumPanel(lineNumColorModels[0], pYoursModel, BorderLayout.EAST);
+    // this is added to draw the "connecting" areas between yours and the forkPoint Panel
     yoursPaneWrapper.getPaneContainer().addChoiceButtonPanel(pYoursModel, null, null,
                                                              lineNumColorModels, BorderLayout.EAST);
   }
@@ -176,6 +177,7 @@ public class MergePanel extends JPanel implements IDiscardable
     theirsPaneWrapper.getPaneContainer().addChoiceButtonPanel(pTheirsModel, acceptTheirsIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumPanels[1]},
                                                               BorderLayout.WEST);
     theirsPaneWrapper.getPaneContainer().addLineNumPanel(lineNumPanels[1], pTheirsModel, BorderLayout.WEST);
+    // this is added to draw the "connecting" areas between theirs and the forkPoint Panel
     theirsPaneWrapper.getPaneContainer().addChoiceButtonPanel(pTheirsModel, null, null,
                                                               lineNumPanels, BorderLayout.WEST);
   }
