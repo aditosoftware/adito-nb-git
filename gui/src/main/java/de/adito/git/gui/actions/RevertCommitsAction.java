@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Action that reverts the changes that werde done by one or more commits
@@ -69,7 +70,10 @@ public class RevertCommitsAction extends AbstractTableAction
         }
         repo.setUpdateFlag(false);
         repo.revertCommit(selectedCommits);
-        notifyUtil.notify("Revert commits success", String.format("Reverting commits with ID %s was successfull ", selectedCommits), false);
+        notifyUtil.notify("Revert commits success", String
+            .format("Reverting commits with ID %s was successfull ", selectedCommits.stream()
+                .map(ICommit::getId)
+                .collect(Collectors.joining(", "))), false);
       }
       finally
       {
