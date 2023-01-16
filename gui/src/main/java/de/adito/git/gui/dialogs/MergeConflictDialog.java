@@ -38,6 +38,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.text.MessageFormat;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,6 +71,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IPrefStore prefStore;
   private int bufferedSelection = 0;
+  private final JLabel remainingConflicts = new JLabel();
 
   @Inject
   MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, IQuickSearchProvider pQuickSearchProvider,
@@ -94,7 +97,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       acceptTheirsButton.setEnabled(pSelectedMergeDiffs.map(pList -> !pList.isEmpty()).orElse(false));
     }));
     disposables.add(_observeMergeDiffList().subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty())));
-    mergeDiffStatusModel = new MergeDiffStatusModel(_observeMergeDiffList(), pMergeDetails);
+    mergeDiffStatusModel = new MergeDiffStatusModel(_observeMergeDiffList(), pMergeDetails, remainingConflicts);
     _initGui(pMergeDetails, pShowAutoResolve, pQuickSearchProvider);
     // the enter key should trigger the manual resolve action
     mergeConflictTable.addKeyListener(new EnterKeyAdapter(pMergeDetails));
@@ -135,6 +138,11 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     }
     buttonPanel.add(Box.createVerticalStrut(Integer.MAX_VALUE));
     add(buttonPanel, BorderLayout.EAST);
+
+    // label with remaining conflicts and initial value
+    remainingConflicts.setText(MessageFormat.format("{0} remaining conflicts", pMergeDetails.getMergeConflicts().size()));
+    add(remainingConflicts, BorderLayout.NORTH);
+
     mergeConflictTable.setModel(mergeDiffStatusModel);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filename")).setPreferredWidth(230);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filepath")).setPreferredWidth(230);
