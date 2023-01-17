@@ -8,7 +8,6 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
-import de.adito.git.gui.concurrency.GitProcessExecutors;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.ComponentResizeListener;
@@ -57,13 +56,13 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     mergePanel = new MergePanel(pIconLoader, mergeDiff, pYoursOrigin, pTheirsOrigin, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui(pIconLoader);
     //AtomicReference<MergePanel> panelRef = new AtomicReference<>(mergePanel);
-    GitProcessExecutors.submit(() ->
-                                   pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
-                                     Thread.sleep(2000);
-                                     mergePanel.finishLoading();
-                                     //panelRef.get().finishLoading();
-                                     //panelRef.set(null);
-                                   }));
+    //GitProcessExecutors.submit(() ->
+    //                               pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
+    //                                 Thread.sleep(2000);
+    //                                 mergePanel.finishLoading();
+    //                                 //panelRef.get().finishLoading();
+    //                                 //panelRef.set(null);
+    //                               }));
   }
 
   private void _initGui(IIconLoader pIconLoader)

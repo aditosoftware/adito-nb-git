@@ -105,7 +105,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
     }
     else
     {
-      SwingUtil.invokeASAP(() -> super.setValue(n));
+      SwingUtil.invokeInEDT(() -> super.setValue(n));
       return true;
     }
   }

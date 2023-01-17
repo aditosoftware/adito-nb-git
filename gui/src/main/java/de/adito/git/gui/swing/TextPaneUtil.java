@@ -55,14 +55,14 @@ public class TextPaneUtil
     // so seperate treatment here
     if (pEndIndex - pStartIndex <= 1)
     {
-      pLineNumbers[pStartIndex] = new LineNumber(pStartIndex + 1, startNumber.getXCoordinate(), startNumber.getYCoordinate());
-      pLineNumbers[pEndIndex] = new LineNumber(pEndIndex + 1, endNumber.getXCoordinate(), endNumber.getYCoordinate());
+      pLineNumbers[pStartIndex] = new LineNumber(pStartIndex + 1, startNumber.getXCoordinate(), startNumber.getYCoordinate(), startNumber.getHeight());
+      pLineNumbers[pEndIndex] = new LineNumber(pEndIndex + 1, endNumber.getXCoordinate(), endNumber.getYCoordinate(), endNumber.getHeight());
     }
     else if (endNumber.getYCoordinate() - startNumber.getYCoordinate() == (pEndIndex - pStartIndex) * pLineHeight)
     {
       for (int index = 0; index <= pEndIndex - pStartIndex; index++)
       {
-        pLineNumbers[pStartIndex + index] = new LineNumber(pStartIndex + index + 1, startNumber.getXCoordinate(), startNumber.getYCoordinate() + index * pLineHeight);
+        pLineNumbers[pStartIndex + index] = new LineNumber(pStartIndex + index + 1, startNumber.getXCoordinate(), startNumber.getYCoordinate() + index * pLineHeight, pLineHeight);
       }
     }
     else
@@ -91,12 +91,10 @@ public class TextPaneUtil
     int startOffset = lineElement.getStartOffset();
     if (pView != null)
     {
-      int yViewCoordinate = Optional.ofNullable(pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle()))
+      return Optional.ofNullable(pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle()))
           .map(Shape::getBounds)
-          .map(Rectangle::getY)
-          .map(Double::intValue)
-          .orElse(0);
-      return new LineNumber(pLineIndex + 1, 0, yViewCoordinate);
+          .map(pRectangle -> new LineNumber(pLineIndex + 1, 0, (int) pRectangle.getY(), (int) pRectangle.getHeight()))
+          .orElse(new LineNumber(pLineIndex + 1, 0, 0, 0));
     }
     return null;
 

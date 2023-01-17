@@ -11,17 +11,20 @@ public class LineNumber
   private final String number;
   private final int yCoordinate;
   private final int xCoordinate;
+  private final int height;
 
   /**
    * @param pNumber      the actual number of the line
    * @param pXCoordinate x coordinate of the baseline of the number for the line
    * @param pYCoordinate y coordinate of the baseline of the number for the line
+   * @param pHeight      how high is this Line?
    */
-  public LineNumber(int pNumber, int pXCoordinate, int pYCoordinate)
+  public LineNumber(int pNumber, int pXCoordinate, int pYCoordinate, int pHeight)
   {
     number = String.valueOf(pNumber);
     xCoordinate = pXCoordinate;
     yCoordinate = pYCoordinate;
+    height = pHeight;
   }
 
   /**
@@ -46,5 +49,13 @@ public class LineNumber
   public int getXCoordinate()
   {
     return xCoordinate;
+  }
+
+  /**
+   * @return height of the line this object represents
+   */
+  public int getHeight()
+  {
+    return height;
   }
 }

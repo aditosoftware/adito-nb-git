@@ -2,24 +2,19 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.ColorPicker;
 import de.adito.git.api.IDiscardable;
-import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.SwingUtil;
-import de.adito.git.gui.swing.TextPaneUtil;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.View;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Panel that contains the line numbers of a given JTextPane. Arranges the numbers such that they fit the lines in the TextPane even if the font is
@@ -27,129 +22,94 @@ import java.util.concurrent.TimeUnit;
  *
  * @author m.kaspera 13.12.2018
  */
-class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsListener
+class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListener, LineNumberListener, ChangeListener
 {
 
   private final CompositeDisposable disposable = new CompositeDisposable();
   private final Insets panelInsets = new Insets(0, 0, 0, 0);
   private final Insets editorInsets;
-  private Rectangle cachedViewRectangle = new Rectangle();
-  // lists with Objects that contain information about what to draw. Never modify these lists by themselves, only re-assign them
-  private List<LineNumberColor> lineNumberColors = new ArrayList<>(); // all LineNumberColors for the file in the editor
-  private BufferedImage lineNumImage = null;
-  private final JEditorPane editorPane;
+  private final LineNumberModel lineNumberModel;
+  private final LineChangeMarkingModel lineChangeMarkingModel;
   private final JViewport viewport;
-  private final LineNumbersColorModel lineNumbersColorModel;
+  private final JEditorPane editorPane;
   private int lineNumFacadeWidth;
 
 
   /**
-   * @param pModel           DiffPanelModel containing information about which parts of the FileChangeChunk should be utilized
-   * @param pEditorPane      JEditorPane that displays the text from the IFileChangeChunks in the pModel
-   * @param pViewport        JViewPort containing pEditorPane
-   * @param pViewPortSizeObs Observable of the Dimension of the viewPort. Changes each time the viewPort has its size changed, and only then
+   * @param pEditorPane JEditorPane that displays the text from the IFileChangeChunks in the pModel
+   * @param pViewport
    */
-  LineNumPanel(@NotNull DiffPanelModel pModel, JEditorPane pEditorPane, @NotNull JViewport pViewport,
-               Observable<Dimension> pViewPortSizeObs, @NotNull LineNumbersColorModel pLineNumbersColorModel)
+  LineNumPanel(@NotNull JEditorPane pEditorPane, @NotNull LineNumberModel pLineNumberModel, @NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull JViewport pViewport)
   {
     editorPane = pEditorPane;
-    viewport = pViewport;
-    lineNumbersColorModel = pLineNumbersColorModel;
-    lineNumbersColorModel.addLazyListener(this);
     editorInsets = pEditorPane.getInsets();
+    lineNumberModel = pLineNumberModel;
+    lineChangeMarkingModel = pLineChangeMarkingModel;
+    viewport = pViewport;
     lineNumFacadeWidth = _calculateLineWidth();
     setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
     setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
-    disposable.add(Observable.combineLatest(
-            pModel.getFileChangesObservable(), pViewPortSizeObs, ((pFileChangesEvent, pDimension) -> pFileChangesEvent))
-                       .throttleLatest(250, TimeUnit.MILLISECONDS, true)
-                       .subscribe(
-                           pFileChangeEvent -> SwingUtil.invokeASAP(() -> {
-                             lineNumFacadeWidth = _calculateLineWidth();
-                             setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
-                             lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
-                             revalidate();
-                             repaint();
-                           })));
-    disposable.add(pModel.getFileChangesObservable().subscribe(pChangeEvent -> _recalcAndRedraw(pEditorPane, viewport)));
-    pViewport.addChangeListener(e -> _recalcAndRedraw(pEditorPane, viewport));
+    pLineNumberModel.addLineNumberListener(this);
+    pLineChangeMarkingModel.addLineNumberColorsListener(this);
+    viewport.addChangeListener(this);
   }
 
-  private void _recalcAndRedraw(JEditorPane pEditorPane, @NotNull JViewport pViewport)
+  private void _recalcAndRedraw()
   {
-    SwingUtil.invokeASAP(() -> {
-      if (lineNumImage == null)
-      {
-        lineNumImage = _calculateLineNumImage(pEditorPane, lineNumberColors);
-      }
-      cachedViewRectangle = pViewport.getViewRect();
-      revalidate();
-      repaint();
-    });
+    SwingUtil.invokeInEDT(() -> {
+
+                            lineNumFacadeWidth = _calculateLineWidth();
+                            setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
+                            revalidate();
+                            repaint();
+                          }
+    );
   }
 
   @Override
   protected void paintComponent(Graphics pGraphics)
   {
     super.paintComponent(pGraphics);
-    pGraphics.drawImage(lineNumImage, panelInsets.left, 0, lineNumFacadeWidth + panelInsets.left, cachedViewRectangle.height,
-                        0, cachedViewRectangle.y, lineNumFacadeWidth, cachedViewRectangle.y + cachedViewRectangle.height, ColorPicker.DIFF_BACKGROUND,
-                        null);
+    Rectangle visibleRect = editorPane.getVisibleRect();
+    Collection<LineNumberColor> staticLineNumberColors = lineChangeMarkingModel.getLineNumberColorsToDraw(Math.max(0, visibleRect.y - 32), visibleRect.y + visibleRect.height + 32);
+    for (LineNumberColor lineNumberColor : staticLineNumberColors)
+    {
+      pGraphics.setColor(lineNumberColor.getColor());
+      pGraphics.fillRect(lineNumberColor.getColoredArea().x, lineNumberColor.getColoredArea().y - visibleRect.y,
+                         getWidth(), lineNumberColor.getColoredArea().height);
+    }
+    Collection<LineNumber> linesToDraw = lineNumberModel.getLineNumbersToDraw(Math.max(0, visibleRect.y - 32), visibleRect.y + visibleRect.height + 32);
+    ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    pGraphics.setColor(ColorPicker.DIFF_LINE_NUM);
+    for (LineNumber lineNumber : linesToDraw)
+    {
+      pGraphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate() + 2,
+                           lineNumber.getYCoordinate() + pGraphics.getFontMetrics().getAscent() - editorInsets.top + 2 - visibleRect.y);
+    }
+
   }
 
   @Override
   public void discard()
   {
     disposable.dispose();
-    lineNumbersColorModel.removeListener(this);
-    lineNumbersColorModel.discard();
+    lineNumberModel.removeLineNumberListener(this);
+    lineChangeMarkingModel.removeLineNumberColorsListener(this);
+    viewport.removeChangeListener(this);
   }
 
   @Override
-  public void lineNumberColorsChanged(int pModelNumber, List<LineNumberColor> pNewValue)
+  public void lineNumberColorsChanged(@NotNull List<LineNumberColor> pNewValue)
   {
-    lineNumberColors = pNewValue;
-    _recalcAndRedraw(editorPane, viewport);
+    _recalcAndRedraw();
   }
 
-  /**
-   * @param pEditorPane    JEditorPane containing the text for which theses lines are
-   * @param pLineNumColors Areas affected by the ChangeChunks
-   * @return BufferedImage that represents the content of this panel
-   */
-  @Nullable
-  private BufferedImage _calculateLineNumImage(@NotNull JEditorPane pEditorPane, @NotNull List<LineNumberColor> pLineNumColors)
+  @Override
+  public void lineNumbersChanged(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
   {
-    View view = pEditorPane.getUI().getRootView(pEditorPane);
-    if (pEditorPane.getHeight() <= 0)
-      return null;
-    try
-    {
-      LineNumber[] lineNums = TextPaneUtil.calculateLineYPositions(pEditorPane, view);
-      BufferedImage image = new BufferedImage(lineNumFacadeWidth, pEditorPane.getHeight(), BufferedImage.TYPE_INT_ARGB);
-      Graphics graphics = image.getGraphics();
-      for (LineNumberColor lineNumberColor : pLineNumColors)
-      {
-        graphics.setColor(lineNumberColor.getColor());
-        graphics.fillRect(lineNumberColor.getColoredArea().x, lineNumberColor.getColoredArea().y,
-                          getWidth(), lineNumberColor.getColoredArea().height);
-      }
-      ((Graphics2D) graphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-      graphics.setColor(ColorPicker.DIFF_LINE_NUM);
-      for (LineNumber lineNumber : lineNums)
-      {
-        graphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate() + 2,
-                            lineNumber.getYCoordinate() + graphics.getFontMetrics().getAscent() - editorInsets.top + 2);
-      }
-      return image;
-    }
-    catch (BadLocationException pE)
-    {
-      throw new RuntimeException(pE);
-    }
+    _recalcAndRedraw();
   }
-
 
   /**
    * calculate the width this panel must have to display all the lineNumbers, based on the highest lineNumber and the used font
@@ -159,5 +119,11 @@ class LineNumPanel extends JPanel implements IDiscardable, ILineNumberColorsList
   private int _calculateLineWidth()
   {
     return getFontMetrics(getFont()).stringWidth(String.valueOf(editorPane.getDocument().getDefaultRootElement().getElementCount() - 1)) + 7;
+  }
+
+  @Override
+  public void stateChanged(ChangeEvent e)
+  {
+    _recalcAndRedraw();
   }
 }

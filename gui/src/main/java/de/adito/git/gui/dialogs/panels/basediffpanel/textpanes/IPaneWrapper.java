@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.textpanes;
 
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPaneContainer;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -12,10 +13,22 @@ import javax.swing.*;
 public interface IPaneWrapper
 {
 
+  /**
+   * @return EditorPane that is wrapped by this interface
+   */
+  @NotNull
   JEditorPane getEditorPane();
 
+  /**
+   * @return scrollPane that contains the editorPane that this wrapper wraps
+   */
+  @NotNull
   JScrollPane getScrollPane();
 
+  /**
+   * @return DiffPaneContainer that contains the editorPane and the lineNumber and ChoiceButtonPanels that are used to add information to the editorPane
+   */
+  @NotNull
   DiffPaneContainer getPaneContainer();
 
 }

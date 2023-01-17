@@ -5,7 +5,9 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineChangeMarkingModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumberModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.ViewLineChangeMarkingModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.ForkPointPaneWrapper;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.IPaneWrapper;
@@ -58,8 +60,6 @@ public class MergePanel extends JPanel implements IDiscardable
   private DiffPaneWrapper yoursPaneWrapper;
   private ForkPointPaneWrapper forkPointPaneWrapper;
   private DiffPaneWrapper theirsPaneWrapper;
-  private LineNumbersColorModel leftForkPointLineNumColorModel;
-  private LineNumbersColorModel rightForkPointLineNumColorModel;
   private CaretMovedListener caretListener;
 
   public MergePanel(@NotNull IIconLoader pIconLoader, @NotNull IMergeData pMergeDiff, @NotNull String pYoursOrigin, @NotNull String pTheirsOrigin,
@@ -99,14 +99,7 @@ public class MergePanel extends JPanel implements IDiscardable
         .setDoOnAccept(pChangeDelta -> mergeDiff.acceptDelta(pChangeDelta, EConflictSide.THEIRS))
         .setDoOnDiscard(pChangeDelta -> mergeDiff.discardChange(pChangeDelta, EConflictSide.THEIRS));
     theirsPaneWrapper = new DiffPaneWrapper(theirsModel, null, SwingConstants.LEFT, editorKitObservable);
-    // This observable has a default value and then only fires once, when the first mouse action occurs on any of the editorPanes. This is one of the better
-    // (not good, mind you) mechanism to make sure the heights are properly calculated by the pane when they are used
-    MouseFirstActionObservableWrapper mouseFirstActionObservableWrapper = new MouseFirstActionObservableWrapper(yoursPaneWrapper.getEditorPane(),
-                                                                                                                theirsPaneWrapper.getEditorPane(),
-                                                                                                                forkPointPaneWrapper.getEditorPane());
-    _initForkPointPanel(mouseFirstActionObservableWrapper.getObservable());
-    _initYoursPanel(yoursModel, mouseFirstActionObservableWrapper.getObservable());
-    _initTheirsPanel(theirsModel, mouseFirstActionObservableWrapper.getObservable());
+    initModels(yoursModel, theirsModel);
     setLayout(new BorderLayout());
     JSplitPane forkMergeSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, forkPointPaneWrapper.getPaneContainer(), theirsPaneWrapper.getPaneContainer());
     forkMergeSplit.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -126,7 +119,7 @@ public class MergePanel extends JPanel implements IDiscardable
                                  forkPointPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel(),
                                  yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().getModel())
     );
-    SwingUtil.invokeASAP(() -> yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().setValue(0));
+    SwingUtil.invokeInEDT(() -> yoursPaneWrapper.getScrollPane().getHorizontalScrollBar().setValue(0));
     add(yoursTheirsPanel, BorderLayout.NORTH);
     caretListener = new CaretMovedListener();
     yoursPaneWrapper.getEditorPane().addCaretListener(caretListener);
@@ -134,61 +127,61 @@ public class MergePanel extends JPanel implements IDiscardable
     forkPointPaneWrapper.getEditorPane().addCaretListener(caretListener);
   }
 
-  public void finishLoading()
+  private void initModels(DiffPanelModel yoursModel, DiffPanelModel theirsModel)
   {
-    initHeightsObs.onNext(Optional.of(new Object()));
-    yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setValue(0);
-    forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setValue(0);
-    theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setValue(0);
+    LineNumberModel yourLineNumberModel = yoursPaneWrapper.createLineNumberModel();
+    LineChangeMarkingModel yourLineChangeMarkingModel = new LineChangeMarkingModel(yourLineNumberModel, EChangeSide.NEW);
+    ViewLineChangeMarkingModel yourViewChangeMarkingModel = new ViewLineChangeMarkingModel(yourLineChangeMarkingModel, yoursPaneWrapper.getScrollPane().getViewport());
+    LineNumberModel theirLineNumberModel = theirsPaneWrapper.createLineNumberModel();
+    LineChangeMarkingModel theirLineChangeMarkingModel = new LineChangeMarkingModel(theirLineNumberModel, EChangeSide.NEW);
+    ViewLineChangeMarkingModel theirViewChangeMarkingModel = new ViewLineChangeMarkingModel(theirLineChangeMarkingModel, theirsPaneWrapper.getScrollPane().getViewport());
+    LineNumberModel forkPointLineNumberModel = forkPointPaneWrapper.createLineNumberModel(EConflictSide.YOURS);
+    LineNumberModel forkPointTheirLineNumberModel = forkPointPaneWrapper.createLineNumberModel(EConflictSide.THEIRS);
+    LineChangeMarkingModel forkPointYourChangeMarkingModel = new LineChangeMarkingModel(forkPointLineNumberModel, EChangeSide.OLD);
+    LineChangeMarkingModel forkPointTheirChangeMarkingModel = new LineChangeMarkingModel(forkPointTheirLineNumberModel, EChangeSide.OLD);
+    ViewLineChangeMarkingModel forkPointYourViewChangeMarkingModel = new ViewLineChangeMarkingModel(forkPointYourChangeMarkingModel,
+                                                                                                    forkPointPaneWrapper.getScrollPane().getViewport());
+    ViewLineChangeMarkingModel forkPointTheirViewChangeMarkingModel = new ViewLineChangeMarkingModel(forkPointTheirChangeMarkingModel,
+                                                                                                     forkPointPaneWrapper.getScrollPane().getViewport());
+    _initYoursPanel(yoursModel, yourLineNumberModel, yourLineChangeMarkingModel, yourViewChangeMarkingModel, forkPointYourViewChangeMarkingModel);
+    _initTheirsPanel(theirsModel, theirLineNumberModel, theirLineChangeMarkingModel, theirViewChangeMarkingModel, forkPointTheirViewChangeMarkingModel);
+    _initForkPointPanel(forkPointLineNumberModel, forkPointTheirLineNumberModel, forkPointYourChangeMarkingModel, forkPointTheirChangeMarkingModel);
   }
 
-  private void _initYoursPanel(DiffPanelModel pYoursModel, Observable<Optional<Object>> pObservable)
+  private void _initYoursPanel(@NotNull DiffPanelModel pYoursModel, @NotNull LineNumberModel pYourLineNumberModel, @NotNull LineChangeMarkingModel pYourChangeMarkingModel,
+                               @NotNull ViewLineChangeMarkingModel pYourViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointYourViewChangeMarkingModel)
   {
-    LineNumbersColorModel[] lineNumColorModels = new LineNumbersColorModel[2];
-
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     yoursPaneWrapper.getScrollPane().setLayout(new LeftSideVSBScrollPaneLayout());
 
-    // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = yoursPaneWrapper.getPaneContainer().createLineNumberColorModel(pYoursModel, pObservable, 1);
-    // index 0 because the lineNumPanel is of the left-most panel, and thus to the left to the ChoiceButtonPanel
-    lineNumColorModels[0] = yoursPaneWrapper.getPaneContainer().createLineNumberColorModel(pYoursModel, pObservable, 0);
-    lineNumColorModels[1] = leftForkPointLineNumColorModel;
-
-    yoursPaneWrapper.getPaneContainer().addChoiceButtonPanel(pYoursModel, acceptYoursIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumColorModels[0]},
-                                                             BorderLayout.EAST);
-    yoursPaneWrapper.getPaneContainer().addLineNumPanel(lineNumColorModels[0], pYoursModel, BorderLayout.EAST);
+    yoursPaneWrapper.getPaneContainer().addChoiceButtonPanel(pYoursModel, pYourLineNumberModel, pYourViewChangeMarkingModel, pYourViewChangeMarkingModel,
+                                                             acceptYoursIcon, discardIcon, BorderLayout.EAST);
+    yoursPaneWrapper.getPaneContainer().addLineNumPanel(pYourLineNumberModel, pYourChangeMarkingModel, BorderLayout.EAST);
     // this is added to draw the "connecting" areas between yours and the forkPoint Panel
-    yoursPaneWrapper.getPaneContainer().addChoiceButtonPanel(pYoursModel, null, null,
-                                                             lineNumColorModels, BorderLayout.EAST);
+    yoursPaneWrapper.getPaneContainer().addChoiceButtonPanel(pYoursModel, pYourLineNumberModel, pYourViewChangeMarkingModel, pForkpointYourViewChangeMarkingModel,
+                                                             null, null, BorderLayout.EAST);
   }
 
-  private void _initTheirsPanel(DiffPanelModel pTheirsModel, Observable<Optional<Object>> pObservable)
+  private void _initTheirsPanel(@NotNull DiffPanelModel pTheirsModel, @NotNull LineNumberModel pTheirLineNumberModel, @NotNull LineChangeMarkingModel pTheirChangeMarkingModel,
+                                @NotNull ViewLineChangeMarkingModel pTheirViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointTheirViewChangeMarkingModel)
   {
-    LineNumbersColorModel[] lineNumPanels = new LineNumbersColorModel[2];
     theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
-    // Neccessary for the right ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = theirsPaneWrapper.getPaneContainer().createLineNumberColorModel(pTheirsModel, pObservable, 0);
-    // index 1 because the lineNumPanel is of the right-most panel, and thus to the right to the ChoiceButtonPanel
-    lineNumPanels[1] = theirsPaneWrapper.getPaneContainer().createLineNumberColorModel(pTheirsModel, pObservable, 1);
-    lineNumPanels[0] = rightForkPointLineNumColorModel;
-
-    theirsPaneWrapper.getPaneContainer().addChoiceButtonPanel(pTheirsModel, acceptTheirsIcon, discardIcon, new LineNumbersColorModel[]{temp, lineNumPanels[1]},
-                                                              BorderLayout.WEST);
-    theirsPaneWrapper.getPaneContainer().addLineNumPanel(lineNumPanels[1], pTheirsModel, BorderLayout.WEST);
+    theirsPaneWrapper.getPaneContainer().addChoiceButtonPanel(pTheirsModel, pTheirLineNumberModel, pTheirViewChangeMarkingModel, pTheirViewChangeMarkingModel,
+                                                              acceptTheirsIcon, discardIcon, BorderLayout.WEST);
+    theirsPaneWrapper.getPaneContainer().addLineNumPanel(pTheirLineNumberModel, pTheirChangeMarkingModel, BorderLayout.WEST);
     // this is added to draw the "connecting" areas between theirs and the forkPoint Panel
-    theirsPaneWrapper.getPaneContainer().addChoiceButtonPanel(pTheirsModel, null, null,
-                                                              lineNumPanels, BorderLayout.WEST);
+    theirsPaneWrapper.getPaneContainer().addChoiceButtonPanel(pTheirsModel, pTheirLineNumberModel, pForkpointTheirViewChangeMarkingModel, pTheirViewChangeMarkingModel,
+                                                              null, null, BorderLayout.WEST);
   }
 
-  private void _initForkPointPanel(Observable<Optional<Object>> pObservable)
+  private void _initForkPointPanel(@NotNull LineNumberModel pForkpointLineNumberModel, @NotNull LineNumberModel pForkpointLineTheirNumberModel,
+                                   @NotNull LineChangeMarkingModel pForkpointYourChangeMarkingModel,
+                                   @NotNull LineChangeMarkingModel pForkpointTheirChangeMarkingModel)
   {
     forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
-    DiffPanelModel forkPointYoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.OLD);
-    DiffPanelModel forkPointTheirsModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), EChangeSide.OLD);
-    leftForkPointLineNumColorModel = forkPointPaneWrapper.getPaneContainer().addLineNumPanel(forkPointYoursModel, pObservable, BorderLayout.WEST, 1);
-    rightForkPointLineNumColorModel = forkPointPaneWrapper.getPaneContainer().addLineNumPanel(forkPointTheirsModel, pObservable, BorderLayout.EAST, 0);
+    forkPointPaneWrapper.getPaneContainer().addLineNumPanel(pForkpointLineNumberModel, pForkpointYourChangeMarkingModel, BorderLayout.WEST);
+    forkPointPaneWrapper.getPaneContainer().addLineNumPanel(pForkpointLineTheirNumberModel, pForkpointTheirChangeMarkingModel, BorderLayout.EAST);
   }
 
   @NotNull

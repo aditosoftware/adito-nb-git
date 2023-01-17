@@ -5,11 +5,10 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.IDiffPaneUtil;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPaneContainer;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.MarkedScrollbar;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.ScrollbarMarkingsModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +35,8 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   private final Disposable fileChangeDisposable;
   private final Disposable editorKitDisposable;
   private final ScrollbarMarkingsModel scrollbarMarkingsModel;
+  @NotNull
+  private final BehaviorSubject<IDeltaTextChangeEvent> textChangeSubject = BehaviorSubject.create();
   private IFileDiff currentFileDiff;
 
   /**
@@ -74,9 +75,20 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   }
 
   /**
+   * Create a new LineNumberModel that is based on the editorPane and its contents of the diffPane of this wrapper
+   *
+   * @return LineNumberModel
+   */
+  @NotNull
+  public LineNumberModel createLineNumberModel()
+  {
+    return diffPaneContainer.createLineNumberModel(textChangeSubject);
+  }
+
+  /**
    * @return JScrollPane with the content of this DiffPane, add this to your panel
    */
-  public JScrollPane getScrollPane()
+  public @NotNull JScrollPane getScrollPane()
   {
     return diffPaneContainer.getScrollPane();
   }
@@ -85,7 +97,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    * @return DiffPane that this wrapper is made for, only use this to add LineNumber/ChoiceButtonPanels. Add the JScrollPane via getScrollPane() to
    * the panel/component that should display the DiffPane
    */
-  public DiffPaneContainer getPaneContainer()
+  public @NotNull DiffPaneContainer getPaneContainer()
   {
     return diffPaneContainer;
   }
@@ -93,7 +105,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   /**
    * @return the JEditorPane displaying the text for this DiffPaneWrapper
    */
-  public JEditorPane getEditorPane()
+  public @NotNull JEditorPane getEditorPane()
   {
     return editorPane;
   }
@@ -177,6 +189,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   {
     currentFileDiff = pTextChangeEvent.getFileDiff();
     _textChanged(pTextChangeEvent);
+    textChangeSubject.onNext(pTextChangeEvent);
   }
 
   private void _textChanged(IDeltaTextChangeEvent pTextChangeEvent)
