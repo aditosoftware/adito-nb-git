@@ -29,7 +29,9 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
+import lombok.*;
 import org.jetbrains.annotations.NotNull;
+import org.openide.util.NbBundle;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -65,12 +67,14 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final JButton acceptYoursButton = new JButton("Accept Yours");
   private final JButton acceptTheirsButton = new JButton("Accept Theirs");
   private final JButton autoResolveButton = new JButton("Auto-Resolve");
+  @Getter(AccessLevel.PACKAGE)
   private final MergeDiffStatusModel mergeDiffStatusModel;
   private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IPrefStore prefStore;
   private int bufferedSelection = 0;
+  @Getter(AccessLevel.PACKAGE)
   private final JLabel remainingConflicts = new JLabel();
 
   @Inject
@@ -97,7 +101,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
       acceptTheirsButton.setEnabled(pSelectedMergeDiffs.map(pList -> !pList.isEmpty()).orElse(false));
     }));
     disposables.add(_observeMergeDiffList().subscribe(pList -> isValidDescriptor.setValid(pList.isEmpty())));
-    mergeDiffStatusModel = new MergeDiffStatusModel(_observeMergeDiffList(), pMergeDetails, remainingConflicts);
+    mergeDiffStatusModel = new MergeDiffStatusModel(_observeMergeDiffList(), pMergeDetails);
     _initGui(pMergeDetails, pShowAutoResolve, pQuickSearchProvider);
     // the enter key should trigger the manual resolve action
     mergeConflictTable.addKeyListener(new EnterKeyAdapter(pMergeDetails));
@@ -140,8 +144,13 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     add(buttonPanel, BorderLayout.EAST);
 
     // label with remaining conflicts and initial value
-    remainingConflicts.setText(MessageFormat.format("{0} remaining conflicts", pMergeDetails.getMergeConflicts().size()));
+    remainingConflicts.setText(MessageFormat.format(NbBundle.getMessage(MergeConflictDialog.class, "remainingConflicts"), pMergeDetails.getMergeConflicts().size()));
     add(remainingConflicts, BorderLayout.NORTH);
+
+
+    // whenever the table changes, update the text in the label
+    mergeDiffStatusModel.addTableModelListener(e -> remainingConflicts.setText(
+        MessageFormat.format(NbBundle.getMessage(MergeConflictDialog.class, "remainingConflicts"), pMergeDetails.getMergeConflicts().size())));
 
     mergeConflictTable.setModel(mergeDiffStatusModel);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filename")).setPreferredWidth(230);

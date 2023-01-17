@@ -2,15 +2,12 @@ package de.adito.git.gui.tablemodels;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IMergeDetails;
-import de.adito.git.api.data.diff.EConflictSide;
-import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.api.data.diff.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -23,9 +20,7 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   private List<IMergeData> mergeDiffs = new ArrayList<>();
   private final Disposable disposable;
 
-  private final JLabel remainingConflicts;
-
-  public MergeDiffStatusModel(@NotNull Observable<List<IMergeData>> pMergeDiffObservable, @NotNull IMergeDetails pMergeDetails, @NotNull JLabel pRemainingConflicts)
+  public MergeDiffStatusModel(@NotNull Observable<List<IMergeData>> pMergeDiffObservable, @NotNull IMergeDetails pMergeDetails)
   {
     columnNames = List.of("Filename", "Filepath", pMergeDetails.getYoursOrigin(), pMergeDetails.getTheirsOrigin());
     disposable = pMergeDiffObservable.subscribe(pMergeDiffs -> {
@@ -34,10 +29,6 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
       if (!sameFiles)
         fireTableDataChanged();
     });
-    remainingConflicts = pRemainingConflicts;
-
-    // whenever the table changes, update the text in the label
-    addTableModelListener(e -> remainingConflicts.setText(MessageFormat.format("{0} remaining conflicts", getRowCount())));
   }
 
   @Override
