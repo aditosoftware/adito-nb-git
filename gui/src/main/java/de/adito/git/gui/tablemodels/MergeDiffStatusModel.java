@@ -2,15 +2,13 @@ package de.adito.git.gui.tablemodels;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.IMergeDetails;
-import de.adito.git.api.data.diff.EConflictSide;
-import de.adito.git.api.data.diff.IMergeData;
+import de.adito.git.api.data.diff.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author m.kaspera 25.10.2018

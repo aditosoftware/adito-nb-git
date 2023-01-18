@@ -29,7 +29,9 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
+import lombok.*;
 import org.jetbrains.annotations.NotNull;
+import org.openide.util.NbBundle;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -38,6 +40,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.text.MessageFormat;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,12 +67,15 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
   private final JButton acceptYoursButton = new JButton("Accept Yours");
   private final JButton acceptTheirsButton = new JButton("Accept Theirs");
   private final JButton autoResolveButton = new JButton("Auto-Resolve");
+  @Getter(AccessLevel.PACKAGE)
   private final MergeDiffStatusModel mergeDiffStatusModel;
   private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final ObservableListSelectionModel observableListSelectionModel;
   private final IPrefStore prefStore;
   private int bufferedSelection = 0;
+  @Getter(AccessLevel.PACKAGE)
+  private final JLabel remainingConflicts = new JLabel();
 
   @Inject
   MergeConflictDialog(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFacade, IQuickSearchProvider pQuickSearchProvider,
@@ -135,6 +142,16 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     }
     buttonPanel.add(Box.createVerticalStrut(Integer.MAX_VALUE));
     add(buttonPanel, BorderLayout.EAST);
+
+    // label with remaining conflicts and initial value
+    remainingConflicts.setText(MessageFormat.format(NbBundle.getMessage(MergeConflictDialog.class, "remainingConflicts"), pMergeDetails.getMergeConflicts().size()));
+    add(remainingConflicts, BorderLayout.NORTH);
+
+
+    // whenever the table changes, update the text in the label
+    mergeDiffStatusModel.addTableModelListener(e -> remainingConflicts.setText(
+        MessageFormat.format(NbBundle.getMessage(MergeConflictDialog.class, "remainingConflicts"), pMergeDetails.getMergeConflicts().size())));
+
     mergeConflictTable.setModel(mergeDiffStatusModel);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filename")).setPreferredWidth(230);
     mergeConflictTable.getColumnModel().getColumn(mergeDiffStatusModel.findColumn("Filepath")).setPreferredWidth(230);
