@@ -169,6 +169,11 @@ public class SwingUtil
     return leftRectRim.intersectsLine(rightRectRim);
   }
 
+  /**
+   * Supplier that works with Exceptions
+   *
+   * @param <T> Type returned by the Supplier
+   */
   @FunctionalInterface
   public interface ExceptionalSupplier<T>
   {
