@@ -25,6 +25,10 @@ import java.util.List;
 class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListener, LineNumberListener, ChangeListener
 {
 
+  /**
+   * This variable sets how many pixels we use as safety margin for drawing lines around the visible rectangle
+   */
+  private static final int SAFETY_MARGIN_Y = 32;
   private final CompositeDisposable disposable = new CompositeDisposable();
   private final Insets panelInsets = new Insets(0, 0, 0, 0);
   private final Insets editorInsets;
@@ -84,7 +88,7 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
     Rectangle visibleRect = editorPane.getVisibleRect();
 
     // get the LineNumberColor we have to draw. We use the visible rect and some safety margin (32 pixels in this case) to identify only the visible LineNumberColor
-    Collection<LineNumberColor> staticLineNumberColors = lineChangeMarkingModel.getLineNumberColorsToDraw(Math.max(0, visibleRect.y - 32), visibleRect.y + visibleRect.height + 32);
+    Collection<LineNumberColor> staticLineNumberColors = lineChangeMarkingModel.getLineNumberColorsToDraw(Math.max(0, visibleRect.y - SAFETY_MARGIN_Y), visibleRect.y + visibleRect.height + SAFETY_MARGIN_Y);
     for (LineNumberColor lineNumberColor : staticLineNumberColors)
     {
       pGraphics.setColor(lineNumberColor.getColor());
@@ -94,7 +98,7 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
 
     // get the lineNumbers we have to draw. We use the visible rect and some safety margin (32 pixels in this case) to identify only the visible lineNumbers
     // the lineNumbers are drawn after the LineNumberColors because they should be visible above those colored fields
-    Collection<LineNumber> linesToDraw = lineNumberModel.getLineNumbersToDraw(Math.max(0, visibleRect.y - 32), visibleRect.y + visibleRect.height + 32);
+    Collection<LineNumber> linesToDraw = lineNumberModel.getLineNumbersToDraw(Math.max(0, visibleRect.y - SAFETY_MARGIN_Y), visibleRect.y + visibleRect.height + SAFETY_MARGIN_Y);
     ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     pGraphics.setColor(ColorPicker.DIFF_LINE_NUM);
     for (LineNumber lineNumber : linesToDraw)

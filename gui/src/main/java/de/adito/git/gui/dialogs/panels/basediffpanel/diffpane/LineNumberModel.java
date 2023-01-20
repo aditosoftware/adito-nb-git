@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 public class LineNumberModel extends ListenableModel<LineNumberListener> implements IDiscardable
 {
 
+  private static final Logger LOGGER = Logger.getLogger(LineNumberModel.class.getName());
   @NotNull
   private final Disposable areaDisposable;
   @NotNull
@@ -61,6 +62,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
   {
     if (pYStart > pYEnd)
       return List.of();
+
     // assign coordinateMapping to a temp variable in case it would be assigned a different value during the subMap call -> ThreadSafety
     TreeMap<Integer, LineNumber> tmp = coordinateMapping;
     Collection<LineNumber> lineNumbers = tmp.subMap(pYStart, pYEnd).values();
@@ -100,7 +102,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
       {
         // just log the exception and return the LineNumbers we could calculate. This way, the model may be able to fully calculate all LineNumbers on the next
         // event and is not broken
-        Logger.getLogger(LineNumberModel.class.getName()).log(Level.WARNING, pE, () -> "Git Plugin: Could not calculate LineNumber coordinates");
+        LOGGER.log(Level.WARNING, pE, () -> "Git Plugin: Could not calculate LineNumber coordinates");
       }
       coordinateMapping = calculateCoordinateMapping(lineNumberInfos);
       notifyListeners(pEvent, lineNumberInfos);
@@ -128,7 +130,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
   public void discard()
   {
     areaDisposable.dispose();
-    listenerList.clear();
+    discardListeners();
   }
 
   /**
@@ -139,7 +141,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    */
   private void notifyListeners(@NotNull IDeltaTextChangeEvent pEvent, @NotNull LineNumber[] pNewValue)
   {
-    for (LineNumberListener listener : listenerList)
+    for (LineNumberListener listener : listeners)
     {
       listener.lineNumbersChanged(pEvent, pNewValue);
     }

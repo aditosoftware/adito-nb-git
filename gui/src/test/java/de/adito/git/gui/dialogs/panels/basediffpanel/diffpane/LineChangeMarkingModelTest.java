@@ -44,6 +44,14 @@ class LineChangeMarkingModelTest
         () -> assertEquals(EChangeType.MODIFY.getDiffColor(), lineChangeMarkingModel.getStaticLineNumberColors().get(0).getColor()));
   }
 
+  /**
+   * Initialise a LineChangeMarkingModel for testing
+   *
+   * @param pLineNumbers LineNumbers that should be fed as setup to the lineChangeMarkingModel
+   * @param pOldVersion  Old version of the text for the diff
+   * @param pNewVersion  New version of the text for the diff
+   * @return LineChangeMarkingModel set up with
+   */
   @NotNull
   private static LineChangeMarkingModel getLineChangeMarkingModel(@NotNull LineNumber[] pLineNumbers, @NotNull String pOldVersion, @NotNull String pNewVersion)
   {

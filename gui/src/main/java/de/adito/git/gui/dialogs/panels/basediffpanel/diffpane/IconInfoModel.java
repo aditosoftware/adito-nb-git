@@ -75,7 +75,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
   public void discard()
   {
     lineNumberModel.removeListener(this);
-    listenerList.clear();
+    discardListeners();
   }
 
   @Override
@@ -223,7 +223,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
    */
   private void notifyListeners()
   {
-    for (IconInfoModelListener listener : listenerList)
+    for (IconInfoModelListener listener : listeners)
     {
       listener.iconInfosChanged();
     }

@@ -36,7 +36,7 @@ class IconInfoModelTest
   // use another line height to differentiate tests and have a chance to catch errors that have to do with differing line heights
   private static final int LINE_HEIGHT = 21;
 
-  public static Stream<Arguments> singleModificationSource()
+  private static Stream<Arguments> singleModificationSource()
   {
     return Stream.of(
         // test if the coordinates calculated by the model are correct if there is a single modification to the file
@@ -55,7 +55,7 @@ class IconInfoModelTest
    */
   @ParameterizedTest
   @MethodSource("singleModificationSource")
-  void test(@NotNull String pOldVersion, @NotNull String pNewVersion)
+  void isCorrectIconsWhenSingleChange(@NotNull String pOldVersion, @NotNull String pNewVersion)
   {
     JEditorPane editorPane = new JEditorPane();
     editorPane.setText("test\nchangedLine1\ntest\n");

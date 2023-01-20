@@ -44,7 +44,7 @@ public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMa
   {
     lineChangeMarkingModel.removeListener(this);
     viewport.removeChangeListener(this);
-    listenerList.clear();
+    discardListeners();
   }
 
   /**
@@ -95,7 +95,7 @@ public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMa
    */
   private void notifyListeners(@NotNull List<LineNumberColor> pLineNumberColors)
   {
-    for (ViewLineChangeMarkingsListener listener : listenerList)
+    for (ViewLineChangeMarkingsListener listener : listeners)
     {
       listener.viewLineChangeMarkingChanged(pLineNumberColors);
     }

@@ -28,6 +28,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    */
   @VisibleForTesting
   static final int INSERT_LINE_HEIGHT = 3;
+  private static final Logger LOGGER = Logger.getLogger(LineNumberModel.class.getName());
 
   @NotNull
   private final LineNumberModel lineNumberModel;
@@ -53,7 +54,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
   public void discard()
   {
     lineNumberModel.removeListener(this);
-    listenerList.clear();
+    discardListeners();
   }
 
   /**
@@ -130,7 +131,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
     {
       // just log the exception and return those lineNumberColors we could calculate. This way, the model may be able to fully calculate all lineNumberColors on the next
       // event and is not broken
-      Logger.getLogger(LineChangeMarkingModel.class.getName()).log(Level.WARNING, pE, () -> "Git Plugin: Could not calculate LineNumberColors");
+      LOGGER.log(Level.WARNING, pE, () -> "Git Plugin: Could not calculate LineNumberColors");
     }
 
     // re-assign the class variable to the new reference/list
@@ -198,7 +199,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    */
   private void notifyListeners(@NotNull List<LineNumberColor> pLineNumberColors)
   {
-    for (LineNumberColorsListener listener : listenerList)
+    for (LineNumberColorsListener listener : listeners)
     {
       listener.lineNumberColorsChanged(pLineNumberColors);
     }

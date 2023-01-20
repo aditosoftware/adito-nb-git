@@ -6,12 +6,13 @@ import java.util.List;
 /**
  * Base class for any kind of listenable model. Offers methods to add and remove listeners
  *
+ * @param <T> Type of the listener the model notifies about changes
  * @author m.kaspera, 19.01.2023
  */
 public class ListenableModel<T>
 {
 
-  protected List<T> listenerList = new ArrayList<>();
+  protected List<T> listeners = new ArrayList<>();
 
   /**
    * Add a listener to the list that is notified if the model changes
@@ -20,7 +21,7 @@ public class ListenableModel<T>
    */
   void addListener(T pListener)
   {
-    listenerList.add(pListener);
+    listeners.add(pListener);
   }
 
   /**
@@ -30,7 +31,15 @@ public class ListenableModel<T>
    */
   void removeListener(T pListener)
   {
-    listenerList.remove(pListener);
+    listeners.remove(pListener);
+  }
+
+  /**
+   * remove all listeners from the list of listeners to be notified
+   */
+  protected void discardListeners()
+  {
+    listeners.clear();
   }
 
 }
