@@ -97,9 +97,10 @@ public class DiffPanel extends JPanel implements IDiscardable
   {
     LineNumberModel oldLinesModel = oldVersionDiffPane.createLineNumberModel();
     LineChangeMarkingModel oldLineChangeMarkingsModel = new LineChangeMarkingModel(oldLinesModel, oldDiffPanelModel.getChangeSide());
+    ViewLineChangeMarkingModel oldViewLineChangeModel = new ViewLineChangeMarkingModel(oldLineChangeMarkingsModel, oldVersionDiffPane.getScrollPane().getViewport());
+
     LineNumberModel currentLinesModel = currentVersionDiffPane.createLineNumberModel();
     LineChangeMarkingModel currentChangeMarkingsModel = new LineChangeMarkingModel(currentLinesModel, currentDiffPanelModel.getChangeSide());
-    ViewLineChangeMarkingModel oldViewLineChangeModel = new ViewLineChangeMarkingModel(oldLineChangeMarkingsModel, oldVersionDiffPane.getScrollPane().getViewport());
     ViewLineChangeMarkingModel currentViewLineChangeModel = new ViewLineChangeMarkingModel(currentChangeMarkingsModel, currentVersionDiffPane.getScrollPane().getViewport());
 
     oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, oldLinesModel, oldViewLineChangeModel, oldViewLineChangeModel, pAcceptIcon, null,

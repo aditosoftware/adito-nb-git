@@ -1,5 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
@@ -11,18 +13,13 @@ import java.util.Objects;
  *
  * @author m.kaspera, 15.01.2019
  */
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 class LineNumberColor
 {
   @NotNull
   private final Color color;
   @NotNull
   private final Rectangle coloredArea;
-
-  LineNumberColor(@NotNull Color pColor, @NotNull Rectangle pColoredArea)
-  {
-    color = pColor;
-    coloredArea = pColoredArea;
-  }
 
   /**
    * @return Color that the area should be colored in

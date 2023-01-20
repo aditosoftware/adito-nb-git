@@ -127,29 +127,52 @@ public class MergePanel extends JPanel implements IDiscardable
     forkPointPaneWrapper.getEditorPane().addCaretListener(caretListener);
   }
 
-  private void initModels(DiffPanelModel yoursModel, DiffPanelModel theirsModel)
+  /**
+   * Initialise the models necessary for the 3 different diff panels used for a merge, and then use those models to set up the panels themselves
+   *
+   * @param yoursModel  Model containing the changes of the "yours" side of the merge
+   * @param theirsModel Model containing the changes of the "theirs" side of the merge
+   */
+  private void initModels(@NotNull DiffPanelModel yoursModel, @NotNull DiffPanelModel theirsModel)
   {
     LineNumberModel yourLineNumberModel = yoursPaneWrapper.createLineNumberModel();
     LineChangeMarkingModel yourLineChangeMarkingModel = new LineChangeMarkingModel(yourLineNumberModel, EChangeSide.NEW);
     ViewLineChangeMarkingModel yourViewChangeMarkingModel = new ViewLineChangeMarkingModel(yourLineChangeMarkingModel, yoursPaneWrapper.getScrollPane().getViewport());
+
     LineNumberModel theirLineNumberModel = theirsPaneWrapper.createLineNumberModel();
     LineChangeMarkingModel theirLineChangeMarkingModel = new LineChangeMarkingModel(theirLineNumberModel, EChangeSide.NEW);
     ViewLineChangeMarkingModel theirViewChangeMarkingModel = new ViewLineChangeMarkingModel(theirLineChangeMarkingModel, theirsPaneWrapper.getScrollPane().getViewport());
-    LineNumberModel forkPointLineNumberModel = forkPointPaneWrapper.createLineNumberModel(EConflictSide.YOURS);
-    LineNumberModel forkPointTheirLineNumberModel = forkPointPaneWrapper.createLineNumberModel(EConflictSide.THEIRS);
-    LineChangeMarkingModel forkPointYourChangeMarkingModel = new LineChangeMarkingModel(forkPointLineNumberModel, EChangeSide.OLD);
-    LineChangeMarkingModel forkPointTheirChangeMarkingModel = new LineChangeMarkingModel(forkPointTheirLineNumberModel, EChangeSide.OLD);
+
+    LineNumberModel forkPointYourLineNumberModel = forkPointPaneWrapper.createLineNumberModel(EConflictSide.YOURS);
+    LineChangeMarkingModel forkPointYourChangeMarkingModel = new LineChangeMarkingModel(forkPointYourLineNumberModel, EChangeSide.OLD);
     ViewLineChangeMarkingModel forkPointYourViewChangeMarkingModel = new ViewLineChangeMarkingModel(forkPointYourChangeMarkingModel,
                                                                                                     forkPointPaneWrapper.getScrollPane().getViewport());
+
+    LineNumberModel forkPointTheirLineNumberModel = forkPointPaneWrapper.createLineNumberModel(EConflictSide.THEIRS);
+    LineChangeMarkingModel forkPointTheirChangeMarkingModel = new LineChangeMarkingModel(forkPointTheirLineNumberModel, EChangeSide.OLD);
     ViewLineChangeMarkingModel forkPointTheirViewChangeMarkingModel = new ViewLineChangeMarkingModel(forkPointTheirChangeMarkingModel,
                                                                                                      forkPointPaneWrapper.getScrollPane().getViewport());
-    _initYoursPanel(yoursModel, yourLineNumberModel, yourLineChangeMarkingModel, yourViewChangeMarkingModel, forkPointYourViewChangeMarkingModel);
-    _initTheirsPanel(theirsModel, theirLineNumberModel, theirLineChangeMarkingModel, theirViewChangeMarkingModel, forkPointTheirViewChangeMarkingModel);
-    _initForkPointPanel(forkPointLineNumberModel, forkPointTheirLineNumberModel, forkPointYourChangeMarkingModel, forkPointTheirChangeMarkingModel);
+
+    initYoursPanel(yoursModel, yourLineNumberModel, yourLineChangeMarkingModel, yourViewChangeMarkingModel, forkPointYourViewChangeMarkingModel);
+    initTheirsPanel(theirsModel, theirLineNumberModel, theirLineChangeMarkingModel, theirViewChangeMarkingModel, forkPointTheirViewChangeMarkingModel);
+    initForkPointPanel(forkPointYourLineNumberModel, forkPointTheirLineNumberModel, forkPointYourChangeMarkingModel, forkPointTheirChangeMarkingModel);
   }
 
-  private void _initYoursPanel(@NotNull DiffPanelModel pYoursModel, @NotNull LineNumberModel pYourLineNumberModel, @NotNull LineChangeMarkingModel pYourChangeMarkingModel,
-                               @NotNull ViewLineChangeMarkingModel pYourViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointYourViewChangeMarkingModel)
+  /**
+   * Set up the "Yours" panel for the merge by adding the panels that show the lineNumbers, the buttons for accepting changes and the colored areas that show changes
+   * Also sets the scroll behaviour for the scrollPane that contains the editorPane that shows the contents of the "Yours" side
+   *
+   * @param pYoursModel                          Model containing the changes of the "yours" side of the merge
+   * @param pYourLineNumberModel                 LineNumberModel that contains the coordinates of the lines in the editorPane with the "Yours" content
+   * @param pYourChangeMarkingModel              LineChangeMarkingModel that contains the coordinates of the colored areas for the changes of the "Yours" content
+   * @param pYourViewChangeMarkingModel          ViewLineChangeMarkingModel that contains the coordinates of the colored areas for the changes of the "Yours" content, in
+   *                                             relation to the scrollPane
+   * @param pForkpointYourViewChangeMarkingModel ViewLineChangeMarkingModel that contains the coordinates of the colored areas for the changes of the forkPoint/MergeBase
+   *                                             content, in relation to the scrollPane of the forkPoint EditorPane. This model is required in order to draw the
+   *                                             connections between associated changes
+   */
+  private void initYoursPanel(@NotNull DiffPanelModel pYoursModel, @NotNull LineNumberModel pYourLineNumberModel, @NotNull LineChangeMarkingModel pYourChangeMarkingModel,
+                              @NotNull ViewLineChangeMarkingModel pYourViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointYourViewChangeMarkingModel)
   {
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     yoursPaneWrapper.getScrollPane().setLayout(new LeftSideVSBScrollPaneLayout());
@@ -162,8 +185,21 @@ public class MergePanel extends JPanel implements IDiscardable
                                                              null, null, BorderLayout.EAST);
   }
 
-  private void _initTheirsPanel(@NotNull DiffPanelModel pTheirsModel, @NotNull LineNumberModel pTheirLineNumberModel, @NotNull LineChangeMarkingModel pTheirChangeMarkingModel,
-                                @NotNull ViewLineChangeMarkingModel pTheirViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointTheirViewChangeMarkingModel)
+  /**
+   * Set up the "Theirs" panel for the merge by adding the panels that show the lineNumbers, the buttons for accepting changes and the colored areas that show changes
+   * Also sets the scroll behaviour for the scrollPane that contains the editorPane that shows the contents of the "Theirs" side
+   *
+   * @param pTheirsModel                          Model containing the changes of the "Theirs" side of the merge
+   * @param pTheirLineNumberModel                 LineNumberModel that contains the coordinates of the lines in the editorPane with the "Theirs" content
+   * @param pTheirChangeMarkingModel              LineChangeMarkingModel that contains the coordinates of the colored areas for the changes of the "Theirs" content
+   * @param pTheirViewChangeMarkingModel          ViewLineChangeMarkingModel that contains the coordinates of the colored areas for the changes of the "Theirs" content, in
+   *                                              relation to the scrollPane
+   * @param pForkpointTheirViewChangeMarkingModel ViewLineChangeMarkingModel that contains the coordinates of the colored areas for the changes of the forkPoint/MergeBase
+   *                                              content, in relation to the scrollPane of the forkPoint EditorPane. This model is required in order to draw the
+   *                                              connections between associated changes
+   */
+  private void initTheirsPanel(@NotNull DiffPanelModel pTheirsModel, @NotNull LineNumberModel pTheirLineNumberModel, @NotNull LineChangeMarkingModel pTheirChangeMarkingModel,
+                               @NotNull ViewLineChangeMarkingModel pTheirViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointTheirViewChangeMarkingModel)
   {
     theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
@@ -175,12 +211,21 @@ public class MergePanel extends JPanel implements IDiscardable
                                                               null, null, BorderLayout.WEST);
   }
 
-  private void _initForkPointPanel(@NotNull LineNumberModel pForkpointLineNumberModel, @NotNull LineNumberModel pForkpointLineTheirNumberModel,
-                                   @NotNull LineChangeMarkingModel pForkpointYourChangeMarkingModel,
-                                   @NotNull LineChangeMarkingModel pForkpointTheirChangeMarkingModel)
+  /**
+   * Set up the panel that shows the changes from the forkPoint/MergeBase. The contents of the editorPane of this panel is adjusted when changes of either side are
+   * accepted and the contents are also the final result of the merge for the given file.
+   *
+   * @param pForkpointYourLineNumberModel     LineNumberModel that contains the coordinates of the lines in the editorPane
+   * @param pForkpointLineTheirNumberModel    LineNumberModel that contains the coordinates of the lines in the editorPane
+   * @param pForkpointYourChangeMarkingModel  LineChangeMarkingModel that contains the coordinates of the colored areas showing the changes of the YOURS side
+   * @param pForkpointTheirChangeMarkingModel LineChangeMarkingModel that contains the coordinates of the colored areas showing the changes of the THEIRS side
+   */
+  private void initForkPointPanel(@NotNull LineNumberModel pForkpointYourLineNumberModel, @NotNull LineNumberModel pForkpointLineTheirNumberModel,
+                                  @NotNull LineChangeMarkingModel pForkpointYourChangeMarkingModel,
+                                  @NotNull LineChangeMarkingModel pForkpointTheirChangeMarkingModel)
   {
     forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
-    forkPointPaneWrapper.getPaneContainer().addLineNumPanel(pForkpointLineNumberModel, pForkpointYourChangeMarkingModel, BorderLayout.WEST);
+    forkPointPaneWrapper.getPaneContainer().addLineNumPanel(pForkpointYourLineNumberModel, pForkpointYourChangeMarkingModel, BorderLayout.WEST);
     forkPointPaneWrapper.getPaneContainer().addLineNumPanel(pForkpointLineTheirNumberModel, pForkpointTheirChangeMarkingModel, BorderLayout.EAST);
   }
 

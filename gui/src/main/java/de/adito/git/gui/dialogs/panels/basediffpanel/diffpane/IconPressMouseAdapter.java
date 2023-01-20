@@ -1,6 +1,8 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.data.diff.IChangeDelta;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +19,7 @@ import java.util.function.Supplier;
  *
  * @author m.kaspera, 10.01.2019
  */
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 class IconPressMouseAdapter extends MouseAdapter
 {
 
@@ -30,18 +33,6 @@ class IconPressMouseAdapter extends MouseAdapter
   @NotNull
   private final Supplier<Rectangle> viewArea;
   private final boolean isWestOrientation;
-
-  IconPressMouseAdapter(int pIconWidth, @Nullable Consumer<IChangeDelta> pDoOnAccept, @Nullable Consumer<IChangeDelta> pDoOnDiscard,
-                        @NotNull IconInfoModel pIconInfoModel, @NotNull Supplier<Rectangle> pViewArea, boolean pIsWestOrientation)
-  {
-
-    iconWidth = pIconWidth;
-    doOnDiscard = pDoOnDiscard;
-    doOnAccept = pDoOnAccept;
-    iconInfoModel = pIconInfoModel;
-    viewArea = pViewArea;
-    isWestOrientation = pIsWestOrientation;
-  }
 
   @Override
   public void mousePressed(MouseEvent pEvent)

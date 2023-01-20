@@ -39,7 +39,10 @@ public class SwingUtil
   }
 
   /**
-   * @param pSupplier
+   * This method checks if the current thread is the EDT. If that is the case, the method just returns the result of the supplier execution.
+   * If the current thread is not the EDT, the supplier is executed synchronously in the EDT, and any occurring exceptions are thrown afterwards
+   *
+   * @param pSupplier Supplier that will be exectured in the EDT
    * @throws InterruptedException      if we're interrupted while waiting for the event dispatching thread to finish executing
    * @throws InvocationTargetException if an exception is thrown while running doRun in the EDT
    */
@@ -166,6 +169,7 @@ public class SwingUtil
     return leftRectRim.intersectsLine(rightRectRim);
   }
 
+  @FunctionalInterface
   public interface ExceptionalSupplier<T>
   {
     T get() throws Exception;

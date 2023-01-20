@@ -15,8 +15,10 @@ import java.util.*;
  *
  * @author m.kaspera, 13.12.2022
  */
-public class IconInfoModel implements IDiscardable, LineNumberListener
+public class IconInfoModel extends ListenableModel<IconInfoModelListener> implements IDiscardable, LineNumberListener
 {
+
+  static final int Y_ICON_OFFSET = 2;
 
   @NotNull
   private final LineNumberModel lineNumberModel;
@@ -29,14 +31,11 @@ public class IconInfoModel implements IDiscardable, LineNumberListener
   @Nullable
   private final ImageIcon discardIcon;
   @NotNull
-  private final List<IconInfoModelListener> listeners = new ArrayList<>();
-  @NotNull
   private final EChangeSide changeSide;
   @NotNull
   private TreeMap<Integer, IconInfo> acceptCoordinateMapping = new TreeMap<>();
   @NotNull
   private TreeMap<Integer, IconInfo> discardCoordinateMapping = new TreeMap<>();
-  static final int Y_ICON_OFFSET = 2;
 
 
   /**
@@ -51,21 +50,32 @@ public class IconInfoModel implements IDiscardable, LineNumberListener
                        @Nullable ImageIcon pDiscardIcon, @NotNull String pOrientation)
   {
     changeSide = pChangeSide;
-    lineNumberModel = pLineNumberModel;
     editorPane = pEditorPane;
     acceptIcon = pAcceptIcon;
     discardIcon = pDiscardIcon;
-    lineNumberModel.addLineNumberListener(this);
-    int acceptIconWidth = pAcceptIcon != null ? pAcceptIcon.getIconWidth() : 16;
+    lineNumberModel = pLineNumberModel;
+
+    lineNumberModel.addListener(this);
+
     acceptChangeIconXVal = BorderLayout.WEST.equals(pOrientation) || pDiscardIcon == null ? 0 : pDiscardIcon.getIconWidth();
-    discardChangeIconXVal = BorderLayout.WEST.equals(pOrientation) ? acceptIconWidth : 2;
+    if (BorderLayout.WEST.equals(pOrientation))
+    {
+      if (pAcceptIcon == null)
+        discardChangeIconXVal = 16;
+      else
+        discardChangeIconXVal = pAcceptIcon.getIconWidth();
+    }
+    else
+    {
+      discardChangeIconXVal = 2;
+    }
   }
 
   @Override
   public void discard()
   {
-    lineNumberModel.removeLineNumberListener(this);
-    listeners.clear();
+    lineNumberModel.removeListener(this);
+    listenerList.clear();
   }
 
   @Override
@@ -75,33 +85,17 @@ public class IconInfoModel implements IDiscardable, LineNumberListener
   }
 
   /**
-   * Add a listener that is notified when the location of icons changes
-   *
-   * @param pListener listener to be added
-   */
-  public void addIconInfoModelListener(@NotNull IconInfoModelListener pListener)
-  {
-    listeners.add(pListener);
-  }
-
-  /**
-   * remove a listener from the list of listeners to be notified of changes to this model
-   *
-   * @param pListener listener to be removed
-   */
-  public void removeIconInfoModelListener(@NotNull IconInfoModelListener pListener)
-  {
-    listeners.remove(pListener);
-  }
-
-  /**
-   * @param pYStart starting coordinate for the interval, must be smaller that pYEnd
-   * @param pYEnd   end coordinate for the interval to be drawn, must be bigger or equal to pYStart
-   * @return all icons that have to be drawn for the given interval. Also includes icons that only clip the interval
+   * @param pYStart starting coordinate for the interval, must be smaller that pYEnd for this method to work correctly
+   * @param pYEnd   end coordinate for the interval to be drawn, must be bigger or equal to pYStart for this method to work correctly
+   * @return all icons that have to be drawn for the given interval. Also includes icons that only clip the interval. If pYStart is bigger than pYEnd returns an emtpy list
    */
   @NotNull
-  public Collection<IconInfo> getIconInfosToDraw(int pYStart, int pYEnd)
+  public List<IconInfo> getIconInfosToDraw(int pYStart, int pYEnd)
   {
+    if (pYStart > pYEnd)
+      return List.of();
+
+    // retain the reference to the current map for threadsafety. If discardCoordinateMapping changes, it gets a new reference -> we still retain the old reference in tmp
     TreeMap<Integer, IconInfo> tmp = discardCoordinateMapping;
     ArrayList<IconInfo> iconInfos = new ArrayList<>(tmp.subMap(pYStart, pYEnd).values());
     // it is possible that an IconInfo starts before the given y start coodinate, but still intersects the area that has to be drawn (due to its height).
@@ -134,6 +128,7 @@ public class IconInfoModel implements IDiscardable, LineNumberListener
         int startLine = fileChange.getStartLine(changeSide);
         if (pLineNumbers.length > startLine)
           yViewCoordinate = pLineNumbers[startLine].getYCoordinate() + Y_ICON_OFFSET;
+
         if (acceptIcon != null)
           acceptIconInfoList.add(new IconInfo(acceptIcon, yViewCoordinate, acceptChangeIconXVal, fileChange));
         // discardIcon == null -> only accept button should be used (case DiffPanel)
@@ -152,38 +147,40 @@ public class IconInfoModel implements IDiscardable, LineNumberListener
   /**
    * Retrieves the IconInfo that is associated with yStart, or if no such value is present, gets the IconInfo associated with the highest y value that is smaller than
    * yStart.
-   * If the IconInfo starts outside the rectangle to be drawn but still sticks inside the area, the IconInfo is retuned. Returns null in all other cases.
-   * <p>
+   * If the IconInfo starts outside the rectangle to be drawn but still sticks inside the area, the IconInfo is returned. Returns null in all other cases.
+   * <pre>
+   *
    * Examples (all adjacent "Icon" form a single Icon, ----- is the y coordinate of pYStart):
-   * <p>
+   *
    * Icon
    * Icon
    * Icon
    * ------------
-   * <p>
+   *
    * In this case, null is returned
-   * <p>
-   * <p>
+   *
+   *
    * Icon
    * Icon
    * Icon -------------
-   * <p>
+   *
    * In this case, the Icon is returned
-   * <p>
-   * <p>
+   *
+   *
    * Icon
    * Icon -------------
    * Icon
-   * <p>
+   *
    * In this case, the Icon is returned
-   * <p>
-   * <p>
+   *
+   *
    * Icon
    * Icon
    * Icon
-   * <p>
+   *
    * --------------
    * In this case, null is returned
+   * </pre>
    *
    * @param pTreeMap Map to search for the clipping Icon
    * @param pYStart  Start of the area to draw (y value of the rectangle that represents the view)
@@ -213,17 +210,20 @@ public class IconInfoModel implements IDiscardable, LineNumberListener
   @NotNull
   private TreeMap<Integer, IconInfo> calculateCoordinateMapping(@NotNull List<IconInfo> pIconInfoList)
   {
-    TreeMap<Integer, IconInfo> map = new TreeMap<>();
+    TreeMap<Integer, IconInfo> iconInfoMap = new TreeMap<>();
     for (IconInfo iconInfo : pIconInfoList)
     {
-      map.put(iconInfo.getIconCoordinates().y, iconInfo);
+      iconInfoMap.put(iconInfo.getIconCoordinates().y, iconInfo);
     }
-    return map;
+    return iconInfoMap;
   }
 
+  /**
+   * Loops through the list of IconInfoModelListeners and informs them that the iconInfos changed
+   */
   private void notifyListeners()
   {
-    for (IconInfoModelListener listener : listeners)
+    for (IconInfoModelListener listener : listenerList)
     {
       listener.iconInfosChanged();
     }

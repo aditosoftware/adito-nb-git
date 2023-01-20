@@ -12,10 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.View;
 import java.awt.Dimension;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Tracks the y coordinates for the lineNumbers in an editor, updated based on events in the FileChangesObservable of the DiffPanelModel (text changed -> number of
@@ -23,13 +26,11 @@ import java.util.concurrent.TimeUnit;
  *
  * @author m.kaspera, 09.12.2022
  */
-public class LineNumberModel implements IDiscardable
+public class LineNumberModel extends ListenableModel<LineNumberListener> implements IDiscardable
 {
 
   @NotNull
   private final Disposable areaDisposable;
-  @NotNull
-  private final List<LineNumberListener> listeners = new ArrayList<>();
   @NotNull
   private LineNumber[] lineNumberInfos = new LineNumber[0];
   @NotNull
@@ -53,11 +54,13 @@ public class LineNumberModel implements IDiscardable
    *
    * @param pYStart start (smaller) y coordinate
    * @param pYEnd   end (bigger) y coordinate for which lineNumbers should be retrieved
-   * @return Collection of all lineNumbers whose y coordinates lie in the given range
+   * @return Collection of all lineNumbers whose y coordinates lie in the given range, returns an empty list if pYStart is bigger than pYEnd
    */
   @NotNull
   public Collection<LineNumber> getLineNumbersToDraw(int pYStart, int pYEnd)
   {
+    if (pYStart > pYEnd)
+      return List.of();
     // assign coordinateMapping to a temp variable in case it would be assigned a different value during the subMap call -> ThreadSafety
     TreeMap<Integer, LineNumber> tmp = coordinateMapping;
     Collection<LineNumber> lineNumbers = tmp.subMap(pYStart, pYEnd).values();
@@ -93,17 +96,19 @@ public class LineNumberModel implements IDiscardable
         View view = pEditorPane.getUI().getRootView(pEditorPane);
         lineNumberInfos = TextPaneUtil.calculateLineYPositions(pEditorPane, view);
       }
-      catch (Exception pE)
+      catch (BadLocationException pE)
       {
-        throw new RuntimeException(pE);
+        // just log the exception and return the LineNumbers we could calculate. This way, the model may be able to fully calculate all LineNumbers on the next
+        // event and is not broken
+        Logger.getLogger(LineNumberModel.class.getName()).log(Level.WARNING, pE, () -> "Git Plugin: Could not calculate LineNumber coordinates");
       }
       coordinateMapping = calculateCoordinateMapping(lineNumberInfos);
-      _notifyListeners(pEvent, lineNumberInfos);
+      notifyListeners(pEvent, lineNumberInfos);
     });
   }
 
   /**
-   * Calculatea treeMap of the LineNumbers and their y coordinates for fast access of a given range of y values
+   * Calculate a treeMap of the LineNumbers and their y coordinates for fast access of a given range of y values
    *
    * @param pViewCoordinatesColors Array of LineNumbers
    * @return TreeMap with the LineNumbers as values and the y coordinates of the LineNumbers as value
@@ -111,45 +116,30 @@ public class LineNumberModel implements IDiscardable
   @NotNull
   private TreeMap<Integer, LineNumber> calculateCoordinateMapping(@NotNull LineNumber[] pViewCoordinatesColors)
   {
-    TreeMap<Integer, LineNumber> map = new TreeMap<>();
+    TreeMap<Integer, LineNumber> lineNumberMap = new TreeMap<>();
     for (LineNumber lineNumber : pViewCoordinatesColors)
     {
-      map.put(lineNumber.getYCoordinate(), lineNumber);
+      lineNumberMap.put(lineNumber.getYCoordinate(), lineNumber);
     }
-    return map;
+    return lineNumberMap;
   }
 
   @Override
   public void discard()
   {
     areaDisposable.dispose();
-    listeners.clear();
+    listenerList.clear();
   }
 
   /**
-   * Add a listener that is notified if the number of lines or the coordinates of one or more lines are changed
+   * Loops through the list of LineNumberListeners and informs them that the LineNumbers changed
    *
-   * @param pListener Listener that wants to be notified
+   * @param pEvent    IDeltaTextChangeEvent that trigger the recalculation
+   * @param pNewValue new/updated values for the LineNumbers
    */
-  void addLineNumberListener(@NotNull LineNumberListener pListener)
+  private void notifyListeners(@NotNull IDeltaTextChangeEvent pEvent, @NotNull LineNumber[] pNewValue)
   {
-    listeners.add(pListener);
-  }
-
-
-  /**
-   * removes the listener from the list of listeners to notify
-   *
-   * @param pListener Listener that wants to stop getting notifications
-   */
-  void removeLineNumberListener(@NotNull LineNumberListener pListener)
-  {
-    listeners.remove(pListener);
-  }
-
-  private void _notifyListeners(@NotNull IDeltaTextChangeEvent pEvent, @NotNull LineNumber[] pNewValue)
-  {
-    for (LineNumberListener listener : listeners)
+    for (LineNumberListener listener : listenerList)
     {
       listener.lineNumbersChanged(pEvent, pNewValue);
     }

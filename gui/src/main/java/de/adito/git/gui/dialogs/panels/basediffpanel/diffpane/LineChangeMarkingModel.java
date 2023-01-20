@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.text.BadLocationException;
 import java.awt.Rectangle;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Model that keeps track of the colored areas that show changes in a diff/merge. These colored areas are based on the ChangeDeltas and the location of the lines
@@ -18,14 +20,15 @@ import java.util.*;
  *
  * @author m.kaspera, 09.12.2022
  */
-public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
+public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsListener> implements IDiscardable, LineNumberListener
 {
 
-  // line height if an insert between two lines should be displayed
+  /**
+   * line height if an insert between two lines should be displayed
+   */
   @VisibleForTesting
   static final int INSERT_LINE_HEIGHT = 3;
-  @NotNull
-  private final List<LineNumberColorsListener> listeners = new ArrayList<>();
+
   @NotNull
   private final LineNumberModel lineNumberModel;
   @NotNull
@@ -43,28 +46,18 @@ public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
   {
     changeSide = pChangeSide;
     lineNumberModel = pLineNumberModel;
-    pLineNumberModel.addLineNumberListener(this);
+    pLineNumberModel.addListener(this);
   }
 
   @Override
   public void discard()
   {
-    lineNumberModel.removeLineNumberListener(this);
-    listeners.clear();
-  }
-
-  public void addLineNumberColorsListener(@NotNull LineNumberColorsListener pLineNumberColorsListener)
-  {
-    listeners.add(pLineNumberColorsListener);
-  }
-
-  public void removeLineNumberColorsListener(@NotNull LineNumberColorsListener pLineNumberColorsListener)
-  {
-    listeners.remove(pLineNumberColorsListener);
+    lineNumberModel.removeListener(this);
+    listenerList.clear();
   }
 
   /**
-   * get all LineNumberColors of this model, static because this model does not factor in scrollPanes and the like
+   * get all LineNumberColors of this model, {@code static} because this model does not factor in scrollPanes and the like
    *
    * @return List of all colored areas/LineNumberColors
    */
@@ -79,11 +72,15 @@ public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
    *
    * @param pYStart starting coordinate for the interval, must be smaller that pYEnd
    * @param pYEnd   end coordinate for the interval to be drawn, must be bigger or equal to pYStart
-   * @return Collection of LineNumberColors
+   * @return Collection of LineNumberColors, empty list if pYStart is bigger than pYEnd
    */
   @NotNull
   public Collection<LineNumberColor> getLineNumberColorsToDraw(int pYStart, int pYEnd)
   {
+    // subMap and floorEntry do not properly work if this is the case -> return emtpy list
+    if (pYStart > pYEnd)
+      return List.of();
+
     TreeMap<Integer, LineNumberColor> tmp = coordinateMapping;
     Collection<LineNumberColor> lineNumberColors = tmp.subMap(pYStart, pYEnd).values();
     // it is possible that a LineNumberColor starts before the given y start coodinate, but still intersects the area that has to be drawn (due to its height).
@@ -123,16 +120,20 @@ public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
           int numLines = fileChange.getEndLine(changeSide) - fileChange.getStartLine(changeSide);
           if (fileChange.getStartLine(changeSide) <= pLineNumbers.length)
           {
-            LineNumberColor lineNumberColor = _viewCoordinatesLineNumberColor(fileChange.getStartLine(changeSide), numLines, fileChange, pLineNumbers);
+            LineNumberColor lineNumberColor = viewCoordinatesLineNumberColor(fileChange.getStartLine(changeSide), numLines, fileChange, pLineNumbers);
             lineNumberColors.add(lineNumberColor);
           }
         }
       }
     }
-    catch (Exception pE)
+    catch (BadLocationException pE)
     {
-      throw new RuntimeException(pE);
+      // just log the exception and return those lineNumberColors we could calculate. This way, the model may be able to fully calculate all lineNumberColors on the next
+      // event and is not broken
+      Logger.getLogger(LineChangeMarkingModel.class.getName()).log(Level.WARNING, pE, () -> "Git Plugin: Could not calculate LineNumberColors");
     }
+
+    // re-assign the class variable to the new reference/list
     staticLineNumberColors = lineNumberColors;
     coordinateMapping = calculateCoordinateMapping(staticLineNumberColors);
     notifyListeners(lineNumberColors);
@@ -147,12 +148,12 @@ public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
   @NotNull
   private TreeMap<Integer, LineNumberColor> calculateCoordinateMapping(@NotNull List<LineNumberColor> pViewCoordinatesColors)
   {
-    TreeMap<Integer, LineNumberColor> map = new TreeMap<>();
+    TreeMap<Integer, LineNumberColor> lineNumberColorsMap = new TreeMap<>();
     for (LineNumberColor lineNumberColor : pViewCoordinatesColors)
     {
-      map.put(lineNumberColor.getColoredArea().y, lineNumberColor);
+      lineNumberColorsMap.put(lineNumberColor.getColoredArea().y, lineNumberColor);
     }
-    return map;
+    return lineNumberColorsMap;
   }
 
   /**
@@ -163,8 +164,8 @@ public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
    * @return LineNumberColor with the gathered information about where and what color the LineNumberColor should be drawn, view coordinates
    * @throws BadLocationException i.e. if the line is out of bounds
    */
-  private @NotNull LineNumberColor _viewCoordinatesLineNumberColor(int pLineCounter, int pNumLines, @NotNull IChangeDelta pFileChange,
-                                                                   @NotNull LineNumber[] pLineInfos) throws BadLocationException
+  private @NotNull LineNumberColor viewCoordinatesLineNumberColor(int pLineCounter, int pNumLines, @NotNull IChangeDelta pFileChange,
+                                                                  @NotNull LineNumber[] pLineInfos) throws BadLocationException
   {
     LineNumber startingLineInfo = pLineInfos[Math.min(pLineInfos.length - 1, pLineCounter)];
     LineNumber endingLineInfo = pLineInfos[Math.min(pLineInfos.length - 1, Math.max(0, pLineCounter + pNumLines - 1))];
@@ -174,10 +175,10 @@ public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
       // case "insert stuff here", no parity lines and pNumLines was 0 -> endingLineInfo is of line before startingLineInfo
       if (pNumLines == 0)
       {
-        // insert between the lines, so only color a few pixels between the lines
-        bounds = new Rectangle(0, startingLineInfo.getYCoordinate(), Integer.MAX_VALUE, INSERT_LINE_HEIGHT);
         // to center the drawn line between two text lines, move up the top of the line INSERT_LINE_HEIGHT/2 pixels
-        bounds.y = bounds.y - INSERT_LINE_HEIGHT / 2;
+        int yValue = startingLineInfo.getYCoordinate() - INSERT_LINE_HEIGHT / 2;
+        // insert between the lines, so only color a few pixels between the lines
+        bounds = new Rectangle(0, yValue, Integer.MAX_VALUE, INSERT_LINE_HEIGHT);
       }
       else
       {
@@ -190,9 +191,14 @@ public class LineChangeMarkingModel implements IDiscardable, LineNumberListener
         pLineCounter + pNumLines - 1);
   }
 
+  /**
+   * Loops through the list of IconInfoModelListeners and informs them that the LineNumberColors changed
+   *
+   * @param pLineNumberColors new list of LineNumbersColors the listeners should be informed about
+   */
   private void notifyListeners(@NotNull List<LineNumberColor> pLineNumberColors)
   {
-    for (LineNumberColorsListener listener : listeners)
+    for (LineNumberColorsListener listener : listenerList)
     {
       listener.lineNumberColorsChanged(pLineNumberColors);
     }

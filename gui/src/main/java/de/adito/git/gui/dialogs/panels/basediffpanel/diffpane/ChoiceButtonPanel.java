@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -42,12 +41,15 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
   private final IconInfoModel iconInfoModel;
 
   /**
-   * @param pModel       DiffPanelModel containing information about which parts of the FileChangeChunk should be utilized
-   * @param pEditorPane  EditorPane that contains the text for which the buttons should be drawn
-   * @param pViewport    JViewPort containing pEditorPane
-   * @param pAcceptIcon  icon used for the accept action
-   * @param pDiscardIcon icon used for the discard option. Null if the panel should allow the accept action only
-   * @param pOrientation String with the orientation (as BorderLayout.EAST/WEST) of this panel, determines the order of accept/discardButtons
+   * @param pModel              DiffPanelModel containing information about which parts of the FileChangeChunk should be utilized
+   * @param pEditorPane         EditorPane that contains the text for which the buttons should be drawn
+   * @param pViewport           JViewPort containing pEditorPane
+   * @param pLineNumberModel    LineNumberModel that tracks the coordinates of the lineNumbers/y coordinates of the lines in the editor
+   * @param pLeftMarkingsModel  ViewLineChangeMarkingModel that contains the coordinates of the colored areas that should be displayed on the left side of this panel
+   * @param pRightMarkingsModel ViewLineChangeMarkingModel that contains the coordinates of the colored areas that should be displayed on the right side of this panel
+   * @param pAcceptIcon         icon used for the accept action
+   * @param pDiscardIcon        icon used for the discard option. Null if the panel should allow the accept action only
+   * @param pOrientation        String with the orientation (as BorderLayout.EAST/WEST) of this panel, determines the order of accept/discardButtons
    */
   ChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull JViewport pViewport, @NotNull LineNumberModel pLineNumberModel,
                     @NotNull ViewLineChangeMarkingModel pLeftMarkingsModel, @NotNull ViewLineChangeMarkingModel pRightMarkingsModel,
@@ -68,10 +70,10 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
       addMouseListener(new IconPressMouseAdapter(acceptIconWidth, pModel.getDoOnAccept(), pModel.getDoOnDiscard(),
                                                  iconInfoModel, pViewport::getViewRect, BorderLayout.WEST.equals(pOrientation)));
     }
-    iconInfoModel.addIconInfoModelListener(this);
-    lineNumberModel.addLineNumberListener(this);
-    leftMarkingsModel.addLineNumberColorsListener(this);
-    rightMarkingsModel.addLineNumberColorsListener(this);
+    iconInfoModel.addListener(this);
+    lineNumberModel.addListener(this);
+    leftMarkingsModel.addListener(this);
+    rightMarkingsModel.addListener(this);
   }
 
   private void _recalcAndDraw(JViewport pViewport)
@@ -86,10 +88,10 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
   @Override
   public void discard()
   {
-    lineNumberModel.removeLineNumberListener(this);
-    rightMarkingsModel.removeLineNumberColorsListener(this);
-    leftMarkingsModel.removeLineNumberColorsListener(this);
-    iconInfoModel.removeIconInfoModelListener(this);
+    lineNumberModel.removeListener(this);
+    rightMarkingsModel.removeListener(this);
+    leftMarkingsModel.removeListener(this);
+    iconInfoModel.removeListener(this);
   }
 
   @Override
@@ -144,17 +146,21 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
    * and we do not need any locks or copied immutable lists
    *
    * @param pGraphics Graphics object to paint with
+   * @param pChangedChunkConnectionsToDraw List of ChangedChunkConnections that represent the connections of the colored areas of the left- and right LineChangeMarkingModels
    */
   private void _paintIcons(@NotNull Graphics pGraphics, @NotNull List<ChangedChunkConnection> pChangedChunkConnectionsToDraw)
   {
+    // first draw the colored connections
     ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     for (ChangedChunkConnection chunkConnection : pChangedChunkConnectionsToDraw)
     {
       pGraphics.setColor(chunkConnection.getColor());
       pGraphics.fillPolygon(chunkConnection.getShape());
     }
+
+    // then draw the icons so the icons are visible above the colored areas
     Rectangle viewRect = viewport.getViewRect();
-    Collection<IconInfo> iconInfosToDraw = iconInfoModel.getIconInfosToDraw(viewRect.y, viewRect.y + viewRect.height);
+    List<IconInfo> iconInfosToDraw = iconInfoModel.getIconInfosToDraw(viewRect.y, viewRect.y + viewRect.height);
     for (IconInfo iconInfo : iconInfosToDraw)
     {
       pGraphics.drawImage(iconInfo.getImageIcon().getImage(), iconInfo.getIconCoordinates().x, iconInfo.getIconCoordinates().y - viewRect.y, null);

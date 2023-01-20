@@ -5,7 +5,6 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MergePanel;
@@ -44,7 +43,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
 
   @Inject
   MergeConflictResolutionDialog(IPrefStore pPrefStore, IIconLoader pIconLoader, IEditorKitProvider pEditorKitProvider, @Assisted IMergeData pMergeDiff,
-                                IAsyncProgressFacade pProgressFacade, ResolveOptionsProvider pResolveOptionsProvider, @Assisted("yoursOrigin") String pYoursOrigin,
+                                ResolveOptionsProvider pResolveOptionsProvider, @Assisted("yoursOrigin") String pYoursOrigin,
                                 @Assisted("theirsOrigin") String pTheirsOrigin)
   {
     prefStore = pPrefStore;
@@ -55,14 +54,6 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     mergeDiff.markConflicting(pResolveOptionsProvider);
     mergePanel = new MergePanel(pIconLoader, mergeDiff, pYoursOrigin, pTheirsOrigin, acceptYoursIcon, acceptTheirsIcon, discardIcon, pEditorKitProvider);
     _initGui(pIconLoader);
-    //AtomicReference<MergePanel> panelRef = new AtomicReference<>(mergePanel);
-    //GitProcessExecutors.submit(() ->
-    //                               pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
-    //                                 Thread.sleep(2000);
-    //                                 mergePanel.finishLoading();
-    //                                 //panelRef.get().finishLoading();
-    //                                 //panelRef.set(null);
-    //                               }));
   }
 
   private void _initGui(IIconLoader pIconLoader)

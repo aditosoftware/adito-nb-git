@@ -8,6 +8,9 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 public interface IconInfoModelListener
 {
 
+  /**
+   * This method is called to notify the listener of changes to the IconInfoModel
+   */
   void iconInfosChanged();
 
 }

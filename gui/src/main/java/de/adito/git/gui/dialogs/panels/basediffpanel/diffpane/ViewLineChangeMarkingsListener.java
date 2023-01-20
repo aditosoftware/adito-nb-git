@@ -12,6 +12,11 @@ import java.util.List;
 public interface ViewLineChangeMarkingsListener
 {
 
+  /**
+   * this method is called if the LineNumberColors of the ViewLineChangeMarkingsModel changed
+   *
+   * @param pAdaptedLineNumberColorList new list of LineNumberColors with the updated values
+   */
   void viewLineChangeMarkingChanged(@NotNull List<LineNumberColor> pAdaptedLineNumberColorList);
 
 }

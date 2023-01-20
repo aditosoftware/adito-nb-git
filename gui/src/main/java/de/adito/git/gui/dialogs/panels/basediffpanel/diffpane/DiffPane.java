@@ -52,6 +52,10 @@ public class DiffPane extends JPanel implements IDiscardable
     return scrollPane;
   }
 
+  /**
+   * @param pTextChangeEventObservable Observable that fires a new DeltaTextChangeEvent if the text on any side of the Diff changes
+   * @return LineNumberModel that keeps track of the y coordinates for each line in the editor of this diffPane
+   */
   @NotNull
   public LineNumberModel createLineNumberModel(@NotNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable)
   {

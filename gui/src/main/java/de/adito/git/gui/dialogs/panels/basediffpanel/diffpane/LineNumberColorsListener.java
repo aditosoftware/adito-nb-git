@@ -12,6 +12,11 @@ import java.util.List;
 public interface LineNumberColorsListener
 {
 
+  /**
+   * This method is called if the LineNumberColors that a model keeps track of have changed
+   *
+   * @param pNewValue new value of the list of LineNumberColors that the model keeps track of
+   */
   void lineNumberColorsChanged(@NotNull List<LineNumberColor> pNewValue);
 
 }

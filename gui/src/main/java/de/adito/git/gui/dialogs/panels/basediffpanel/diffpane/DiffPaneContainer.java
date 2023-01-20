@@ -54,7 +54,6 @@ public class DiffPaneContainer extends JPanel implements IDiscardable
   }
 
   /**
-   * /**
    * Creates a new LineNumPanel and adds it to the layout
    *
    * @param pLineNumberModel        LineNumberModel that keeps track of the y coordinates of the lines

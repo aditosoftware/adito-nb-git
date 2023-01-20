@@ -16,15 +16,13 @@ import java.util.List;
  *
  * @author m.kaspera, 09.12.2022
  */
-public class ViewLineChangeMarkingModel implements IDiscardable, ChangeListener, LineNumberColorsListener
+public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMarkingsListener> implements IDiscardable, ChangeListener, LineNumberColorsListener
 {
 
   @NotNull
   private final LineChangeMarkingModel lineChangeMarkingModel;
   @NotNull
   private final JViewport viewport;
-  @NotNull
-  private final List<ViewLineChangeMarkingsListener> listeners = new ArrayList<>();
   @NotNull
   private List<LineNumberColor> lineNumberColors = List.of();
 
@@ -35,17 +33,18 @@ public class ViewLineChangeMarkingModel implements IDiscardable, ChangeListener,
   public ViewLineChangeMarkingModel(@NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull JViewport pViewport)
   {
     lineChangeMarkingModel = pLineChangeMarkingModel;
+    lineChangeMarkingModel.addListener(this);
+
     viewport = pViewport;
-    lineChangeMarkingModel.addLineNumberColorsListener(this);
-    pViewport.addChangeListener(this);
+    viewport.addChangeListener(this);
   }
 
   @Override
   public void discard()
   {
-    lineChangeMarkingModel.removeLineNumberColorsListener(this);
+    lineChangeMarkingModel.removeListener(this);
     viewport.removeChangeListener(this);
-    listeners.clear();
+    listenerList.clear();
   }
 
   /**
@@ -55,16 +54,6 @@ public class ViewLineChangeMarkingModel implements IDiscardable, ChangeListener,
   public List<LineNumberColor> getLineNumberColors()
   {
     return lineNumberColors;
-  }
-
-  public void addLineNumberColorsListener(@NotNull ViewLineChangeMarkingsListener pViewLineChangeMarkingsListener)
-  {
-    listeners.add(pViewLineChangeMarkingsListener);
-  }
-
-  public void removeLineNumberColorsListener(@NotNull ViewLineChangeMarkingsListener pViewLineChangeMarkingsListener)
-  {
-    listeners.remove(pViewLineChangeMarkingsListener);
   }
 
   /**
@@ -99,9 +88,14 @@ public class ViewLineChangeMarkingModel implements IDiscardable, ChangeListener,
     calculateRelativeLineNumberColors(pNewValue, viewport.getViewRect());
   }
 
+  /**
+   * notify the listeners that the list of LineNumberColors that this model keeps has changed
+   *
+   * @param pLineNumberColors new list of LineNumberColors
+   */
   private void notifyListeners(@NotNull List<LineNumberColor> pLineNumberColors)
   {
-    for (ViewLineChangeMarkingsListener listener : listeners)
+    for (ViewLineChangeMarkingsListener listener : listenerList)
     {
       listener.viewLineChangeMarkingChanged(pLineNumberColors);
     }

@@ -56,7 +56,7 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
   /**
    * Create a new LineNumberModel that is based on the editorPane and its contents of the diffPane of this wrapper
    *
-   * @param pConflictSide EConflictSide that
+   * @param pConflictSide EConflictSide whose deltas the LineNumberModel should track
    * @return LineNumberModel
    */
   @NotNull

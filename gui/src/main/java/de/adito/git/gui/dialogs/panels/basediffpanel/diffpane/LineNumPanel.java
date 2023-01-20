@@ -36,26 +36,36 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
 
 
   /**
-   * @param pEditorPane JEditorPane that displays the text from the IFileChangeChunks in the pModel
-   * @param pViewport
+   * @param pEditorPane             JEditorPane that displays the text from the IFileChangeChunks in the pModel
+   * @param pLineNumberModel        Model that keeps track of the y coordinates for the lineNumbers that this Panel should draw
+   * @param pLineChangeMarkingModel Model that keeps track of the y coordinates for the colored areas (representation of the changes) that this Panel should draw
+   * @param pViewport               ViewPort that is around the editorPane. Required so we know when the view coordinates of the viewPort change, and we can update this panel
    */
   LineNumPanel(@NotNull JEditorPane pEditorPane, @NotNull LineNumberModel pLineNumberModel, @NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull JViewport pViewport)
   {
     editorPane = pEditorPane;
     editorInsets = pEditorPane.getInsets();
+
     lineNumberModel = pLineNumberModel;
+    lineNumberModel.addListener(this);
+
     lineChangeMarkingModel = pLineChangeMarkingModel;
+    lineChangeMarkingModel.addListener(this);
+
+
     viewport = pViewport;
+    viewport.addChangeListener(this);
+
     lineNumFacadeWidth = _calculateLineWidth();
     setPreferredSize(new Dimension(lineNumFacadeWidth + panelInsets.left + panelInsets.right, 1));
     setBorder(new EmptyBorder(panelInsets));
     setBackground(ColorPicker.DIFF_BACKGROUND);
-    pLineNumberModel.addLineNumberListener(this);
-    pLineChangeMarkingModel.addLineNumberColorsListener(this);
-    viewport.addChangeListener(this);
   }
 
-  private void _recalcAndRedraw()
+  /**
+   * recalculate the width of this panel and redraw it
+   */
+  private void recalcAndRedraw()
   {
     SwingUtil.invokeInEDT(() -> {
 
@@ -72,6 +82,8 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
   {
     super.paintComponent(pGraphics);
     Rectangle visibleRect = editorPane.getVisibleRect();
+
+    // get the LineNumberColor we have to draw. We use the visible rect and some safety margin (32 pixels in this case) to identify only the visible LineNumberColor
     Collection<LineNumberColor> staticLineNumberColors = lineChangeMarkingModel.getLineNumberColorsToDraw(Math.max(0, visibleRect.y - 32), visibleRect.y + visibleRect.height + 32);
     for (LineNumberColor lineNumberColor : staticLineNumberColors)
     {
@@ -79,6 +91,9 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
       pGraphics.fillRect(lineNumberColor.getColoredArea().x, lineNumberColor.getColoredArea().y - visibleRect.y,
                          getWidth(), lineNumberColor.getColoredArea().height);
     }
+
+    // get the lineNumbers we have to draw. We use the visible rect and some safety margin (32 pixels in this case) to identify only the visible lineNumbers
+    // the lineNumbers are drawn after the LineNumberColors because they should be visible above those colored fields
     Collection<LineNumber> linesToDraw = lineNumberModel.getLineNumbersToDraw(Math.max(0, visibleRect.y - 32), visibleRect.y + visibleRect.height + 32);
     ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     pGraphics.setColor(ColorPicker.DIFF_LINE_NUM);
@@ -87,28 +102,27 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
       pGraphics.drawString(lineNumber.getNumber(), lineNumber.getXCoordinate() + 2,
                            lineNumber.getYCoordinate() + pGraphics.getFontMetrics().getAscent() - editorInsets.top + 2 - visibleRect.y);
     }
-
   }
 
   @Override
   public void discard()
   {
     disposable.dispose();
-    lineNumberModel.removeLineNumberListener(this);
-    lineChangeMarkingModel.removeLineNumberColorsListener(this);
+    lineNumberModel.removeListener(this);
+    lineChangeMarkingModel.removeListener(this);
     viewport.removeChangeListener(this);
   }
 
   @Override
   public void lineNumberColorsChanged(@NotNull List<LineNumberColor> pNewValue)
   {
-    _recalcAndRedraw();
+    recalcAndRedraw();
   }
 
   @Override
   public void lineNumbersChanged(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
   {
-    _recalcAndRedraw();
+    recalcAndRedraw();
   }
 
   /**
@@ -124,6 +138,6 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
   @Override
   public void stateChanged(ChangeEvent e)
   {
-    _recalcAndRedraw();
+    recalcAndRedraw();
   }
 }

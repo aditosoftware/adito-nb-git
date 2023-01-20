@@ -1,5 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
@@ -8,6 +9,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,13 +28,8 @@ class ViewLineChangeMarkingModelTest
   @Test
   void isEmptyListReturnedWhenNoColorsExist()
   {
-    LineChangeMarkingModel lineChangeMarkingModel = mock(LineChangeMarkingModel.class);
-    List<LineNumberColor> lineNumberColors = List.of();
-    when(lineChangeMarkingModel.getStaticLineNumberColors()).thenReturn(lineNumberColors);
-    JViewport viewport = mock(JViewport.class);
-    when(viewport.getViewRect()).thenReturn(new Rectangle());
-    ViewLineChangeMarkingModel viewLineChangeMarkingModel = new ViewLineChangeMarkingModel(lineChangeMarkingModel, viewport);
-    viewLineChangeMarkingModel.lineNumberColorsChanged(lineNumberColors);
+    ViewLineChangeMarkingModel viewLineChangeMarkingModel = getLineChangeMarkingModel(List.of(), List.of(new Rectangle()));
+
     assertEquals(List.of(), viewLineChangeMarkingModel.getLineNumberColors());
   }
 
@@ -42,15 +39,11 @@ class ViewLineChangeMarkingModelTest
   @Test
   void isValueCorrectWithOffsetViewArea()
   {
-    LineChangeMarkingModel lineChangeMarkingModel = mock(LineChangeMarkingModel.class);
-    List<LineNumberColor> lineNumberColors = List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17)));
-    when(lineChangeMarkingModel.getStaticLineNumberColors()).thenReturn(lineNumberColors);
-    JViewport viewport = mock(JViewport.class);
-    when(viewport.getViewRect()).thenReturn(new Rectangle(0, 40, 900, 800));
-    ViewLineChangeMarkingModel viewLineChangeMarkingModel = new ViewLineChangeMarkingModel(lineChangeMarkingModel, viewport);
-    viewLineChangeMarkingModel.lineNumberColorsChanged(lineNumberColors);
-    assertEquals(1, viewLineChangeMarkingModel.getLineNumberColors().size());
-    assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y);
+    ViewLineChangeMarkingModel viewLineChangeMarkingModel = getLineChangeMarkingModel(List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17))),
+                                                                                      List.of(new Rectangle(0, 40, 900, 800)));
+
+    assertAll(() -> assertEquals(1, viewLineChangeMarkingModel.getLineNumberColors().size()),
+              () -> assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y));
   }
 
   /**
@@ -59,19 +52,18 @@ class ViewLineChangeMarkingModelTest
   @Test
   void isValueAdjustedAfterScroll()
   {
-    LineChangeMarkingModel lineChangeMarkingModel = mock(LineChangeMarkingModel.class);
-    List<LineNumberColor> lineNumberColors = List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17)));
-    when(lineChangeMarkingModel.getStaticLineNumberColors()).thenReturn(lineNumberColors);
-    JViewport viewport = mock(JViewport.class);
-    when(viewport.getViewRect()).thenReturn(new Rectangle(0, 0, 900, 800)).thenReturn(new Rectangle(0, 40, 900, 800));
-    ViewLineChangeMarkingModel viewLineChangeMarkingModel = new ViewLineChangeMarkingModel(lineChangeMarkingModel, viewport);
-    viewLineChangeMarkingModel.lineNumberColorsChanged(lineNumberColors);
-    assertEquals(1, viewLineChangeMarkingModel.getLineNumberColors().size());
-    assertEquals(50, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y);
+    ViewLineChangeMarkingModel viewLineChangeMarkingModel = getLineChangeMarkingModel(List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17))),
+                                                                                      List.of(new Rectangle(0, 0, 900, 800),
+                                                                                              new Rectangle(0, 40, 900, 800)));
+
+    assertAll(() -> assertEquals(1, viewLineChangeMarkingModel.getLineNumberColors().size()),
+              () -> assertEquals(50, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y));
+
     // trigger change event, the model should ask for the rectangle area again and receive the second value -> returned lineNumberColors should move
     viewLineChangeMarkingModel.stateChanged(new ChangeEvent(new Object()));
-    assertEquals(1, viewLineChangeMarkingModel.getLineNumberColors().size());
-    assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y);
+
+    assertAll(() -> assertEquals(1, viewLineChangeMarkingModel.getLineNumberColors().size()),
+              () -> assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y));
   }
 
   /**
@@ -80,17 +72,13 @@ class ViewLineChangeMarkingModelTest
   @Test
   void isValuesCorrectWithOffsetViewArea()
   {
-    LineChangeMarkingModel lineChangeMarkingModel = mock(LineChangeMarkingModel.class);
-    List<LineNumberColor> lineNumberColors = List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17)),
-                                                     new LineNumberColor(Color.GREEN, new Rectangle(0, 123, 10, 34)));
-    when(lineChangeMarkingModel.getStaticLineNumberColors()).thenReturn(lineNumberColors);
-    JViewport viewport = mock(JViewport.class);
-    when(viewport.getViewRect()).thenReturn(new Rectangle(0, 40, 900, 800));
-    ViewLineChangeMarkingModel viewLineChangeMarkingModel = new ViewLineChangeMarkingModel(lineChangeMarkingModel, viewport);
-    viewLineChangeMarkingModel.lineNumberColorsChanged(lineNumberColors);
-    assertEquals(2, viewLineChangeMarkingModel.getLineNumberColors().size());
-    assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y);
-    assertEquals(83, viewLineChangeMarkingModel.getLineNumberColors().get(1).getColoredArea().y);
+    ViewLineChangeMarkingModel viewLineChangeMarkingModel = getLineChangeMarkingModel(List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17)),
+                                                                                              new LineNumberColor(Color.GREEN, new Rectangle(0, 123, 10, 34))),
+                                                                                      List.of(new Rectangle(0, 40, 900, 800)));
+
+    assertAll(() -> assertEquals(2, viewLineChangeMarkingModel.getLineNumberColors().size()),
+              () -> assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y),
+              () -> assertEquals(83, viewLineChangeMarkingModel.getLineNumberColors().get(1).getColoredArea().y));
   }
 
   /**
@@ -99,21 +87,44 @@ class ViewLineChangeMarkingModelTest
   @Test
   void isValuesAdjustedAfterScroll()
   {
-    LineChangeMarkingModel lineChangeMarkingModel = mock(LineChangeMarkingModel.class);
-    List<LineNumberColor> lineNumberColors = List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17)),
-                                                     new LineNumberColor(Color.GREEN, new Rectangle(0, 123, 10, 34)));
-    when(lineChangeMarkingModel.getStaticLineNumberColors()).thenReturn(lineNumberColors);
-    JViewport viewport = mock(JViewport.class);
-    when(viewport.getViewRect()).thenReturn(new Rectangle(0, 0, 900, 800)).thenReturn(new Rectangle(0, 40, 900, 800));
-    ViewLineChangeMarkingModel viewLineChangeMarkingModel = new ViewLineChangeMarkingModel(lineChangeMarkingModel, viewport);
-    viewLineChangeMarkingModel.lineNumberColorsChanged(lineNumberColors);
-    assertEquals(2, viewLineChangeMarkingModel.getLineNumberColors().size());
-    assertEquals(50, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y);
-    assertEquals(123, viewLineChangeMarkingModel.getLineNumberColors().get(1).getColoredArea().y);
+    ViewLineChangeMarkingModel viewLineChangeMarkingModel = getLineChangeMarkingModel(List.of(new LineNumberColor(Color.RED, new Rectangle(0, 50, 10, 17)),
+                                                                                              new LineNumberColor(Color.GREEN, new Rectangle(0, 123, 10, 34))),
+                                                                                      List.of(new Rectangle(0, 0, 900, 800),
+                                                                                              new Rectangle(0, 40, 900, 800)));
+
+    assertAll(() -> assertEquals(2, viewLineChangeMarkingModel.getLineNumberColors().size()),
+              () -> assertEquals(50, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y),
+              () -> assertEquals(123, viewLineChangeMarkingModel.getLineNumberColors().get(1).getColoredArea().y));
+
     // trigger change event, the model should ask for the rectangle area again and receive the second value -> returned lineNumberColors should move
     viewLineChangeMarkingModel.stateChanged(new ChangeEvent(new Object()));
-    assertEquals(2, viewLineChangeMarkingModel.getLineNumberColors().size());
-    assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y);
-    assertEquals(83, viewLineChangeMarkingModel.getLineNumberColors().get(1).getColoredArea().y);
+
+    assertAll(() -> assertEquals(2, viewLineChangeMarkingModel.getLineNumberColors().size()),
+              () -> assertEquals(10, viewLineChangeMarkingModel.getLineNumberColors().get(0).getColoredArea().y),
+              () -> assertEquals(83, viewLineChangeMarkingModel.getLineNumberColors().get(1).getColoredArea().y));
+  }
+
+  /**
+   * Set up a new ViewLineChangeMarkingModel that is fed mocked values
+   *
+   * @param pLineNumberColors List of LineNumberColors the LineChangeMarkingModel should return when queried
+   * @param pViewRectangles   List of Rectangles that form the mocked return values for the viewPort if queried for its current position
+   * @return ViewLineChangeMarkingModel that is set up with its LineChangeMarkingModel and viewPort providing mocked values
+   */
+  @NotNull
+  private static ViewLineChangeMarkingModel getLineChangeMarkingModel(@NotNull List<LineNumberColor> pLineNumberColors, @NotNull List<Rectangle> pViewRectangles)
+  {
+    LineChangeMarkingModel lineChangeMarkingModel = mock(LineChangeMarkingModel.class);
+    when(lineChangeMarkingModel.getStaticLineNumberColors()).thenReturn(pLineNumberColors);
+
+    JViewport viewport = mock(JViewport.class);
+    if (pViewRectangles.size() == 1)
+      when(viewport.getViewRect()).thenReturn(pViewRectangles.get(0));
+    else if (pViewRectangles.size() == 2)
+      when(viewport.getViewRect()).thenReturn(pViewRectangles.get(0)).thenReturn(pViewRectangles.get(1));
+
+    ViewLineChangeMarkingModel viewLineChangeMarkingModel = new ViewLineChangeMarkingModel(lineChangeMarkingModel, viewport);
+    viewLineChangeMarkingModel.lineNumberColorsChanged(pLineNumberColors);
+    return viewLineChangeMarkingModel;
   }
 }

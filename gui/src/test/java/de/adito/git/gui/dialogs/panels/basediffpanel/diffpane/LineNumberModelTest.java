@@ -14,6 +14,7 @@ import javax.swing.*;
 import java.awt.Dimension;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,10 +42,11 @@ class LineNumberModelTest
       LineNumber[] lineNumbers = new LineNumber[]{};
       IDeltaTextChangeEvent deltaTextChangeEvent = Mockito.mock(IDeltaTextChangeEvent.class);
       LineNumberModel lineNumberModel = setUpLineNumberModelTest(textEventRef, lineNumbersRef, lineNumbers, deltaTextChangeEvent, mockStatic);
-      assertArrayEquals(lineNumbers, lineNumbersRef.get());
-      assertEquals(deltaTextChangeEvent, textEventRef.get());
-      // there are no lines here -> no Numbers to draw
-      assertEquals(0, lineNumberModel.getLineNumbersToDraw(0, 200).size());
+
+      assertAll(() -> assertArrayEquals(lineNumbers, lineNumbersRef.get()),
+                () -> assertEquals(deltaTextChangeEvent, textEventRef.get()),
+                // there are no lines here -> no Numbers to draw
+                () -> assertEquals(0, lineNumberModel.getLineNumbersToDraw(0, 200).size()));
     }
     finally
     {
@@ -69,15 +71,17 @@ class LineNumberModelTest
     try
     {
       LineNumberModel lineNumberModel = setUpLineNumberModelTest(textEventRef, lineNumbersRef, lineNumbers, textChangeMock, mockStatic);
-      assertArrayEquals(lineNumbers, lineNumbersRef.get());
-      assertEquals(textChangeMock, textEventRef.get());
-      // this view area encompasses both lines -> getLineNumbersToDraw should include both lines
-      assertArrayEquals(lineNumbers, lineNumberModel.getLineNumbersToDraw(0, 18).toArray());
-      // view only encompasses the first line
-      assertEquals("1", lineNumberModel.getLineNumbersToDraw(0, 5).iterator().next().getNumber());
-      // view only encompasses the second line
-      assertEquals("2", lineNumberModel.getLineNumbersToDraw(18, 25).iterator().next().getNumber());
-      assertEquals(0, lineNumberModel.getLineNumbersToDraw(35, 45).size());
+
+      assertAll(() -> assertArrayEquals(lineNumbers, lineNumbersRef.get()),
+                () -> assertEquals(textChangeMock, textEventRef.get()));
+      assertAll(
+          // this view area encompasses both lines -> getLineNumbersToDraw should include both lines
+          () -> assertArrayEquals(lineNumbers, lineNumberModel.getLineNumbersToDraw(0, 18).toArray()),
+          // view only encompasses the first line
+          () -> assertEquals("1", lineNumberModel.getLineNumbersToDraw(0, 5).iterator().next().getNumber()),
+          // view only encompasses the second line
+          () -> assertEquals("2", lineNumberModel.getLineNumbersToDraw(18, 25).iterator().next().getNumber()),
+          () -> assertEquals(0, lineNumberModel.getLineNumbersToDraw(35, 45).size()));
     }
     finally
     {
@@ -92,8 +96,11 @@ class LineNumberModelTest
    * @param lineNumbersRef Reference to the LineNumbers, will be set by the listener that is triggered by the model changing
    * @param lineNumbers    LineNumbers that should be returned when TextPaneUtil.calculateLineYPositions is invoked
    * @param textChangeMock IDeltaTextChangeEvent that is passed to the model as the latest value in the Observable of the TextEvents
-   * @param mockStatic     Reference for the static mock of the TextPaneUtil, will be set in this method and has to be closed by the caller to avoid resource leaks
+   * @param mockStatic     Reference for the static mock of the TextPaneUtil, will be set in this method and has to be closed by the caller to avoid resource leaks.
+   *                       We have to use the reference here because MockStatic only works for the current Thread, and the thing we want to mock happens inside the EDT Thread
    * @return LineNumberModel that is based on the passed values and a Mocked TextPaneUtil
+   * @throws InterruptedException if the sleep or invokeAndWait method is interrupted while they wait for a result/timer
+   * @throws Exception            if any exception would happen while setting up the mocks in the invokeSynchronouslyASAP method
    */
   @NotNull
   private static LineNumberModel setUpLineNumberModelTest(@NotNull AtomicReference<IDeltaTextChangeEvent> textEventRef, @NotNull AtomicReference<LineNumber[]> lineNumbersRef,
@@ -103,17 +110,20 @@ class LineNumberModelTest
     JEditorPane editorPane = new JEditorPane();
     BehaviorSubject<IDeltaTextChangeEvent> textEventObs = BehaviorSubject.createDefault(Mockito.mock(IDeltaTextChangeEvent.class));
     BehaviorSubject<Dimension> areaObs = BehaviorSubject.createDefault(new Dimension(0, 0));
+
     SwingUtil.invokeSynchronouslyASAP(() -> {
       mockStatic.set(Mockito.mockStatic(TextPaneUtil.class));
       mockStatic.get().when(() -> TextPaneUtil.calculateLineYPositions(editorPane, editorPane.getUI().getRootView(editorPane))).thenReturn(lineNumbers);
       return null;
     });
-    LineNumberModel lineNumberModel = new LineNumberModel(textEventObs, editorPane, areaObs);
+
     LineNumberListener lineNumberListener = (pTextChangeEvent, pLineNumbers) -> {
       lineNumbersRef.set(pLineNumbers);
       textEventRef.set(pTextChangeEvent);
     };
-    lineNumberModel.addLineNumberListener(lineNumberListener);
+    LineNumberModel lineNumberModel = new LineNumberModel(textEventObs, editorPane, areaObs);
+    lineNumberModel.addListener(lineNumberListener);
+
     textEventObs.onNext(textChangeMock);
     Thread.sleep(500);
     return lineNumberModel;
