@@ -6,6 +6,27 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.6</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>The plugin can now auto-resolve some conflicts in liquibase and language files</li>
+    <li>The way the plugin detects the fork point/merge base in a merge now works by chronological order instead of by number of commits in a branch</li>
+    <li>Reworked the way the line number and change indicators are calculated in a diff or merge. This drastically improves both performance and memory consumption</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>Added a "Commit and Push" functionality to the commit window</li>
+    <li>The local changes window now shows a "No local changes" text if there are no local changes</li>
+    <li>If a git action cannot be executed due to a lock file, the plugin now asks the user if that file should be deleted</li>
+    <li>The merge dialog now shows the remaining number of conflicts</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: Memory leak when merging files</li>
+    <li>Fix: The selected files in the commit window stay selected, even if the contents of the tree change</li>
+    <li>Fix: Exception if the list of conflicting files contains no files</li>
+    <li>Revert commit messages now properly display the commit id of the reverted commit</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.5</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
