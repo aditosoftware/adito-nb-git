@@ -7,7 +7,9 @@ import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.LeftSideVSBScrollPaneLayout;
 import de.adito.git.gui.dialogs.TextComparatorInfoPanel;
-import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumbersColorModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineChangeMarkingModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumberModel;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.ViewLineChangeMarkingModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.textpanes.DiffPaneWrapper;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.SwingUtil;
@@ -55,7 +57,6 @@ public class DiffPanel extends JPanel implements IDiscardable
             .orElse(Observable.just(new DeltaTextChangeEventImpl(0, 0, "", null))))
         .replay()
         .autoConnect(2, disposables::add);
-    LineNumbersColorModel[] lineNumbersColorModels = new LineNumbersColorModel[2];
     DiffPanelModel currentDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.NEW);
     currentVersionDiffPane = new DiffPaneWrapper(currentDiffPanelModel, pLeftHeader, SwingConstants.RIGHT, pEditorKitObservable);
     DiffPanelModel oldDiffPanelModel = new DiffPanelModel(changesEventObservable, EChangeSide.OLD)
@@ -63,26 +64,10 @@ public class DiffPanel extends JPanel implements IDiscardable
     oldVersionDiffPane = new DiffPaneWrapper(oldDiffPanelModel, pRightHeader, SwingConstants.LEFT, pEditorKitObservable);
     initHeightsObs = BehaviorSubject.create();
     initHeightsObs.onNext(Optional.empty());
-    // current panel is to the right, so index 1
-    LineNumbersColorModel rightLineColorModel = currentVersionDiffPane.getPaneContainer().addLineNumPanel(currentDiffPanelModel,
-                                                                                                          initHeightsObs,
-                                                                                                          BorderLayout.WEST, 1);
-    lineNumbersColorModels[1] = rightLineColorModel;
     JScrollPane currentVersionScrollPane = currentVersionDiffPane.getScrollPane();
     currentVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
-    // Neccessary for the left ChoiceButtonPanel, but should not be added to the Layout
-    LineNumbersColorModel temp = oldVersionDiffPane.getPaneContainer().createLineNumberColorModel(oldDiffPanelModel, initHeightsObs, -1);
-
-    // old version is to the left, so index 0
-    LineNumbersColorModel leftLineColorsModel = oldVersionDiffPane.getPaneContainer().createLineNumberColorModel(oldDiffPanelModel,
-                                                                                                                 initHeightsObs, 0);
-    lineNumbersColorModels[0] = leftLineColorsModel;
-
-    oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, pAcceptIcon, null, new LineNumbersColorModel[]{temp, leftLineColorsModel},
-                                                               BorderLayout.EAST);
-    oldVersionDiffPane.getPaneContainer().addLineNumPanel(leftLineColorsModel, oldDiffPanelModel, BorderLayout.EAST);
-    oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, null, null, lineNumbersColorModels, BorderLayout.EAST);
+    initModels(pAcceptIcon, currentDiffPanelModel, oldDiffPanelModel);
 
     JScrollPane oldVersionScrollPane = oldVersionDiffPane.getScrollPane();
     oldVersionScrollPane.getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
@@ -96,9 +81,34 @@ public class DiffPanel extends JPanel implements IDiscardable
     add(optionsPanel, BorderLayout.NORTH);
     // couple horizontal scrollbars
     IDiffPaneUtil.bridge(List.of(currentVersionScrollPane.getHorizontalScrollBar().getModel(), oldVersionScrollPane.getHorizontalScrollBar().getModel()));
-    SwingUtil.invokeASAP(() -> currentVersionScrollPane.getHorizontalScrollBar().setValue(0));
+    SwingUtil.invokeInEDT(() -> currentVersionScrollPane.getHorizontalScrollBar().setValue(0));
     SwingUtilities.invokeLater(() -> differentialScrollBarCoupling = IDiffPaneUtil.synchronize(oldVersionDiffPane, null, currentVersionDiffPane, null,
                                                                                                initHeightsObs, pFileDiffObs));
+  }
+
+  /**
+   * Create the models required for the panels of the diff pane that show the lineNumbers and changes. After creating these, the panels are added to the diff pane
+   *
+   * @param pAcceptIcon           Icon used for the action that accepts changes
+   * @param currentDiffPanelModel DiffPanelModel for the more up-to-date side of the diff
+   * @param oldDiffPanelModel     DiffPanelModel for the older version of the diff
+   */
+  private void initModels(@Nullable ImageIcon pAcceptIcon, @NotNull DiffPanelModel currentDiffPanelModel, @NotNull DiffPanelModel oldDiffPanelModel)
+  {
+    LineNumberModel oldLinesModel = oldVersionDiffPane.createLineNumberModel();
+    LineChangeMarkingModel oldLineChangeMarkingsModel = new LineChangeMarkingModel(oldLinesModel, oldDiffPanelModel.getChangeSide());
+    ViewLineChangeMarkingModel oldViewLineChangeModel = new ViewLineChangeMarkingModel(oldLineChangeMarkingsModel, oldVersionDiffPane.getScrollPane().getViewport());
+
+    LineNumberModel currentLinesModel = currentVersionDiffPane.createLineNumberModel();
+    LineChangeMarkingModel currentChangeMarkingsModel = new LineChangeMarkingModel(currentLinesModel, currentDiffPanelModel.getChangeSide());
+    ViewLineChangeMarkingModel currentViewLineChangeModel = new ViewLineChangeMarkingModel(currentChangeMarkingsModel, currentVersionDiffPane.getScrollPane().getViewport());
+
+    oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, oldLinesModel, oldViewLineChangeModel, oldViewLineChangeModel, pAcceptIcon, null,
+                                                               BorderLayout.EAST);
+    oldVersionDiffPane.getPaneContainer().addLineNumPanel(oldLinesModel, oldLineChangeMarkingsModel, BorderLayout.EAST);
+    oldVersionDiffPane.getPaneContainer().addChoiceButtonPanel(oldDiffPanelModel, oldLinesModel, oldViewLineChangeModel, currentViewLineChangeModel, null, null, BorderLayout.EAST);
+
+    currentVersionDiffPane.getPaneContainer().addLineNumPanel(currentLinesModel, currentChangeMarkingsModel, BorderLayout.WEST);
   }
 
   public void finishLoading()

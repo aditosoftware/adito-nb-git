@@ -1,5 +1,7 @@
 package de.adito.git.gui.swing;
 
+import lombok.Getter;
+
 /**
  * Contains the line number and the y Coordinate for the baseline of the line number when drawn on the panel
  *
@@ -8,43 +10,26 @@ package de.adito.git.gui.swing;
 public class LineNumber
 {
 
+  @Getter
   private final String number;
+  @Getter
   private final int yCoordinate;
+  @Getter
   private final int xCoordinate;
+  @Getter
+  private final int height;
 
   /**
    * @param pNumber      the actual number of the line
    * @param pXCoordinate x coordinate of the baseline of the number for the line
    * @param pYCoordinate y coordinate of the baseline of the number for the line
+   * @param pHeight      how high is this Line?
    */
-  public LineNumber(int pNumber, int pXCoordinate, int pYCoordinate)
+  public LineNumber(int pNumber, int pXCoordinate, int pYCoordinate, int pHeight)
   {
     number = String.valueOf(pNumber);
     xCoordinate = pXCoordinate;
     yCoordinate = pYCoordinate;
-  }
-
-  /**
-   * @return the actual number of the line represented as String
-   */
-  public String getNumber()
-  {
-    return number;
-  }
-
-  /**
-   * @return y coordinate of the baseline of the number for the line
-   */
-  public int getYCoordinate()
-  {
-    return yCoordinate;
-  }
-
-  /**
-   * @return x coordinate of the baseline of the number for the line
-   */
-  public int getXCoordinate()
-  {
-    return xCoordinate;
+    height = pHeight;
   }
 }

@@ -6,9 +6,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -24,7 +26,7 @@ public class SwingUtil
    *
    * @param pRunnable Runnbale to execute in the EDT as soon as possible
    */
-  public static void invokeASAP(Runnable pRunnable)
+  public static void invokeInEDT(Runnable pRunnable)
   {
     if (SwingUtilities.isEventDispatchThread())
     {
@@ -33,6 +35,43 @@ public class SwingUtil
     else
     {
       SwingUtilities.invokeLater(pRunnable);
+    }
+  }
+
+  /**
+   * This method checks if the current thread is the EDT. If that is the case, the method just returns the result of the supplier execution.
+   * If the current thread is not the EDT, the supplier is executed synchronously in the EDT, and any occurring exceptions are thrown afterwards
+   *
+   * @param pSupplier Supplier that will be exectured in the EDT
+   * @throws InterruptedException      if we're interrupted while waiting for the event dispatching thread to finish executing
+   * @throws InvocationTargetException if an exception is thrown while running doRun in the EDT
+   */
+  public static <T> T invokeSynchronouslyASAP(ExceptionalSupplier<T> pSupplier) throws Exception
+  {
+    if (SwingUtilities.isEventDispatchThread())
+    {
+      return pSupplier.get();
+    }
+    else
+    {
+      AtomicReference<T> returnRef = new AtomicReference<>();
+      AtomicReference<Exception> throwableAtomicReference = new AtomicReference<>(null);
+      SwingUtilities.invokeAndWait(() -> {
+        try
+        {
+          returnRef.set(pSupplier.get());
+        }
+        catch (Exception pE)
+        {
+          throwableAtomicReference.set(pE);
+        }
+      });
+      if (throwableAtomicReference.get() != null)
+      {
+        throw throwableAtomicReference.get();
+      }
+
+      return returnRef.get();
     }
   }
 
@@ -128,6 +167,17 @@ public class SwingUtil
     Line2D.Double rightRectRim = new Line2D.Double(new Point2D.Double(pRightRectangle.x, pRightRectangle.y),
                                                    new Point2D.Double(pRightRectangle.x, pRightRectangle.y + pRightRectangle.height));
     return leftRectRim.intersectsLine(rightRectRim);
+  }
+
+  /**
+   * Supplier that works with Exceptions
+   *
+   * @param <T> Type returned by the Supplier
+   */
+  @FunctionalInterface
+  public interface ExceptionalSupplier<T>
+  {
+    T get() throws Exception;
   }
 
 

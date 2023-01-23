@@ -4,8 +4,11 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.TextHighlightUtil;
 import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.DiffPaneContainer;
+import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumberModel;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -30,6 +33,8 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
   private final Disposable mergeDiffDisposable;
   private final Disposable editorKitDisposable;
   private final _PaneDocumentListener paneDocumentListener = new _PaneDocumentListener();
+  private final BehaviorSubject<IDeltaTextChangeEvent> yourTextChangeSubject = BehaviorSubject.create();
+  private final BehaviorSubject<IDeltaTextChangeEvent> theirTextChangeSubject = BehaviorSubject.create();
 
   /**
    * @param pMergeDiff           MergeDiff that has all the information about the conflict that should be displayed/resolvable
@@ -43,21 +48,36 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
     editorKitDisposable = pEditorKitObservable.subscribe(pOptEditorKit -> pOptEditorKit.ifPresent(this::_setEditorKit));
     diffPaneContainer = new DiffPaneContainer(editorPane, null, SwingConstants.CENTER);
     mergeDiffDisposable = Observable.zip(
-        mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(),
-        mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), _ChangesEventPair::new)
+            mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(),
+            mergeDiff.getDiff(EConflictSide.THEIRS).getDiffTextChangeObservable(), _ChangesEventPair::new)
         .subscribe(this::_refreshContent);
   }
 
+  /**
+   * Create a new LineNumberModel that is based on the editorPane and its contents of the diffPane of this wrapper
+   *
+   * @param pConflictSide EConflictSide whose deltas the LineNumberModel should track
+   * @return LineNumberModel
+   */
+  @NotNull
+  public LineNumberModel createLineNumberModel(@NotNull EConflictSide pConflictSide)
+  {
+    return diffPaneContainer.createLineNumberModel(pConflictSide == EConflictSide.YOURS ? yourTextChangeSubject : theirTextChangeSubject);
+  }
+
+  @NotNull
   public DiffPaneContainer getPaneContainer()
   {
     return diffPaneContainer;
   }
 
+  @NotNull
   public JScrollPane getScrollPane()
   {
     return diffPaneContainer.getScrollPane();
   }
 
+  @NotNull
   public JEditorPane getEditorPane()
   {
     return editorPane;
@@ -87,6 +107,8 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
     editorPane.revalidate();
     editorPane.repaint();
     paneDocumentListener.enable();
+    yourTextChangeSubject.onNext(pChangeDeltaLists.yourTextChangeEvent);
+    theirTextChangeSubject.onNext(pChangeDeltaLists.theirsTextChangeEvent);
   }
 
   @Override
@@ -162,10 +184,12 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
 
   private static class _ChangesEventPair
   {
+    @NotNull
     private final IDeltaTextChangeEvent yourTextChangeEvent;
+    @NotNull
     private final IDeltaTextChangeEvent theirsTextChangeEvent;
 
-    private _ChangesEventPair(IDeltaTextChangeEvent pYourTextChangeEvent, IDeltaTextChangeEvent pTheirsTextChangeEvent)
+    private _ChangesEventPair(@NotNull IDeltaTextChangeEvent pYourTextChangeEvent, @NotNull IDeltaTextChangeEvent pTheirsTextChangeEvent)
     {
       yourTextChangeEvent = pYourTextChangeEvent;
       theirsTextChangeEvent = pTheirsTextChangeEvent;

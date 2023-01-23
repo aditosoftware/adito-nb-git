@@ -1,6 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.IDiscardable;
+import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.OnionColumnLayout;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.rxjava.ViewPortSizeObservable;
@@ -45,70 +46,54 @@ public class DiffPane extends JPanel implements IDiscardable
     add(scrollPane, OnionColumnLayout.CENTER);
   }
 
+  @NotNull
   public JScrollPane getScrollPane()
   {
     return scrollPane;
   }
 
   /**
-   * @param pModel             DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pInitHeightCalcObs Observable that fires once when the heights are ready to be calculated
-   * @param pLineOrientation   String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
-   *                           Defaults to BorderLayout.WEST if another String is passed
-   * @param pModelNumber       number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
-   * @return LineNumbersColorModel describing the
+   * @param pTextChangeEventObservable Observable that fires a new DeltaTextChangeEvent if the text on any side of the Diff changes
+   * @return LineNumberModel that keeps track of the y coordinates for each line in the editor of this diffPane
    */
-  public LineNumbersColorModel addLineNumPanel(DiffPanelModel pModel, Observable<Optional<Object>> pInitHeightCalcObs, String pLineOrientation, int pModelNumber)
+  @NotNull
+  public LineNumberModel createLineNumberModel(@NotNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable)
   {
-    LineNumbersColorModel lineNumbersColorModel = createLineNumberColorModel(pModel, pInitHeightCalcObs, pModelNumber);
-    addLineNumPanel(lineNumbersColorModel, pModel, pLineOrientation);
-    return lineNumbersColorModel;
+    return new LineNumberModel(pTextChangeEventObservable, editorPane, _observeViewPortSize());
   }
 
   /**
-   * Only creates the LineNumbersColorModel, it is not added to the Layout.
+   * Creates a new LineNumPanel and adds it to the layout
    *
-   * @param pModel             DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pInitHeightCalcObs Observable that fires once when the heights are ready to be calculated
-   * @param pModelNumber       number of the LineNumbersColorModel used in the LineNumPanel, also returned by this method
-   * @return the new LineNumbersColorModel
-   * @see #addLineNumPanel(DiffPanelModel, Observable, String, int)
+   * @param pLineNumberModel        LineNumberModel that keeps track of the y coordinates of the lines
+   * @param pLineChangeMarkingModel LineChangeMarkingsModel that keeps track of the y coordinates of the change markings
+   * @param pLineOrientation        String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
+   *                                Defaults to BorderLayout.WEST if another String is passed
    */
-  public LineNumbersColorModel createLineNumberColorModel(DiffPanelModel pModel, Observable<Optional<Object>> pInitHeightCalcObs, int pModelNumber)
+  public void addLineNumPanel(@NotNull LineNumberModel pLineNumberModel, @NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull String pLineOrientation)
   {
-    return new LineNumbersColorModel(pModel, editorPane, scrollPane.getViewport(),
-                                     Observable.combineLatest(pInitHeightCalcObs, _observeViewPortSize(), (pObj, pViewPortSize) -> pViewPortSize),
-                                     pModelNumber);
-  }
-
-  /**
-   * Adds the LineNumbersColorModel to the Layout. Therefore a LineNumPanel is created.
-   *
-   * @param pLineNumbersColorModel the LineNumbersColorModel, which should be added
-   * @param pModel                 DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pLineOrientation       String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
-   *                               Defaults to BorderLayout.WEST if another String is passed
-   */
-  public void addLineNumPanel(LineNumbersColorModel pLineNumbersColorModel, DiffPanelModel pModel, String pLineOrientation)
-  {
-    LineNumPanel lineNumPanel = new LineNumPanel(pModel, editorPane, scrollPane.getViewport(), _observeViewPortSize(), pLineNumbersColorModel);
+    LineNumPanel lineNumPanel = new LineNumPanel(editorPane, pLineNumberModel, pLineChangeMarkingModel, getScrollPane().getViewport());
     discardables.add(lineNumPanel);
     add(lineNumPanel, pLineOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
   }
 
   /**
-   * @param pModel                  DiffPanelModel with the Observable list of fileChangeChunks
-   * @param pAcceptIcon             ImageIcon for the accept button
-   * @param pDiscardIcon            ImageIcon for the discard button
-   * @param pLineNumbersColorModels Array of size 2 with LineNumPanels, index 0 is the LineNumPanel to the left of this ChoiceButtonPane,
-   *                                1 to the right
-   * @param pOrientation            String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
+   * Creates a new ChoiceButtonPanel and adds it to the layout
+   *
+   * @param pModel              DiffPanelModel with the Observable list of fileChangeChunks
+   * @param pLineNumberModel    LineNumberModel that keeps track of the y coordinates of the lines
+   * @param pLeftMarkingsModel  ViewLineChangeMarkingsModel that keeps track of the position of the changeMarkings relative to the viewport
+   * @param pRightMarkingsModel ViewLineChangeMarkingsModel that keeps track of the position of the changeMarkings relative to the viewport
+   * @param pAcceptIcon         ImageIcon for the accept button
+   * @param pDiscardIcon        ImageIcon for the discard button
+   * @param pOrientation        String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    */
-  public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
-                                   LineNumbersColorModel[] pLineNumbersColorModels, @NotNull String pOrientation)
+  public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull LineNumberModel pLineNumberModel, @NotNull ViewLineChangeMarkingModel pLeftMarkingsModel,
+                                   @NotNull ViewLineChangeMarkingModel pRightMarkingsModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
+                                   @NotNull String pOrientation)
   {
-    ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, scrollPane.getViewport(), _observeViewPortSize(),
-                                                                pAcceptIcon, pDiscardIcon, pLineNumbersColorModels, pOrientation);
+    ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, scrollPane.getViewport(), pLineNumberModel, pLeftMarkingsModel, pRightMarkingsModel,
+                                                                pAcceptIcon, pDiscardIcon, pOrientation);
     discardables.add(choiceButtonPanel);
     add(choiceButtonPanel, pOrientation.equals(BorderLayout.EAST) ? OnionColumnLayout.RIGHT : OnionColumnLayout.LEFT);
   }
