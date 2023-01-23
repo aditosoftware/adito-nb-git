@@ -98,6 +98,10 @@ class IconInfoModelTest
 
     IDeltaTextChangeEvent deltaTextChangeEvent = mock(IDeltaTextChangeEvent.class);
 
+    IFileDiff fileDiff = new StandAloneDiffProviderImpl(new SimpleFileSystemUtil()).diffOffline("test\ntest\n\ntest\nchangedLine\ntest\n",
+                                                                                                "test\nchangedLine\ntest\n\ntest\nchangedLine1\ntest\n");
+    when(deltaTextChangeEvent.getFileDiff()).thenReturn(fileDiff);
+
     IconInfoModel iconInfoModel = new IconInfoModel(new LineNumberModel(Observable.empty(), editorPane, Observable.empty()), EChangeSide.OLD, editorPane,
                                                     imageIcon, imageIcon2, BorderLayout.WEST);
     iconInfoModel.lineNumbersChanged(deltaTextChangeEvent, new LineNumber[]{new LineNumber(1, 0, 0, LINE_HEIGHT), new LineNumber(2, 0, LINE_HEIGHT, LINE_HEIGHT),
@@ -106,9 +110,6 @@ class IconInfoModelTest
                                                                             new LineNumber(5, 0, LINE_HEIGHT * 4, LINE_HEIGHT),
                                                                             new LineNumber(6, 0, LINE_HEIGHT * 5, LINE_HEIGHT)});
 
-    IFileDiff fileDiff = new StandAloneDiffProviderImpl(new SimpleFileSystemUtil()).diffOffline("test\ntest\n\ntest\nchangedLine\ntest\n",
-                                                                                                "test\nchangedLine\ntest\n\ntest\nchangedLine1\ntest\n");
-    when(deltaTextChangeEvent.getFileDiff()).thenReturn(fileDiff);
     List<IconInfo> iconsToDraw = iconInfoModel.getIconInfosToDraw(0, 1000);
     assertEquals(4, iconsToDraw.size());
     assertAll(
