@@ -21,7 +21,9 @@ public class EnclosedResolveOption implements ResolveOption
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = null;
     AtomicBoolean isTryToSnapToDelta = new AtomicBoolean(false);
-    EConflictType determinedConflictType = determineConflictType(acceptedDelta, pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(pConflictSide)), pConflictSide);
+    EConflictType determinedConflictType = determineConflictType(acceptedDelta,
+                                                                 pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide))),
+                                                                 pConflictSide);
     Runnable executeAfterTextUpdates = () -> {
     };
     if (_enclosesAcceptedOther(pConflictPair, pOtherDiff, pConflictSide, determinedConflictType))
