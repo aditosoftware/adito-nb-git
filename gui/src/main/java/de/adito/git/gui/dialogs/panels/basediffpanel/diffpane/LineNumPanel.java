@@ -29,6 +29,7 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
    * This variable sets how many pixels we use as safety margin for drawing lines around the visible rectangle
    */
   private static final int SAFETY_MARGIN_Y = 32;
+
   private final CompositeDisposable disposable = new CompositeDisposable();
   private final Insets panelInsets = new Insets(0, 0, 0, 0);
   private final Insets editorInsets;
