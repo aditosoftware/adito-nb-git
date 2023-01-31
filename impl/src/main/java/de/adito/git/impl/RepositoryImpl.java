@@ -547,6 +547,10 @@ public class RepositoryImpl implements IRepository
       if (remotes.size() <= 1)
       {
         FetchResult fetchResult = git.fetch().setTransportConfigCallback(sshProvider.getTransportConfigCallBack(getConfig())).setRemoveDeletedRefs(pPrune).call();
+        logger.log(Level.INFO, "git fetch result messages: " + fetchResult.getMessages());
+        logger.log(Level.INFO, "git fetch tracking ref updates: " + fetchResult.getTrackingRefUpdates().stream()
+            .map(org.eclipse.jgit.transport.TrackingRefUpdate::toString)
+            .collect(Collectors.joining("\n")));
         fetchResult.getTrackingRefUpdates().forEach(pTrackingRefUpdate -> trackingRefUpdates.add(new TrackingRefUpdate(pTrackingRefUpdate)));
       }
       else
