@@ -25,9 +25,9 @@ class IconPressMouseAdapter extends MouseAdapter
 
   private final int iconWidth;
   @Nullable
-  private final Consumer<IChangeDelta> doOnDiscard;
-  @Nullable
   private final Consumer<IChangeDelta> doOnAccept;
+  @Nullable
+  private final Consumer<IChangeDelta> doOnDiscard;
   @NotNull
   private final IconInfoModel iconInfoModel;
   @NotNull
