@@ -23,19 +23,23 @@ class FileSystemObserverImpl implements IFileSystemObserver
 {
 
   private final ArrayList<IFileSystemChangeListener> fileSystemChangeListeners = new ArrayList<>();
-  private final _FileSystemListener fsListener;
+  private final FileSystemListener fsListener;
   private final FileObject root;
   private final IIgnoreFacade gitIgnoreFacade;
   private final CompositeDisposable disposable = new CompositeDisposable();
 
-  public FileSystemObserverImpl(IRepositoryDescription pRepositoryDescription, @NotNull IIgnoreFacade pGitIgnoreFacade)
+  /**
+   * @param pRepositoryDescription IRepositoryDescription that contains the path to the project
+   * @param pGitIgnoreFacade       IIgnoreFacade that can tell if a file is on the git ignore list
+   */
+  public FileSystemObserverImpl(@NotNull IRepositoryDescription pRepositoryDescription, @NotNull IIgnoreFacade pGitIgnoreFacade)
   {
     root = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
     gitIgnoreFacade = pGitIgnoreFacade;
     if (root != null)
     {
       File gitFolder = new File(pRepositoryDescription.getPath(), ".git");
-      fsListener = new _FileSystemListener();
+      fsListener = new FileSystemListener();
 
       /*
         The listener is registered in two locations:
@@ -47,10 +51,10 @@ class FileSystemObserverImpl implements IFileSystemObserver
         file changes in a normal workflow, a manual refresh (via the action in "local changes") is only necessary if the files are changed externally.
        */
       FileUtil.addFileChangeListener(fsListener, gitFolder);
-      _addFSListener();
+      addFSListener();
 
       disposable.add(Disposable.fromRunnable(() -> FileUtil.removeFileChangeListener(fsListener, gitFolder)));
-      disposable.add(Disposable.fromRunnable(this::_removeFSListener));
+      disposable.add(Disposable.fromRunnable(this::removeFSListener));
     }
     else
     {
@@ -60,7 +64,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
   }
 
   @Override
-  public void addListener(IFileSystemChangeListener pChangeListener)
+  public void addListener(@NotNull IFileSystemChangeListener pChangeListener)
   {
     synchronized (fileSystemChangeListeners)
     {
@@ -69,7 +73,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
   }
 
   @Override
-  public void removeListener(IFileSystemChangeListener pToRemove)
+  public void removeListener(@NotNull IFileSystemChangeListener pToRemove)
   {
     synchronized (fileSystemChangeListeners)
     {
@@ -80,7 +84,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
   @Override
   public void fireChange()
   {
-    _notifyListeners(null);
+    notifyListeners(null);
   }
 
   @Override
@@ -95,12 +99,18 @@ class FileSystemObserverImpl implements IFileSystemObserver
       disposable.dispose();
   }
 
-  private void _addFSListener()
+  /**
+   * Adds the FileChangeListener to the Netbeans FileSystem so all changes to FileObjects are registered by it
+   */
+  private void addFSListener()
   {
     FileUtil.addFileChangeListener(fsListener);
   }
 
-  private void _removeFSListener()
+  /**
+   * Remove active FileChangeListener from the Netbeans FileSystems
+   */
+  private void removeFSListener()
   {
     FileUtil.removeFileChangeListener(fsListener);
   }
@@ -110,7 +120,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
    *
    * @param pFileObject file that has changed, null to force-trigger an event
    */
-  private void _notifyListeners(@Nullable FileObject pFileObject)
+  private void notifyListeners(@Nullable FileObject pFileObject)
   {
     // Check if notification has to be scheduled
     // null triggers a notification every time, because we do not know which fileobject has changed
@@ -138,42 +148,45 @@ class FileSystemObserverImpl implements IFileSystemObserver
     }
   }
 
-  private class _FileSystemListener implements FileChangeListener
+  /**
+   * FileChangeListener that delegates all file change events to the notifyListeners method
+   */
+  private class FileSystemListener implements FileChangeListener
   {
     @Override
     public void fileFolderCreated(FileEvent pEvent)
     {
-      _notifyListeners(pEvent == null ? null : pEvent.getFile());
+      notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileDataCreated(FileEvent pEvent)
     {
-      _notifyListeners(pEvent == null ? null : pEvent.getFile());
+      notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileChanged(FileEvent pEvent)
     {
-      _notifyListeners(pEvent == null ? null : pEvent.getFile());
+      notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileDeleted(FileEvent pEvent)
     {
-      _notifyListeners(pEvent == null ? null : pEvent.getFile());
+      notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileRenamed(FileRenameEvent pEvent)
     {
-      _notifyListeners(pEvent == null ? null : pEvent.getFile());
+      notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
 
     @Override
     public void fileAttributeChanged(FileAttributeEvent pEvent)
     {
-      _notifyListeners(pEvent == null ? null : pEvent.getFile());
+      notifyListeners(pEvent == null ? null : pEvent.getFile());
     }
   }
 }
