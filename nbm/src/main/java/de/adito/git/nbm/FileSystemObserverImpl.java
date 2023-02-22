@@ -1,9 +1,13 @@
 package de.adito.git.nbm;
 
-import de.adito.git.api.*;
+import de.adito.git.api.IFileSystemChangeListener;
+import de.adito.git.api.IFileSystemObserver;
+import de.adito.git.api.IIgnoreFacade;
 import de.adito.git.api.data.IRepositoryDescription;
-import io.reactivex.rxjava3.disposables.*;
-import org.jetbrains.annotations.*;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openide.filesystems.*;
 import org.openide.util.NbBundle;
 
@@ -30,8 +34,22 @@ class FileSystemObserverImpl implements IFileSystemObserver
     gitIgnoreFacade = pGitIgnoreFacade;
     if (root != null)
     {
+      File gitFolder = new File(pRepositoryDescription.getPath(), ".git");
       fsListener = new _FileSystemListener();
+
+      /*
+        The listener is registered in two locations:
+          - Once on the git folder, this way all actions and file changes that change the git directory are registered (e.g. swapping branches, committing, adding)
+          - Once globally via the FileUtil.addFileChangeListener. This way, changes to all opened file objects are recognised
+        This means that the FileSystemObserver will not recognise changes that are made outside of git and Netbeans (e.g. via Notepad or other editors), however
+        in order to recognise these changes, a recursive listener would have to be used. Since the recursive listeners open and hold all fileObjects under the path they
+        are given, the tradeoff in memory consumption is not worth it (e.g. from 800MB to 1600MB in a modularized basic project). The current way should recognise all
+        file changes in a normal workflow, a manual refresh (via the action in "local changes") is only necessary if the files are changed externally.
+       */
+      FileUtil.addFileChangeListener(fsListener, gitFolder);
       _addFSListener();
+
+      disposable.add(Disposable.fromRunnable(() -> FileUtil.removeFileChangeListener(fsListener, gitFolder)));
       disposable.add(Disposable.fromRunnable(this::_removeFSListener));
     }
     else
@@ -73,7 +91,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
       fileSystemChangeListeners.clear();
     }
 
-    if(!disposable.isDisposed())
+    if (!disposable.isDisposed())
       disposable.dispose();
   }
 
