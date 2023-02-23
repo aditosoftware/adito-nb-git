@@ -6,27 +6,34 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.api.progress.IAsyncProgressFacade;
-import de.adito.git.gui.*;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.IEditorKitProvider;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.concurrency.GitProcessExecutors;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanel;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.swing.MutableIconActionButton;
-import de.adito.git.gui.tree.*;
+import de.adito.git.gui.tree.StatusTree;
+import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.*;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.util.reactive.cache.*;
+import de.adito.util.reactive.cache.ObservableCache;
+import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.EditorKit;
-import javax.swing.tree.*;
-import java.awt.*;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Window that displays the list of changes found during a diff
@@ -143,7 +150,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
     }
     GitProcessExecutors.submit(() ->
                                    pProgressFacade.executeAndBlockWithProgress("Setting up Diff", pExeutor -> {
-                                     Thread.sleep(2000);
+                                     Thread.sleep(200);
                                      diffPanel.finishLoading();
                                    }));
   }
