@@ -1833,7 +1833,7 @@ public class RepositoryImpl implements IRepository
       File gitExclude = new File(git.getRepository().getDirectory(), "info/exclude");
       long oldLastModified = lastModified;
       lastModified = Math.max(gitIgnore.lastModified(), gitExclude.lastModified());
-      if (oldLastModified != lastModified)
+      if (oldLastModified != lastModified || ignoreNode == null)
       {
         ignoreNode = new IgnoreNode();
 
