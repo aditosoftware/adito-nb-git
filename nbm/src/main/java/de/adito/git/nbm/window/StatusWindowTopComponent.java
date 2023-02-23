@@ -79,6 +79,10 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent imp
                        .distinctUntilChanged()
                        .subscribe(pOpt -> pOpt.ifPresent(this::_setActiveNodes)));
     add(statusWindowContent.getComponent());
+    disposable.add(pRepository.subscribe(pRepo -> {
+      if (!pRepo.isPresent())
+        close();
+    }));
   }
 
   /**

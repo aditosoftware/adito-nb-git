@@ -3,6 +3,8 @@ package de.adito.git.nbm.actions;
 import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
+import de.adito.git.nbm.repo.RepositoryCache;
+import de.adito.git.nbm.util.ProjectUtility;
 import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.awt.ActionID;
@@ -10,6 +12,7 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
+import org.openide.windows.TopComponent;
 
 import java.util.Optional;
 
@@ -28,7 +31,9 @@ public class ShowAllCommitsNBAction extends NBAction
   @Override
   protected void performAction(Node[] pActivatedNodes)
   {
-    Observable<Optional<IRepository>> repository = NBAction.getCurrentRepository(pActivatedNodes);
+    Observable<Optional<IRepository>> repository = ProjectUtility.findProjectFromActives(TopComponent.getRegistry())
+        .map(pProj -> RepositoryCache.getInstance().findRepository(pProj))
+        .orElse(Observable.just(Optional.empty()));
     IActionProvider actionProvider = IGitConstants.INJECTOR.getInstance(IActionProvider.class);
 
     actionProvider.getShowAllCommitsAction(repository).actionPerformed(null);

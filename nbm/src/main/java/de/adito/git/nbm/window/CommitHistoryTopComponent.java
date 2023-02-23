@@ -7,6 +7,7 @@ import de.adito.git.api.data.ICommitFilter;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
 import org.openide.windows.Mode;
@@ -30,6 +31,7 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
   private final IPrefStore prefStore;
   @Nullable
   private final String displayableContext;
+  private final CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
   CommitHistoryTopComponent(@NotNull IWindowContentProvider pWindowContentProvider, @NotNull IPrefStore pPrefStore,
@@ -41,6 +43,10 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
     displayableContext = pDisplayableContext;
     setLayout(new BorderLayout());
     add(pWindowContentProvider.createCommitHistoryWindowContent(pRepository, tableModel, loadMoreCallback, pRefreshContent, pStartFilter), BorderLayout.CENTER);
+    disposable.add(pRepository.subscribe(pRepo -> {
+      if (!pRepo.isPresent())
+        close();
+    }));
   }
 
   @Override
@@ -65,6 +71,7 @@ class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
   protected void componentClosed()
   {
     super.componentClosed();
+    disposable.dispose();
     Mode mode = WindowManager.getDefault().findMode(this);
     if (mode != null)
       prefStore.put(CommitHistoryTopComponent.class.getName(), mode.getName());

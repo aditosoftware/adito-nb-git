@@ -2,20 +2,29 @@ package de.adito.git.nbm.repo;
 
 import de.adito.git.api.IRepository;
 import de.adito.git.nbm.IGitConstants;
-import de.adito.git.nbm.guice.*;
+import de.adito.git.nbm.guice.IRepositoryProviderFactory;
+import de.adito.git.nbm.guice.RepositoryProvider;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.openide.filesystems.FileObject;
 
-import java.beans.*;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.*;
-import java.util.stream.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class is a cache for all Repositories. If a project has a repository the cache put it in his own map.
@@ -93,10 +102,11 @@ public class RepositoryCache
   public Observable<Optional<IRepository>> findRepository(@NotNull Project pProject)
   {
     return providers.switchMap(pRepoProviders -> pRepoProviders.stream()
-        .filter(pRepo -> pRepo.getRepositoryFolder().equals(pProject.getProjectDirectory()))
-        .map(RepositoryProvider::getRepositoryImpl)
-        .findFirst()
-        .orElse(Observable.just(Optional.empty())));
+            .filter(pRepo -> pRepo.getRepositoryFolder().equals(pProject.getProjectDirectory()))
+            .map(RepositoryProvider::getRepositoryImpl)
+            .findFirst()
+            .orElse(Observable.just(Optional.empty())))
+        .distinctUntilChanged();
   }
 
   @NotNull
