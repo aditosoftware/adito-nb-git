@@ -73,6 +73,8 @@ class PushAction extends AbstractAction
       {
         // need new ArrayList to convert to List<Object>
         IUserPromptDialogResult<?, Object> result = dialogProvider.showComboBoxDialog("Select remote to push branch to", new ArrayList<>(repoState.getRemotes()));
+        if (!result.isOkay())
+          return;
         remoteName = (String) result.getInformation();
       }
       List<ICommit> commitList = null;
