@@ -6,6 +6,19 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.7</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The diff dialog now has a shorter setup time</li>
+    <li>The history and local changes window no close themselves if the project they belong to is closed</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: Accept and Discard buttons in the merge dialog have swapped their function</li>
+    <li>Fix: The cancel button in the push dialog does not actually cancel the push</li>
+    <li>Fix: The cancel button in the remote selection dialog during a push (in a repo with several remotes) does not cancel the push</li>
+    <li>Fix: The plugin sometimes does not recognize file events. This lead to the plugin not recognizing branch switches, commits or changed files</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.6</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
