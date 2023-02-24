@@ -1,5 +1,7 @@
 package de.adito.git.nbm;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import de.adito.git.api.IFileSystemChangeListener;
 import de.adito.git.api.IFileSystemObserver;
 import de.adito.git.api.IIgnoreFacade;
@@ -9,10 +11,12 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.filesystems.*;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An observer class for the files in the version control version
@@ -27,11 +31,13 @@ class FileSystemObserverImpl implements IFileSystemObserver
   private final FileObject root;
   private final IIgnoreFacade gitIgnoreFacade;
   private final CompositeDisposable disposable = new CompositeDisposable();
+  private final EventBusListener eventBusListener = new EventBusListener(List.of("PLUGIN_NODEJS_MODULE_CHANGE", "DESIGNER_TRANSPILER_FINISHED"));
 
   /**
    * @param pRepositoryDescription IRepositoryDescription that contains the path to the project
    * @param pGitIgnoreFacade       IIgnoreFacade that can tell if a file is on the git ignore list
    */
+  @SuppressWarnings("UnstableApiUsage")
   public FileSystemObserverImpl(@NotNull IRepositoryDescription pRepositoryDescription, @NotNull IIgnoreFacade pGitIgnoreFacade)
   {
     root = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
@@ -52,6 +58,13 @@ class FileSystemObserverImpl implements IFileSystemObserver
        */
       FileUtil.addFileChangeListener(fsListener, gitFolder);
       addFSListener();
+
+      /*
+       Add listeners for certain EventBus events to get notifications when nodejs and transpiler events finish, since these do change files in the project
+       */
+      EventBus eventBus = Lookup.getDefault().lookup(EventBus.class);
+      eventBus.register(eventBusListener);
+      disposable.add(Disposable.fromRunnable(() -> eventBus.unregister(eventBusListener)));
 
       disposable.add(Disposable.fromRunnable(() -> FileUtil.removeFileChangeListener(fsListener, gitFolder)));
       disposable.add(Disposable.fromRunnable(this::removeFSListener));
@@ -187,6 +200,31 @@ class FileSystemObserverImpl implements IFileSystemObserver
     public void fileAttributeChanged(FileAttributeEvent pEvent)
     {
       notifyListeners(pEvent == null ? null : pEvent.getFile());
+    }
+  }
+
+  /**
+   * Listener for the EventBus events from the designer
+   */
+  private class EventBusListener
+  {
+
+    private final List<Object> values;
+
+    /**
+     * @param pValues these are the values that the listener checks the bus for
+     */
+    public EventBusListener(List<Object> pValues)
+    {
+      values = pValues;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Subscribe
+    public void fireEvent(@Nullable Object pObject)
+    {
+      if (pObject != null && values.contains(pObject))
+        notifyListeners(null);
     }
   }
 }
