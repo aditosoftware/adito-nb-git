@@ -63,8 +63,11 @@ class FileSystemObserverImpl implements IFileSystemObserver
        Add listeners for certain EventBus events to get notifications when nodejs and transpiler events finish, since these do change files in the project
        */
       EventBus eventBus = Lookup.getDefault().lookup(EventBus.class);
-      eventBus.register(eventBusListener);
-      disposable.add(Disposable.fromRunnable(() -> eventBus.unregister(eventBusListener)));
+      if (eventBus != null)
+      {
+        eventBus.register(eventBusListener);
+        disposable.add(Disposable.fromRunnable(() -> eventBus.unregister(eventBusListener)));
+      }
 
       disposable.add(Disposable.fromRunnable(() -> FileUtil.removeFileChangeListener(fsListener, gitFolder)));
       disposable.add(Disposable.fromRunnable(this::removeFSListener));
