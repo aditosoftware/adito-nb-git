@@ -55,6 +55,7 @@ jobs:
               "id": "snapshots", 
               "name": "snapshots", 
               "url": "https://nexus.adito.cloud/repository/snapshots/", 
+              "releases": { "enabled": "true" },
               "snapshots": { "enabled": "true", "updatePolicy": "always" } 
             }]
           plugin_repositories: >
