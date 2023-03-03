@@ -31,7 +31,7 @@ jobs:
           java-version: 13
 
       - name: settings.xml
-        uses: s4u/maven-settings-action@v2.2.0
+        uses: whelk-io/maven-settings-xml-action@v9
         with:
           servers: >
             [{ 
