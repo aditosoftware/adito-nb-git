@@ -17,14 +17,6 @@
     <revision>1.9.8-SNAPSHOT</revision>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>netbeans</id>
-      <name>NetBeans</name>
-      <url>http://bits.netbeans.org/nexus/content/groups/netbeans/</url>
-    </repository>
-  </repositories>
-
   <modules>
     <module>api</module>
     <module>impl</module>
