@@ -56,7 +56,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
         are given, the tradeoff in memory consumption is not worth it (e.g. from 800MB to 1600MB in a modularized basic project). The current way should recognise all
         file changes in a normal workflow, a manual refresh (via the action in "local changes") is only necessary if the files are changed externally.
        */
-      FileUtil.addFileChangeListener(fsListener, gitFolder);
+      FileUtil.addRecursiveListener(fsListener, gitFolder, pathname -> !pathname.getName().equals("objects"), () -> false);
       addFSListener();
 
       /*
@@ -69,7 +69,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
         disposable.add(Disposable.fromRunnable(() -> eventBus.unregister(eventBusListener)));
       }
 
-      disposable.add(Disposable.fromRunnable(() -> FileUtil.removeFileChangeListener(fsListener, gitFolder)));
+      disposable.add(Disposable.fromRunnable(() -> FileUtil.removeRecursiveListener(fsListener, gitFolder)));
       disposable.add(Disposable.fromRunnable(this::removeFSListener));
     }
     else
