@@ -21,6 +21,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.ObservableCache;
 import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -83,6 +84,7 @@ public class RepositoryImpl implements IRepository
   private final CompositeDisposable disposables = new CompositeDisposable();
   private final TrackedBranchStatusCache trackedBranchStatusCache = new TrackedBranchStatusCacheImpl();
   private final IUserInputPrompt userInputPrompt;
+  private final Scheduler gitStatusScheduler;
 
   @Inject
   public RepositoryImpl(IFileSystemObserverProvider pFileSystemObserverProvider, IUserInputPrompt pUserInputPrompt,
@@ -90,6 +92,9 @@ public class RepositoryImpl implements IRepository
                         @Assisted IRepositoryDescription pRepositoryDescription) throws IOException
   {
     userInputPrompt = pUserInputPrompt;
+    gitStatusScheduler = Schedulers.from(Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
+                                                                               .setNameFormat("Git-status-computation")
+                                                                               .build()));
     final Properties properties = new Properties();
     try (InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("project.properties"))
     {
@@ -896,10 +901,8 @@ public class RepositoryImpl implements IRepository
   public @NotNull Observable<Optional<IFileStatus>> getStatus()
   {
     return observableCache.calculateParallel("getStatus", () -> Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
-        .observeOn(Schedulers.from(Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
-                                                                         .setNameFormat("Git-status-computation-%d")
-                                                                         .build())))
         .debounce(500, TimeUnit.MILLISECONDS)
+        .observeOn(gitStatusScheduler)
         .map(pObj -> Optional.of(RepositoryImplHelper.status(git)))
         .startWithItem(Optional.of(RepositoryImplHelper.status(git))));
   }
@@ -1751,6 +1754,20 @@ public class RepositoryImpl implements IRepository
   @NotNull File _getIndexLockFile()
   {
     return new File(git.getRepository().getDirectory(), "index.lock");
+  }
+
+  /**
+   * Returns the scheduler that should be used for git status calls of the status observable
+   * <p>
+   * This method should be used as a private method and is only package-visible, because it is needed in tests.
+   *
+   * @return The Scheduler used for git status calls
+   */
+  @VisibleForTesting
+  @NotNull
+  Scheduler getGitStatusScheduler()
+  {
+    return gitStatusScheduler;
   }
 
   @Override
