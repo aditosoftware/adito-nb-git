@@ -6,6 +6,7 @@ import de.adito.git.api.data.IRepositoryDescription;
 import de.adito.git.impl.data.FileStatusImpl;
 import de.adito.git.impl.data.IDataFactory;
 import de.adito.git.impl.ssh.ISshProvider;
+import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -162,16 +163,12 @@ class RepositoryImplTest
   /**
    * Dummy that only adds the listener to the passed list if addListener is invoked. Does nothing else otherwise
    */
+  @AllArgsConstructor
   private static class FileSystemObserverDummy implements IFileSystemObserver
   {
 
     @NotNull
     private final List<IFileSystemChangeListener> changeListeners;
-
-    public FileSystemObserverDummy(@NotNull List<IFileSystemChangeListener> pChangeListeners)
-    {
-      changeListeners = pChangeListeners;
-    }
 
     @Override
     public void discard()
