@@ -6,7 +6,6 @@ import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.diff.IFileChangeType;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public class ObservableTreeUpdater<T> implements IDiscardable
     fileSystemUtil = pFileSystemUtil;
     doAfterJobs = pDoAfterJobs;
     doBeforeJobs = pDoBeforeJobs;
-    disposable = pChangeList.observeOn(Schedulers.computation()).subscribe(this::_changeHappened);
+    disposable = pChangeList.subscribe(this::_changeHappened);
   }
 
   /**

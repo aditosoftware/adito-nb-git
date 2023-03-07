@@ -1,11 +1,14 @@
 package de.adito.git.nbm.repo;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.adito.git.api.IRepository;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.guice.IRepositoryProviderFactory;
 import de.adito.git.nbm.guice.RepositoryProvider;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,9 +21,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -112,9 +113,13 @@ public class RepositoryCache
   @NotNull
   public Observable<List<IRepository>> repositories()
   {
+    Scheduler gitRepoScheduler = Schedulers.from(Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
+                                                                                       .setNameFormat("Git-repo-computation-%d")
+                                                                                       .build()));
     return providers.switchMap(pRepositoryProviders -> pRepositoryProviders.stream()
         .map(RepositoryProvider::getRepositoryImpl)
-        .collect(ObservableCollectors.combineOptionalsToList()));
+        .collect(ObservableCollectors.combineOptionalsToList())
+        .observeOn(gitRepoScheduler));
   }
 
   /**
