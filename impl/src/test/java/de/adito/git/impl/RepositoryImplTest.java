@@ -107,8 +107,8 @@ class RepositoryImplTest
     List<IFileSystemChangeListener> listeners = new ArrayList<>();
     List<String> threadNames = new ArrayList<>();
 
-    IFileSystemObserverProvider fileSystemObserverProvider = mock(IFileSystemObserverProvider.class);
     IFileSystemObserver fileSystemObserver = new FileSystemObserverDummy(listeners);
+    IFileSystemObserverProvider fileSystemObserverProvider = mock(IFileSystemObserverProvider.class);
     when(fileSystemObserverProvider.getFileSystemObserver(Mockito.any(), Mockito.any())).thenReturn(fileSystemObserver);
 
     AtomicReference<MockedStatic<RepositoryImplHelper>> statusThreadHelperMock = new AtomicReference<>();
@@ -122,7 +122,7 @@ class RepositoryImplTest
                                                      mock(IDataFactory.class), mock(IStandAloneDiffProvider.class), mock(IRepositoryDescription.class));
 
       // apply the static mock in the Git-status-computation thread, otherwise the test will not work
-      repository.gitStatusScheduler.scheduleDirect(() -> {
+      repository.getGitStatusScheduler().scheduleDirect(() -> {
         MockedStatic<RepositoryImplHelper> gitStatusThreadMock = mockStatic(RepositoryImplHelper.class);
         mockStatusCall(gitStatusThreadMock, threadNames);
         statusThreadHelperMock.set(gitStatusThreadMock);
