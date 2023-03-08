@@ -6,6 +6,12 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.8</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The plugin no longer determines the changed files in the GUI thread, this makes the designer smoother to use in case many files change or a project is opened</li>
+    <li>Improved reliability of the file event recognition</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.7</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
