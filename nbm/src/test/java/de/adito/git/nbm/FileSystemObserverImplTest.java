@@ -50,7 +50,7 @@ class FileSystemObserverImplTest
     {
       ProjectRepositoryDescription repositoryDescription = initFileSystemObserver(fileUtilMockedStatic, false);
 
-      fileUtilMockedStatic.verify(() -> FileUtil.addFileChangeListener(Mockito.any(), eq(new File(repositoryDescription.getPath(), ".git"))));
+      fileUtilMockedStatic.verify(() -> FileUtil.addRecursiveListener(Mockito.any(), eq(new File(repositoryDescription.getPath(), ".git")), Mockito.any(), Mockito.any()));
       fileUtilMockedStatic.verify(() -> FileUtil.addFileChangeListener(Mockito.any()));
     }
   }
@@ -65,7 +65,7 @@ class FileSystemObserverImplTest
     {
       ProjectRepositoryDescription repositoryDescription = initFileSystemObserver(fileUtilMockedStatic, true);
 
-      fileUtilMockedStatic.verify(() -> FileUtil.removeFileChangeListener(Mockito.any(), eq(new File(repositoryDescription.getPath(), ".git"))));
+      fileUtilMockedStatic.verify(() -> FileUtil.removeRecursiveListener(Mockito.any(), eq(new File(repositoryDescription.getPath(), ".git"))));
       fileUtilMockedStatic.verify(() -> FileUtil.removeFileChangeListener(Mockito.any()));
     }
   }
