@@ -22,7 +22,9 @@
     <module>impl</module>
     <module>nbm</module>
     <module>gui</module>
-    <module>IntegrationTests</module>
+    <!-- it does not make sense to always build IntegrationsTests, as it depends on the specific NbAditoInterfaceImpl version used, and the deployed version might not
+         be up-to-date   -->
+    <!-- <module>IntegrationTests</module>-->
   </modules>
 
   <dependencyManagement>
