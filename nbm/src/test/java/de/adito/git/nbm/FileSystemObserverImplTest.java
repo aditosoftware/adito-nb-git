@@ -5,6 +5,7 @@ import de.adito.git.nbm.repo.ProjectRepositoryDescription;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatcher;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.openide.filesystems.FileObject;
@@ -48,9 +49,9 @@ class FileSystemObserverImplTest
   {
     try (MockedStatic<FileUtil> fileUtilMockedStatic = mockStatic(FileUtil.class))
     {
-      ProjectRepositoryDescription repositoryDescription = initFileSystemObserver(fileUtilMockedStatic, false);
+      initFileSystemObserver(fileUtilMockedStatic, false);
 
-      fileUtilMockedStatic.verify(() -> FileUtil.addRecursiveListener(Mockito.any(), eq(new File(repositoryDescription.getPath(), ".git")), Mockito.any(), Mockito.any()));
+      fileUtilMockedStatic.verify(() -> FileUtil.addRecursiveListener(Mockito.any(), argThat(new IsGitFolderMatcher()), Mockito.any(), Mockito.any()));
       fileUtilMockedStatic.verify(() -> FileUtil.addFileChangeListener(Mockito.any()));
     }
   }
@@ -63,9 +64,9 @@ class FileSystemObserverImplTest
   {
     try (MockedStatic<FileUtil> fileUtilMockedStatic = mockStatic(FileUtil.class))
     {
-      ProjectRepositoryDescription repositoryDescription = initFileSystemObserver(fileUtilMockedStatic, true);
+      initFileSystemObserver(fileUtilMockedStatic, true);
 
-      fileUtilMockedStatic.verify(() -> FileUtil.removeRecursiveListener(Mockito.any(), eq(new File(repositoryDescription.getPath(), ".git"))));
+      fileUtilMockedStatic.verify(() -> FileUtil.removeRecursiveListener(Mockito.any(), argThat(new IsGitFolderMatcher())));
       fileUtilMockedStatic.verify(() -> FileUtil.removeFileChangeListener(Mockito.any()));
     }
   }
@@ -75,10 +76,8 @@ class FileSystemObserverImplTest
    *
    * @param fileUtilMockedStatic MockedStatic of the FileUtil class
    * @param isDiscard            true if the FileSystemObserverImpl should be discarded after creation, false otherwise
-   * @return ProjectRepositoryDescription that has the information about the project folder
    */
-  @NotNull
-  private static ProjectRepositoryDescription initFileSystemObserver(@NotNull MockedStatic<FileUtil> fileUtilMockedStatic, boolean isDiscard)
+  private static void initFileSystemObserver(@NotNull MockedStatic<FileUtil> fileUtilMockedStatic, boolean isDiscard)
   {
     IIgnoreFacade ignoreFacade = mock(IIgnoreFacade.class);
     when(ignoreFacade.isIgnored(Mockito.any())).thenReturn(false);
@@ -88,7 +87,19 @@ class FileSystemObserverImplTest
     FileSystemObserverImpl fileSystemObserver = new FileSystemObserverImpl(repositoryDescription, ignoreFacade);
     if (isDiscard)
       fileSystemObserver.discard();
-    return repositoryDescription;
+  }
+
+  /**
+   * Checks if the passed folder is the git folder
+   */
+  private static class IsGitFolderMatcher implements ArgumentMatcher<File>
+  {
+
+    @Override
+    public boolean matches(@NotNull File pArgument)
+    {
+      return pArgument.getName().equals(".git");
+    }
   }
 
 }
