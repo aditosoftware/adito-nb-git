@@ -36,7 +36,7 @@ class FileSystemObserverImplTest
   @BeforeAll
   static void beforeAll() throws IOException
   {
-    tempDirectory = Files.createTempDirectory("fileSystemObserverImplTest");
+    tempDirectory = Files.createTempDirectory("fileSystemObserverImplTest").toRealPath();
     FileObject projectDir = FileUtil.toFileObject(tempDirectory.toFile());
     repositoryDescription = new ProjectRepositoryDescription(projectDir);
   }
