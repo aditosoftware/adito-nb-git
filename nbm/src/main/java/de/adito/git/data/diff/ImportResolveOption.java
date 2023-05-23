@@ -35,9 +35,9 @@ public class ImportResolveOption implements ResolveOption
       pAcceptedDiff.processTextEvent(acceptedDelta.getStartTextIndex(EChangeSide.OLD), acceptedDelta.getEndTextIndex(EChangeSide.OLD) - acceptedDelta.getStartTextIndex(EChangeSide.OLD), combinedImports, EChangeSide.OLD, false, true);
       pOtherDiff.processTextEvent(otherDelta.getStartTextIndex(EChangeSide.OLD), otherDelta.getEndTextIndex(EChangeSide.OLD) - otherDelta.getStartTextIndex(EChangeSide.OLD), combinedImports, EChangeSide.OLD, false, true);
     }
-    catch (Exception pE)
+    catch (Throwable pE)
     {
-      IGitConstants.INJECTOR.getInstance(INotifyUtil.class).notify(pE, "Git: Error during conflict resolution", true);
+      IGitConstants.INJECTOR.getInstance(INotifyUtil.class).notify(pE.getMessage(), "Git: Error during conflict resolution", true);
     }
     return List.of();
   }
