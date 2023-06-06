@@ -17,7 +17,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.util.Optional;
 
 /**
@@ -35,6 +34,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   private final Disposable fileChangeDisposable;
   private final Disposable editorKitDisposable;
   private final ScrollbarMarkingsModel scrollbarMarkingsModel;
+  private final CaretVisibleFocusListener caretVisibleFocusListener;
   @NotNull
   private final BehaviorSubject<IDeltaTextChangeEvent> textChangeSubject = BehaviorSubject.create();
   private IFileDiff currentFileDiff;
@@ -48,21 +48,8 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     model = pModel;
     editorPane = new JEditorPane();
     editorPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-    editorPane.addFocusListener(new FocusListener()
-    {
-
-      @Override
-      public void focusGained(FocusEvent pFocusEvent)
-      {
-        editorPane.getCaret().setVisible(true);
-      }
-
-      @Override
-      public void focusLost(FocusEvent pFocusEvent)
-      {
-        editorPane.getCaret().setVisible(false);
-      }
-    });
+    caretVisibleFocusListener = new CaretVisibleFocusListener();
+    editorPane.addFocusListener(caretVisibleFocusListener);
     editorPane.setEditable(false);
     diffPaneContainer = new DiffPaneContainer(editorPane, pHeader, pHeaderAlignment);
     fileChangeDisposable = model.getFileChangesObservable()
@@ -169,6 +156,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   @Override
   public void discard()
   {
+    editorPane.removeFocusListener(caretVisibleFocusListener);
     diffPaneContainer.discard();
     fileChangeDisposable.dispose();
     editorKitDisposable.dispose();
@@ -204,5 +192,28 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
       editorPane.revalidate();
       editorPane.repaint();
     });
+  }
+
+  /**
+   * Set the caret visible or invisible, depending on if the editorPane currently has focus or not
+   */
+  private class CaretVisibleFocusListener implements java.awt.event.FocusListener
+  {
+
+    @Override
+    public void focusGained(FocusEvent pFocusEvent)
+    {
+      Optional.ofNullable(editorPane)
+          .map(JTextComponent::getCaret)
+          .ifPresent(pCaret -> pCaret.setVisible(true));
+    }
+
+    @Override
+    public void focusLost(FocusEvent pFocusEvent)
+    {
+      Optional.ofNullable(editorPane)
+          .map(JTextComponent::getCaret)
+          .ifPresent(pCaret -> pCaret.setVisible(false));
+    }
   }
 }
