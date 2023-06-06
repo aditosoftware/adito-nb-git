@@ -203,13 +203,17 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
     @Override
     public void focusGained(FocusEvent pFocusEvent)
     {
-      Optional.ofNullable(editorPane).map(JTextComponent::getCaret).ifPresent(pCaret -> pCaret.setVisible(true));
+      Optional.ofNullable(editorPane)
+          .map(JTextComponent::getCaret)
+          .ifPresent(pCaret -> pCaret.setVisible(true));
     }
 
     @Override
     public void focusLost(FocusEvent pFocusEvent)
     {
-      Optional.ofNullable(editorPane).map(JTextComponent::getCaret).ifPresent(pCaret -> pCaret.setVisible(false));
+      Optional.ofNullable(editorPane)
+          .map(JTextComponent::getCaret)
+          .ifPresent(pCaret -> pCaret.setVisible(false));
     }
   }
 }
