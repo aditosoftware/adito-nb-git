@@ -5,7 +5,7 @@ import com.google.inject.Inject;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommitFilter;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -30,22 +30,22 @@ public class WindowContentProviderImpl implements IWindowContentProvider
   }
 
   @Override
-  public ILookupComponent<File> createStatusWindowContent(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                          @NotNull Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
+  public ILookupComponent<File> createStatusWindowContent(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                          @NonNull Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
   {
     return windowContentFactory.createStatusWindowContent(pRepository, pPopupMenuEntries);
   }
 
   @Override
-  public JComponent createCommitHistoryWindowContent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
-                                                     @NotNull Runnable pLoadMoreCallback, @NotNull Consumer<ICommitFilter> pFilterChangedCallback,
-                                                     @NotNull ICommitFilter pStartFilter)
+  public JComponent createCommitHistoryWindowContent(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull TableModel pTableModel,
+                                                     @NonNull Runnable pLoadMoreCallback, @NonNull Consumer<ICommitFilter> pFilterChangedCallback,
+                                                     @NonNull ICommitFilter pStartFilter)
   {
     return windowContentFactory.createCommitHistoryWindowContent(pRepository, pTableModel, pLoadMoreCallback, pFilterChangedCallback, pStartFilter);
   }
 
   @Override
-  public JComponent createBranchWindowContent(@NotNull Observable<Optional<IRepository>> pRepository)
+  public JComponent createBranchWindowContent(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return windowContentFactory.createBranchWindowContent(pRepository);
   }

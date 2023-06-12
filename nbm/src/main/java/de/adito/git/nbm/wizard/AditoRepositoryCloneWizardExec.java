@@ -5,7 +5,7 @@ import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.progress.AsyncProgressFacadeImpl;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -25,7 +25,7 @@ class AditoRepositoryCloneWizardExec
   {
   }
 
-  static FileObject instantiate(@NotNull ProgressHandle pHandle, WizardDescriptor pWizardDescriptor)
+  static FileObject instantiate(@NonNull ProgressHandle pHandle, WizardDescriptor pWizardDescriptor)
   {
     final ICloneRepo cloneRepo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
     pHandle.start();

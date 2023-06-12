@@ -18,7 +18,7 @@ import de.adito.git.gui.dialogs.results.ICommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -111,8 +111,8 @@ class CommitAction extends AbstractTableAction
    * @param prefStoreInstanceKey Key for the stored commit message
    * @param pNotifyUtil          NotifyUtil for telling the user if the action succeeded or which problems occurred
    */
-  static void performCommit(@NotNull IRepository pRepo, @NotNull IAsyncProgressFacade pProgressFacade, @NotNull IPrefStore pPrefStore,
-                            @NotNull ICommitDialogResult<?, CommitDialogResult> dialogResult, @Nullable String prefStoreInstanceKey, @NotNull INotifyUtil pNotifyUtil)
+  static void performCommit(@NonNull IRepository pRepo, @NonNull IAsyncProgressFacade pProgressFacade, @NonNull IPrefStore pPrefStore,
+                            @NonNull ICommitDialogResult<?, CommitDialogResult> dialogResult, @Nullable String prefStoreInstanceKey, @NonNull INotifyUtil pNotifyUtil)
   {
     pProgressFacade.executeInBackground("Committing Changes", pProgress -> {
       List<File> files = dialogResult.getInformation().getSelectedFiles();
@@ -129,8 +129,8 @@ class CommitAction extends AbstractTableAction
     });
   }
 
-  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                       @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                       @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
         .orElse(Observable.just(Optional.empty())));

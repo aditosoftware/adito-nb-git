@@ -1,6 +1,6 @@
 package de.adito.git.gui.swing;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -81,7 +81,7 @@ public class SwingUtil
    * @param pRectangle the rectangle area to check
    * @return true if the monitor bounds cover the whole area of the given rectangle
    */
-  public static boolean isCompletelyVisible(@NotNull Rectangle pRectangle)
+  public static boolean isCompletelyVisible(@NonNull Rectangle pRectangle)
   {
     return isCompletelyVisible(pRectangle, getSortedMonitorBounds());
   }
@@ -92,7 +92,7 @@ public class SwingUtil
    * @param pRectangle the rectangle area to check
    * @return true if the monitor bounds cover the whole area of the given rectangle
    */
-  public static boolean isCompletelyVisible(@NotNull Rectangle pRectangle, @NotNull List<Rectangle> pSortedBounds)
+  public static boolean isCompletelyVisible(@NonNull Rectangle pRectangle, @NonNull List<Rectangle> pSortedBounds)
   {
     Rectangle previousRect = null;
     for (Rectangle windowBound : pSortedBounds)
@@ -140,7 +140,7 @@ public class SwingUtil
   /**
    * @return List of Rectangles representing the bounds of the different monitors available to this application, sorted from leftmost to rightmost monitor
    */
-  @NotNull
+  @NonNull
   public static List<Rectangle> getSortedMonitorBounds()
   {
     GraphicsDevice[] screenDevices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
@@ -160,7 +160,7 @@ public class SwingUtil
    * @param pRightRectangle coordinates of the right rectangle
    * @return true if the right edge of the left Rectangle and the left edge of the right rectangle overlap
    */
-  public static boolean isAdjacentRectangles(@NotNull Rectangle pLeftRectangle, @NotNull Rectangle pRightRectangle)
+  public static boolean isAdjacentRectangles(@NonNull Rectangle pLeftRectangle, @NonNull Rectangle pRightRectangle)
   {
     Line2D.Double leftRectRim = new Line2D.Double(new Point2D.Double(pLeftRectangle.x + pLeftRectangle.width, pLeftRectangle.y),
                                                   new Point2D.Double(pLeftRectangle.x + pLeftRectangle.width, pLeftRectangle.y + pLeftRectangle.height));

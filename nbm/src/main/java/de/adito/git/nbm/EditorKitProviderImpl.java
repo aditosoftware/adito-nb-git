@@ -1,8 +1,8 @@
 package de.adito.git.nbm;
 
 import de.adito.git.gui.IEditorKitProvider;
+import lombok.NonNull;
 import org.apache.tika.Tika;
-import org.jetbrains.annotations.NotNull;
 import org.openide.filesystems.*;
 import org.openide.loaders.DataObject;
 import org.openide.text.CloneableEditorSupport;
@@ -33,9 +33,9 @@ public class EditorKitProviderImpl implements IEditorKitProvider
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public EditorKit getEditorKit(@NotNull String pFileDirectory)
+  public EditorKit getEditorKit(@NonNull String pFileDirectory)
   {
     try
     {
@@ -79,9 +79,9 @@ public class EditorKitProviderImpl implements IEditorKitProvider
     return getEditorKitForContentType(mimeType);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public EditorKit getEditorKitForContentType(@NotNull String pContentType)
+  public EditorKit getEditorKitForContentType(@NonNull String pContentType)
   {
     return CloneableEditorSupport.getEditorKit(pContentType);
   }

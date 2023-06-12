@@ -1,6 +1,7 @@
 package de.adito.git.gui.guice.dummies;
 
 import de.adito.git.api.IKeyStore;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 
 /**
@@ -9,19 +10,19 @@ import org.jetbrains.annotations.*;
 public class SimpleKeyStore implements IKeyStore
 {
   @Override
-  public void save(@NotNull String pKey, @NotNull char[] pPassword, @Nullable String pDescription)
+  public void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription)
   {
 
   }
 
   @Override
-  public void delete(@NotNull String pKey)
+  public void delete(@NonNull String pKey)
   {
 
   }
 
   @Override
-  public char[] read(@NotNull String pKey)
+  public char[] read(@NonNull String pKey)
   {
     return new char[0];
   }

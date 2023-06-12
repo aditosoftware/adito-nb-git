@@ -4,10 +4,10 @@ import com.google.inject.Guice;
 import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.data.DataModule;
+import lombok.NonNull;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawTextComparator;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -403,7 +403,7 @@ public class MergeDataImplTest
    * @param pTheirVersion    "Theirs" version of the merge
    * @return IMergeData object containing the merge information of the passed strings
    */
-  @NotNull
+  @NonNull
   private IMergeData getMergeData(String pOriginalVersion, String pYourVersion, String pTheirVersion)
   {
     EditList yoursChangedLines = LineIndexDiffUtil.getChangedLines(pOriginalVersion, pYourVersion, RawTextComparator.DEFAULT);

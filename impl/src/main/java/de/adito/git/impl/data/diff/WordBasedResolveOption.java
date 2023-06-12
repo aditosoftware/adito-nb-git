@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
 public class WordBasedResolveOption implements ResolveOption
 {
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff, @NonNull EConflictSide pConflictSide, @NonNull ConflictPair pConflictPair)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = pAcceptedDiff.acceptDelta(acceptedDelta, true, true, false);
     deltaTextChangeEvents.forEach(pDeltaTextChangeEvent -> pOtherDiff.processTextEvent(pDeltaTextChangeEvent.getOffset(),
@@ -21,8 +21,8 @@ public class WordBasedResolveOption implements ResolveOption
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
-                                    @NotNull IFileDiffHeader pFileDiffHeader)
+  public boolean canResolveConflict(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherDelta, @NonNull EConflictSide pConflictSide,
+                                    @NonNull IFileDiffHeader pFileDiffHeader)
   {
     return pOtherDelta.getLinePartChanges()
         .stream().allMatch(pLinePartChangeDelta -> pChangeDelta.getLinePartChanges()

@@ -78,10 +78,10 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
   @Inject
   public CommitDialog(IFileSystemUtil pFileSystemUtil, IQuickSearchProvider pQuickSearchProvider, IActionProvider pActionProvider, LookupProvider pLookupProvider,
-                      IIconLoader pIconLoader, IPrefStore pPrefStore, @Assisted @NotNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                      @Assisted @NotNull Observable<Optional<IRepository>> pRepository, @Assisted @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                      @Assisted String pMessageTemplate, @Assisted @NotNull DelayedSupplier<List<IBeforeCommitAction>> pSelectedActionsSupplier,
-                      @Assisted @NotNull DelayedSupplier<List<File>> pDelayedSupplier, IEditorKitProvider pEditorKitProvider)
+                      IIconLoader pIconLoader, IPrefStore pPrefStore, @Assisted @NonNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                      @Assisted @NonNull Observable<Optional<IRepository>> pRepository, @Assisted @NonNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                      @Assisted String pMessageTemplate, @Assisted @NonNull DelayedSupplier<List<IBeforeCommitAction>> pSelectedActionsSupplier,
+                      @Assisted @NonNull DelayedSupplier<List<File>> pDelayedSupplier, IEditorKitProvider pEditorKitProvider)
   {
     actionProvider = pActionProvider;
     lookupProvider = pLookupProvider;
@@ -125,7 +125,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   /**
    * @return List with all IBeforeCommitActions that the user selected to be performed
    */
-  @NotNull
+  @NonNull
   private List<IBeforeCommitAction> getSelectedBeforeCommitActions()
   {
     return Arrays.stream(beforeCommitActionCheckBoxes)
@@ -176,9 +176,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * @param pFilesToCommitObs    Observable of the changed files
    * @param pProjectDir          root folder of the project
    */
-  private void _initCheckBoxTree(@NotNull IFileSystemUtil pFileSystemUtil, @NotNull IQuickSearchProvider pQuickSearchProvider,
-                                 @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @NotNull Observable<List<IFileChangeType>> pFilesToCommitObs,
-                                 @NotNull File pProjectDir)
+  private void _initCheckBoxTree(@NonNull IFileSystemUtil pFileSystemUtil, @NonNull IQuickSearchProvider pQuickSearchProvider,
+                                 @NonNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit, @NonNull Observable<List<IFileChangeType>> pFilesToCommitObs,
+                                 @NonNull File pProjectDir)
   {
     AtomicBoolean firstDrawingDone = new AtomicBoolean(false);
     
@@ -223,7 +223,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * @param selectedFiles the list with the selected file. Because call-by-reference the list has the changed elements which don't needed to be returned.
    */
   @VisibleForTesting
-  void _detectSelectedFiles(@NotNull List<File> selectedFiles)
+  void _detectSelectedFiles(@NonNull List<File> selectedFiles)
   {
     // clears the old selection
     selectedFiles.clear();
@@ -248,7 +248,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * @param pStatusTreeModel  StatusTreeModel that should have the specified files selected and it's root node expanded
    * @param pPreSelectedFiles list of files that should be preselected in the tree
    */
-  private void _markPreselectedAndExpand(@NotNull BaseObservingTreeModel<?> pStatusTreeModel, @NotNull List<File> pPreSelectedFiles)
+  private void _markPreselectedAndExpand(@NonNull BaseObservingTreeModel<?> pStatusTreeModel, @NonNull List<File> pPreSelectedFiles)
   {
     FileChangeTypeNode root = (FileChangeTypeNode) checkBoxTree.getModel().getRoot();
     if (root != null)
@@ -265,8 +265,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    * @param pCurrentNode                current Node
    * @param pCheckBoxTreeSelectionModel the checkbox selectionModel of the tree
    */
-  private void _setSelected(@NotNull List<File> pSelectedFiles, @Nullable TreePath pCurrentPath, @NotNull FileChangeTypeNode pCurrentNode,
-                            @NotNull CheckBoxTreeSelectionModel pCheckBoxTreeSelectionModel)
+  private void _setSelected(@NonNull List<File> pSelectedFiles, @Nullable TreePath pCurrentPath, @NonNull FileChangeTypeNode pCurrentNode,
+                            @NonNull CheckBoxTreeSelectionModel pCheckBoxTreeSelectionModel)
   {
     TreePath updatedPath = pCurrentPath == null ? new TreePath(pCurrentNode) : pCurrentPath.pathByAddingChild(pCurrentNode);
     FileChangeTypeNodeInfo nodeInfo = pCurrentNode.getInfo();
@@ -287,7 +287,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    *
    * @param pTree tree that should have the popupMenu attached
    */
-  private void _attachPopupMenu(@NotNull JTree pTree)
+  private void _attachPopupMenu(@NonNull JTree pTree)
   {
     observableTreeSelectionModel = new ObservableTreeSelectionModel(pTree.getSelectionModel());
     pTree.setSelectionModel(observableTreeSelectionModel);
@@ -310,7 +310,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    *
    * @param pDir project directory
    */
-  private void _initGui(@NotNull File pDir, @NotNull IConfig pConfig)
+  private void _initGui(@NonNull File pDir, @NonNull IConfig pConfig)
   {
     // EditorPane for the Commit message
     messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
@@ -354,8 +354,8 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    *
    * @return JPanel with content
    */
-  @NotNull
-  private JPanel _createDetailsPanel(@NotNull IConfig pConfig)
+  @NonNull
+  private JPanel _createDetailsPanel(@NonNull IConfig pConfig)
   {
     JPanel details = new JPanel();
     details.setPreferredSize(new Dimension(250, 0));
@@ -421,7 +421,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     return beforeCommitActionCheckBoxes;
   }
 
-  @NotNull
+  @NonNull
   private Observable<List<File>> _observeSelectedFiles()
   {
     return observableCache.calculateParallel("selectedFiles", () -> repository
@@ -470,14 +470,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
    */
   private static class _NonEmptyTextObservable extends AbstractListenerObservable<DocumentListener, Document, Boolean>
   {
-    _NonEmptyTextObservable(@NotNull Document pListenableValue)
+    _NonEmptyTextObservable(@NonNull Document pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected DocumentListener registerListener(@NotNull Document pDocument, @NotNull IFireable<Boolean> pIFireable)
+    protected DocumentListener registerListener(@NonNull Document pDocument, @NonNull IFireable<Boolean> pIFireable)
     {
       DocumentListener documentListener = new DocumentListener()
       {
@@ -504,7 +504,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     }
 
     @Override
-    protected void removeListener(@NotNull Document pDocument, @NotNull DocumentListener pDocumentListener)
+    protected void removeListener(@NonNull Document pDocument, @NonNull DocumentListener pDocumentListener)
     {
       pDocument.removeDocumentListener(pDocumentListener);
     }
@@ -516,14 +516,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private static class _CBTreeObservable extends AbstractListenerObservable<TreeSelectionListener, CheckBoxTree, List<File>>
   {
 
-    _CBTreeObservable(@NotNull CheckBoxTree pListenableValue)
+    _CBTreeObservable(@NonNull CheckBoxTree pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected TreeSelectionListener registerListener(@NotNull CheckBoxTree pCheckBoxTree, @NotNull IFireable<List<File>> pIFireable)
+    protected TreeSelectionListener registerListener(@NonNull CheckBoxTree pCheckBoxTree, @NonNull IFireable<List<File>> pIFireable)
     {
       TreeSelectionListener listener = e -> pIFireable.fireValueChanged(Arrays.stream(pCheckBoxTree.getCheckBoxTreeSelectionModel().getSelectionPaths())
                                                                             .map(TreePath::getLastPathComponent)
@@ -537,7 +537,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     }
 
     @Override
-    protected void removeListener(@NotNull CheckBoxTree pCheckBoxTree, @NotNull TreeSelectionListener pTreeSelectionListener)
+    protected void removeListener(@NonNull CheckBoxTree pCheckBoxTree, @NonNull TreeSelectionListener pTreeSelectionListener)
     {
       pCheckBoxTree.getCheckBoxTreeSelectionModel().removeTreeSelectionListener(pTreeSelectionListener);
     }
@@ -577,14 +577,14 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
 
     private final IBeforeCommitAction beforeCommitAction;
 
-    public BeforeCommitActionCheckBox(@NotNull IBeforeCommitAction pBeforeCommitAction)
+    public BeforeCommitActionCheckBox(@NonNull IBeforeCommitAction pBeforeCommitAction)
     {
       super(pBeforeCommitAction.getName());
       beforeCommitAction = pBeforeCommitAction;
       setToolTipText(beforeCommitAction.getTooltip());
     }
 
-    @NotNull
+    @NonNull
     public IBeforeCommitAction getBeforeCommitAction()
     {
       return beforeCommitAction;

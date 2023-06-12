@@ -4,7 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.nbm.observables.ActiveProjectObservable;
 import de.adito.git.nbm.repo.RepositoryCache;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.openide.loaders.DataObject;
@@ -44,7 +44,7 @@ public class RepositoryUtility
    * @param pDataObject A {@link DataObject} from NetBeans.
    * @return A repository in which the DataObject is.
    */
-  @NotNull
+  @NonNull
   public static Observable<Optional<IRepository>> find(DataObject pDataObject)
   {
     Project project = FileOwnerQuery.getOwner(pDataObject.getPrimaryFile());

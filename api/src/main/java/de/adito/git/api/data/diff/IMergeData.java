@@ -3,7 +3,7 @@ package de.adito.git.api.data.diff;
 
 import de.adito.git.impl.data.diff.ConflictPair;
 import de.adito.git.impl.data.diff.ResolveOptionsProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -30,8 +30,8 @@ public interface IMergeData
    * @param conflictSide CONFLICT_SIDE describing if the diff from base-side or branch-to-merge-side to fork-point is wanted
    * @return IFileDiff for the comparison branch-to-merge to fork-point commit (CONFLICT_SIDE.THEIRS) or base-side to fork-point commit (CONFLICT_SIDE.YOURS)
    */
-  @NotNull
-  IFileDiff getDiff(@NotNull EConflictSide conflictSide);
+  @NonNull
+  IFileDiff getDiff(@NonNull EConflictSide conflictSide);
 
   /**
    * accepts all changes from the given chunk and applies these changes to the other conflict side
@@ -39,7 +39,7 @@ public interface IMergeData
    * @param acceptedDelta the change that should be accepted and added to the fork-point commit
    * @param conflictSide  CONFLICT_SIDE from which the chunk originates
    */
-  void acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide);
+  void acceptDelta(@NonNull IChangeDelta acceptedDelta, @NonNull EConflictSide conflictSide);
 
   /**
    * @param pDelta        Delta whose ConflictPair should be calculated
@@ -48,7 +48,7 @@ public interface IMergeData
    * @return The ConflictPair that pDelta is part of, or null if pDelta is not part of a conflict
    */
   @Nullable
-  ConflictPair getConflictPair(@NotNull IChangeDelta pDelta, @NotNull IFileDiff pFileDiff, @NotNull EConflictSide pConflictSide);
+  ConflictPair getConflictPair(@NonNull IChangeDelta pDelta, @NonNull IFileDiff pFileDiff, @NonNull EConflictSide pConflictSide);
 
   /**
    * discards the specified changes by the given chunk
@@ -56,7 +56,7 @@ public interface IMergeData
    * @param discardedDelta the change that should be discarded
    * @param conflictSide   CONFLICT_SIDE from which the chunk originates
    */
-  void discardChange(@NotNull IChangeDelta discardedDelta, @NotNull EConflictSide conflictSide);
+  void discardChange(@NonNull IChangeDelta discardedDelta, @NonNull EConflictSide conflictSide);
 
   /**
    * resets all Data of this object to the initial state
@@ -75,6 +75,6 @@ public interface IMergeData
   /**
    * goes through the changes and marks all changes that conflict with a change from the other side as conflicting
    */
-  void markConflicting(@NotNull ResolveOptionsProvider pResolveOptionsProvider);
+  void markConflicting(@NonNull ResolveOptionsProvider pResolveOptionsProvider);
 
 }

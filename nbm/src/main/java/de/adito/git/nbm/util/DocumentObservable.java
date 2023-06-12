@@ -2,7 +2,7 @@ package de.adito.git.nbm.util;
 
 import de.adito.util.reactive.AbstractListenerObservable;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -22,7 +22,7 @@ public class DocumentObservable extends AbstractListenerObservable<DocumentListe
    *
    * @param pListenableValue the document inside the editor tab
    */
-  private DocumentObservable(@NotNull Document pListenableValue)
+  private DocumentObservable(@NonNull Document pListenableValue)
   {
     super(pListenableValue);
   }
@@ -33,9 +33,9 @@ public class DocumentObservable extends AbstractListenerObservable<DocumentListe
         .startWithItem(_getText(pDocument));
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected DocumentListener registerListener(@NotNull Document pDocument, @NotNull IFireable<String> pFireable)
+  protected DocumentListener registerListener(@NonNull Document pDocument, @NonNull IFireable<String> pFireable)
   {
     DocumentListener listener = new _Listener(pFireable, pDocument);
     pDocument.addDocumentListener(listener);
@@ -43,7 +43,7 @@ public class DocumentObservable extends AbstractListenerObservable<DocumentListe
   }
 
   @Override
-  protected void removeListener(@NotNull Document pDocument, @NotNull DocumentListener pDocumentListener)
+  protected void removeListener(@NonNull Document pDocument, @NonNull DocumentListener pDocumentListener)
   {
     pDocument.removeDocumentListener(pDocumentListener);
   }
@@ -68,7 +68,7 @@ public class DocumentObservable extends AbstractListenerObservable<DocumentListe
     private final IFireable<String> fireable;
     private final Document document;
 
-    _Listener(@NotNull IFireable<String> pFireable, @NotNull Document pDocument)
+    _Listener(@NonNull IFireable<String> pFireable, @NonNull Document pDocument)
     {
       fireable = pFireable;
       document = pDocument;

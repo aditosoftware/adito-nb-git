@@ -1,7 +1,7 @@
 package de.adito.git.api.data;
 
 import de.adito.git.api.exception.UnknownRemoteRepositoryException;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -75,7 +75,7 @@ public interface IConfig
    * @param pSSHKeyLocation location of the key for which to retrieve the passphrase, null if not known
    * @return passphrase registered with the sshKey
    */
-  @Nullable char[] getPassphrase(@NotNull String pSSHKeyLocation);
+  @Nullable char[] getPassphrase(@NonNull String pSSHKeyLocation);
 
   /**
    * returns the password registered to the current user/repository/remote combination if available, else null
@@ -93,12 +93,12 @@ public interface IConfig
    * @param pName          Name of the key, e.g. "fetch" or "filemode"
    * @return value of the key if that key exists and has a value, null otherwise
    */
-  @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName);
+  @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NonNull String pName);
 
   /**
    * @return List with the information about the remotes stored in the config
    */
-  @NotNull List<IRemote> getRemotes();
+  @NonNull List<IRemote> getRemotes();
 
   /**
    * checks the autocrlf setting of the repository/global config
@@ -112,12 +112,12 @@ public interface IConfig
   /**
    * @param pUserName new name for the user
    */
-  void setUserName(@NotNull String pUserName);
+  void setUserName(@NonNull String pUserName);
 
   /**
    * @param pUserEmail new email for the user
    */
-  void setUserEmail(@NotNull String pUserEmail);
+  void setUserEmail(@NonNull String pUserEmail);
 
   /**
    * save the location of the ssh key
@@ -133,7 +133,7 @@ public interface IConfig
    * @param pSshKeyLocation location of the ssh key, null means the default key (user_home/.ssh/id_rsa)
    * @param pRemoteName     name of the remote for which the ssh key should be stored
    */
-  void setSshKeyLocation(@Nullable String pSshKeyLocation, @NotNull String pRemoteName);
+  void setSshKeyLocation(@Nullable String pSshKeyLocation, @NonNull String pRemoteName);
 
   /**
    * save the passphrase for the given remote URL in the keyring
@@ -160,7 +160,7 @@ public interface IConfig
    * @param pValue         The value that the key should be set to
    * @return true if the set operation was successful, false otherwise
    */
-  boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName, @NotNull String pValue);
+  boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NonNull String pName, @NonNull String pValue);
 
   /**
    * get the name of either the remote with the passes url or the remote that is connected to the current branch (if any is)
@@ -186,14 +186,14 @@ public interface IConfig
    * @param pRemoteBranchname name of the remote branch
    * @param pRemoteName       name of the remote that the remote branch is on
    */
-  void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName);
+  void establishTrackingRelationship(@NonNull String pBranchname, @NonNull String pRemoteBranchname, @NonNull String pRemoteName);
 
   /**
    * save the remote
    *
    * @param pRemote remote to be saved
    */
-  void saveRemote(@NotNull IRemote pRemote);
+  void saveRemote(@NonNull IRemote pRemote);
 
   /**
    * add a new remote
@@ -202,7 +202,7 @@ public interface IConfig
    * @param pRemoteUrl  url of the remote
    * @return true if the new remote could be written to the config file, false otherwise
    */
-  boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl);
+  boolean addRemote(@NonNull String pRemoteName, @NonNull String pRemoteUrl);
 
   /**
    * Remove an existing remote
@@ -210,6 +210,6 @@ public interface IConfig
    * @param pRemote Remote that should be removed
    * @return true if the remote was removed, false if an error occurred
    */
-  boolean removeRemote(@NotNull IRemote pRemote);
+  boolean removeRemote(@NonNull IRemote pRemote);
 
 }

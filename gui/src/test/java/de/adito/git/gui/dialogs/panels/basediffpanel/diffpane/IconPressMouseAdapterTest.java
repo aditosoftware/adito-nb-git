@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.gui.Constants;
 import de.adito.git.gui.icon.SwingIconLoaderImpl;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -157,7 +157,7 @@ class IconPressMouseAdapterTest
    * @param pMouseButton       Which mouse button should be returned by the mouseEvent. Use MouseEvent.BUTTON1 and the like
    * @param pMouseXValue       x value for position of the mouseEvent
    */
-  private static void prepareTest(@NotNull AtomicBoolean pOnAccept, @NotNull AtomicBoolean pOnDiscard, @NotNull List<IconInfo> pIconInfos,
+  private static void prepareTest(@NonNull AtomicBoolean pOnAccept, @NonNull AtomicBoolean pOnDiscard, @NonNull List<IconInfo> pIconInfos,
                                   boolean pIsWestOrientation, int pMouseButton, int pMouseXValue)
   {
     Consumer<IChangeDelta> doOnAccept = pDelta -> pOnAccept.set(true);

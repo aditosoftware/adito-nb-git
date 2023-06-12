@@ -8,7 +8,7 @@ import de.adito.git.gui.guice.IRepositoryFactory;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.filesystems.FileObject;
 
@@ -46,7 +46,7 @@ public class RepositoryProvider implements IRepositoryProvider
     return git.distinctUntilChanged();
   }
 
-  @NotNull
+  @NonNull
   public FileObject getRepositoryFolder()
   {
     return repositoryFolder;

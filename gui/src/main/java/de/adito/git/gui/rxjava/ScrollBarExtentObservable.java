@@ -1,7 +1,7 @@
 package de.adito.git.gui.rxjava;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.AdjustmentListener;
@@ -20,9 +20,9 @@ public class ScrollBarExtentObservable extends AbstractListenerObservable<Adjust
     super(pTarget);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected AdjustmentListener registerListener(@NotNull JScrollPane pTarget, @NotNull AbstractListenerObservable.IFireable<Integer> pFireable)
+  protected AdjustmentListener registerListener(@NonNull JScrollPane pTarget, @NonNull AbstractListenerObservable.IFireable<Integer> pFireable)
   {
     AdjustmentListener adjustmentListener = e -> {
       if (cachedMaxValue != pTarget.getVerticalScrollBar().getMaximum())
@@ -36,7 +36,7 @@ public class ScrollBarExtentObservable extends AbstractListenerObservable<Adjust
   }
 
   @Override
-  protected void removeListener(@NotNull JScrollPane pListenableValue, @NotNull AdjustmentListener pAdjustmentListener)
+  protected void removeListener(@NonNull JScrollPane pListenableValue, @NonNull AdjustmentListener pAdjustmentListener)
   {
     pListenableValue.getVerticalScrollBar().removeAdjustmentListener(pAdjustmentListener);
   }

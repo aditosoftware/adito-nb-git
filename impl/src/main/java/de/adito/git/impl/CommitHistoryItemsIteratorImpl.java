@@ -5,7 +5,7 @@ import de.adito.git.api.dag.IDAGFilterIterator;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.ITag;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -34,8 +34,8 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pAllTags          List of all ITags in the repository
    * @param pHead             Commit that HEAD is currently pointing to
    */
-  public CommitHistoryItemsIteratorImpl(@NotNull IDAGFilterIterator<ICommit> pCommitFilterIter, @NotNull List<IBranch> pAllBranches, @NotNull List<ITag> pAllTags,
-                                        @NotNull ICommit pHead)
+  public CommitHistoryItemsIteratorImpl(@NonNull IDAGFilterIterator<ICommit> pCommitFilterIter, @NonNull List<IBranch> pAllBranches, @NonNull List<ITag> pAllTags,
+                                        @NonNull ICommit pHead)
   {
     commitFilterIter = pCommitFilterIter;
     allBranches = pAllBranches;
@@ -61,7 +61,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     return false;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public CommitHistoryTreeListItem next()
   {
@@ -81,7 +81,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     return commitHistoryTreeListItem;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public List<CommitHistoryTreeListItem> tryReadEntries(int pNumEntries)
   {
@@ -93,7 +93,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
     return entries;
   }
 
-  @NotNull
+  @NonNull
   private CommitHistoryTreeListItem _createAncestryLines(ICommit pBufferdCommit)
   {
     // signifies if any of the already processed AncestryLines had the current commit as parent/next commit
@@ -169,8 +169,8 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pParentLines list of lines that start at the current commit
    * @return the advanced line
    */
-  @NotNull
-  private AncestryLine _getBranchHeads(@NotNull List<AncestryLine> pNewLines, @NotNull List<AncestryLine> pParentLines)
+  @NonNull
+  private AncestryLine _getBranchHeads(@NonNull List<AncestryLine> pNewLines, @NonNull List<AncestryLine> pParentLines)
   {
     if (currentCommit.getParents().isEmpty())
     {
@@ -196,8 +196,8 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pParentLines   List of AncestryLines that "spawned" from the knot of the current commit
    * @param pAdvancedLine  the AncestryLine that lead to the knot of the current commit
    */
-  private void _checkForStillborn(@NotNull ICommit pBufferdCommit, @NotNull List<AncestryLine> pNewLines, @NotNull List<AncestryLine> pParentLines,
-                                  @NotNull AncestryLine pAdvancedLine)
+  private void _checkForStillborn(@NonNull ICommit pBufferdCommit, @NonNull List<AncestryLine> pNewLines, @NonNull List<AncestryLine> pParentLines,
+                                  @NonNull AncestryLine pAdvancedLine)
   {
     // the first parentLine continues the AncestryLine and is therefore by default not stillborn -> start at index 1
     for (int parentLIndex = 1; parentLIndex < pParentLines.size(); parentLIndex++)
@@ -226,7 +226,7 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pNewLines     the current lines, in case the advanced line is not in the ancestryLines of the latestHistoryItem (aka a branchhead with > 1 parents)
    * @return index at which the line for the stillborn intersects the bootom of the table cell
    */
-  private double _getStillbornMeetingOffset(int pIndex, @NotNull AncestryLine pAdvancedLine, @NotNull List<AncestryLine> pNewLines)
+  private double _getStillbornMeetingOffset(int pIndex, @NonNull AncestryLine pAdvancedLine, @NonNull List<AncestryLine> pNewLines)
   {
     List<AncestryLine> linesToAnalyze;
     if (latestHistoryItem.getAncestryLines().contains(pAdvancedLine))
@@ -244,8 +244,8 @@ public class CommitHistoryItemsIteratorImpl implements ICommitHistoryItemsIterat
    * @param pParentLineColor Color that the AncestryLine leading to the current commit had
    * @return AncestryLines that spawn from the current commit
    */
-  @NotNull
-  private List<AncestryLine> _getParentLines(@NotNull Color pParentLineColor)
+  @NonNull
+  private List<AncestryLine> _getParentLines(@NonNull Color pParentLineColor)
   {
     ArrayList<AncestryLine> parentLines = new ArrayList<>();
     if (!currentCommit.getParents().isEmpty())

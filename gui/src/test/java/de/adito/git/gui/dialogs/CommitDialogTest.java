@@ -7,7 +7,7 @@ import de.adito.git.gui.DelayedSupplier;
 import de.adito.git.gui.tree.nodes.*;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -62,8 +62,8 @@ class CommitDialogTest
    * @param nodeFile the file of the FileChangeTypeNodeInfo
    * @return the created tree path
    */
-  @NotNull
-  private static TreePath createTreePath(@NotNull File nodeFile)
+  @NonNull
+  private static TreePath createTreePath(@NonNull File nodeFile)
   {
     IFileChangeType iFileChangeType = new FileChangeTypeImpl(nodeFile, nodeFile, EChangeType.CHANGED);
     return new TreePath(new FileChangeTypeNode(new FileChangeTypeNodeInfo("not relevant", new File("C:/should/not/be/used"), List.of(iFileChangeType))));

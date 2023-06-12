@@ -3,7 +3,7 @@ package de.adito.git.impl.data.diff;
 import de.adito.git.api.data.diff.EChangeStatus;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IChangeStatus;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.Objects;
 
@@ -17,14 +17,14 @@ public class ChangeStatusImpl implements IChangeStatus
   private final EChangeType changeType;
   private final EConflictType conflictType;
 
-  public ChangeStatusImpl(@NotNull EChangeStatus pChangeStatus, @NotNull EChangeType pChangeType, @NotNull EConflictType pConflictType)
+  public ChangeStatusImpl(@NonNull EChangeStatus pChangeStatus, @NonNull EChangeType pChangeType, @NonNull EConflictType pConflictType)
   {
     changeStatus = pChangeStatus;
     changeType = pChangeType;
     conflictType = pConflictType;
   }
 
-  @NotNull
+  @NonNull
   public EChangeType getChangeType()
   {
     return changeType;
@@ -36,7 +36,7 @@ public class ChangeStatusImpl implements IChangeStatus
     return conflictType;
   }
 
-  @NotNull
+  @NonNull
   public EChangeStatus getChangeStatus()
   {
     return changeStatus;

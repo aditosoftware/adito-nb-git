@@ -1,7 +1,7 @@
 package de.adito.git.impl.observables;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
@@ -15,14 +15,14 @@ import java.beans.PropertyChangeListener;
 public class DocumentChangeObservable extends AbstractListenerObservable<PropertyChangeListener, JTextComponent, Document>
 {
 
-  public DocumentChangeObservable(@NotNull JTextComponent pListenableValue)
+  public DocumentChangeObservable(@NonNull JTextComponent pListenableValue)
   {
     super(pListenableValue);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected PropertyChangeListener registerListener(@NotNull JTextComponent pTextComponent, @NotNull IFireable<Document> pIFireable)
+  protected PropertyChangeListener registerListener(@NonNull JTextComponent pTextComponent, @NonNull IFireable<Document> pIFireable)
   {
     PropertyChangeListener listener = evt -> {
       if ("document".equals(evt.getPropertyName()))
@@ -33,7 +33,7 @@ public class DocumentChangeObservable extends AbstractListenerObservable<Propert
   }
 
   @Override
-  protected void removeListener(@NotNull JTextComponent pTextComponent, @NotNull PropertyChangeListener pPropertyChangeListener)
+  protected void removeListener(@NonNull JTextComponent pTextComponent, @NonNull PropertyChangeListener pPropertyChangeListener)
   {
     pTextComponent.removePropertyChangeListener(pPropertyChangeListener);
   }

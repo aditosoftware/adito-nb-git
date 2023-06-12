@@ -7,8 +7,8 @@ import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileDiff;
 import de.adito.git.impl.data.diff.*;
+import lombok.NonNull;
 import org.eclipse.jgit.diff.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -28,13 +28,13 @@ public class StandAloneDiffProviderImpl implements IStandAloneDiffProvider
   }
 
   @Override
-  public IFileDiff diffOffline(@NotNull String pVersion1, @NotNull String pVersion2)
+  public IFileDiff diffOffline(@NonNull String pVersion1, @NonNull String pVersion2)
   {
     return diffOffline(pVersion1.getBytes(), pVersion2.getBytes());
   }
 
   @Override
-  public IFileDiff diffOffline(@NotNull byte[] pVersion1, @NotNull byte[] pVersion2)
+  public IFileDiff diffOffline(@NonNull byte[] pVersion1, @NonNull byte[] pVersion2)
   {
     RawText fileContents = new RawText(pVersion1);
     RawText currentFileContents = new RawText(pVersion2);
@@ -55,8 +55,8 @@ public class StandAloneDiffProviderImpl implements IStandAloneDiffProvider
    * @param pVersion2 String to be compared to pVersion1
    * @return EditList with changed lines between version 1 and 2
    */
-  @NotNull
-  public static EditList getChangedLines(@NotNull String pVersion1, @NotNull String pVersion2)
+  @NonNull
+  public static EditList getChangedLines(@NonNull String pVersion1, @NonNull String pVersion2)
   {
     return getChangedLines(pVersion1.getBytes(), pVersion2.getBytes());
   }
@@ -68,8 +68,8 @@ public class StandAloneDiffProviderImpl implements IStandAloneDiffProvider
    * @param pVersion2 String to be compared to pVersion1
    * @return EditList with changed lines between version 1 and 2
    */
-  @NotNull
-  public static EditList getChangedLines(@NotNull byte[] pVersion1, @NotNull byte[] pVersion2)
+  @NonNull
+  public static EditList getChangedLines(@NonNull byte[] pVersion1, @NonNull byte[] pVersion2)
   {
     RawText fileContents = new RawText(pVersion1);
     RawText currentFileContents = new RawText(pVersion2);

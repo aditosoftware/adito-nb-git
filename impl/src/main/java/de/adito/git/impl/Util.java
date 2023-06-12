@@ -1,8 +1,8 @@
 package de.adito.git.impl;
 
 import de.adito.git.api.IFileSystemUtil;
+import lombok.NonNull;
 import org.eclipse.jgit.api.Git;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -25,7 +25,7 @@ public class Util
    * @param pFile The directory to check
    * @return true - The directory is empty. false - the directory isn't empty, or pFile is not a directory
    */
-  static boolean isDirEmpty(@NotNull File pFile)
+  static boolean isDirEmpty(@NonNull File pFile)
   {
     if (pFile.exists())
     {
@@ -44,7 +44,7 @@ public class Util
    * @param pGit  the git for checking the base dir
    * @return gives the dir from file
    */
-  static String getRelativePath(@NotNull File pFile, @NotNull Git pGit)
+  static String getRelativePath(@NonNull File pFile, @NonNull Git pGit)
   {
     String base = pGit.getRepository().getDirectory().getParent();
     String path = pFile.getAbsolutePath();
@@ -61,8 +61,8 @@ public class Util
    * @throws MissingResourceException if no object for the given key can be found, or no bundle can be found in the package determined by the class
    * @throws ClassCastException       if the object found for the given key is not a string
    */
-  @NotNull
-  public static String getResource(@NotNull Class<?> pClass, @NotNull String pKey)
+  @NonNull
+  public static String getResource(@NonNull Class<?> pClass, @NonNull String pKey)
   {
     return getResource(pClass, "Bundle", pKey);
   }
@@ -78,8 +78,8 @@ public class Util
    * @throws MissingResourceException if no object for the given key can be found, or if no bundle can be found for the name/package
    * @throws ClassCastException       if the object found for the given key is not a string
    */
-  @NotNull
-  public static String getResource(@NotNull Class<?> pClass, @NotNull String pBundleName, @NotNull String pKey)
+  @NonNull
+  public static String getResource(@NonNull Class<?> pClass, @NonNull String pBundleName, @NonNull String pKey)
   {
     return ResourceBundle.getBundle(pClass.getPackageName() + "." + pBundleName).getString(pKey);
   }
@@ -91,8 +91,8 @@ public class Util
    * @param pFileSystemUtil IFileSystemUtil used to determine the encoding
    * @return the most likely encoding used to represent the byte array as String
    */
-  @NotNull
-  public static Charset getEncoding(@NotNull byte[] pContents, @NotNull IFileSystemUtil pFileSystemUtil)
+  @NonNull
+  public static Charset getEncoding(@NonNull byte[] pContents, @NonNull IFileSystemUtil pFileSystemUtil)
   {
     return pFileSystemUtil.getEncoding(pContents);
   }

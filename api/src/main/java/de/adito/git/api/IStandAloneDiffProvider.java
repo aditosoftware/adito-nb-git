@@ -1,7 +1,7 @@
 package de.adito.git.api;
 
 import de.adito.git.api.data.diff.IFileDiff;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 /**
  * Defines methods for a service that offers the possibility of displaying/calculating the difference between two string or two byte arrays
@@ -18,7 +18,7 @@ public interface IStandAloneDiffProvider
    * @param pVersion2 String to be compared to pVersion1
    * @return List of IFileChangeChunks containing the changed lines between the two versions
    */
-  IFileDiff diffOffline(@NotNull String pVersion1, @NotNull String pVersion2);
+  IFileDiff diffOffline(@NonNull String pVersion1, @NonNull String pVersion2);
 
   /**
    * Diffs two byte arrays and finds the differences
@@ -27,6 +27,6 @@ public interface IStandAloneDiffProvider
    * @param pVersion2 byte array to be compared to pVersion1
    * @return List of IFileChangeChunks containing the changed lines between the two versions
    */
-  IFileDiff diffOffline(@NotNull byte[] pVersion1, @NotNull byte[] pVersion2);
+  IFileDiff diffOffline(@NonNull byte[] pVersion1, @NonNull byte[] pVersion2);
 
 }

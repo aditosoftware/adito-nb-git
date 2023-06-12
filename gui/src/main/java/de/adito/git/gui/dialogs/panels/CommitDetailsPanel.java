@@ -20,7 +20,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -86,15 +86,15 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     _initDetailPanel();
   }
 
-  @NotNull
+  @NonNull
   public JComponent getPanel()
   {
     return detailPanelPane;
   }
 
-  @NotNull
-  private List<IDiffInfo> _getChangedFiles(@NotNull File pProjectDirectory, @NotNull List<ICommit> pSelectedCommits, @NotNull IRepository currentRepo,
-                                           @NotNull Boolean pShowAll) throws AditoGitException
+  @NonNull
+  private List<IDiffInfo> _getChangedFiles(@NonNull File pProjectDirectory, @NonNull List<ICommit> pSelectedCommits, @NonNull IRepository currentRepo,
+                                           @NonNull Boolean pShowAll) throws AditoGitException
   {
     Set<IFileChangeType> changedFilesSet = new HashSet<>();
     for (ICommit selectedCommit : pSelectedCommits.subList(0, pSelectedCommits.size() - 1))
@@ -131,7 +131,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
    * @param pObservableTreeSelectionModel Model of the observable tree
    * @param pChangedFilesObs              Observable with the changed files of the selected commits
    */
-  private void _initStatusTreeActions(@NotNull ObservableTreeSelectionModel pObservableTreeSelectionModel, @NotNull Observable<List<IDiffInfo>> pChangedFilesObs)
+  private void _initStatusTreeActions(@NonNull ObservableTreeSelectionModel pObservableTreeSelectionModel, @NonNull Observable<List<IDiffInfo>> pChangedFilesObs)
   {
     Observable<Optional<String>> selectedFile = Observable
         .combineLatest(pObservableTreeSelectionModel.getSelectedPaths(), pChangedFilesObs, (pSelected, pStatus) -> {
@@ -208,7 +208,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
    * @param pFile      File
    * @return true if pFile is child of or equal to pDirectory
    */
-  private boolean _isChildOf(@NotNull File pDirectory, @NotNull File pFile)
+  private boolean _isChildOf(@NonNull File pDirectory, @NonNull File pFile)
   {
     Path directoryPath = pDirectory.toPath();
     Path parent = pFile.toPath();
@@ -221,7 +221,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     return false;
   }
 
-  @NotNull
+  @NonNull
   private Observable<List<IDiffInfo>> _observeChangedFiles()
   {
     return observableCache.calculateParallel("changedFiles", () -> Observable
@@ -238,7 +238,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
         .startWithItem(List.of()));
   }
 
-  @NotNull
+  @NonNull
   private Observable<Boolean> _observeShowAllCB()
   {
     return observableCache.calculateParallel("showAllCB", () -> Observable.create(new _CheckboxObservable(showAllCheckbox))
@@ -264,9 +264,9 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   public interface ICommitDetailsPanelFactory
   {
 
-    CommitDetailsPanel createCommitDetailsPanel(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
-                                                @NotNull ICommitFilter pCommitFilter);
+    CommitDetailsPanel createCommitDetailsPanel(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                                @NonNull ICommitFilter pCommitFilter);
 
   }
 
@@ -277,7 +277,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   {
     private final Disposable disposable;
 
-    _SelectedCommitsPanel(@NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+    _SelectedCommitsPanel(@NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
     {
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
       setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -345,8 +345,8 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
         disposable.dispose();
     }
 
-    @NotNull
-    private static JComponent _createSingleDetailsComponent(@NotNull ICommit pCommit)
+    @NonNull
+    private static JComponent _createSingleDetailsComponent(@NonNull ICommit pCommit)
     {
       String shortMessage = pCommit.getShortMessage();
       String message = pCommit.getMessage();
@@ -388,7 +388,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
       return panel;
     }
 
-    @NotNull
+    @NonNull
     private static JTextArea _createDetailsTextArea()
     {
       JTextArea shortMessageComp = new JTextArea();
@@ -403,14 +403,14 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
   private static class _CheckboxObservable extends AbstractListenerObservable<ItemListener, JCheckBox, Boolean>
   {
 
-    _CheckboxObservable(@NotNull JCheckBox pListenableValue)
+    _CheckboxObservable(@NonNull JCheckBox pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected ItemListener registerListener(@NotNull JCheckBox pJCheckBox, @NotNull IFireable<Boolean> pIFireable)
+    protected ItemListener registerListener(@NonNull JCheckBox pJCheckBox, @NonNull IFireable<Boolean> pIFireable)
     {
       ItemListener listener = e -> pIFireable.fireValueChanged(pJCheckBox.isSelected());
       pJCheckBox.addItemListener(listener);
@@ -418,7 +418,7 @@ public class CommitDetailsPanel extends ObservableTreePanel implements IDiscarda
     }
 
     @Override
-    protected void removeListener(@NotNull JCheckBox pJCheckBox, @NotNull ItemListener pItemListener)
+    protected void removeListener(@NonNull JCheckBox pJCheckBox, @NonNull ItemListener pItemListener)
     {
       pJCheckBox.removeItemListener(pItemListener);
     }

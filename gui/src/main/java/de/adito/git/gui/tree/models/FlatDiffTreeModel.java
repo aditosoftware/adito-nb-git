@@ -8,7 +8,7 @@ import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel<IDiffInfo> impleme
 {
 
 
-  public FlatDiffTreeModel(@NotNull File pProjectDirectory)
+  public FlatDiffTreeModel(@NonNull File pProjectDirectory)
   {
     super(pProjectDirectory);
   }
@@ -34,7 +34,7 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel<IDiffInfo> impleme
   }
 
   @Override
-  void _treeChanged(@NotNull List<IDiffInfo> pChangeList, Runnable... pDoAfterJobs)
+  void _treeChanged(@NonNull List<IDiffInfo> pChangeList, Runnable... pDoAfterJobs)
   {
     try
     {
@@ -50,8 +50,8 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel<IDiffInfo> impleme
     }
   }
 
-  @NotNull
-  private List<TreeUpdate> _calculateTree(@NotNull List<IDiffInfo> pDiffInfos)
+  @NonNull
+  private List<TreeUpdate> _calculateTree(@NonNull List<IDiffInfo> pDiffInfos)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();
@@ -77,8 +77,8 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel<IDiffInfo> impleme
     return treeUpdates;
   }
 
-  @NotNull
-  private List<TreeUpdate> _handleSingleCommit(@NotNull List<IDiffInfo> pDiffInfos, @NotNull FileChangeTypeNode pRootNode)
+  @NonNull
+  private List<TreeUpdate> _handleSingleCommit(@NonNull List<IDiffInfo> pDiffInfos, @NonNull FileChangeTypeNode pRootNode)
   {
     List<IFileChangeType> changeTypes = pDiffInfos.get(0).getChangedFiles();
     pRootNode.getInfo().setMembers(changeTypes);
@@ -91,8 +91,8 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel<IDiffInfo> impleme
     return new ArrayList<>(_updateTree(_calculateFlatMap(changeTypes), (FileChangeTypeNode) root));
   }
 
-  @NotNull
-  private List<TreeUpdate> _handleCommitNodes(@NotNull FileChangeTypeNode pRootNode, @NotNull IDiffInfo diffInfo)
+  @NonNull
+  private List<TreeUpdate> _handleCommitNodes(@NonNull FileChangeTypeNode pRootNode, @NonNull IDiffInfo diffInfo)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateFlatMap(diffInfo.getChangedFiles());
@@ -112,8 +112,8 @@ public class FlatDiffTreeModel extends BaseObservingTreeModel<IDiffInfo> impleme
     return treeUpdates;
   }
 
-  @NotNull
-  private HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateFlatMap(@NotNull List<IFileChangeType> pChangedFiles)
+  @NonNull
+  private HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateFlatMap(@NonNull List<IFileChangeType> pChangedFiles)
   {
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> groups = new HashMap<>();
     for (IFileChangeType changeType : pChangedFiles)

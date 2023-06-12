@@ -3,7 +3,7 @@ package de.adito.git.impl.data;
 import de.adito.git.api.data.diff.EChangeSide;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileChangeType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.io.File;
 import java.util.Objects;
@@ -21,7 +21,7 @@ public class FileChangeTypeImpl implements IFileChangeType
    * @param pFile        File for which the statusChange is recorded, path of the file is from top-level directory of the repo to the file itself
    * @param pEChangeType Type of change that happened to the file
    */
-  public FileChangeTypeImpl(@NotNull File pFile, @NotNull File pFileBefore, @NotNull EChangeType pEChangeType)
+  public FileChangeTypeImpl(@NonNull File pFile, @NonNull File pFileBefore, @NonNull EChangeType pEChangeType)
   {
     file = pFile;
     fileBefore = pFileBefore;
@@ -31,7 +31,7 @@ public class FileChangeTypeImpl implements IFileChangeType
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public File getFile()
   {
@@ -42,7 +42,7 @@ public class FileChangeTypeImpl implements IFileChangeType
   }
 
   @Override
-  public @NotNull File getFile(@NotNull EChangeSide pChangeSide)
+  public @NonNull File getFile(@NonNull EChangeSide pChangeSide)
   {
     return pChangeSide == EChangeSide.NEW ? file : fileBefore;
   }
@@ -50,7 +50,7 @@ public class FileChangeTypeImpl implements IFileChangeType
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public EChangeType getChangeType()
   {

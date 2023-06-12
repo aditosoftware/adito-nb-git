@@ -4,7 +4,7 @@ import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommitFilter;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.annotation.Nullable;
 import javax.swing.table.TableModel;
@@ -19,11 +19,11 @@ import java.util.function.Consumer;
 interface ITopComponentFactory
 {
 
-  CommitHistoryTopComponent createCommitHistoryTopComponent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
-                                                            @NotNull @Assisted Runnable pLoadMoreCallback,
-                                                            @NotNull @Assisted Consumer<ICommitFilter> pRefreshContentCallBack,
-                                                            @NotNull ICommitFilter pStartFilter, @Nullable String pDisplayableContext);
+  CommitHistoryTopComponent createCommitHistoryTopComponent(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull TableModel pTableModel,
+                                                            @NonNull @Assisted Runnable pLoadMoreCallback,
+                                                            @NonNull @Assisted Consumer<ICommitFilter> pRefreshContentCallBack,
+                                                            @NonNull ICommitFilter pStartFilter, @Nullable String pDisplayableContext);
 
-  StatusWindowTopComponent createStatusWindowTopComponent(@NotNull Observable<Optional<IRepository>> pRepository);
+  StatusWindowTopComponent createStatusWindowTopComponent(@NonNull Observable<Optional<IRepository>> pRepository);
 
 }

@@ -2,7 +2,7 @@ package de.adito.git.api;
 
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.Image;
@@ -24,7 +24,7 @@ public interface IFileSystemUtil
    * @param pAbsolutePath absolute path of the file to be opened in an Editor
    * @throws AditoGitException if the fileObject corresponding to the passed parameter can not be found
    */
-  void openFile(@NotNull String pAbsolutePath) throws AditoGitException;
+  void openFile(@NonNull String pAbsolutePath) throws AditoGitException;
 
   /**
    * tells netbeans to open the specified file in an editor
@@ -32,14 +32,14 @@ public interface IFileSystemUtil
    * @param pFile File to be opened in an Editor
    * @throws AditoGitException if the fileObject corresponding to the passed parameter can not be found
    */
-  void openFile(@NotNull File pFile) throws AditoGitException;
+  void openFile(@NonNull File pFile) throws AditoGitException;
 
   /**
    * Pre-loads and stores the icons for the given files in a cache
    *
    * @param pFiles List of files for which to pre-load the icons
    */
-  void preLoadIcons(@NotNull List<IFileChangeType> pFiles);
+  void preLoadIcons(@NonNull List<IFileChangeType> pFiles);
 
   /**
    * find an icon representing the passed file
@@ -49,7 +49,7 @@ public interface IFileSystemUtil
    * @return Image depicting the folder/file type or null if no icon could be found or an error occurred
    */
   @Nullable
-  Image getIcon(@NotNull File pFile, boolean pIsOpened);
+  Image getIcon(@NonNull File pFile, boolean pIsOpened);
 
 
   /**
@@ -58,8 +58,8 @@ public interface IFileSystemUtil
    * @param pFile File
    * @return Charset for the passed file
    */
-  @NotNull
-  Charset getEncoding(@NotNull File pFile);
+  @NonNull
+  Charset getEncoding(@NonNull File pFile);
 
   /**
    * tries to get the correct encoding for the given byte array
@@ -67,7 +67,7 @@ public interface IFileSystemUtil
    * @param pContent byte array representing a String with an unknown encoding
    * @return Encoding that was most likely used to create the byte array
    */
-  @NotNull
-  Charset getEncoding(@NotNull byte[] pContent);
+  @NonNull
+  Charset getEncoding(@NonNull byte[] pContent);
 
 }

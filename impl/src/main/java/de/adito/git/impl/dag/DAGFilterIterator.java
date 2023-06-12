@@ -2,7 +2,7 @@ package de.adito.git.impl.dag;
 
 import de.adito.git.api.dag.IDAGFilterIterator;
 import de.adito.git.api.dag.IDAGObject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -127,7 +127,7 @@ public class DAGFilterIterator<T extends IDAGObject<T>> implements IDAGFilterIte
   }
 
   @Override
-  public @NotNull List<T> tryReadEntries(int pNumEntries)
+  public @NonNull List<T> tryReadEntries(int pNumEntries)
   {
     List<T> entries = new ArrayList<>(pNumEntries);
     for (int index = 0; index < pNumEntries && hasNext(); index++)

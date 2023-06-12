@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -22,14 +22,14 @@ import java.util.stream.Collectors;
 public class LanguageFileResolveOption extends XMLBasedResolveOption
 {
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff, @NonNull EConflictSide pConflictSide, @NonNull ConflictPair pConflictPair)
   {
     return new ArrayList<>(pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false));
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
-                                    @NotNull IFileDiffHeader pFileDiffHeader)
+  public boolean canResolveConflict(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherDelta, @NonNull EConflictSide pConflictSide,
+                                    @NonNull IFileDiffHeader pFileDiffHeader)
   {
     if (!"aod".equals(pFileDiffHeader.getFileExtension(EChangeSide.NEW)))
       return false;
@@ -62,8 +62,8 @@ public class LanguageFileResolveOption extends XMLBasedResolveOption
    * @param pNodeList NodeList containing the values to be read
    * @return Map with the "name" values as keys and the "value" values as values of the map. If in any node either the value or the name cannot be found returns an empty map
    */
-  @NotNull
-  private Map<String, String> readLanguageKeyValues(@NotNull NodeList pNodeList)
+  @NonNull
+  private Map<String, String> readLanguageKeyValues(@NonNull NodeList pNodeList)
   {
     Map<String, String> valueMap = new HashMap<>();
     for (int index = 0; index < pNodeList.getLength(); index++)
@@ -98,7 +98,7 @@ public class LanguageFileResolveOption extends XMLBasedResolveOption
    * @throws ParserConfigurationException by the documentBuilder for parsing XML files: if a DocumentBuilder cannot be created which satisfies the configuration requested.
    */
   @Nullable
-  private NodeList getStringEntryList(@NotNull String pConflictText) throws IOException, ParserConfigurationException, SAXException
+  private NodeList getStringEntryList(@NonNull String pConflictText) throws IOException, ParserConfigurationException, SAXException
   {
     String cleanedConflictText = Arrays.stream(pConflictText.split("\n")).map(String::trim).collect(Collectors.joining());
     if (cleanedConflictText.endsWith("<stringEntry>"))
@@ -115,7 +115,7 @@ public class LanguageFileResolveOption extends XMLBasedResolveOption
    * @return node with the given name, or null if no such node can be found
    */
   @Nullable
-  private Node findNode(@NotNull NodeList pNodeList, @NotNull String pName)
+  private Node findNode(@NonNull NodeList pNodeList, @NonNull String pName)
   {
     for (int index = 0; index < pNodeList.getLength(); index++)
     {

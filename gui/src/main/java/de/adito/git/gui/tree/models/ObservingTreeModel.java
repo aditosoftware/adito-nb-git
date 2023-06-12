@@ -3,7 +3,7 @@ package de.adito.git.gui.tree.models;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.InterruptedRuntimeException;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -15,7 +15,7 @@ import java.util.*;
 abstract class ObservingTreeModel<T> extends BaseObservingTreeModel<T>
 {
 
-  ObservingTreeModel(@NotNull File pProjectDirectory)
+  ObservingTreeModel(@NonNull File pProjectDirectory)
   {
     super(pProjectDirectory);
   }
@@ -27,8 +27,8 @@ abstract class ObservingTreeModel<T> extends BaseObservingTreeModel<T>
    * @param pList List of IFileChangeTypes
    * @return HashMap calculated from the list
    */
-  @NotNull
-  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateMap(@NotNull List<IFileChangeType> pList)
+  @NonNull
+  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _calculateMap(@NonNull List<IFileChangeType> pList)
   {
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> groups = new HashMap<>();
     for (IFileChangeType changeType : pList)
@@ -74,9 +74,9 @@ abstract class ObservingTreeModel<T> extends BaseObservingTreeModel<T>
    * @param pStart        startNode
    * @return HashMap that has the nodes with only one node as child collapsed to the parentNode
    */
-  @NotNull
-  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull HashSet<File> pChangedFiles,
-                                                               @NotNull File pStart)
+  @NonNull
+  HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> _reduce(@NonNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NonNull HashSet<File> pChangedFiles,
+                                                               @NonNull File pStart)
   {
     //Set<File> iterableCopy = pMap.get(pStart) == null ? new HashSet<>() : new HashSet<>(pMap.get(pStart).keySet());
     //for (File pChildFile : iterableCopy)
@@ -109,7 +109,7 @@ abstract class ObservingTreeModel<T> extends BaseObservingTreeModel<T>
    * @return the next parent file that is contained in the map
    */
   @Nullable
-  private File _getFirstAvailableParent(@NotNull HashMap<File, ?> pMap, @NotNull File pFile)
+  private File _getFirstAvailableParent(@NonNull HashMap<File, ?> pMap, @NonNull File pFile)
   {
     File parent = pFile.getParentFile();
     while (pMap.get(parent) == null)

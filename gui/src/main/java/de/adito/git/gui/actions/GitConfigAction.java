@@ -14,7 +14,7 @@ import de.adito.git.gui.dialogs.results.IGitConfigDialogResult;
 import de.adito.git.impl.data.SSHKeyDetails;
 import de.adito.git.impl.util.GitRawTextComparator;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -88,7 +88,7 @@ class GitConfigAction extends AbstractTableAction
     }
   }
 
-  private void _storeRemoteInfos(@NotNull IGitConfigDialogResult<?, Multimap<String, Object>> pDialogResult, @NotNull IRepository pRepository)
+  private void _storeRemoteInfos(@NonNull IGitConfigDialogResult<?, Multimap<String, Object>> pDialogResult, @NonNull IRepository pRepository)
   {
     List<IRemote> storedRemotes = pRepository.getRemotes();
     List<IRemote> remotes = pDialogResult.getInformation().get(Constants.REMOTE_INFO_KEY).stream().map(pObj -> (IRemote) pObj).collect(Collectors.toList());
@@ -108,7 +108,7 @@ class GitConfigAction extends AbstractTableAction
     }
   }
 
-  private void _storeSSHKeyInfos(@NotNull IGitConfigDialogResult<?, Multimap<String, Object>> pDialogResult, @Nullable IRepository pRepository)
+  private void _storeSSHKeyInfos(@NonNull IGitConfigDialogResult<?, Multimap<String, Object>> pDialogResult, @Nullable IRepository pRepository)
   {
     for (Object obj : pDialogResult.getInformation().get(Constants.SSH_KEY_KEY))
     {

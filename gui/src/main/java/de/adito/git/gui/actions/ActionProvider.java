@@ -7,7 +7,7 @@ import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.tree.models.ObservableTreeUpdater;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -34,7 +34,7 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public MergeAction getMergeAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pTargetBranch)
+  public MergeAction getMergeAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<IBranch>> pTargetBranch)
   {
     return actionFactory.createMergeAction(pRepository, pTargetBranch);
   }
@@ -43,7 +43,7 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public MergeRemoteAction getMergeRemoteAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pTargetBranch)
+  public MergeRemoteAction getMergeRemoteAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<IBranch>> pTargetBranch)
   {
     return actionFactory.createMergeRemoteAction(pRepository, pTargetBranch);
   }
@@ -52,8 +52,8 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public CommitAction getCommitAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                      @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, String pMessageTemplate)
+  public CommitAction getCommitAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                      @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, String pMessageTemplate)
   {
     return actionFactory.createCommitAction(pRepository, pSelectedFilesObservable, pMessageTemplate);
   }
@@ -62,9 +62,9 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public DiffToHeadAction getDiffToHeadAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                              @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable,
-                                              @NotNull Boolean pIsAsync)
+  public DiffToHeadAction getDiffToHeadAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                              @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable,
+                                              @NonNull Boolean pIsAsync)
   {
     return actionFactory.createDiffAction(pRepository, pSelectedFilesObservable, pIsAsync);
   }
@@ -73,8 +73,8 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public IgnoreAction getIgnoreAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                      @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  public IgnoreAction getIgnoreAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                      @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createIgnoreAction(pRepository, pSelectedFilesObservable);
   }
@@ -83,8 +83,8 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public ExcludeAction getExcludeAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                        @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  public ExcludeAction getExcludeAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                        @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createExcludeAction(pRepository, pSelectedFilesObservable);
   }
@@ -93,13 +93,13 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public CheckoutAction getCheckoutAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pBranch)
+  public CheckoutAction getCheckoutAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<IBranch>> pBranch)
   {
     return actionFactory.createCheckoutAction(pRepository, pBranch);
   }
 
   @Override
-  public Action getCheckoutCommitAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  public Action getCheckoutCommitAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     return actionFactory.createCheckoutCommitAction(pRepository, pSelectedCommitObservable);
   }
@@ -108,7 +108,7 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public NewBranchAction getNewBranchAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public NewBranchAction getNewBranchAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createNewBranchAction(pRepository);
   }
@@ -123,7 +123,7 @@ class ActionProvider implements IActionProvider
   }
 
   @Override
-  public Action getDeleteBranchAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<IBranch>> pSelectedBranch)
+  public Action getDeleteBranchAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<IBranch>> pSelectedBranch)
   {
     return actionFactory.createDeleteBranchAction(pRepository, pSelectedBranch);
   }
@@ -132,7 +132,7 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public PullAction getPullAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public PullAction getPullAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createPullAction(pRepository);
   }
@@ -141,7 +141,7 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public PushAction getPushAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public PushAction getPushAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createPushAction(pRepository);
   }
@@ -150,20 +150,20 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public ShowCommitsForBranchesAction getShowAllCommitsForBranchAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                       @NotNull Observable<Optional<List<IBranch>>> pBranches)
+  public ShowCommitsForBranchesAction getShowAllCommitsForBranchAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                       @NonNull Observable<Optional<List<IBranch>>> pBranches)
   {
     return actionFactory.createShowAllCommitsForBranchAction(pRepository, pBranches);
   }
 
   @Override
-  public Action getShowAllCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getShowAllCommitsAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createShowAllCommitsAction(pRepository);
   }
 
   @Override
-  public Action getShowCommitsForFileAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<List<File>> pFile)
+  public Action getShowCommitsForFileAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<List<File>> pFile)
   {
     return actionFactory.createShowCommitsForFileAction(pRepository, pFile);
   }
@@ -172,14 +172,14 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public Action getRevertWorkDirAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                       @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  public Action getRevertWorkDirAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                       @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createRevertWorkDirAction(pRepository, pSelectedFilesObservable);
   }
 
   @Override
-  public Action getRevertCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitsObservable)
+  public Action getRevertCommitsAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitsObservable)
   {
     return actionFactory.createRevertCommitsAction(pRepository, pSelectedCommitsObservable);
   }
@@ -188,171 +188,171 @@ class ActionProvider implements IActionProvider
    * {@inheritDoc}
    */
   @Override
-  public Action getResetAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pCommittedFilesObservable)
+  public Action getResetAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<ICommit>>> pCommittedFilesObservable)
   {
     return actionFactory.createResetAction(pRepository, pCommittedFilesObservable);
   }
 
   @Override
-  public Action getRenormalizeNewlinesAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getRenormalizeNewlinesAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createRenormalizeNewlinesAction(pRepository);
   }
 
   @Override
-  public Action getShowStatusWindowAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getShowStatusWindowAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createShowStatusWindowAction(pRepository);
   }
 
   @Override
-  public Action getResolveConflictsAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                          @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  public Action getResolveConflictsAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                          @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createResolveConflictsAction(pRepository, pSelectedFilesObservable);
   }
 
   @Override
-  public Action getGitConfigAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getGitConfigAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createGitConfigAction(pRepository);
   }
 
   @Override
-  public Action getAddTagAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  public Action getAddTagAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     return actionFactory.createAddTagAction(pRepository, pSelectedCommitObservable);
   }
 
   @Override
-  public Action getDeleteSpecificTagAction(@NotNull Observable<Optional<IRepository>> pRepository, ITag pTag)
+  public Action getDeleteSpecificTagAction(@NonNull Observable<Optional<IRepository>> pRepository, ITag pTag)
   {
     return actionFactory.createDeleteSpecificTagAction(pRepository, pTag);
   }
 
   @Override
-  public Action getDeleteTagAction(@NotNull Observable<Optional<IRepository>> pRepository, Observable<Optional<ITag>> pTagObservable)
+  public Action getDeleteTagAction(@NonNull Observable<Optional<IRepository>> pRepository, Observable<Optional<ITag>> pTagObservable)
   {
     return actionFactory.createDeleteTagAction(pRepository, pTagObservable);
   }
 
   @Override
-  public Action getDiffCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
-                                     @NotNull Observable<Optional<ICommit>> pParentCommit,
-                                     @NotNull Observable<Optional<String>> pSelectedFile)
+  public Action getDiffCommitsAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                     @NonNull Observable<Optional<ICommit>> pParentCommit,
+                                     @NonNull Observable<Optional<String>> pSelectedFile)
   {
     return actionFactory.createDiffCommitsAction(pRepository, pSelectedCommitObservable, pParentCommit, pSelectedFile);
   }
 
   @Override
-  public Action getDiffCommitToHeadAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                          @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
-                                          @NotNull Observable<Optional<String>> pSelectedFile)
+  public Action getDiffCommitToHeadAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                          @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                          @NonNull Observable<Optional<String>> pSelectedFile)
   {
     return actionFactory.createDiffCommitToHeadAction(pRepository, pSelectedCommitObservable, pSelectedFile);
   }
 
   @Override
-  public Action getOpenFileAction(@NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  public Action getOpenFileAction(@NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createOpenFileAction(pSelectedFilesObservable);
   }
 
   @Override
-  public Action getOpenFileStringAction(@NotNull Observable<Optional<String>> pSelectedFile)
+  public Action getOpenFileStringAction(@NonNull Observable<Optional<String>> pSelectedFile)
   {
     return actionFactory.createOpenFileStringAction(pSelectedFile);
   }
 
   @Override
-  public Action getRefreshContentAction(@NotNull Runnable pRefreshContentCallBack)
+  public Action getRefreshContentAction(@NonNull Runnable pRefreshContentCallBack)
   {
     return actionFactory.createRefreshContentAction(pRefreshContentCallBack);
   }
 
   @Override
-  public Action getRefreshStatusAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Runnable pRefreshTree)
+  public Action getRefreshStatusAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Runnable pRefreshTree)
   {
     return actionFactory.createRefreshStatusAction(pRepository, pRefreshTree);
   }
 
   @Override
-  public Action getCherryPickAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  public Action getCherryPickAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     return actionFactory.createCherryPickAction(pRepository, pSelectedCommitObservable);
   }
 
   @Override
-  public Action getStashChangesAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getStashChangesAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createStashChangesAction(pRepository);
   }
 
   @Override
-  public Action getUnStashChangesAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getUnStashChangesAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createUnStashChangesAction(pRepository);
   }
 
   @Override
-  public Action getDeleteStashedCommitAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<String>> pCommitId)
+  public Action getDeleteStashedCommitAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<String>> pCommitId)
   {
     return actionFactory.createDeleteStashedCommitAction(pRepository, pCommitId);
   }
 
   @Override
-  public Action getFetchAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getFetchAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createFetchAction(pRepository);
   }
 
   @Override
-  public Action getCollapseTreeAction(@NotNull JTree pTree)
+  public Action getCollapseTreeAction(@NonNull JTree pTree)
   {
     return actionFactory.createCollapseTreeAction(pTree);
   }
 
   @Override
-  public Action getExpandTreeAction(@NotNull JTree pTree)
+  public Action getExpandTreeAction(@NonNull JTree pTree)
   {
     return actionFactory.createExpandTreeAction(pTree);
   }
 
   @Override
-  public Action getShowTagWindowAction(@NotNull Consumer<ICommit> pSelectedCommitCallback, @NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getShowTagWindowAction(@NonNull Consumer<ICommit> pSelectedCommitCallback, @NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createShowTagWindowAction(pSelectedCommitCallback, pRepository);
   }
 
   @Override
-  public Action getSwitchTreeViewAction(@NotNull JTree pTree, @NotNull File pProjectDirectory, @NotNull String pCallerName,
-                                        @NotNull ObservableTreeUpdater<IFileChangeType> pObservableTreeUpdater)
+  public Action getSwitchTreeViewAction(@NonNull JTree pTree, @NonNull File pProjectDirectory, @NonNull String pCallerName,
+                                        @NonNull ObservableTreeUpdater<IFileChangeType> pObservableTreeUpdater)
   {
     return actionFactory.createSwitchTreeViewAction(pTree, pProjectDirectory, pCallerName, pObservableTreeUpdater);
   }
 
   @Override
-  public Action getSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater, @NotNull File pProjectDirectory,
-                                            @NotNull String pCallerName)
+  public Action getSwitchDiffTreeViewAction(@NonNull JTree pTree, @NonNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater, @NonNull File pProjectDirectory,
+                                            @NonNull String pCallerName)
   {
     return actionFactory.createSwitchDiffTreeViewAction(pTree, pObservableTreeUpdater, pProjectDirectory, pCallerName);
   }
 
   @Override
-  public Action getCreatePatchAction(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  public Action getCreatePatchAction(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createPatchAction(pRepository, pSelectedFilesObservable);
   }
 
   @Override
-  public Action getApplyPatchAction(@NotNull Observable<Optional<IRepository>> pRepository)
+  public Action getApplyPatchAction(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return actionFactory.createApplyPatchAction(pRepository);
   }
 
   @Override
-  public Action getMarkResolvedAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                      @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
+  public Action getMarkResolvedAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                      @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable)
   {
     return actionFactory.createMarkResolvedAction(pRepository, pSelectedFilesObservable);
   }

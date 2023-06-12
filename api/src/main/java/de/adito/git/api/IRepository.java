@@ -5,7 +5,7 @@ import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.api.exception.AditoGitException;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -125,7 +125,7 @@ public interface IRepository extends IDiscardable
    * @return the ID of the commit as String
    * @throws AditoGitException if an error occurs
    */
-  String commit(@NotNull String pMessage) throws AditoGitException;
+  String commit(@NonNull String pMessage) throws AditoGitException;
 
   /**
    * performs a commit of all staged files as well as the passed files.
@@ -138,7 +138,7 @@ public interface IRepository extends IDiscardable
    * @return the ID of the commit as String
    * @throws AditoGitException if an error occurs
    */
-  String commit(@NotNull String pMessage, @NotNull List<File> pFileList, @Nullable String pAuthorName, @Nullable String pAuthorMail, boolean pIsAmend)
+  String commit(@NonNull String pMessage, @NonNull List<File> pFileList, @Nullable String pAuthorName, @Nullable String pAuthorMail, boolean pIsAmend)
       throws AditoGitException;
 
   /**
@@ -159,7 +159,7 @@ public interface IRepository extends IDiscardable
    * @param pCompareTo the method checks if the changes from this branch are contained in the first branch. For a pull this would be the upstream branch
    * @return true if the changes from the second branch are contained in the first, false otherwise
    */
-  boolean isUpToDate(@NotNull IBranch pBranch, @NotNull IBranch pCompareTo) throws AditoGitException;
+  boolean isUpToDate(@NonNull IBranch pBranch, @NonNull IBranch pCompareTo) throws AditoGitException;
 
   /**
    * Pulls the current contents of the tracked remote branch of the currently selected local branch
@@ -205,7 +205,7 @@ public interface IRepository extends IDiscardable
    *
    * @param pPatchFile File that contains the patch data
    */
-  void applyPatch(@NotNull File pPatchFile);
+  void applyPatch(@NonNull File pPatchFile);
 
   /**
    * performs a diff of the working copy of the provided files with their version as it is in compareWith and writes the differences to the provided outputStream, in the
@@ -215,7 +215,7 @@ public interface IRepository extends IDiscardable
    * @param pCompareWith ICommit giving the version that the files should be compared with. If null files are compared to the HEAD
    * @param pWriteTo     OutputStream that the patch will be written to
    */
-  void createPatch(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith, @NotNull OutputStream pWriteTo);
+  void createPatch(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith, @NonNull OutputStream pWriteTo);
 
   /**
    * Diff two strings, one coming from a file
@@ -225,7 +225,7 @@ public interface IRepository extends IDiscardable
    * @return List of IFileChangeChunks containing the changed lines between the two versions
    * @throws IOException if an error during file read occurs
    */
-  IFileDiff diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException;
+  IFileDiff diffOffline(@NonNull String pString, @NonNull File pFile) throws IOException;
 
   /**
    * get the changed lines between a string and the contents of a file
@@ -235,7 +235,7 @@ public interface IRepository extends IDiscardable
    * @return List of IFileChangeChunks containing the changed lines between the two versions
    * @throws IOException if an error during file read occurs
    */
-  List<IChangeDelta> diff(@NotNull String pFileContents, File pCompareWith) throws IOException;
+  List<IChangeDelta> diff(@NonNull String pFileContents, File pCompareWith) throws IOException;
 
   /**
    * compare two commits, returns a list of IFileDiffs. Each IFileDiff contains the changes that occurred to one file between the commits
@@ -245,7 +245,7 @@ public interface IRepository extends IDiscardable
    * @return IFileDiff that contains the differences between the two files
    * @throws AditoGitException if an error occurs
    */
-  @NotNull List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo) throws AditoGitException;
+  @NonNull List<IFileDiff> diff(@NonNull ICommit pOriginal, @Nullable ICommit pCompareTo) throws AditoGitException;
 
   /**
    * performs a diff of the working copy of the provided files with their version as it is in compareWith
@@ -255,7 +255,7 @@ public interface IRepository extends IDiscardable
    * @return List of IFileDiff describing the differences of the files in the working copy and compareWith (or HEAD if compareWith == null)
    * @throws AditoGitException if an error occurs
    */
-  @NotNull List<IFileDiff> diff(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith) throws AditoGitException;
+  @NonNull List<IFileDiff> diff(@Nullable List<File> pFileToDiff, @Nullable ICommit pCompareWith) throws AditoGitException;
 
   /**
    * Retrieve the encoding and contents of the specified file/version combination
@@ -281,7 +281,7 @@ public interface IRepository extends IDiscardable
    * @param pFile the File to check the status
    * @return returns the {@link IFileChangeType} of the file
    */
-  IFileChangeType getStatusOfSingleFile(@NotNull File pFile);
+  IFileChangeType getStatusOfSingleFile(@NonNull File pFile);
 
   /**
    * retrieves the id for the object representing the specified file at the time of the specified commit
@@ -298,7 +298,7 @@ public interface IRepository extends IDiscardable
    *
    * @return List of IFileStatus that describe the different staging states of the local files
    */
-  @NotNull Observable<Optional<IFileStatus>> getStatus();
+  @NonNull Observable<Optional<IFileStatus>> getStatus();
 
   /**
    * Ignores a given file
@@ -306,7 +306,7 @@ public interface IRepository extends IDiscardable
    * @param pFiles List of files that should be added to the .gitignore
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  void ignore(@NotNull List<File> pFiles) throws IOException;
+  void ignore(@NonNull List<File> pFiles) throws IOException;
 
   /**
    * Excludes the listed files, basically a local .gitignore
@@ -314,7 +314,7 @@ public interface IRepository extends IDiscardable
    * @param pFiles List of files that should be added to the .git/info/exclude
    * @throws IOException if an error occurs during transport/reading of the file
    */
-  void exclude(@NotNull List<File> pFiles) throws IOException;
+  void exclude(@NonNull List<File> pFiles) throws IOException;
 
   /**
    * reverts all files passed in the list to the state they have in HEAD
@@ -322,7 +322,7 @@ public interface IRepository extends IDiscardable
    * @param pFiles List of files which should be reverted to the state in HEAD
    * @throws AditoGitException if an error occurs
    */
-  void revertWorkDir(@NotNull List<File> pFiles) throws AditoGitException;
+  void revertWorkDir(@NonNull List<File> pFiles) throws AditoGitException;
 
   /**
    * Reverts a list of commits (meaning you apply an "anti-patch" that negates the changes done)
@@ -330,7 +330,7 @@ public interface IRepository extends IDiscardable
    * @param pCommitsToRevert List of commits that should be reverted
    * @throws AditoGitException if an error occurs
    */
-  void revertCommit(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException;
+  void revertCommit(@NonNull List<ICommit> pCommitsToRevert) throws AditoGitException;
 
   /**
    * Resets HEAD/the current branch to the given ID. The exact nature of the reset depends on the passed EResetType, check that Enum for more information about the
@@ -340,7 +340,7 @@ public interface IRepository extends IDiscardable
    * @param pResetType  resetType which type of reset should be conducted
    * @throws AditoGitException if an error occurs
    */
-  void reset(@NotNull String pIdentifier, @NotNull EResetType pResetType) throws AditoGitException;
+  void reset(@NonNull String pIdentifier, @NonNull EResetType pResetType) throws AditoGitException;
 
   /**
    * creates a new branch
@@ -350,7 +350,7 @@ public interface IRepository extends IDiscardable
    * @param pCheckout   {@code true} if the branch should be automatically checked out after it was created
    * @throws AditoGitException if an error occurs
    */
-  void createBranch(@NotNull String pBranchName, @Nullable ICommit pStartPoint, boolean pCheckout) throws AditoGitException;
+  void createBranch(@NonNull String pBranchName, @Nullable ICommit pStartPoint, boolean pCheckout) throws AditoGitException;
 
   /**
    * deletes the branch with the passed name
@@ -360,7 +360,7 @@ public interface IRepository extends IDiscardable
    * @param pIsForceDelete      if the deletion of the branch should be forced
    * @throws AditoGitException if an error occurs
    */
-  void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException;
+  void deleteBranch(@NonNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException;
 
   /**
    * get the blame annotations for one file
@@ -368,8 +368,8 @@ public interface IRepository extends IDiscardable
    * @param pFile the file to get the annotations
    * @return an IBlame object
    */
-  @NotNull
-  Optional<IBlame> getBlame(@NotNull File pFile);
+  @NonNull
+  Optional<IBlame> getBlame(@NonNull File pFile);
 
   /**
    * Checks out the commit with id pId
@@ -377,7 +377,7 @@ public interface IRepository extends IDiscardable
    * @param pId String with identifier of the object/commit to checkout
    * @throws AditoGitException if an error occurs, such as a CheckoutConflict or the id cannot be resolved
    */
-  void checkout(@NotNull String pId) throws AditoGitException;
+  void checkout(@NonNull String pId) throws AditoGitException;
 
   /**
    * check out a branch
@@ -385,7 +385,7 @@ public interface IRepository extends IDiscardable
    * @param pBranch branch to checkout
    * @throws AditoGitException if an error occurs
    */
-  void checkout(@NotNull IBranch pBranch) throws AditoGitException;
+  void checkout(@NonNull IBranch pBranch) throws AditoGitException;
 
   /**
    * checks out a remote branch and creates a new local branch (named pLocalName) that is tracking the remote branch
@@ -394,7 +394,7 @@ public interface IRepository extends IDiscardable
    * @param pLocalName how the local branch that tracks the remote branch should be named
    * @throws AditoGitException if the remote branch may not be checked out
    */
-  void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException;
+  void checkoutRemote(@NonNull IBranch pBranch, @NonNull String pLocalName) throws AditoGitException;
 
   /**
    * @return IMergeDetails with the list of IMergeDatas for all conflicting files (empty list if no conflicting files exists or if the branch to be merged
@@ -421,7 +421,7 @@ public interface IRepository extends IDiscardable
    * @return List of IMergeDatas, the list is empty if no merge conflict happened, else the list of IMergeDatas describe the merge conflicts
    * @throws AditoGitException if an error occurs
    */
-  List<IMergeData> merge(@NotNull IBranch pSourceBranch, @NotNull IBranch pTargetBranch) throws AditoGitException;
+  List<IMergeData> merge(@NonNull IBranch pSourceBranch, @NonNull IBranch pTargetBranch) throws AditoGitException;
 
   /**
    * retrieves all files that were committed in the passed commit. One IDiffInfo represents the change to one parent commit, if the commit is a merge commit
@@ -432,7 +432,7 @@ public interface IRepository extends IDiscardable
    * @throws AditoGitException if JGit encountered an error condition
    * @throws AditoGitException if an error occurs
    */
-  @NotNull
+  @NonNull
   List<IDiffInfo> getCommittedFiles(String pCommitId) throws AditoGitException;
 
   /**
@@ -451,8 +451,8 @@ public interface IRepository extends IDiscardable
    * @return List with all ICommits matching the filter
    * @throws AditoGitException if an error occurs
    */
-  @NotNull
-  IDAGFilterIterator<ICommit> getCommits(@NotNull ICommitFilter pCommitFilter) throws AditoGitException;
+  @NonNull
+  IDAGFilterIterator<ICommit> getCommits(@NonNull ICommitFilter pCommitFilter) throws AditoGitException;
 
   /**
    * retrieves all local commits that do not yet exist on the remote-tracking branch of the current branch
@@ -460,7 +460,7 @@ public interface IRepository extends IDiscardable
    * @return list of all commits that are not yet pushed to the remote-tracking branch
    * @throws AditoGitException if JGit encounters an error
    */
-  @NotNull
+  @NonNull
   List<ICommit> getUnPushedCommits() throws AditoGitException;
 
   /**
@@ -471,7 +471,7 @@ public interface IRepository extends IDiscardable
   /**
    * @return Repository-DisplayName
    */
-  @NotNull
+  @NonNull
   Observable<String> displayName();
 
   /**
@@ -498,7 +498,7 @@ public interface IRepository extends IDiscardable
   /**
    * @return List of all IBranches in the repository
    */
-  @NotNull
+  @NonNull
   Observable<Optional<List<IBranch>>> getBranches();
 
   /**
@@ -515,7 +515,7 @@ public interface IRepository extends IDiscardable
    * @param pTag tag to be deleted
    * @return List of successfully deleted tags
    */
-  @NotNull
+  @NonNull
   List<String> deleteTag(ITag pTag);
 
   /**
@@ -523,7 +523,7 @@ public interface IRepository extends IDiscardable
    *
    * @return List containing all the tags in this repository
    */
-  @NotNull
+  @NonNull
   Observable<List<ITag>> getTags();
 
   /**
@@ -532,7 +532,7 @@ public interface IRepository extends IDiscardable
    * @return List of stashed commits
    * @throws AditoGitException if JGit encounters any errors
    */
-  @NotNull
+  @NonNull
   List<ICommit> getStashedCommits() throws AditoGitException;
 
   /**
@@ -554,8 +554,8 @@ public interface IRepository extends IDiscardable
    * @return list with IMergeDatas if a conflict occurs during un-stashing, empty list if successful
    * @throws AditoGitException if an error occurs
    */
-  @NotNull
-  List<IMergeData> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException;
+  @NonNull
+  List<IMergeData> unStashChanges(@NonNull String pStashCommitId) throws AditoGitException;
 
   /**
    * drop the specified stashed commit
@@ -578,7 +578,7 @@ public interface IRepository extends IDiscardable
    *
    * @return List with names of the remotes (e.g. "origin")
    */
-  @NotNull
+  @NonNull
   List<IRemote> getRemotes();
 
   /**

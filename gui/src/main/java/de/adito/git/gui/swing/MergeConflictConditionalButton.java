@@ -9,7 +9,7 @@ import de.adito.git.gui.dialogs.panels.NotificationPanel;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -31,7 +31,7 @@ public class MergeConflictConditionalButton extends ConditionalDialogButton
   private final IDialogProvider dialogProvider;
   private EButtons pressedButton = EButtons.ACCEPT_CHANGES;
 
-  public MergeConflictConditionalButton(@NotNull IMergeData pMergeData, @NotNull IDialogProvider pDialogProvider)
+  public MergeConflictConditionalButton(@NonNull IMergeData pMergeData, @NonNull IDialogProvider pDialogProvider)
   {
     super(EButtons.ACCEPT_CHANGES.toString());
     mergeData = pMergeData;
@@ -99,13 +99,13 @@ public class MergeConflictConditionalButton extends ConditionalDialogButton
   }
 
   @Override
-  @NotNull ActionListener getCustomListener()
+  @NonNull ActionListener getCustomListener()
   {
     return new ActionListenerFilter();
   }
 
   @Override
-  @NotNull
+  @NonNull
   public EButtons getPressedButton()
   {
     return pressedButton;

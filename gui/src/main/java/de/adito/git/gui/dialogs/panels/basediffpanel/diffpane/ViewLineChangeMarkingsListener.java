@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ public interface ViewLineChangeMarkingsListener
    *
    * @param pAdaptedLineNumberColorList new list of LineNumberColors with the updated values
    */
-  void viewLineChangeMarkingChanged(@NotNull List<LineNumberColor> pAdaptedLineNumberColorList);
+  void viewLineChangeMarkingChanged(@NonNull List<LineNumberColor> pAdaptedLineNumberColorList);
 
 }

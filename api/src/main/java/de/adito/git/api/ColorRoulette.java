@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.Color;
 import java.util.*;
@@ -53,7 +53,7 @@ public class ColorRoulette
   /**
    * @return the next Color in the queue or null if an error occurs/the queue is empty
    */
-  @NotNull
+  @NonNull
   public Color get()
   {
     try
@@ -71,7 +71,7 @@ public class ColorRoulette
    *
    * @param pColor the Color that should be returned to the queue
    */
-  public void returnColor(@NotNull Color pColor)
+  public void returnColor(@NonNull Color pColor)
   {
     if (!availableColors.contains(pColor))
     {

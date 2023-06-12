@@ -1,7 +1,7 @@
 package de.adito.git.gui.rxjava;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
@@ -11,14 +11,14 @@ import java.beans.PropertyChangeListener;
  */
 public class EditorKitChangeObservable extends AbstractListenerObservable<PropertyChangeListener, JEditorPane, Object>
 {
-  public EditorKitChangeObservable(@NotNull JEditorPane pListenableValue)
+  public EditorKitChangeObservable(@NonNull JEditorPane pListenableValue)
   {
     super(pListenableValue);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected PropertyChangeListener registerListener(@NotNull JEditorPane pEditorPane, @NotNull IFireable<Object> pIFireable)
+  protected PropertyChangeListener registerListener(@NonNull JEditorPane pEditorPane, @NonNull IFireable<Object> pIFireable)
   {
     PropertyChangeListener listener = evt -> {
       if ("editorKit".equals(evt.getPropertyName()))
@@ -31,7 +31,7 @@ public class EditorKitChangeObservable extends AbstractListenerObservable<Proper
   }
 
   @Override
-  protected void removeListener(@NotNull JEditorPane pEditorPane, @NotNull PropertyChangeListener pPropertyChangeListener)
+  protected void removeListener(@NonNull JEditorPane pEditorPane, @NonNull PropertyChangeListener pPropertyChangeListener)
   {
     pEditorPane.removePropertyChangeListener(pPropertyChangeListener);
   }

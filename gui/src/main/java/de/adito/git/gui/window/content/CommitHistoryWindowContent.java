@@ -18,6 +18,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.*;
 
@@ -272,7 +273,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     commitTable.addMouseListener(new PopupMouseListener(() -> commitListPopupMenu));
   }
 
-  @NotNull
+  @NonNull
   private Observable<Optional<IFileStatus>> _observeStatus()
   {
     return observableCache.calculateParallel("status", () -> repository
@@ -280,7 +281,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
         .debounce(500, TimeUnit.MILLISECONDS));
   }
 
-  @NotNull
+  @NonNull
   private Observable<ICommitFilter> _observeCommitFilter()
   {
     return observableCache.calculateParallel("commitFilter", () -> Observable.combineLatest(
@@ -295,7 +296,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
             .setFileList(chosenFiles)));
   }
 
-  @NotNull
+  @NonNull
   private Observable<Optional<List<ICommit>>> _observeSelectedCommits()
   {
     return observableCache.calculateParallel("selectedCommits", () -> _observeSelectedCommitHistoryItems()
@@ -305,7 +306,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
                 .map(CommitHistoryTreeListItem::getCommit).collect(Collectors.toList()))));
   }
 
-  @NotNull
+  @NonNull
   private Observable<Optional<List<CommitHistoryTreeListItem>>> _observeSelectedCommitHistoryItems()
   {
     return observableCache.calculateParallel("selectedCommitHistoryItems", () -> observableCommitListSelectionModel.selectedRows()
@@ -326,13 +327,13 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static class _SearchableCommitTable extends SearchableTable
   {
 
-    _SearchableCommitTable(@Nullable TableModel pTableModel, @NotNull JPanel pView)
+    _SearchableCommitTable(@Nullable TableModel pTableModel, @NonNull JPanel pView)
     {
       super(pTableModel, pView);
     }
 
     @Override
-    public String getToolTipText(@NotNull MouseEvent pEvent)
+    public String getToolTipText(@NonNull MouseEvent pEvent)
     {
       Point p = pEvent.getPoint();
 
@@ -368,14 +369,14 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static class _JTextFieldObservable extends AbstractListenerObservable<DocumentListener, JTextField, String>
   {
 
-    _JTextFieldObservable(@NotNull JTextField pListenableValue)
+    _JTextFieldObservable(@NonNull JTextField pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected DocumentListener registerListener(@NotNull JTextField pJTextField, @NotNull IFireable<String> pIFireable)
+    protected DocumentListener registerListener(@NonNull JTextField pJTextField, @NonNull IFireable<String> pIFireable)
     {
       DocumentListener listener = new DocumentListener()
       {
@@ -402,7 +403,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     }
 
     @Override
-    protected void removeListener(@NotNull JTextField pJTextField, @NotNull DocumentListener pDocumentListener)
+    protected void removeListener(@NonNull JTextField pJTextField, @NonNull DocumentListener pDocumentListener)
     {
       pJTextField.getDocument().removeDocumentListener(pDocumentListener);
     }
@@ -414,14 +415,14 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
   private static class _ComboBoxObservable extends AbstractListenerObservable<ItemListener, JComboBox<IBranch>, Optional<IBranch>>
   {
 
-    _ComboBoxObservable(@NotNull JComboBox<IBranch> pListenableValue)
+    _ComboBoxObservable(@NonNull JComboBox<IBranch> pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected ItemListener registerListener(@NotNull JComboBox<IBranch> pIBranchJComboBox, @NotNull IFireable<Optional<IBranch>> pIFireable)
+    protected ItemListener registerListener(@NonNull JComboBox<IBranch> pIBranchJComboBox, @NonNull IFireable<Optional<IBranch>> pIFireable)
     {
       ItemListener listener = e -> {
         if (e.getStateChange() == ItemEvent.SELECTED)
@@ -432,7 +433,7 @@ class CommitHistoryWindowContent extends JPanel implements IDiscardable
     }
 
     @Override
-    protected void removeListener(@NotNull JComboBox<IBranch> pIBranchJComboBox, @NotNull ItemListener pItemListener)
+    protected void removeListener(@NonNull JComboBox<IBranch> pIBranchJComboBox, @NonNull ItemListener pItemListener)
     {
       pIBranchJComboBox.removeItemListener(pItemListener);
     }

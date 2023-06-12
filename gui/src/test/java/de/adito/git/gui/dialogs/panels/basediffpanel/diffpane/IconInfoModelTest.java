@@ -8,7 +8,7 @@ import de.adito.git.gui.icon.SwingIconLoaderImpl;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.impl.StandAloneDiffProviderImpl;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -55,7 +55,7 @@ class IconInfoModelTest
    */
   @ParameterizedTest
   @MethodSource("singleModificationSource")
-  void isCorrectIconsWhenSingleChange(@NotNull String pOldVersion, @NotNull String pNewVersion)
+  void isCorrectIconsWhenSingleChange(@NonNull String pOldVersion, @NonNull String pNewVersion)
   {
     JEditorPane editorPane = new JEditorPane();
     editorPane.setText("test\nchangedLine1\ntest\n");

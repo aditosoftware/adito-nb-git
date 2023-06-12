@@ -3,7 +3,7 @@ package de.adito.git.nbm.metainfo;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.metainfo.deploy.IDeployMetaInfoProvider;
 import de.adito.git.api.data.*;
 import de.adito.git.nbm.repo.RepositoryCache;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.api.project.Project;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -30,14 +30,14 @@ public class GitDeployMetaInfoProvider implements IDeployMetaInfoProvider
     project = pProject;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String getName()
   {
     return "GitDeployMetaInfoProvider";
   }
 
-  @NotNull
+  @NonNull
   @Override
   public Map<String, String> getMetaInfo()
   {

@@ -1,11 +1,11 @@
 package de.adito.git.impl;
 
 import de.adito.git.api.IUserInputPrompt;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.attributes.Attribute;
 import org.eclipse.jgit.attributes.AttributesNode;
 import org.eclipse.jgit.attributes.AttributesRule;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -34,7 +34,7 @@ public class GitAttributesChecker
    * @param pProjectDirectory Directory that contains the .gitattributes file and forms the top level of the project
    * @throws IOException if the given gitattributes or the default config cannot be opened/read/written to
    */
-  static void compareToDefault(@NotNull IUserInputPrompt pUserInputPrompt, @NotNull AttributesNode defaultNodes, @Nullable AttributesNode configNodes,
+  static void compareToDefault(@NonNull IUserInputPrompt pUserInputPrompt, @NonNull AttributesNode defaultNodes, @Nullable AttributesNode configNodes,
                                @Nullable File pProjectDirectory) throws IOException
   {
     if (pProjectDirectory == null)
@@ -75,8 +75,8 @@ public class GitAttributesChecker
    * @param configNodes  AttributesNode with the rules from the current gitattributes
    * @return List of AttributesRule that contains the changed or missing rules when comparing the defaultNodes to the configNodes
    */
-  @NotNull
-  private static List<AttributesRule> _getMissingOrChangedRules(@NotNull AttributesNode defaultNodes, @NotNull AttributesNode configNodes)
+  @NonNull
+  private static List<AttributesRule> _getMissingOrChangedRules(@NonNull AttributesNode defaultNodes, @NonNull AttributesNode configNodes)
   {
     List<AttributesRule> configRules = configNodes.getRules();
     List<AttributesRule> missingOrChangedAttributes = new ArrayList<>();
@@ -103,8 +103,8 @@ public class GitAttributesChecker
    * @param pMissingOrChangedAttributes List with attributes that are missing or changed compared to the default gitattributes defined in the exampe_gitattributes
    * @throws IOException if the given gitattributes or the default config cannot be opened/read/written to
    */
-  private static void _handleMissingAttributes(@NotNull IUserInputPrompt pDialogProvider, @NotNull File pGitAttributesFile,
-                                               @NotNull List<AttributesRule> pMissingOrChangedAttributes) throws IOException
+  private static void _handleMissingAttributes(@NonNull IUserInputPrompt pDialogProvider, @NonNull File pGitAttributesFile,
+                                               @NonNull List<AttributesRule> pMissingOrChangedAttributes) throws IOException
   {
     String missingAttributes = pMissingOrChangedAttributes.stream().map(GitAttributesChecker::_ruleAsString).collect(Collectors.joining("<br>"));
     IUserInputPrompt.PromptResult dialogResult = pDialogProvider.promptYesNoCheckbox("<html>Attribute file found but some default entries seem to be missing:<br><br>"
@@ -132,7 +132,7 @@ public class GitAttributesChecker
    * @return String that forms the modified/updated gitAttributes file, use this to override the current gitAttributes file
    * @throws IOException if the current or the default gitAttributes file cannot be opened or read
    */
-  private static String _getModifiedGitAttributes(@NotNull List<AttributesRule> pMissingOrChangedAttributes, @NotNull File pGitAttributeFile) throws IOException
+  private static String _getModifiedGitAttributes(@NonNull List<AttributesRule> pMissingOrChangedAttributes, @NonNull File pGitAttributeFile) throws IOException
   {
     StringBuilder modifiedGitAttributes = new StringBuilder();
     try (BufferedReader gitAttributesInStream = new BufferedReader(new FileReader(pGitAttributeFile)))
@@ -163,7 +163,7 @@ public class GitAttributesChecker
    * @param pReadLine                   line that should be checked for matches in pMissingOrChangedAttributes
    * @return the given line, modified if necessary
    */
-  private static String _modifyLineIfNecessary(@NotNull List<AttributesRule> pMissingOrChangedAttributes, @NotNull String pReadLine)
+  private static String _modifyLineIfNecessary(@NonNull List<AttributesRule> pMissingOrChangedAttributes, @NonNull String pReadLine)
   {
     AttributesRule matchedRule = null;
     String trimmedLine = pReadLine.trim();
@@ -189,7 +189,7 @@ public class GitAttributesChecker
    * @param pRule        rule with the attributes to be compared
    * @return true
    */
-  private static boolean _isLineEqualsAttribute(@NotNull String pTrimmedLine, @NotNull AttributesRule pRule)
+  private static boolean _isLineEqualsAttribute(@NonNull String pTrimmedLine, @NonNull AttributesRule pRule)
   {
     String[] trimmedLineParts = pTrimmedLine.split("[ ]|\t");
     if (trimmedLineParts.length <= 1)
@@ -206,7 +206,7 @@ public class GitAttributesChecker
    * @param pRule        rule of which to use the pattern
    * @return true if the pattern given by the rule matches the one from the given line
    */
-  private static boolean _isLineOfAttribute(@NotNull String pTrimmedLine, @NotNull AttributesRule pRule)
+  private static boolean _isLineOfAttribute(@NonNull String pTrimmedLine, @NonNull AttributesRule pRule)
   {
     return pRule.getPattern().equals(pTrimmedLine.split("[ ]|\t")[0]);
   }
@@ -217,7 +217,7 @@ public class GitAttributesChecker
    * @param pRule any Rule
    * @return The Attributes as concatendated string, seperated by a space
    */
-  private static String _ruleAttributesAsString(@NotNull AttributesRule pRule)
+  private static String _ruleAttributesAsString(@NonNull AttributesRule pRule)
   {
     return StringUtils.join(pRule.getAttributes(), " ");
   }
@@ -228,7 +228,7 @@ public class GitAttributesChecker
    * @param pRule any Rule
    * @return Rule representation as String
    */
-  private static String _ruleAsString(@NotNull AttributesRule pRule)
+  private static String _ruleAsString(@NonNull AttributesRule pRule)
   {
     return pRule.getPattern() + "\t" + _ruleAttributesAsString(pRule);
   }
@@ -242,7 +242,7 @@ public class GitAttributesChecker
    * @param pGiAttributesFile File to which the "do not ask again"
    * @throws IOException if the flag cannot be written to the file due to various reasons
    */
-  private static void _addDoNotAskAgainFlag(@NotNull File pGiAttributesFile) throws IOException
+  private static void _addDoNotAskAgainFlag(@NonNull File pGiAttributesFile) throws IOException
   {
     try (OutputStream outputStream = Files.newOutputStream(pGiAttributesFile.toPath(), StandardOpenOption.CREATE, StandardOpenOption.APPEND))
     {
@@ -260,7 +260,7 @@ public class GitAttributesChecker
    * @return true if the flag is found in the file, false otherwise
    * @throws IOException if the file cannot be read
    */
-  private static boolean _containsDoNotAskAgainFlag(@NotNull File pGitAttributesFile) throws IOException
+  private static boolean _containsDoNotAskAgainFlag(@NonNull File pGitAttributesFile) throws IOException
   {
     if (!pGitAttributesFile.exists())
       return false;
@@ -276,7 +276,7 @@ public class GitAttributesChecker
    * @param pGitAttributesFile Location that the config should be copied to
    * @throws IOException if the file cannot be written or an error occurs while reading the example config
    */
-  private static void _copyDefaultConfig(@NotNull File pGitAttributesFile) throws IOException
+  private static void _copyDefaultConfig(@NonNull File pGitAttributesFile) throws IOException
   {
     try (FileOutputStream fileOutputStream = new FileOutputStream(pGitAttributesFile);
          InputStream inputStream = GitAttributesChecker.class.getResourceAsStream("example_gitattributes"))

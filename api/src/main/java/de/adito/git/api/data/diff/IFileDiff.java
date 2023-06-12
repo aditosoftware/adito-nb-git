@@ -4,7 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.impl.data.diff.ConflictPair;
 import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
@@ -23,7 +23,7 @@ public interface IFileDiff extends IFileChangeType
    *
    * @return IFileDiffHeader of this IFileDiff
    */
-  @NotNull
+  @NonNull
   IFileDiffHeader getFileHeader();
 
   /**
@@ -40,7 +40,7 @@ public interface IFileDiff extends IFileChangeType
    * @param pChangeSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
    * @return the encoding used to represent the fileContents as byte array
    */
-  Charset getEncoding(@NotNull EChangeSide pChangeSide);
+  Charset getEncoding(@NonNull EChangeSide pChangeSide);
 
   /**
    * get the lineEndings used for the given side
@@ -77,8 +77,8 @@ public interface IFileDiff extends IFileChangeType
    *                             parts, if pOverride is set to true the change overrides the previously inserted text and leaves the text with only the added parts
    * @return Event describing the changes done to the old side of the diff
    */
-  @NotNull
-  List<IDeltaTextChangeEvent> acceptDelta(@NotNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents, boolean pOverride);
+  @NonNull
+  List<IDeltaTextChangeEvent> acceptDelta(@NonNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents, boolean pOverride);
 
   /**
    * Inserts the text on the NEW side at the end of the OLD side without removing the OLD text
@@ -87,8 +87,8 @@ public interface IFileDiff extends IFileChangeType
    * @param pChangeDelta Delta whose text should be inserted
    * @return Event describing the changes done to the old side of the diff
    */
-  @NotNull
-  IDeltaTextChangeEvent appendDeltaText(@NotNull IChangeDelta pChangeDelta);
+  @NonNull
+  IDeltaTextChangeEvent appendDeltaText(@NonNull IChangeDelta pChangeDelta);
 
   /**
    * Reverts the changes introduced by the given Delta (applies changes from OLD side to NEW side)
@@ -98,15 +98,15 @@ public interface IFileDiff extends IFileChangeType
    *                             a whole line should be utilized
    * @return Event describing the changes done to the new side of the diff
    */
-  @NotNull
-  List<IDeltaTextChangeEvent> revertDelta(@NotNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve);
+  @NonNull
+  List<IDeltaTextChangeEvent> revertDelta(@NonNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve);
 
   /**
    * Discards the changes introduced by the given Delta
    *
    * @param pChangeDelta ChangeDelta to discard
    */
-  void discardDelta(@NotNull IChangeDelta pChangeDelta);
+  void discardDelta(@NonNull IChangeDelta pChangeDelta);
 
   /**
    * Changes the status of the delta to resolved
@@ -114,7 +114,7 @@ public interface IFileDiff extends IFileChangeType
    * @param pChangeDelta IChangeDelta to set as resolved
    * @throws IllegalArgumentException if the IChangeDelta has a conflict type that cannot be resolved
    */
-  void setResolved(@NotNull IChangeDelta pChangeDelta);
+  void setResolved(@NonNull IChangeDelta pChangeDelta);
 
   /**
    * Incorporates the changes done in the DocumentEvent into this diff
@@ -135,7 +135,7 @@ public interface IFileDiff extends IFileChangeType
    * @param pChangeSide Which side of the diff
    * @return Text if the passed side, up-to-date if any deltas were accepted
    */
-  String getText(@NotNull EChangeSide pChangeSide);
+  String getText(@NonNull EChangeSide pChangeSide);
 
   /**
    * Mark all changeDeltas as conflicting that clash with any of the changeDeltas from the other IFileDiff
@@ -145,8 +145,8 @@ public interface IFileDiff extends IFileChangeType
    * @param pConflictSide  Side of the conflict for the passed IFileDiff
    * @return List of conflictPairs, denoting the indices of the list of deltas of both diffs that are conflicting
    */
-  @NotNull
-  List<ConflictPair> markConflicting(@NotNull IFileDiff pOtherFileDiff, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider);
+  @NonNull
+  List<ConflictPair> markConflicting(@NonNull IFileDiff pOtherFileDiff, @NonNull EConflictSide pConflictSide, @NonNull ResolveOptionsProvider pResolveOptionsProvider);
 
   /**
    * checks if the IFileDiff matches the filePath, works with renames
@@ -155,7 +155,7 @@ public interface IFileDiff extends IFileChangeType
    * @param pFileDiff IFileDiff
    * @return true if the new or the old path of the IFileDiff match the given path, false otherwise
    */
-  static boolean isSameFile(@NotNull String pFilePath, @NotNull IFileDiff pFileDiff)
+  static boolean isSameFile(@NonNull String pFilePath, @NonNull IFileDiff pFileDiff)
   {
     return pFilePath.equals(pFileDiff.getFileHeader().getFilePath(EChangeSide.NEW)) || pFilePath.equals(pFileDiff.getFileHeader().getFilePath(EChangeSide.OLD));
   }
@@ -167,7 +167,7 @@ public interface IFileDiff extends IFileChangeType
    * @param pOtherFileDiff second IFileDiff
    * @return true if any combination of the paths of the IFileDiffs are the same, except if the matching path is the VOID_PATH. false in all other cases
    */
-  static boolean isSameFile(@NotNull IFileDiff pFileDiff, @NotNull IFileDiff pOtherFileDiff)
+  static boolean isSameFile(@NonNull IFileDiff pFileDiff, @NonNull IFileDiff pOtherFileDiff)
   {
     if (!IRepository.VOID_PATH.equals(pFileDiff.getFileHeader().getFilePath(EChangeSide.NEW))
         && ((pFileDiff.getFileHeader().getFilePath(EChangeSide.NEW).equals(pOtherFileDiff.getFileHeader().getFilePath(EChangeSide.NEW)))

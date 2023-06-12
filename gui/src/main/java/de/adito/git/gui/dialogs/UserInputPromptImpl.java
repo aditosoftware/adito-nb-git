@@ -6,7 +6,7 @@ import de.adito.git.api.IUserInputPrompt;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.results.IFileSelectionDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -46,7 +46,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   }
 
   @Override
-  public @NotNull PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @NotNull IKeyStore pKeyStore)
+  public @NonNull PromptResult promptSSHInfo(@NonNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @NonNull IKeyStore pKeyStore)
   {
     IUserPromptDialogResult<?, char[]> result = dialogProvider.showSshInfoPromptDialog(pMessage, pSshKeyLocation, pPassphrase, pKeyStore);
     return new PromptResult(result.isOkay(), result.getMessage(), result.getInformation());
@@ -73,7 +73,7 @@ public class UserInputPromptImpl implements IUserInputPrompt
   }
 
   @Override
-  public PromptResult promptYesNoCheckbox(@NotNull String pMessage, @NotNull String pCheckboxText)
+  public PromptResult promptYesNoCheckbox(@NonNull String pMessage, @NonNull String pCheckboxText)
   {
     IUserPromptDialogResult<?, Boolean> result = dialogProvider.showCheckboxPrompt(pMessage, pCheckboxText);
     return new PromptResult(result.isOkay(), result.getInformation().toString());

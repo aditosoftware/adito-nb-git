@@ -12,12 +12,12 @@ import de.adito.git.impl.data.BranchImpl;
 import de.adito.git.impl.data.CloneConfig;
 import de.adito.git.impl.data.TagImpl;
 import de.adito.git.impl.ssh.ISshProvider;
+import lombok.NonNull;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -46,8 +46,8 @@ public class CloneRepoImpl implements ICloneRepo
   /**
    * {@inheritDoc}
    */
-  @NotNull
-  public List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException
+  @NonNull
+  public List<IBranch> getBranchesFromRemoteRepo(@NonNull String pUrl, @Nullable String pSshPath) throws AditoGitException
   {
     Collection<Ref> refs;
     LsRemoteCommand lsRemoteCommand = Git.lsRemoteRepository()
@@ -74,7 +74,7 @@ public class CloneRepoImpl implements ICloneRepo
   }
 
   @Override
-  public @NotNull List<ITag> getTagsFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException
+  public @NonNull List<ITag> getTagsFromRemoteRepo(@NonNull String pUrl, @Nullable String pSshPath) throws AditoGitException
   {
     Collection<Ref> refs;
     LsRemoteCommand lsRemoteCommand = Git.lsRemoteRepository()
@@ -101,7 +101,7 @@ public class CloneRepoImpl implements ICloneRepo
   }
 
   @Override
-  public void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName, @NotNull String pURL,
+  public void cloneProject(@Nullable IProgressHandle pProgressHandle, @NonNull String pLocalPath, @NonNull String pProjectName, @NonNull String pURL,
                            @Nullable String pBranchName, @Nullable String pTag, @Nullable String pRemote, String pSshPath) throws AditoGitException
   {
     File target = new File(pLocalPath, pProjectName);
@@ -153,7 +153,7 @@ public class CloneRepoImpl implements ICloneRepo
   private static class CloneRepoTrackedBranchStatusCache extends TrackedBranchStatusCache
   {
     @Override
-    public @NotNull TrackedBranchStatus getTrackedBranchStatus(@NotNull IBranch pBranch)
+    public @NonNull TrackedBranchStatus getTrackedBranchStatus(@NonNull IBranch pBranch)
     {
       return TrackedBranchStatus.NONE;
     }

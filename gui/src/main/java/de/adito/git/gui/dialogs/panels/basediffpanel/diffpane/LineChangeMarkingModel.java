@@ -4,7 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.swing.LineNumber;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.text.BadLocationException;
@@ -30,20 +30,20 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
   static final int INSERT_LINE_HEIGHT = 3;
   private static final Logger LOGGER = Logger.getLogger(LineNumberModel.class.getName());
 
-  @NotNull
+  @NonNull
   private final LineNumberModel lineNumberModel;
-  @NotNull
+  @NonNull
   private final EChangeSide changeSide;
-  @NotNull
+  @NonNull
   private List<LineNumberColor> staticLineNumberColors = List.of();
-  @NotNull
+  @NonNull
   private TreeMap<Integer, LineNumberColor> coordinateMapping = new TreeMap<>();
 
   /**
    * @param pLineNumberModel LineNumberModel that keeps track of the y coordinates of lines
    * @param pChangeSide      determines which side of IChangeDeltas is used for the IDeltaTextChangeEvents that are passed from the LineNumberModel
    */
-  public LineChangeMarkingModel(@NotNull LineNumberModel pLineNumberModel, @NotNull EChangeSide pChangeSide)
+  public LineChangeMarkingModel(@NonNull LineNumberModel pLineNumberModel, @NonNull EChangeSide pChangeSide)
   {
     changeSide = pChangeSide;
     lineNumberModel = pLineNumberModel;
@@ -62,7 +62,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    *
    * @return List of all colored areas/LineNumberColors
    */
-  @NotNull
+  @NonNull
   public List<LineNumberColor> getStaticLineNumberColors()
   {
     return staticLineNumberColors;
@@ -75,7 +75,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    * @param pYEnd   end coordinate for the interval to be drawn, must be bigger or equal to pYStart
    * @return Collection of LineNumberColors, empty list if pYStart is bigger than pYEnd
    */
-  @NotNull
+  @NonNull
   public Collection<LineNumberColor> getLineNumberColorsToDraw(int pYStart, int pYEnd)
   {
     // subMap and floorEntry do not properly work if this is the case -> return emtpy list
@@ -108,7 +108,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    * @param pTextChangeEvent IDeltaTextChangeEvent that contains the ChangeDeltas who are the basis for the LineNumberColors
    * @param pLineNumbers     Array of LineNumbers that give the y coordinates for each line
    */
-  private void calculateLineNumColors(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
+  private void calculateLineNumColors(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
   {
     List<LineNumberColor> lineNumberColors = new ArrayList<>();
     try
@@ -146,8 +146,8 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    * @param pViewCoordinatesColors list of LineNumberColors
    * @return TreeMap of the LineNumberColors, with their y value as the key and the LineNumberColor itself as value
    */
-  @NotNull
-  private TreeMap<Integer, LineNumberColor> calculateCoordinateMapping(@NotNull List<LineNumberColor> pViewCoordinatesColors)
+  @NonNull
+  private TreeMap<Integer, LineNumberColor> calculateCoordinateMapping(@NonNull List<LineNumberColor> pViewCoordinatesColors)
   {
     TreeMap<Integer, LineNumberColor> lineNumberColorsMap = new TreeMap<>();
     for (LineNumberColor lineNumberColor : pViewCoordinatesColors)
@@ -165,8 +165,8 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    * @return LineNumberColor with the gathered information about where and what color the LineNumberColor should be drawn, view coordinates
    * @throws BadLocationException i.e. if the line is out of bounds
    */
-  private @NotNull LineNumberColor viewCoordinatesLineNumberColor(int pLineCounter, int pNumLines, @NotNull IChangeDelta pFileChange,
-                                                                  @NotNull LineNumber[] pLineInfos) throws BadLocationException
+  private @NonNull LineNumberColor viewCoordinatesLineNumberColor(int pLineCounter, int pNumLines, @NonNull IChangeDelta pFileChange,
+                                                                  @NonNull LineNumber[] pLineInfos) throws BadLocationException
   {
     LineNumber startingLineInfo = pLineInfos[Math.min(pLineInfos.length - 1, pLineCounter)];
     LineNumber endingLineInfo = pLineInfos[Math.min(pLineInfos.length - 1, Math.max(0, pLineCounter + pNumLines - 1))];
@@ -197,7 +197,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    *
    * @param pLineNumberColors new list of LineNumbersColors the listeners should be informed about
    */
-  private void notifyListeners(@NotNull List<LineNumberColor> pLineNumberColors)
+  private void notifyListeners(@NonNull List<LineNumberColor> pLineNumberColors)
   {
     for (LineNumberColorsListener listener : listeners)
     {
@@ -206,7 +206,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
   }
 
   @Override
-  public void lineNumbersChanged(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
   {
     calculateLineNumColors(pTextChangeEvent, pLineNumbers);
   }

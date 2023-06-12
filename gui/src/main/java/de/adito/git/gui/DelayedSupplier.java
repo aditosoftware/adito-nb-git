@@ -1,6 +1,6 @@
 package de.adito.git.gui;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -17,7 +17,7 @@ public class DelayedSupplier<T> implements Supplier<T>
 
   private Supplier<T> innerSupplier = null;
 
-  public void setInnerSupplier(@NotNull Supplier<T> pInnerSupplier)
+  public void setInnerSupplier(@NonNull Supplier<T> pInnerSupplier)
   {
     innerSupplier = pInnerSupplier;
   }

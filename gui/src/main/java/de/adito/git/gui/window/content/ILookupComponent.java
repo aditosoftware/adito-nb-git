@@ -1,7 +1,7 @@
 package de.adito.git.gui.window.content;
 
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.util.List;
@@ -13,10 +13,10 @@ import java.util.Optional;
 public interface ILookupComponent<T>
 {
 
-  @NotNull
+  @NonNull
   JComponent getComponent();
 
-  @NotNull
+  @NonNull
   Observable<Optional<List<T>>> observeSelectedItems();
 
 }

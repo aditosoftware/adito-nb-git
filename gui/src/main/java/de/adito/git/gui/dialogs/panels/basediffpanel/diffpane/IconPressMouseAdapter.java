@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 import de.adito.git.api.data.diff.IChangeDelta;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.Point;
@@ -28,9 +28,9 @@ class IconPressMouseAdapter extends MouseAdapter
   private final Consumer<IChangeDelta> doOnAccept;
   @Nullable
   private final Consumer<IChangeDelta> doOnDiscard;
-  @NotNull
+  @NonNull
   private final IconInfoModel iconInfoModel;
-  @NotNull
+  @NonNull
   private final Supplier<Rectangle> viewArea;
   private final boolean isWestOrientation;
 

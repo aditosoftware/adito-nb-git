@@ -3,7 +3,7 @@ package de.adito.git.api;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.ITag;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +39,8 @@ public class CommitHistoryTreeListItem
    * @param pAllTags             List of all ITags in the repository
    * @param pHead                Commit that HEAD is currently pointing to
    */
-  public CommitHistoryTreeListItem(@NotNull ICommit pCommit, @NotNull List<AncestryLine> pAncestryLines, HistoryGraphElement pHistoryGraphElement,
-                                   @NotNull List<IBranch> pAllBranches, List<ITag> pAllTags, ICommit pHead)
+  public CommitHistoryTreeListItem(@NonNull ICommit pCommit, @NonNull List<AncestryLine> pAncestryLines, HistoryGraphElement pHistoryGraphElement,
+                                   @NonNull List<IBranch> pAllBranches, List<ITag> pAllTags, ICommit pHead)
   {
     commit = pCommit;
     ancestryLines = pAncestryLines;

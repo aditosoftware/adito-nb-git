@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ public interface LineNumberColorsListener
    *
    * @param pNewValue new value of the list of LineNumberColors that the model keeps track of
    */
-  void lineNumberColorsChanged(@NotNull List<LineNumberColor> pNewValue);
+  void lineNumberColorsChanged(@NonNull List<LineNumberColor> pNewValue);
 
 }

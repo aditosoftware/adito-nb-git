@@ -1,6 +1,6 @@
 package de.adito.git.api.data.diff;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.io.File;
 
@@ -17,7 +17,7 @@ public interface IFileChangeType
    *
    * @return File with path starting from the top level directory of the repository
    */
-  @NotNull
+  @NonNull
   File getFile();
 
   /**
@@ -26,12 +26,12 @@ public interface IFileChangeType
    * @param pChangeSide EChangeSide that determines if the path of the file before or after the change should be returned
    * @return path of the file before or after the change, null if file does not exist in that point of time
    */
-  @NotNull
-  File getFile(@NotNull EChangeSide pChangeSide);
+  @NonNull
+  File getFile(@NonNull EChangeSide pChangeSide);
 
   /**
    * @return EChangeType the kind of change that happened to the file
    */
-  @NotNull
+  @NonNull
   EChangeType getChangeType();
 }

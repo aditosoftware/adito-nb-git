@@ -9,6 +9,7 @@ import de.adito.git.gui.tree.nodes.*;
 import de.adito.git.gui.tree.renderer.*;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;
@@ -30,8 +31,8 @@ public class StatusTree implements IDiscardable
   private final ObservableTreeSelectionModel observableTreeSelectionModel;
   private final ObservableCache observableCache = new ObservableCache();
 
-  public StatusTree(@NotNull IQuickSearchProvider pQuickSearchProvider, @NotNull IFileSystemUtil pFileSystemUtil, @NotNull BaseObservingTreeModel<?> pTreeModel,
-                    boolean pUseFlatCellRenderer, @NotNull File pProjectDirectory, @NotNull JComponent pTreeViewPanel, @Nullable JScrollPane pScrollPane)
+  public StatusTree(@NonNull IQuickSearchProvider pQuickSearchProvider, @NonNull IFileSystemUtil pFileSystemUtil, @NonNull BaseObservingTreeModel<?> pTreeModel,
+                    boolean pUseFlatCellRenderer, @NonNull File pProjectDirectory, @NonNull JComponent pTreeViewPanel, @Nullable JScrollPane pScrollPane)
   {
     searchableTree = new SearchableTree();
     searchableTree.init(pTreeViewPanel, pTreeModel);
@@ -49,7 +50,7 @@ public class StatusTree implements IDiscardable
   /**
    * @return The actual JTree/SearchableTree that this class initiates
    */
-  @NotNull
+  @NonNull
   public SearchableTree getTree()
   {
     return searchableTree;
@@ -58,7 +59,7 @@ public class StatusTree implements IDiscardable
   /**
    * @return Observable with the selected FileChangeTypes (if a non-leaf is selected, all leaves of the sub-tree with the selected node as root are returned)
    */
-  @NotNull
+  @NonNull
   public Observable<Optional<List<IFileChangeType>>> getSelectionObservable()
   {
     return observableCache.calculateParallel("selection", () -> observableTreeSelectionModel.getSelectedPaths()

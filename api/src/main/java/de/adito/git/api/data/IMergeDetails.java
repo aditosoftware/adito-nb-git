@@ -1,7 +1,7 @@
 package de.adito.git.api.data;
 
 import de.adito.git.api.data.diff.IMergeData;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public interface IMergeDetails
   /**
    * @return List with the conflicts of the merge/rebase/cherryPick
    */
-  @NotNull
+  @NonNull
   List<IMergeData> getMergeConflicts();
 
   /**
@@ -24,7 +24,7 @@ public interface IMergeDetails
    *
    * @return String
    */
-  @NotNull
+  @NonNull
   String getYoursOrigin();
 
   /**
@@ -32,7 +32,7 @@ public interface IMergeDetails
    *
    * @return String
    */
-  @NotNull
+  @NonNull
   String getTheirsOrigin();
 
 }

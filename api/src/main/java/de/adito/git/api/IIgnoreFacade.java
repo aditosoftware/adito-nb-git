@@ -1,7 +1,7 @@
 package de.adito.git.api;
 
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.io.*;
 import java.util.List;
@@ -18,26 +18,26 @@ public interface IIgnoreFacade
    * @param pFile File to check
    * @return true if this file is ignored, false if it is not or it is undeterminable
    */
-  boolean isIgnored(@NotNull File pFile);
+  boolean isIgnored(@NonNull File pFile);
 
   /**
    * Adds the given files to the gitignore file
    *
    * @param pFiles Files to ignore
    */
-  void ignore(@NotNull List<File> pFiles) throws IOException;
+  void ignore(@NonNull List<File> pFiles) throws IOException;
 
   /**
    * Adds the given files to the git exclusion file
    *
    * @param pFiles Files to exclude
    */
-  void exclude(@NotNull List<File> pFiles) throws IOException;
+  void exclude(@NonNull List<File> pFiles) throws IOException;
 
   /**
    * @return Observable to track, if something changed
    */
-  @NotNull
+  @NonNull
   Observable<Long> observeIgnorationChange();
 
 }

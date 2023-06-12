@@ -4,7 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
@@ -35,7 +35,7 @@ public class RenormalizeNewlinesNBAction extends NBAction
   }
 
   @Override
-  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
     return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(obj -> true));
   }

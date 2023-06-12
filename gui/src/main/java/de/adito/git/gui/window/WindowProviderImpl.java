@@ -8,7 +8,7 @@ import de.adito.git.api.data.ICommitFilter;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.Component;
@@ -33,7 +33,7 @@ class WindowProviderImpl implements IWindowProvider
   }
 
   @Override
-  public void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter)
+  public void showCommitHistoryWindow(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull ICommitFilter pCommitFilter)
   {
     try
     {
@@ -49,7 +49,7 @@ class WindowProviderImpl implements IWindowProvider
   }
 
   @Override
-  public void showStatusWindow(@NotNull Observable<Optional<IRepository>> pRepository)
+  public void showStatusWindow(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     ArrayListMultimap<Integer, Component> componentMap = ArrayListMultimap.create();
     _showInFrame(factory.createStatusWindowContent(pRepository, () -> componentMap).getComponent());

@@ -2,7 +2,7 @@ package de.adito.git.gui.tablemodels;
 
 import de.adito.git.api.CommitHistoryTreeListItem;
 import de.adito.git.gui.DateTimeRenderer;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class CommitHistoryTreeListTableModel extends AbstractTableModel
   }
 
   @Override
-  public int findColumn(@NotNull String pColumnName)
+  public int findColumn(@NonNull String pColumnName)
   {
     for (int index = 0; index < columnNames.size(); index++)
     {

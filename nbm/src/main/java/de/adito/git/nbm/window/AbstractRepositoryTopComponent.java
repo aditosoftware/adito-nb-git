@@ -5,7 +5,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.nbm.util.ProjectUtility;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.api.project.Project;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
@@ -35,7 +35,7 @@ abstract class AbstractRepositoryTopComponent extends TopComponent
    *
    * @param pRepository Observable of the Repository for the selected project
    */
-  AbstractRepositoryTopComponent(@NotNull Observable<Optional<IRepository>> pRepository)
+  AbstractRepositoryTopComponent(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     super(_initLookup());
     //Set the displayname in the TopComponent of NetBeans.

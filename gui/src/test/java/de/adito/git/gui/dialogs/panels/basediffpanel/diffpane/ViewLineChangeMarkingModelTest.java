@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
@@ -111,8 +111,8 @@ class ViewLineChangeMarkingModelTest
    * @param pViewRectangles   List of Rectangles that form the mocked return values for the viewPort if queried for its current position
    * @return ViewLineChangeMarkingModel that is set up with its LineChangeMarkingModel and viewPort providing mocked values
    */
-  @NotNull
-  private static ViewLineChangeMarkingModel getLineChangeMarkingModel(@NotNull List<LineNumberColor> pLineNumberColors, @NotNull List<Rectangle> pViewRectangles)
+  @NonNull
+  private static ViewLineChangeMarkingModel getLineChangeMarkingModel(@NonNull List<LineNumberColor> pLineNumberColors, @NonNull List<Rectangle> pViewRectangles)
   {
     LineChangeMarkingModel lineChangeMarkingModel = mock(LineChangeMarkingModel.class);
     when(lineChangeMarkingModel.getStaticLineNumberColors()).thenReturn(pLineNumberColors);

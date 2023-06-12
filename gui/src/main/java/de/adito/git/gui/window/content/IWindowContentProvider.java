@@ -4,7 +4,7 @@ import com.google.common.collect.Multimap;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommitFilter;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -20,12 +20,12 @@ import java.util.function.Supplier;
 public interface IWindowContentProvider
 {
 
-  ILookupComponent<File> createStatusWindowContent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull Supplier<Multimap<Integer, Component>> pPopupMenuEntries);
+  ILookupComponent<File> createStatusWindowContent(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull Supplier<Multimap<Integer, Component>> pPopupMenuEntries);
 
-  JComponent createCommitHistoryWindowContent(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull TableModel pTableModel,
-                                              @NotNull Runnable pLoadMoreCallback, @NotNull Consumer<ICommitFilter> pFilterChangedCallback,
-                                              @NotNull ICommitFilter pStartFilter);
+  JComponent createCommitHistoryWindowContent(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull TableModel pTableModel,
+                                              @NonNull Runnable pLoadMoreCallback, @NonNull Consumer<ICommitFilter> pFilterChangedCallback,
+                                              @NonNull ICommitFilter pStartFilter);
 
-  JComponent createBranchWindowContent(@NotNull Observable<Optional<IRepository>> pRepository);
+  JComponent createBranchWindowContent(@NonNull Observable<Optional<IRepository>> pRepository);
 
 }

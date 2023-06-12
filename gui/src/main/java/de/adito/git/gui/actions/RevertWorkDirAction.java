@@ -12,7 +12,7 @@ import de.adito.git.gui.dialogs.results.IRevertDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -37,7 +37,7 @@ class RevertWorkDirAction extends AbstractTableAction
 
   @Inject
   RevertWorkDirAction(IIconLoader pIconLoader, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil,
-                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @NotNull INotifyUtil pNotifyUtil)
+                      @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable, @NonNull INotifyUtil pNotifyUtil)
   {
     super("Revert", _getIsEnabledObservable(pSelectedFilesObservable));
     dialogProvider = pDialogProvider;

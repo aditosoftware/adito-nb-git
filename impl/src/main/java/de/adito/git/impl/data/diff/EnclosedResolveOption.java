@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -17,7 +17,7 @@ public class EnclosedResolveOption implements ResolveOption
   private EConflictType conflictType;
 
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff, @NonNull EConflictSide pConflictSide, @NonNull ConflictPair pConflictPair)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents = null;
     AtomicBoolean isTryToSnapToDelta = new AtomicBoolean(false);
@@ -60,8 +60,8 @@ public class EnclosedResolveOption implements ResolveOption
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
-                                    @NotNull IFileDiffHeader pFileDiffHeader)
+  public boolean canResolveConflict(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherDelta, @NonNull EConflictSide pConflictSide,
+                                    @NonNull IFileDiffHeader pFileDiffHeader)
   {
     return determineConflictType(pChangeDelta, pOtherDelta, pConflictSide) != null;
   }
@@ -79,7 +79,7 @@ public class EnclosedResolveOption implements ResolveOption
   }
 
   @Nullable
-  private EConflictType determineConflictType(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide)
+  private EConflictType determineConflictType(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherDelta, @NonNull EConflictSide pConflictSide)
   {
     conflictType = null;
     if (checkEnclosed(pChangeDelta, pOtherDelta, EConflictSide.YOURS))
@@ -122,7 +122,7 @@ public class EnclosedResolveOption implements ResolveOption
    * @param pDeterminedConflictType
    * @return true if this change encloses the other, conflicting change and the other change is also already accepted
    */
-  private boolean _enclosesAcceptedOther(ConflictPair pConflictPair, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide, EConflictType pDeterminedConflictType)
+  private boolean _enclosesAcceptedOther(ConflictPair pConflictPair, @NonNull IFileDiff pOtherDiff, EConflictSide pConflictSide, EConflictType pDeterminedConflictType)
   {
     return _isCounterPartAccepted(pConflictPair, pOtherDiff, pConflictSide) && _isEnclosing(pConflictSide, pDeterminedConflictType);
   }
@@ -135,7 +135,7 @@ public class EnclosedResolveOption implements ResolveOption
    * @param pConflictSide Side of the conflict that has the accepted delta
    * @return true if the changeDelta is part of a conflictPair and the other side has status ACCEPTED, false otherwise
    */
-  private boolean _isCounterPartAccepted(@NotNull ConflictPair pConflictPair, @NotNull IFileDiff pOtherDiff,
+  private boolean _isCounterPartAccepted(@NonNull ConflictPair pConflictPair, @NonNull IFileDiff pOtherDiff,
                                          EConflictSide pConflictSide)
   {
     return pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)))
@@ -173,7 +173,7 @@ public class EnclosedResolveOption implements ResolveOption
    * @param pConflictSide     YOURS here means "check if this text contains the text of pOtherChangeDelta", the opposite for THEIRS
    * @return true if the text of the requested ChangeDelta contains the text of the other ChangeDelta
    */
-  private boolean checkEnclosed(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide)
+  private boolean checkEnclosed(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherChangeDelta, @NonNull EConflictSide pConflictSide)
   {
     if (pOtherChangeDelta.getChangeType() == EChangeType.DELETE || pChangeDelta.getChangeType() == EChangeType.DELETE)
       return false;

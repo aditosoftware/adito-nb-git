@@ -3,7 +3,7 @@ package de.adito.git.impl.data;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.IRepositoryState;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -32,8 +32,8 @@ public class RepositoryStateImpl implements IRepositoryState
   private final IRepository.State currentState;
   private final List<String> remotes;
 
-  public RepositoryStateImpl(@NotNull IBranch pCurrentBranch, @Nullable IBranch pCurrentRemoteTrackedBranch, @NotNull IRepository.State pCurrentState,
-                             @NotNull List<String> pRemotes)
+  public RepositoryStateImpl(@NonNull IBranch pCurrentBranch, @Nullable IBranch pCurrentRemoteTrackedBranch, @NonNull IRepository.State pCurrentState,
+                             @NonNull List<String> pRemotes)
   {
     currentBranch = pCurrentBranch;
     currentRemoteTrackedBranch = pCurrentRemoteTrackedBranch;
@@ -41,7 +41,7 @@ public class RepositoryStateImpl implements IRepositoryState
     remotes = pRemotes;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public IBranch getCurrentBranch()
   {
@@ -54,7 +54,7 @@ public class RepositoryStateImpl implements IRepositoryState
     return currentRemoteTrackedBranch;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public IRepository.State getState()
   {
@@ -86,7 +86,7 @@ public class RepositoryStateImpl implements IRepositoryState
   }
 
   @Override
-  public @NotNull List<String> getRemotes()
+  public @NonNull List<String> getRemotes()
   {
     return remotes;
   }

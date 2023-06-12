@@ -14,7 +14,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.event.ActionEvent;
 import java.util.Collections;
@@ -83,7 +83,7 @@ public class RevertCommitsAction extends AbstractTableAction
     });
   }
 
-  private void _unStashChanges(@NotNull IProgressHandle pHandle)
+  private void _unStashChanges(@NonNull IProgressHandle pHandle)
   {
     String stashedCommitId = prefStore.get(STASH_ID_KEY);
     if (stashedCommitId != null)
@@ -101,8 +101,8 @@ public class RevertCommitsAction extends AbstractTableAction
    * @param pSelectedCommitObservable Observable with the currently selected commit
    * @return Observable that signifies if the action is enabled or disabled
    */
-  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                       @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                       @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable)
   {
     Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
         .orElse(Observable.just(Optional.empty())));

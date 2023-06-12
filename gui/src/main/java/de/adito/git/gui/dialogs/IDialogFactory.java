@@ -13,7 +13,7 @@ import de.adito.git.gui.DelayedSupplier;
 import de.adito.git.gui.NewFileDialog;
 import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.filechooser.FileFilter;
@@ -35,12 +35,12 @@ interface IDialogFactory
   MergeConflictResolutionDialog createMergeConflictResolutionDialog(IMergeData pMergeDiff, @Assisted("yoursOrigin") String pYoursOrigin,
                                                                     @Assisted("theirsOrigin") String pTheirsOrigin);
 
-  CommitDialog createCommitDialog(@NotNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
-                                  @NotNull Observable<Optional<IRepository>> pRepository, @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                                  @NotNull String pMessageTemplate, @NotNull DelayedSupplier<List<IBeforeCommitAction>> pSelectedCommitActions,
-                                  @NotNull DelayedSupplier<List<File>> pDelayedSupplier);
+  CommitDialog createCommitDialog(@NonNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
+                                  @NonNull Observable<Optional<IRepository>> pRepository, @NonNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                  @NonNull String pMessageTemplate, @NonNull DelayedSupplier<List<IBeforeCommitAction>> pSelectedCommitActions,
+                                  @NonNull DelayedSupplier<List<File>> pDelayedSupplier);
 
-  DiffDialog createDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pDiffs, @Assisted("selectedFile") @Nullable String pSelectedFile,
+  DiffDialog createDiffDialog(@NonNull File pProjectDirectory, @NonNull List<IFileDiff> pDiffs, @Assisted("selectedFile") @Nullable String pSelectedFile,
                               @Assisted("leftHeader") @Nullable String pLeftHeader, @Assisted("rightHeader") @Nullable String pRightHeader,
                               @Assisted("acceptChange") boolean pAcceptChange, @Assisted("showFileTree") boolean pShowFileTree);
 

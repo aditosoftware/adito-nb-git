@@ -27,6 +27,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.Subject;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
@@ -46,7 +47,6 @@ import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.*;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -224,7 +224,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public String commit(@NotNull String pMessage) throws AditoGitException
+  public String commit(@NonNull String pMessage) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git commit -m \"%s\"", pMessage));
     CommitCommand commit = git.commit();
@@ -259,7 +259,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public String commit(@NotNull String pMessage, @NotNull List<File> pFileList, @Nullable String pAuthorName, @Nullable String pAuthorEmail, boolean pIsAmend)
+  public String commit(@NonNull String pMessage, @NonNull List<File> pFileList, @Nullable String pAuthorName, @Nullable String pAuthorEmail, boolean pIsAmend)
       throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git commit %s -m \"%s\" %s", pFileList, pMessage, pIsAmend ? "--amend" : ""));
@@ -331,7 +331,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public boolean isUpToDate(@NotNull IBranch pCommit, @NotNull IBranch pCompareTo) throws AditoGitException
+  public boolean isUpToDate(@NonNull IBranch pCommit, @NonNull IBranch pCompareTo) throws AditoGitException
   {
     try
     {
@@ -489,9 +489,9 @@ public class RepositoryImpl implements IRepository
     }
   }
 
-  @NotNull
-  private IRebaseResult _handlePullResult(@NotNull Supplier<RebaseResult> pResultSupplier,
-                                          @Nullable String pCurrHeadName, @Nullable String pTargetName, @NotNull ICommit pForkPoint) throws AditoGitException
+  @NonNull
+  private IRebaseResult _handlePullResult(@NonNull Supplier<RebaseResult> pResultSupplier,
+                                          @Nullable String pCurrHeadName, @Nullable String pTargetName, @NonNull ICommit pForkPoint) throws AditoGitException
   {
     if (!pResultSupplier.get().getStatus().isSuccessful())
     {
@@ -585,7 +585,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public void applyPatch(@NotNull File pPatchFile)
+  public void applyPatch(@NonNull File pPatchFile)
   {
     logger.log(Level.INFO, "git apply {0}", pPatchFile.getAbsolutePath());
     try (InputStream inputStream = Files.newInputStream(pPatchFile.toPath()))
@@ -600,21 +600,21 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public void createPatch(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith, @NotNull OutputStream pWriteTo)
+  public void createPatch(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith, @NonNull OutputStream pWriteTo)
   {
     logger.log(Level.INFO, () -> String.format("git creating patch for diff of %s %s", pCompareWith == null ? "" : pCompareWith.getId(), pFilesToDiff));
     diff(pFilesToDiff, pCompareWith, pWriteTo);
   }
 
   @Override
-  public IFileDiff diffOffline(@NotNull String pString, @NotNull File pFile) throws IOException
+  public IFileDiff diffOffline(@NonNull String pString, @NonNull File pFile) throws IOException
   {
     return standAloneDiffProvider.diffOffline(new String(Files.readAllBytes(pFile.toPath()), fileSystemUtil.getEncoding(pFile)), pString);
   }
 
   @Override
-  @NotNull
-  public List<IChangeDelta> diff(@NotNull String pFileContents, File pCompareWith) throws IOException
+  @NonNull
+  public List<IChangeDelta> diff(@NonNull String pFileContents, File pCompareWith) throws IOException
   {
 
     String headId = ObjectId.toString(git.getRepository().resolve(Constants.HEAD));
@@ -633,8 +633,8 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  @NotNull
-  public List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo)
+  @NonNull
+  public List<IFileDiff> diff(@NonNull ICommit pOriginal, @Nullable ICommit pCompareTo)
   {
     return diff(pOriginal, pCompareTo, null);
   }
@@ -643,15 +643,15 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  @NotNull
+  @NonNull
   public List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith)
   {
     logger.log(Level.INFO, () -> String.format("git diff %s %s", pCompareWith == null ? "" : pCompareWith.getId(), pFilesToDiff));
     return diff(pFilesToDiff, pCompareWith, null);
   }
 
-  @NotNull
-  private List<IFileDiff> diff(@NotNull ICommit pOriginal, @Nullable ICommit pCompareTo, @Nullable OutputStream pWriteTo)
+  @NonNull
+  private List<IFileDiff> diff(@NonNull ICommit pOriginal, @Nullable ICommit pCompareTo, @Nullable OutputStream pWriteTo)
   {
     try
     {
@@ -692,7 +692,7 @@ public class RepositoryImpl implements IRepository
     }
   }
 
-  @NotNull
+  @NonNull
   private List<IFileDiff> diff(@Nullable List<File> pFilesToDiff, @Nullable ICommit pCompareWith, @Nullable OutputStream pWriteTo)
   {
     try
@@ -822,7 +822,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public IFileChangeType getStatusOfSingleFile(@NotNull File pFile)
+  public IFileChangeType getStatusOfSingleFile(@NonNull File pFile)
   {
     try
     {
@@ -898,7 +898,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public @NotNull Observable<Optional<IFileStatus>> getStatus()
+  public @NonNull Observable<Optional<IFileStatus>> getStatus()
   {
     return observableCache.calculateParallel("getStatus", () -> Observable.create(new _FileSystemChangeObservable(fileSystemObserver))
         .debounce(500, TimeUnit.MILLISECONDS)
@@ -911,7 +911,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void ignore(@NotNull List<File> pFiles) throws IOException
+  public void ignore(@NonNull List<File> pFiles) throws IOException
   {
     logger.log(Level.INFO, () -> String.format("git: Writing files %s into the .gitignore", pFiles));
     ignoreFacade.ignore(pFiles);
@@ -921,7 +921,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void exclude(@NotNull List<File> pFiles) throws IOException
+  public void exclude(@NonNull List<File> pFiles) throws IOException
   {
     logger.log(Level.INFO, () -> String.format("git: Writing files %s into the exclude file (info/exclude)", pFiles));
     ignoreFacade.exclude(pFiles);
@@ -931,7 +931,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void revertWorkDir(@NotNull List<File> pFiles) throws AditoGitException
+  public void revertWorkDir(@NonNull List<File> pFiles) throws AditoGitException
   {
     List<String> filesToCheckout = new ArrayList<>();
     List<String> newFiles = new ArrayList<>();
@@ -982,7 +982,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public void revertCommit(@NotNull List<ICommit> pCommitsToRevert) throws AditoGitException
+  public void revertCommit(@NonNull List<ICommit> pCommitsToRevert) throws AditoGitException
   {
     RevertCommand revertCommand = git.revert();
     pCommitsToRevert.forEach(pCommit -> revertCommand.include(ObjectId.fromString(pCommit.getId())));
@@ -1000,7 +1000,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void reset(@NotNull String pIdentifier, @NotNull EResetType pResetType) throws AditoGitException
+  public void reset(@NonNull String pIdentifier, @NonNull EResetType pResetType) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git reset --%s %s", pResetType, pIdentifier));
     try
@@ -1029,7 +1029,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void createBranch(@NotNull String pBranchName, @Nullable ICommit pStartPoint, boolean pCheckout) throws AditoGitException
+  public void createBranch(@NonNull String pBranchName, @Nullable ICommit pStartPoint, boolean pCheckout) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git branch %s", pBranchName));
     try
@@ -1063,7 +1063,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void deleteBranch(@NotNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException
+  public void deleteBranch(@NonNull String pBranchName, boolean pDeleteRemoteBranch, boolean pIsForceDelete) throws AditoGitException
   {
     String destination = BranchImpl.REF_STRING + BranchImpl.HEAD_STRING + pBranchName;
     try
@@ -1093,8 +1093,8 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  @NotNull
-  public Optional<IBlame> getBlame(@NotNull File pFile)
+  @NonNull
+  public Optional<IBlame> getBlame(@NonNull File pFile)
   {
     BlameCommand blameCommand = git
         .blame()
@@ -1116,7 +1116,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void checkout(@NotNull String pId) throws AditoGitException
+  public void checkout(@NonNull String pId) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format(CHECKOUT_FORMATTED_STRING, pId));
     try
@@ -1133,7 +1133,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void checkout(@NotNull IBranch pBranch) throws AditoGitException
+  public void checkout(@NonNull IBranch pBranch) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format(CHECKOUT_FORMATTED_STRING, pBranch));
     CheckoutCommand checkout = git.checkout().setName(pBranch.getName()).setCreateBranch(false).setStartPoint(pBranch.getName());
@@ -1151,7 +1151,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public void checkoutRemote(@NotNull IBranch pBranch, @NotNull String pLocalName) throws AditoGitException
+  public void checkoutRemote(@NonNull IBranch pBranch, @NonNull String pLocalName) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git checkout %s %s", pLocalName, pBranch));
     CheckoutCommand checkoutCommand = git.checkout().
@@ -1179,7 +1179,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  @NotNull
+  @NonNull
   public IMergeDetails getConflicts() throws AditoGitException
   {
     try
@@ -1252,7 +1252,7 @@ public class RepositoryImpl implements IRepository
    * @throws IOException if JGit has troubles reading the file containing the mergeHeads
    */
   @Nullable
-  private String _getMergeHead(@NotNull String pCurrentBranchId) throws IOException
+  private String _getMergeHead(@NonNull String pCurrentBranchId) throws IOException
   {
     List<ObjectId> mergeHeads = git.getRepository().readMergeHeads();
     if (mergeHeads != null && !mergeHeads.isEmpty())
@@ -1263,7 +1263,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  @NotNull
+  @NonNull
   public IMergeDetails getStashConflicts(String pStashedCommitId) throws AditoGitException
   {
     Set<String> conflictingFiles = getStatus().blockingFirst().map(IFileStatus::getConflicting).orElse(Collections.emptySet());
@@ -1280,9 +1280,9 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
-  public List<IMergeData> merge(@NotNull IBranch pParentBranch, @NotNull IBranch pBranchToMerge) throws AditoGitException
+  public List<IMergeData> merge(@NonNull IBranch pParentBranch, @NonNull IBranch pBranchToMerge) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("git merge %s %s", pParentBranch, pBranchToMerge));
     try
@@ -1361,7 +1361,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public List<IDiffInfo> getCommittedFiles(String pCommitId) throws AditoGitException
   {
@@ -1393,7 +1393,7 @@ public class RepositoryImpl implements IRepository
    * @param pDiffInfos    List of gathered DiffInfos so far (may be empty)
    * @throws AditoGitException if the diff operation encounters an error thrown by JGit
    */
-  private void _addChangedFiles(@NotNull RevCommit pThisCommit, @Nullable RevCommit pParentCommit, @NotNull List<IDiffInfo> pDiffInfos) throws AditoGitException
+  private void _addChangedFiles(@NonNull RevCommit pThisCommit, @Nullable RevCommit pParentCommit, @NonNull List<IDiffInfo> pDiffInfos) throws AditoGitException
   {
     List<IFileChangeType> fileChangeTypes = RepositoryImplHelper.doDiff(git, pThisCommit.getId(), pParentCommit).stream()
         .map(pDiffEntry -> {
@@ -1409,7 +1409,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public ICommit getCommit(@Nullable String pIdentifier) throws AditoGitException
   {
@@ -1431,14 +1431,14 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public DAGFilterIterator<ICommit> getCommits(@Nullable ICommitFilter pCommitFilter) throws AditoGitException
   {
     return RepositoryImplHelper.getCommits(git, pCommitFilter == null ? new CommitFilterImpl() : pCommitFilter);
   }
 
-  @NotNull
+  @NonNull
   @Override
   public List<ICommit> getUnPushedCommits() throws AditoGitException
   {
@@ -1502,7 +1502,7 @@ public class RepositoryImpl implements IRepository
     return String.valueOf(git.getRepository().getDirectory());
   }
 
-  @NotNull
+  @NonNull
   @Override
   public Observable<String> displayName()
   {
@@ -1527,7 +1527,7 @@ public class RepositoryImpl implements IRepository
    * {@inheritDoc}
    */
   @Override
-  public IBranch getBranch(@NotNull String pBranchString)
+  public IBranch getBranch(@NonNull String pBranchString)
   {
     try
     {
@@ -1547,7 +1547,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public Observable<Optional<List<IBranch>>> getBranches()
   {
@@ -1557,7 +1557,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public void createTag(@NotNull String pName, @Nullable String pCommitId)
+  public void createTag(@NonNull String pName, @Nullable String pCommitId)
   {
     try (RevWalk walk = new RevWalk(git.getRepository()))
     {
@@ -1572,7 +1572,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public List<String> deleteTag(ITag pTag)
   {
@@ -1589,7 +1589,7 @@ public class RepositoryImpl implements IRepository
     return deletedTags;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public Observable<List<ITag>> getTags()
   {
@@ -1602,7 +1602,7 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public List<ICommit> getStashedCommits() throws AditoGitException
   {
@@ -1643,9 +1643,9 @@ public class RepositoryImpl implements IRepository
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
-  public List<IMergeData> unStashChanges(@NotNull String pStashCommitId) throws AditoGitException
+  public List<IMergeData> unStashChanges(@NonNull String pStashCommitId) throws AditoGitException
   {
     logger.log(Level.INFO, () -> String.format("unstashing stash with commit id %s", pStashCommitId));
     int stashIndexForId = RepositoryImplHelper.getStashIndexForId(git, pStashCommitId);
@@ -1712,7 +1712,7 @@ public class RepositoryImpl implements IRepository
   }
 
   @Override
-  public @NotNull List<IRemote> getRemotes()
+  public @NonNull List<IRemote> getRemotes()
   {
     return getConfig().getRemotes();
   }
@@ -1751,7 +1751,7 @@ public class RepositoryImpl implements IRepository
    * @return the file for further interactions
    */
   @VisibleForTesting
-  @NotNull File _getIndexLockFile()
+  @NonNull File _getIndexLockFile()
   {
     return new File(git.getRepository().getDirectory(), "index.lock");
   }
@@ -1764,7 +1764,7 @@ public class RepositoryImpl implements IRepository
    * @return The Scheduler used for git status calls
    */
   @VisibleForTesting
-  @NotNull
+  @NonNull
   Scheduler getGitStatusScheduler()
   {
     return gitStatusScheduler;
@@ -1785,15 +1785,15 @@ public class RepositoryImpl implements IRepository
   private static class _FileSystemChangeObservable extends AbstractListenerObservable<IFileSystemChangeListener, IFileSystemObserver, Object>
   {
 
-    _FileSystemChangeObservable(@NotNull IFileSystemObserver pListenableValue)
+    _FileSystemChangeObservable(@NonNull IFileSystemObserver pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected IFileSystemChangeListener registerListener(@NotNull IFileSystemObserver pIFileSystemObserver,
-                                                         @NotNull IFireable<Object> pIFireable)
+    protected IFileSystemChangeListener registerListener(@NonNull IFileSystemObserver pIFileSystemObserver,
+                                                         @NonNull IFireable<Object> pIFireable)
     {
       IFileSystemChangeListener listener = () -> {
         if (UpdateFlag.getInstance().isActive())
@@ -1804,7 +1804,7 @@ public class RepositoryImpl implements IRepository
     }
 
     @Override
-    protected void removeListener(@NotNull IFileSystemObserver pListenableValue, @NotNull IFileSystemChangeListener pLISTENER)
+    protected void removeListener(@NonNull IFileSystemObserver pListenableValue, @NonNull IFileSystemChangeListener pLISTENER)
     {
       pListenableValue.removeListener(pLISTENER);
     }
@@ -1817,8 +1817,8 @@ public class RepositoryImpl implements IRepository
   {
 
     @Override
-    @NotNull
-    public TrackedBranchStatus getTrackedBranchStatus(@NotNull IBranch pBranch)
+    @NonNull
+    public TrackedBranchStatus getTrackedBranchStatus(@NonNull IBranch pBranch)
     {
       BranchTrackingStatus trackingStatus = null;
       if (pBranch.getType() == EBranchType.LOCAL)
@@ -1844,7 +1844,7 @@ public class RepositoryImpl implements IRepository
     private IgnoreNode ignoreNode;
 
     @Override
-    public boolean isIgnored(@NotNull File pFile)
+    public boolean isIgnored(@NonNull File pFile)
     {
       File gitIgnore = new File(getTopLevelDirectory(), ".gitignore");
       File gitExclude = new File(git.getRepository().getDirectory(), "info/exclude");
@@ -1887,7 +1887,7 @@ public class RepositoryImpl implements IRepository
     }
 
     @Override
-    public void ignore(@NotNull List<File> pFiles) throws IOException
+    public void ignore(@NonNull List<File> pFiles) throws IOException
     {
       File gitIgnore = new File(git.getRepository().getDirectory().getParent(), ".gitignore");
       try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
@@ -1902,7 +1902,7 @@ public class RepositoryImpl implements IRepository
     }
 
     @Override
-    public void exclude(@NotNull List<File> pFiles) throws IOException
+    public void exclude(@NonNull List<File> pFiles) throws IOException
     {
       File gitIgnore = new File(git.getRepository().getDirectory(), "info/exclude");
       try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(gitIgnore, true)))
@@ -1916,7 +1916,7 @@ public class RepositoryImpl implements IRepository
       _setLastModified(0);
     }
 
-    @NotNull
+    @NonNull
     @Override
     public Observable<Long> observeIgnorationChange()
     {

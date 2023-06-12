@@ -2,7 +2,7 @@ package de.adito.git.gui.swing;
 
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -28,7 +28,7 @@ public class InputFieldTablePanel extends JPanel
    * @param pFieldContent list with predermined content of the inputField. Use an empty string if the field should show the placeholder
    * @param pPlaceholders list of placeholders
    */
-  public InputFieldTablePanel(@NotNull List<String> pFieldTitles, @NotNull List<String> pFieldContent, @NotNull List<String> pPlaceholders)
+  public InputFieldTablePanel(@NonNull List<String> pFieldTitles, @NonNull List<String> pFieldContent, @NonNull List<String> pPlaceholders)
   {
     double fill = TableLayout.FILL;
     double pref = TableLayout.PREFERRED;

@@ -6,7 +6,7 @@ import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.SwingUtil;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -46,7 +46,7 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
    * @param pLineChangeMarkingModel Model that keeps track of the y coordinates for the colored areas (representation of the changes) that this Panel should draw
    * @param pViewport               ViewPort that is around the editorPane. Required so we know when the view coordinates of the viewPort change, and we can update this panel
    */
-  LineNumPanel(@NotNull JEditorPane pEditorPane, @NotNull LineNumberModel pLineNumberModel, @NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull JViewport pViewport)
+  LineNumPanel(@NonNull JEditorPane pEditorPane, @NonNull LineNumberModel pLineNumberModel, @NonNull LineChangeMarkingModel pLineChangeMarkingModel, @NonNull JViewport pViewport)
   {
     editorPane = pEditorPane;
     editorInsets = pEditorPane.getInsets();
@@ -119,13 +119,13 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
   }
 
   @Override
-  public void lineNumberColorsChanged(@NotNull List<LineNumberColor> pNewValue)
+  public void lineNumberColorsChanged(@NonNull List<LineNumberColor> pNewValue)
   {
     recalcAndRedraw();
   }
 
   @Override
-  public void lineNumbersChanged(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
   {
     recalcAndRedraw();
   }

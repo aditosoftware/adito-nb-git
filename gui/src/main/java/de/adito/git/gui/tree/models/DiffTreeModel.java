@@ -8,7 +8,7 @@ import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.TreeNode;
@@ -26,7 +26,7 @@ public class DiffTreeModel extends ObservingTreeModel<IDiffInfo> implements IDis
 
   private final Comparator<TreeNode> comparator = _getDefaultComparator();
 
-  public DiffTreeModel(@NotNull File pProjectDirectory)
+  public DiffTreeModel(@NonNull File pProjectDirectory)
   {
     super(pProjectDirectory);
   }
@@ -42,8 +42,8 @@ public class DiffTreeModel extends ObservingTreeModel<IDiffInfo> implements IDis
    *
    * @param pList list of DiffInfos to display
    */
-  @NotNull
-  private List<TreeUpdate> _calculateTree(@NotNull List<IDiffInfo> pList)
+  @NonNull
+  private List<TreeUpdate> _calculateTree(@NonNull List<IDiffInfo> pList)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();
@@ -73,8 +73,8 @@ public class DiffTreeModel extends ObservingTreeModel<IDiffInfo> implements IDis
    * @param pList     list of DiffInfos to display
    * @param pRootNode root node of the tree
    */
-  @NotNull
-  private List<TreeUpdate> _updateNodes(@NotNull List<IDiffInfo> pList, @Nullable FileChangeTypeNode pRootNode)
+  @NonNull
+  private List<TreeUpdate> _updateNodes(@NonNull List<IDiffInfo> pList, @Nullable FileChangeTypeNode pRootNode)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     List<IFileChangeType> allChangedFiles = _getAllChangedFiles(pList);
@@ -109,7 +109,7 @@ public class DiffTreeModel extends ObservingTreeModel<IDiffInfo> implements IDis
   /**
    * @param pList the up-to-date list of DiffInfos the tree should display
    */
-  void _treeChanged(@NotNull List<IDiffInfo> pList, Runnable... pDoAfter)
+  void _treeChanged(@NonNull List<IDiffInfo> pList, Runnable... pDoAfter)
   {
     try
     {
@@ -131,8 +131,8 @@ public class DiffTreeModel extends ObservingTreeModel<IDiffInfo> implements IDis
    * @param pRootNode the root node of the tree
    * @param diffInfo  DiffInfo for which a commit node should be created
    */
-  @NotNull
-  private List<TreeUpdate> _handleCommitNode(@NotNull FileChangeTypeNode pRootNode, @NotNull IDiffInfo diffInfo)
+  @NonNull
+  private List<TreeUpdate> _handleCommitNode(@NonNull FileChangeTypeNode pRootNode, @NonNull IDiffInfo diffInfo)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> fileHashMap = _calculateMap(diffInfo.getChangedFiles());

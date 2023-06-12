@@ -8,7 +8,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.LineNumberModel;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -59,25 +59,25 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
    * @param pConflictSide EConflictSide whose deltas the LineNumberModel should track
    * @return LineNumberModel
    */
-  @NotNull
-  public LineNumberModel createLineNumberModel(@NotNull EConflictSide pConflictSide)
+  @NonNull
+  public LineNumberModel createLineNumberModel(@NonNull EConflictSide pConflictSide)
   {
     return diffPaneContainer.createLineNumberModel(pConflictSide == EConflictSide.YOURS ? yourTextChangeSubject : theirTextChangeSubject);
   }
 
-  @NotNull
+  @NonNull
   public DiffPaneContainer getPaneContainer()
   {
     return diffPaneContainer;
   }
 
-  @NotNull
+  @NonNull
   public JScrollPane getScrollPane()
   {
     return diffPaneContainer.getScrollPane();
   }
 
-  @NotNull
+  @NonNull
   public JEditorPane getEditorPane()
   {
     return editorPane;
@@ -184,12 +184,12 @@ public class ForkPointPaneWrapper implements IDiscardable, IPaneWrapper
 
   private static class _ChangesEventPair
   {
-    @NotNull
+    @NonNull
     private final IDeltaTextChangeEvent yourTextChangeEvent;
-    @NotNull
+    @NonNull
     private final IDeltaTextChangeEvent theirsTextChangeEvent;
 
-    private _ChangesEventPair(@NotNull IDeltaTextChangeEvent pYourTextChangeEvent, @NotNull IDeltaTextChangeEvent pTheirsTextChangeEvent)
+    private _ChangesEventPair(@NonNull IDeltaTextChangeEvent pYourTextChangeEvent, @NonNull IDeltaTextChangeEvent pTheirsTextChangeEvent)
     {
       yourTextChangeEvent = pYourTextChangeEvent;
       theirsTextChangeEvent = pTheirsTextChangeEvent;

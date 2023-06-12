@@ -1,7 +1,7 @@
 package de.adito.git.api.data;
 
 import de.adito.git.api.data.diff.IFileChangeType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public interface IDiffInfo
    *
    * @return ICommit that describes the commit that was used as the base for the diff
    */
-  @NotNull
+  @NonNull
   ICommit getBaseCommit();
 
   /**
@@ -26,7 +26,7 @@ public interface IDiffInfo
    *
    * @return ICommit that describes the parent commit for this diff, or the oldest commit if several commits were selected
    */
-  @NotNull
+  @NonNull
   ICommit getParentCommit();
 
   /**
@@ -34,7 +34,7 @@ public interface IDiffInfo
    *
    * @return List with the changed files
    */
-  @NotNull
+  @NonNull
   List<IFileChangeType> getChangedFiles();
 
 }

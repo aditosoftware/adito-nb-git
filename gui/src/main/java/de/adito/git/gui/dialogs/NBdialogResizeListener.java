@@ -2,7 +2,7 @@ package de.adito.git.gui.dialogs;
 
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.swing.ComponentResizeListener;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -60,7 +60,7 @@ class NBdialogResizeListener implements PropertyChangeListener
    * @param pSearchedClass Class to search in the components of pComponent
    * @return true if one of the components of pComponent is of type pSearchedClass, false otherwise
    */
-  private static boolean _doesNotContainComponentOfType(@NotNull JComponent pComponent, @NotNull Class<?> pSearchedClass)
+  private static boolean _doesNotContainComponentOfType(@NonNull JComponent pComponent, @NonNull Class<?> pSearchedClass)
   {
     for (Component subComponent : pComponent.getComponents())
     {
@@ -76,7 +76,7 @@ class NBdialogResizeListener implements PropertyChangeListener
    * @return the component of the components contained in pComponent that is of type pSearchedClass, null if none are of that class
    */
   @Nullable
-  private static Component _getComponentOfType(@NotNull JComponent pComponent, @NotNull Class<?> pSearchedClass)
+  private static Component _getComponentOfType(@NonNull JComponent pComponent, @NonNull Class<?> pSearchedClass)
   {
     for (Component subComponent : pComponent.getComponents())
     {

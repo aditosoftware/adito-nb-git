@@ -1,7 +1,7 @@
 package de.adito.git.api.data.diff;
 
 import de.adito.git.impl.data.diff.EConflictType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.Color;
 
@@ -18,13 +18,13 @@ public interface IDelta
    *
    * @return Type of change that happened to the line part
    */
-  @NotNull
+  @NonNull
   EChangeType getChangeType();
 
   /**
    * @return EConflictType that this delta has
    */
-  @NotNull
+  @NonNull
   EConflictType getConflictType();
 
   /**
@@ -48,7 +48,7 @@ public interface IDelta
    *
    * @return Color to use for marking this delta
    */
-  @NotNull
+  @NonNull
   Color getDiffColor();
 
   /**
@@ -56,6 +56,6 @@ public interface IDelta
    *
    * @return Color to use for marking this delta if the marking should be in the background
    */
-  @NotNull
+  @NonNull
   Color getSecondaryDiffColor();
 }

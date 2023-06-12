@@ -7,7 +7,7 @@ import de.adito.git.api.data.ICommit;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.util.List;
@@ -27,7 +27,7 @@ class NewBranchFromCommitAction extends AbstractNewBranchAction
    */
   @Inject
   NewBranchFromCommitAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, @Assisted Observable<Optional<IRepository>> pRepository,
-                            @Assisted Observable<Optional<List<ICommit>>> pStartingPoint, @NotNull INotifyUtil pNotifyUtil)
+                            @Assisted Observable<Optional<List<ICommit>>> pStartingPoint, @NonNull INotifyUtil pNotifyUtil)
   {
     super(pProgressFacade, pDialogProvider, pRepository,
           pStartingPoint.map(pOpt -> pOpt.map(pList -> pList.size() == 1 ? pList.get(0) : null)),

@@ -3,7 +3,7 @@ package de.adito.git.gui.guice;
 import com.google.inject.Module;
 import com.google.inject.*;
 import com.google.inject.spi.Elements;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,8 +25,8 @@ public class GuiceUtil
    * @param pToRemove the binding that should be removed/filtered from the module
    * @return a new Module all the bindings/factories/stuff from the passed Module, minus the filtered bindings
    */
-  @NotNull
-  public static Module filterModule(@NotNull Module pToFilter, @NotNull Key<?> pToRemove)
+  @NonNull
+  public static Module filterModule(@NonNull Module pToFilter, @NonNull Key<?> pToRemove)
   {
     return Elements.getModule(Elements.getElements(pToFilter).stream().filter(element -> {
       if (element instanceof Binding)
@@ -41,8 +41,8 @@ public class GuiceUtil
    * @param pToRemove the bindings that should be removed/filtered from the module
    * @return a new Module all the bindings/factories/stuff from the passed Module, minus the filtered bindings
    */
-  @NotNull
-  private static Module filterModule(@NotNull Module pToFilter, @NotNull List<Key<?>> pToRemove)
+  @NonNull
+  private static Module filterModule(@NonNull Module pToFilter, @NonNull List<Key<?>> pToRemove)
   {
     return Elements.getModule(Elements.getElements(pToFilter).stream().filter(element -> {
       if (element instanceof Binding)
@@ -57,8 +57,8 @@ public class GuiceUtil
    * @param pToRemove the bindings that should be removed/filtered from the module
    * @return a new Module all the bindings/factories/stuff from the passed Module, minus the filtered bindings
    */
-  @NotNull
-  public static Module filterModule(@NotNull Module pToFilter, @NotNull Key<?>... pToRemove)
+  @NonNull
+  public static Module filterModule(@NonNull Module pToFilter, @NonNull Key<?>... pToRemove)
   {
     return filterModule(pToFilter, Arrays.asList(pToRemove));
   }

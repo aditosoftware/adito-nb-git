@@ -8,7 +8,7 @@ import de.adito.git.api.IIgnoreFacade;
 import de.adito.git.api.data.IRepositoryDescription;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.filesystems.*;
 import org.openide.util.Lookup;
@@ -38,7 +38,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
    * @param pGitIgnoreFacade       IIgnoreFacade that can tell if a file is on the git ignore list
    */
   @SuppressWarnings("UnstableApiUsage")
-  public FileSystemObserverImpl(@NotNull IRepositoryDescription pRepositoryDescription, @NotNull IIgnoreFacade pGitIgnoreFacade)
+  public FileSystemObserverImpl(@NonNull IRepositoryDescription pRepositoryDescription, @NonNull IIgnoreFacade pGitIgnoreFacade)
   {
     root = FileUtil.toFileObject(new File(pRepositoryDescription.getPath()));
     gitIgnoreFacade = pGitIgnoreFacade;
@@ -80,7 +80,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
   }
 
   @Override
-  public void addListener(@NotNull IFileSystemChangeListener pChangeListener)
+  public void addListener(@NonNull IFileSystemChangeListener pChangeListener)
   {
     synchronized (fileSystemChangeListeners)
     {
@@ -89,7 +89,7 @@ class FileSystemObserverImpl implements IFileSystemObserver
   }
 
   @Override
-  public void removeListener(@NotNull IFileSystemChangeListener pToRemove)
+  public void removeListener(@NonNull IFileSystemChangeListener pToRemove)
   {
     synchronized (fileSystemChangeListeners)
     {

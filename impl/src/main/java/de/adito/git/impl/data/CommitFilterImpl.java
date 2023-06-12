@@ -3,7 +3,7 @@ package de.adito.git.impl.data;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.ICommitFilter;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -67,7 +67,7 @@ public class CommitFilterImpl implements ICommitFilter
   }
 
   @Override
-  public @NotNull List<File> getFiles()
+  public @NonNull List<File> getFiles()
   {
     return fileList;
   }

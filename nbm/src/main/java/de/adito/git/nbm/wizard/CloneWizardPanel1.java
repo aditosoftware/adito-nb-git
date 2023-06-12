@@ -4,7 +4,7 @@ import de.adito.git.api.ICloneRepo;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.prefs.NBPrefStore;
 import de.adito.git.nbm.sidebar.DocumentUpdateChangeListener;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -155,7 +155,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
    * @param pUrl URL to check
    * @return true if the URL matches a valid git repo URL schema
    */
-  protected static boolean _isValidUrlPattern(@NotNull String pUrl)
+  protected static boolean _isValidUrlPattern(@NonNull String pUrl)
   {
     return SSH_URL_PATTERN.matcher(pUrl).matches() || HTTP_URL_PATTERN.matcher(pUrl).matches();
   }
@@ -203,7 +203,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
    *
    * @param pProjectPath The path of the project
    */
-  private void _checkValidPath(@NotNull String pProjectPath)
+  private void _checkValidPath(@NonNull String pProjectPath)
   {
     if (!pProjectPath.isEmpty())
     {
@@ -222,7 +222,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
   /**
    * @param pFileName the file to check
    */
-  private void _checkValidFileName(@NotNull String pFileName)
+  private void _checkValidFileName(@NonNull String pFileName)
   {
     File f = new File(pFileName);
     try
@@ -240,7 +240,7 @@ public class CloneWizardPanel1 implements org.openide.WizardDescriptor.Panel<Wiz
    *
    * @param pUrl url input for the repository
    */
-  private void _checkValidRepository(@NotNull String pUrl)
+  private void _checkValidRepository(@NonNull String pUrl)
   {
     if (!pUrl.isEmpty() && !_isValidUrlPattern(pUrl))
     {

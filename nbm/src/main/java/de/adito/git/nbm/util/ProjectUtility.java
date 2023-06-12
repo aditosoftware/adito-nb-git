@@ -1,6 +1,6 @@
 package de.adito.git.nbm.util;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
@@ -32,7 +32,7 @@ public class ProjectUtility
    * @return The project of a {@link Node}
    */
   @Nullable
-  public static Project findProject(@NotNull Node pNode)
+  public static Project findProject(@NonNull Node pNode)
   {
     return _findProject(pNode.getLookup());
   }
@@ -44,7 +44,7 @@ public class ProjectUtility
    * @param pTopComponentRegistry Netbeans TopComponentRegistry
    * @return currently selected project, wrapped in Optional in case no project can be found
    */
-  @NotNull
+  @NonNull
   public static Optional<Project> findProjectFromActives(TopComponent.Registry pTopComponentRegistry)
   {
     TopComponent activatedTopComponent = pTopComponentRegistry.getActivated();
@@ -69,7 +69,7 @@ public class ProjectUtility
    * @return The project of a {@link Lookup}
    */
   @Nullable
-  private static Project _findProject(@NotNull Lookup pLookup)
+  private static Project _findProject(@NonNull Lookup pLookup)
   {
     Project project = pLookup.lookup(Project.class);
     if (project == null)

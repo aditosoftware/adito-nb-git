@@ -21,7 +21,7 @@ import de.adito.util.reactive.cache.ObservableCache;
 import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -92,8 +92,8 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
   /**
    * sets up the GUI
    */
-  private void _initGui(@NotNull IIconLoader pIconLoader, @NotNull File pProjectDirectory, @Nullable String pLeftHeader, @Nullable String pRightHeader,
-                        @NotNull IAsyncProgressFacade pProgressFacade)
+  private void _initGui(@NonNull IIconLoader pIconLoader, @NonNull File pProjectDirectory, @Nullable String pLeftHeader, @Nullable String pRightHeader,
+                        @NonNull IAsyncProgressFacade pProgressFacade)
   {
     setLayout(new BorderLayout());
     setMinimumSize(PANEL_MIN_SIZE);
@@ -155,7 +155,7 @@ class DiffDialog extends AditoBaseDialog<Object> implements IDiscardable
                                    }));
   }
 
-  @NotNull
+  @NonNull
   private Observable<Optional<IFileDiff>> _observeFileDiffs()
   {
     return observableCache.calculateParallel("fileDiffs", () -> fileTree.getSelectionObservable()

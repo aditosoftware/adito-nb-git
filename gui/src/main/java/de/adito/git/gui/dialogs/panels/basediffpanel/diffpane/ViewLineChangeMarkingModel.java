@@ -1,7 +1,7 @@
 package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.IDiscardable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -19,18 +19,18 @@ import java.util.List;
 public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMarkingsListener> implements IDiscardable, ChangeListener, LineNumberColorsListener
 {
 
-  @NotNull
+  @NonNull
   private final LineChangeMarkingModel lineChangeMarkingModel;
-  @NotNull
+  @NonNull
   private final JViewport viewport;
-  @NotNull
+  @NonNull
   private List<LineNumberColor> lineNumberColors = List.of();
 
   /**
    * @param pLineChangeMarkingModel LineChangeMarkingModel with the absolute positions of the LineNumberColors
    * @param pViewport               ViewPort whose view we track
    */
-  public ViewLineChangeMarkingModel(@NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull JViewport pViewport)
+  public ViewLineChangeMarkingModel(@NonNull LineChangeMarkingModel pLineChangeMarkingModel, @NonNull JViewport pViewport)
   {
     lineChangeMarkingModel = pLineChangeMarkingModel;
     lineChangeMarkingModel.addListener(this);
@@ -50,7 +50,7 @@ public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMa
   /**
    * @return List of all LineNumberColors this model tracks, with their position based on the viewports position
    */
-  @NotNull
+  @NonNull
   public List<LineNumberColor> getLineNumberColors()
   {
     return lineNumberColors;
@@ -61,7 +61,7 @@ public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMa
    *
    * @param pViewPortRect Rectangle describing the current position of the viewPort
    */
-  private void calculateRelativeLineNumberColors(@NotNull List<LineNumberColor> pStaticLineNumberColors, @NotNull Rectangle pViewPortRect)
+  private void calculateRelativeLineNumberColors(@NonNull List<LineNumberColor> pStaticLineNumberColors, @NonNull Rectangle pViewPortRect)
   {
     // store a reference to the list so that if the list of this object is exchanged (because of some change) we can continue iterating over the
     // "copy". This only works because the viewCoordinatesColors list is never changed, only re-assigned (which is why we need the pointer here)
@@ -83,7 +83,7 @@ public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMa
   }
 
   @Override
-  public void lineNumberColorsChanged(@NotNull List<LineNumberColor> pNewValue)
+  public void lineNumberColorsChanged(@NonNull List<LineNumberColor> pNewValue)
   {
     calculateRelativeLineNumberColors(pNewValue, viewport.getViewRect());
   }
@@ -93,7 +93,7 @@ public class ViewLineChangeMarkingModel extends ListenableModel<ViewLineChangeMa
    *
    * @param pLineNumberColors new list of LineNumberColors
    */
-  private void notifyListeners(@NotNull List<LineNumberColor> pLineNumberColors)
+  private void notifyListeners(@NonNull List<LineNumberColor> pLineNumberColors)
   {
     for (ViewLineChangeMarkingsListener listener : listeners)
     {

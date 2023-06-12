@@ -1,7 +1,7 @@
 package de.adito.git.nbm;
 
 import de.adito.git.api.IKeyStore;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.keyring.Keyring;
 
@@ -11,19 +11,19 @@ import org.netbeans.api.keyring.Keyring;
 public class KeyStoreImpl implements IKeyStore
 {
   @Override
-  public void save(@NotNull String pKey, @NotNull char[] pPassword, @Nullable String pDescription)
+  public void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription)
   {
     Keyring.save(pKey, pPassword, pDescription);
   }
 
   @Override
-  public void delete(@NotNull String pKey)
+  public void delete(@NonNull String pKey)
   {
     Keyring.delete(pKey);
   }
 
   @Override
-  public char[] read(@NotNull String pKey)
+  public char[] read(@NonNull String pKey)
   {
     return Keyring.read(pKey);
   }

@@ -3,7 +3,7 @@ package de.adito.git.gui.window.content;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -25,7 +25,7 @@ public abstract class ObservingLabelController<TYPE> implements Disposable
   {
   };
 
-  protected ObservingLabelController(@NotNull String pLabelText, @NotNull Observable<Optional<TYPE>> pObservable)
+  protected ObservingLabelController(@NonNull String pLabelText, @NonNull Observable<Optional<TYPE>> pObservable)
   {
     label = new JLabel(pLabelText);
     disposable.add(pObservable.subscribe(pOpt -> pOpt.ifPresentOrElse(this::updateLabel, () -> updateLabel(null))));

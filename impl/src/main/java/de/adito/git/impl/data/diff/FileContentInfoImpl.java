@@ -5,8 +5,8 @@ import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.diff.ELineEnding;
 import de.adito.git.api.data.diff.IFileContentInfo;
 import de.adito.git.impl.Util;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
@@ -64,7 +64,7 @@ public class FileContentInfoImpl implements IFileContentInfo
    * @param pUnCleanString String that should be cleaned such that the newlines are always only \n
    * @return String with only \n as newlines
    */
-  @NotNull
+  @NonNull
   private static String _cleanString(@Nullable String pUnCleanString)
   {
     if (pUnCleanString != null)

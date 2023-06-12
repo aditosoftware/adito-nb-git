@@ -9,10 +9,10 @@ import de.adito.git.api.*;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.impl.http.GitHttpUtil;
+import lombok.NonNull;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -87,7 +87,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
    *
    * @param pPassword the password as String
    */
-  public void setPassword(@NotNull String pPassword)
+  public void setPassword(@NonNull String pPassword)
   {
     gitUserInfo.setPassword(pPassword);
   }
@@ -97,7 +97,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
    *
    * @param pPath path to the location of the ssh key
    */
-  public void setSSHKeyLocation(@NotNull String pPath)
+  public void setSSHKeyLocation(@NonNull String pPath)
   {
     sshKeyPath = pPath;
   }
@@ -105,7 +105,7 @@ class TransportConfigCallbackImpl implements TransportConfigCallback
   /**
    * @param pPassPhrase String with passPhrase for the ssh key
    */
-  public void setPassPhrase(@NotNull String pPassPhrase)
+  public void setPassPhrase(@NonNull String pPassPhrase)
   {
     gitUserInfo.setPassPhrase(pPassPhrase);
   }

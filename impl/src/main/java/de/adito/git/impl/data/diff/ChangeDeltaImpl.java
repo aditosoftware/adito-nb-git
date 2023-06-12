@@ -2,6 +2,7 @@ package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.EnumMappings;
+import lombok.NonNull;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.diff.*;
@@ -35,14 +36,14 @@ public final class ChangeDeltaImpl implements IChangeDelta
   @ToString.Exclude
   private final TextEventIndexUpdater textEventIndexUpdater = new TextEventIndexUpdater();
 
-  public ChangeDeltaImpl(@NotNull Edit pEdit, @NotNull IChangeStatus pChangeStatus, @NotNull ChangeDeltaTextOffsets pChangeDeltaTextOffsets,
-                         @NotNull ITextVersionProvider pTextVersionProvider)
+  public ChangeDeltaImpl(@NonNull Edit pEdit, @NonNull IChangeStatus pChangeStatus, @NonNull ChangeDeltaTextOffsets pChangeDeltaTextOffsets,
+                         @NonNull ITextVersionProvider pTextVersionProvider)
   {
     this(pEdit, pChangeStatus, pChangeDeltaTextOffsets, pTextVersionProvider, null);
   }
 
-  private ChangeDeltaImpl(@NotNull Edit pEdit, @NotNull IChangeStatus pChangeStatus, @NotNull ChangeDeltaTextOffsets pChangeDeltaTextOffsets,
-                          @NotNull ITextVersionProvider pTextVersionProvider, @Nullable List<ILinePartChangeDelta> pLinePartChangeDeltas)
+  private ChangeDeltaImpl(@NonNull Edit pEdit, @NonNull IChangeStatus pChangeStatus, @NonNull ChangeDeltaTextOffsets pChangeDeltaTextOffsets,
+                          @NonNull ITextVersionProvider pTextVersionProvider, @Nullable List<ILinePartChangeDelta> pLinePartChangeDeltas)
   {
     changeStatus = pChangeStatus;
     startLineIndexOld = pEdit.getBeginA();
@@ -76,13 +77,13 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public @NotNull EChangeType getChangeType()
+  public @NonNull EChangeType getChangeType()
   {
     return changeStatus.getChangeType();
   }
 
   @Override
-  public @NotNull EConflictType getConflictType()
+  public @NonNull EConflictType getConflictType()
   {
     return changeStatus.getConflictType();
   }
@@ -100,14 +101,14 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  @NotNull
+  @NonNull
   public Color getDiffColor()
   {
     return changeStatus.getDiffColor();
   }
 
   @Override
-  @NotNull
+  @NonNull
   public Color getSecondaryDiffColor()
   {
     return changeStatus.getSecondaryDiffColor();
@@ -279,8 +280,8 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider,
-                                        @NotNull IFileDiffHeader pFileDiffHeader)
+  public ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NonNull EConflictSide pConflictSide, @NonNull ResolveOptionsProvider pResolveOptionsProvider,
+                                        @NonNull IFileDiffHeader pFileDiffHeader)
   {
 
     ConflictType conflictType;
@@ -595,7 +596,7 @@ public final class ChangeDeltaImpl implements IChangeDelta
   }
 
   @Override
-  public boolean isPartOfDelta(int pIndex, @NotNull EChangeSide pChangeSide)
+  public boolean isPartOfDelta(int pIndex, @NonNull EChangeSide pChangeSide)
   {
     if (pChangeSide.equals(EChangeSide.NEW))
     {
@@ -684,9 +685,9 @@ public final class ChangeDeltaImpl implements IChangeDelta
       startTextIndexNew = pStartTextIndexNew;
     }
 
-    @NotNull
+    @NonNull
     @Override
-    public ILinePartChangeDelta createDelta(@NotNull Edit pEdit, @NotNull ChangeDeltaTextOffsets pDeltaTextOffsets)
+    public ILinePartChangeDelta createDelta(@NonNull Edit pEdit, @NonNull ChangeDeltaTextOffsets pDeltaTextOffsets)
     {
       return new LinePartChangeDeltaImpl(EnumMappings.toChangeType(pEdit.getType()), pDeltaTextOffsets.applyOffset(startTextIndexOld, startTextIndexNew));
     }

@@ -20,7 +20,7 @@ import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
 import de.adito.git.impl.data.diff.ResolveOptionsProvider;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -65,8 +65,8 @@ public class MergeConflictSequence
    * @param pDialogTitle         Optional title of the dialog, may be left out. Only first parameter is used
    * @return Result of the mergeConflictDialog
    */
-  @NotNull
-  public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(@NotNull Observable<Optional<IRepository>> pRepo, @NotNull IMergeDetails pMergeDetails,
+  @NonNull
+  public IMergeConflictDialogResult<?, ?> performMergeConflictSequence(@NonNull Observable<Optional<IRepository>> pRepo, @NonNull IMergeDetails pMergeDetails,
                                                                        boolean pShowOnlyConflicting, String... pDialogTitle)
   {
     boolean showAutoResolveButton = true;
@@ -104,8 +104,8 @@ public class MergeConflictSequence
    * @param pMergeConflicts List of merge conflicts to try and auto-resolve
    * @param pRepository     Repository, used to perform an add one the conflicting files to mark them as resolved
    */
-  public static void performAutoResolve(@NotNull List<IMergeData> pMergeConflicts, @NotNull IRepository pRepository, @NotNull IAsyncProgressFacade pProgressFacade,
-                                        @NotNull INotifyUtil pNotifyUtil, @NotNull ResolveOptionsProvider pResolveOptionsProvider, @NotNull IDialogProvider pDialogProvider)
+  public static void performAutoResolve(@NonNull List<IMergeData> pMergeConflicts, @NonNull IRepository pRepository, @NonNull IAsyncProgressFacade pProgressFacade,
+                                        @NonNull INotifyUtil pNotifyUtil, @NonNull ResolveOptionsProvider pResolveOptionsProvider, @NonNull IDialogProvider pDialogProvider)
   {
     int numConflictsTotal = pMergeConflicts.size();
     List<IMergeData> resolvedConflicts = new ArrayList<>();
@@ -181,7 +181,7 @@ public class MergeConflictSequence
    * @param pConflictSide      Side of the IMergeDatas that should be accepted
    * @param pRepository        Repository to call add to mark files as resolved
    */
-  public static void acceptDefaultVersion(@NotNull List<IMergeData> pSelectedMergeDiff, @NotNull EConflictSide pConflictSide, @NotNull IRepository pRepository)
+  public static void acceptDefaultVersion(@NonNull List<IMergeData> pSelectedMergeDiff, @NonNull EConflictSide pConflictSide, @NonNull IRepository pRepository)
   {
 
     try

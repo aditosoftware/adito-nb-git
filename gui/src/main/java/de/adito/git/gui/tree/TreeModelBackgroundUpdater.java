@@ -2,7 +2,7 @@ package de.adito.git.gui.tree;
 
 import de.adito.git.api.exception.InterruptedRuntimeException;
 import de.adito.git.gui.tree.models.BaseObservingTreeModel;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.tree.MutableTreeNode;
@@ -47,7 +47,7 @@ public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>,
   }
 
   @Override
-  @NotNull
+  @NonNull
   protected List<TreeUpdate> doInBackground()
   {
     try
@@ -100,7 +100,7 @@ public class TreeModelBackgroundUpdater<T> extends SwingWorker<List<TreeUpdate>,
     }
   }
 
-  private static int _findSortedIndex(@NotNull MutableTreeNode pParent, @NotNull MutableTreeNode pToInsert, @NotNull Comparator<TreeNode> pComparator)
+  private static int _findSortedIndex(@NonNull MutableTreeNode pParent, @NonNull MutableTreeNode pToInsert, @NonNull Comparator<TreeNode> pComparator)
   {
     for (int index = 0; index < pParent.getChildCount(); index++)
     {

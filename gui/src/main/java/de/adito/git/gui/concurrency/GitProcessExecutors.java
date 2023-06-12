@@ -1,7 +1,7 @@
 package de.adito.git.gui.concurrency;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,14 +24,14 @@ public class GitProcessExecutors
                                                                                                       .setNameFormat("GitBackgroundThread-%d")
                                                                                                       .build());
 
-  @NotNull
-  public static Future<?> submit(@NotNull Runnable pRunnable)
+  @NonNull
+  public static Future<?> submit(@NonNull Runnable pRunnable)
   {
     return DEFAULT_BACKGROUND_EXECUTOR.submit(pRunnable);
   }
 
-  @NotNull
-  public static <T> Future<T> submit(@NotNull Runnable pRunnable, @NotNull T pResult)
+  @NonNull
+  public static <T> Future<T> submit(@NonNull Runnable pRunnable, @NonNull T pResult)
   {
     return DEFAULT_BACKGROUND_EXECUTOR.submit(pRunnable, pResult);
   }

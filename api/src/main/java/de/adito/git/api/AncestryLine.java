@@ -2,7 +2,7 @@ package de.adito.git.api;
 
 
 import de.adito.git.api.data.ICommit;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.Color;
 
@@ -38,7 +38,7 @@ public class AncestryLine
    * @param pColor      Color of the line
    * @param pLineType   LineType, INFANT for unborn lines, FULL for lines that are already active in the row of nextCommit
    */
-  public AncestryLine(@NotNull ICommit pNextCommit, @NotNull Color pColor, @NotNull LineType pLineType)
+  public AncestryLine(@NonNull ICommit pNextCommit, @NonNull Color pColor, @NonNull LineType pLineType)
   {
     nextCommit = pNextCommit;
     color = pColor;

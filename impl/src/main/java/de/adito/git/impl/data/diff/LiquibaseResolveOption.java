@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -22,15 +22,15 @@ import java.util.*;
 public class LiquibaseResolveOption extends XMLBasedResolveOption
 {
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff,
-                                                     @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff,
+                                                     @NonNull EConflictSide pConflictSide, @NonNull ConflictPair pConflictPair)
   {
     return new ArrayList<>(pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false));
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
-                                    @NotNull IFileDiffHeader pFileDiffHeader)
+  public boolean canResolveConflict(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherDelta, @NonNull EConflictSide pConflictSide,
+                                    @NonNull IFileDiffHeader pFileDiffHeader)
   {
     if (!"xml".equals(pFileDiffHeader.getFileExtension(EChangeSide.NEW)))
       return false;
@@ -68,7 +68,7 @@ public class LiquibaseResolveOption extends XMLBasedResolveOption
    * @return the attribute "file" of the node, or null if no such attribute exists
    */
   @Nullable
-  private String getLiquibaseFileName(@NotNull Node pNode)
+  private String getLiquibaseFileName(@NonNull Node pNode)
   {
     return Optional.ofNullable(pNode.getAttributes().getNamedItem("file")).map(Node::getTextContent).orElse(null);
   }

@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.Iterator;
 import java.util.List;
@@ -18,5 +18,5 @@ public interface ICommitHistoryItemsIterator extends Iterator<CommitHistoryTreeL
    * @param pNumEntries number of entries that should be attempted to read
    * @return List with 0 to pNumEntries, depending on how many could be read
    */
-  @NotNull List<CommitHistoryTreeListItem> tryReadEntries(int pNumEntries);
+  @NonNull List<CommitHistoryTreeListItem> tryReadEntries(int pNumEntries);
 }

@@ -19,7 +19,7 @@ import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -86,7 +86,7 @@ class PullAction extends AbstractAction
    * Keeps calling the pull method of the repository until the result is either a success or the user
    * presses cancel on one of the Conflict resolution dialogs
    */
-  private void _doRebase(@NotNull IProgressHandle pProgressHandle)
+  private void _doRebase(@NonNull IProgressHandle pProgressHandle)
   {
     saveUtil.saveUnsavedFiles();
     pProgressHandle.setDescription(Util.getResource(this.getClass(), "pullGetRepoHandleMsg"));
@@ -211,7 +211,7 @@ class PullAction extends AbstractAction
    * @return true if the user pressed cancel and the pull should be aborted, false otherwise
    * @throws AditoGitException if an error occurred during the pull
    */
-  private boolean _handleConflictDialog(@NotNull IRepository pRepo, @NotNull IMergeDetails pMergeDetails) throws AditoGitException
+  private boolean _handleConflictDialog(@NonNull IRepository pRepo, @NonNull IMergeDetails pMergeDetails) throws AditoGitException
   {
     IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepo)), pMergeDetails, true);
     IUserPromptDialogResult<?, ?> promptDialogResult = null;
@@ -267,7 +267,7 @@ class PullAction extends AbstractAction
    * @return true if a merge-commit would be rebased, false otherwise
    * @throws AditoGitException if an error occurs while retrieving the unpushed commits
    */
-  private boolean _checkRebasingMergeCommit(@NotNull IRepository pRepo) throws AditoGitException
+  private boolean _checkRebasingMergeCommit(@NonNull IRepository pRepo) throws AditoGitException
   {
     Optional<IRepositoryState> repositoryState = pRepo.getRepositoryState().blockingFirst();
     if (repositoryState.isPresent())

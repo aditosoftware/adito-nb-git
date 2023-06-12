@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.gui.dialogs.AditoBaseDialog;
 import de.adito.git.gui.icon.IIconLoader;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -25,13 +25,13 @@ public class PanelFactoryImpl implements IPanelFactory
   private IGuicePanelFactory guicePanelFactory;
 
   @Override
-  public <T> ExpandablePanel<T> getExpandablePanel(@NotNull AditoBaseDialog<T> pUpperComponent, @NotNull JComponent pLowerComponent)
+  public <T> ExpandablePanel<T> getExpandablePanel(@NonNull AditoBaseDialog<T> pUpperComponent, @NonNull JComponent pLowerComponent)
   {
     return new ExpandablePanel<>(iconLoader, pUpperComponent, pLowerComponent);
   }
 
   @Override
-  public CheckboxPanel createCheckboxPanel(@NotNull String pMessage, @NotNull String pCheckboxText)
+  public CheckboxPanel createCheckboxPanel(@NonNull String pMessage, @NonNull String pCheckboxText)
   {
     return guicePanelFactory.createCheckboxPanel(pMessage, pCheckboxText);
   }
@@ -43,25 +43,25 @@ public class PanelFactoryImpl implements IPanelFactory
   }
 
   @Override
-  public NotificationPanel createNotificationPanel(@NotNull String pMessage)
+  public NotificationPanel createNotificationPanel(@NonNull String pMessage)
   {
     return guicePanelFactory.createNotificationPanel(pMessage);
   }
 
   @Override
-  public ComboBoxPanel<Object> createComboBoxPanel(@NotNull String pMessage, @NotNull List<Object> pOptions)
+  public ComboBoxPanel<Object> createComboBoxPanel(@NonNull String pMessage, @NonNull List<Object> pOptions)
   {
     return guicePanelFactory.createComboBoxPanel(pMessage, pOptions);
   }
 
   interface IGuicePanelFactory
   {
-    CheckboxPanel createCheckboxPanel(@NotNull @Assisted("message") String pMessage, @NotNull @Assisted("checkbox") String pCheckboxText);
+    CheckboxPanel createCheckboxPanel(@NonNull @Assisted("message") String pMessage, @NonNull @Assisted("checkbox") String pCheckboxText);
 
     UserPromptPanel createUserPromptPanel(@Nullable String pDefault);
 
-    NotificationPanel createNotificationPanel(@NotNull String pMessage);
+    NotificationPanel createNotificationPanel(@NonNull String pMessage);
 
-    ComboBoxPanel<Object> createComboBoxPanel(@NotNull String pMessage, @NotNull List<Object> pOptions);
+    ComboBoxPanel<Object> createComboBoxPanel(@NonNull String pMessage, @NonNull List<Object> pOptions);
   }
 }

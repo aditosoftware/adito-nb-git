@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -38,8 +38,8 @@ public interface IUserInputPrompt
    * @param pKeyStore       KeyStore object, so if a ssh key is chosen in the dialog, an eventually already known passphrase for the key can be automatically loaded
    * @return PromptResult with the information if the user clicked okay and the ssh key location and passphrase
    */
-  @NotNull
-  PromptResult promptSSHInfo(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @NotNull IKeyStore pKeyStore);
+  @NonNull
+  PromptResult promptSSHInfo(@NonNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase, @NonNull IKeyStore pKeyStore);
 
   /**
    * Prompts the user for a String (such as a filePath or username), with pMessage as information for the user
@@ -64,7 +64,7 @@ public interface IUserInputPrompt
    * @param pCheckboxText Text in front of the textbox, explains what the textbox does/is for
    * @return PromptResult, the userInput is the string of the boolean that tells you whether the checkbox was ticket or not
    */
-  PromptResult promptYesNoCheckbox(@NotNull String pMessage, @NotNull String pCheckboxText);
+  PromptResult promptYesNoCheckbox(@NonNull String pMessage, @NonNull String pCheckboxText);
 
   /**
    * Prompts the user to select a file, information from pMessage should tell him which kind of file he should choose

@@ -3,8 +3,8 @@ package de.adito.git.impl.http;
 import com.mashape.unirest.http.Unirest;
 import de.adito.git.api.IKeyStore;
 import de.adito.git.api.prefs.IPrefStore;
+import lombok.NonNull;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,19 +78,19 @@ class GitHttpUtilTest
   {
 
     @Override
-    public @Nullable String get(@NotNull String pKey)
+    public @Nullable String get(@NonNull String pKey)
     {
       return null;
     }
 
     @Override
-    public @Nullable String get(@NotNull String pModulePath, @NotNull String pKey)
+    public @Nullable String get(@NonNull String pModulePath, @NonNull String pKey)
     {
       return null;
     }
 
     @Override
-    public void put(@NotNull String pKey, @Nullable String pValue)
+    public void put(@NonNull String pKey, @Nullable String pValue)
     {
 
     }
@@ -100,19 +100,19 @@ class GitHttpUtilTest
   {
 
     @Override
-    public void save(@NotNull String pKey, @NotNull char[] pPassword, @Nullable String pDescription)
+    public void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription)
     {
 
     }
 
     @Override
-    public void delete(@NotNull String pKey)
+    public void delete(@NonNull String pKey)
     {
 
     }
 
     @Override
-    public char[] read(@NotNull String pKey)
+    public char[] read(@NonNull String pKey)
     {
       return new char[0];
     }

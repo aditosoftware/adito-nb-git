@@ -1,6 +1,7 @@
 package de.adito.git.impl;
 
 import de.adito.git.api.IAuthUtil;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 
 import java.net.PasswordAuthentication;
@@ -14,7 +15,7 @@ public class AuthUtilImpl implements IAuthUtil
   private ThreadLocal<PasswordAuthentication> rememberedAuth = new ThreadLocal<>();
 
   @Override
-  public void auth(@NotNull PasswordAuthentication pAuth)
+  public void auth(@NonNull PasswordAuthentication pAuth)
   {
     if(shouldReuseAuth.get())
       rememberedAuth.set(pAuth);

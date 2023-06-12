@@ -1,6 +1,6 @@
 package de.adito.git.impl.util;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
@@ -19,7 +19,7 @@ public class Util
   }
 
   @Nullable
-  public static Throwable getRootCause(@NotNull Exception pE)
+  public static Throwable getRootCause(@NonNull Exception pE)
   {
     Throwable cause = pE.getCause();
     while (cause != null && cause.getCause() != null)

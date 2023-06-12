@@ -1,5 +1,6 @@
 package de.adito.git.api;
 
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 
 import java.net.PasswordAuthentication;
@@ -14,7 +15,7 @@ public interface IAuthUtil
    *
    * @param pAuth the authentication details
    */
-  void auth(@NotNull PasswordAuthentication pAuth);
+  void auth(@NonNull PasswordAuthentication pAuth);
 
   /**
    * Returns the remembered authentication details, if present
@@ -29,5 +30,5 @@ public interface IAuthUtil
    *
    * @param pCode the code that shall be executed
    */
-  void reuseAuthIfNeededMoreThanOnce(@NotNull Runnable pCode);
+  void reuseAuthIfNeededMoreThanOnce(@NonNull Runnable pCode);
 }

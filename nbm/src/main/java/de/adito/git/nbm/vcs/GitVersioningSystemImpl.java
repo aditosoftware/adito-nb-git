@@ -12,7 +12,7 @@ import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.util.reactive.ObservableCollectors;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
@@ -89,7 +89,7 @@ public class GitVersioningSystemImpl extends VersioningSystem implements IDiscar
    * @return EChangeType that is stored under the pFile key, or null if no value as stored for pFile
    */
   @Nullable
-  private EChangeType _sychronizedGet(@NotNull File pFile)
+  private EChangeType _sychronizedGet(@NonNull File pFile)
   {
     synchronized (changedFiles)
     {
@@ -97,7 +97,7 @@ public class GitVersioningSystemImpl extends VersioningSystem implements IDiscar
     }
   }
 
-  private Set<File> _diffWithCurrentStatus(@NotNull List<IFileStatus> pFileStatusList)
+  private Set<File> _diffWithCurrentStatus(@NonNull List<IFileStatus> pFileStatusList)
   {
     Set<File> statusChangedFiles = new HashSet<>();
     // gather all currently changed files and their EChangeType
@@ -153,8 +153,8 @@ public class GitVersioningSystemImpl extends VersioningSystem implements IDiscar
    * @param pFilesToRemove      List of files that should be removed from the central list of changed files, an entry may be added by this method
    * @param changeTypeEntry     Entry that was removed from the list of files that changed their status and for which the corresponding aod file should be found/removed
    */
-  private void _removeCorrespondingAOD(@NotNull Set<File> pStatusChangedFiles, @NotNull Map<File, EChangeType> pChangedFiles, @NotNull List<File> pFilesToRemove,
-                                       @NotNull Map.Entry<File, EChangeType> changeTypeEntry)
+  private void _removeCorrespondingAOD(@NonNull Set<File> pStatusChangedFiles, @NonNull Map<File, EChangeType> pChangedFiles, @NonNull List<File> pFilesToRemove,
+                                       @NonNull Map.Entry<File, EChangeType> changeTypeEntry)
   {
     File aodFile = _getAODFile(changeTypeEntry.getKey(), null);
     if (aodFile != null)
@@ -206,7 +206,7 @@ public class GitVersioningSystemImpl extends VersioningSystem implements IDiscar
    * @param pStatusChangedFiles Set of files that did change their status since the last call, will be filled by this method
    * @param changedFileEntry    Entry that was added to the list of files that changed their status and for which the corresponding aod file should be found/added
    */
-  private void _addCorrespondingAOD(@NotNull Set<File> pStatusChangedFiles, @NotNull Map.Entry<File, EChangeType> changedFileEntry)
+  private void _addCorrespondingAOD(@NonNull Set<File> pStatusChangedFiles, @NonNull Map.Entry<File, EChangeType> changedFileEntry)
   {
     File aodFile = _getAODFile(changedFileEntry.getKey(), null);
     // if the aodFileMappings does not yet know of that aod file, add it to the changed files and add a mapping from the changed file to the aod into the
@@ -230,7 +230,7 @@ public class GitVersioningSystemImpl extends VersioningSystem implements IDiscar
    * @return the aod file that is contained in the closest possible parent folder of the changed file, or null if none can be found
    */
   @Nullable
-  private File _getAODFile(@NotNull File pChangedFile, File pProjectFolder)
+  private File _getAODFile(@NonNull File pChangedFile, File pProjectFolder)
   {
     if (pChangedFile.getParentFile() != null && !pChangedFile.getParentFile().equals(pProjectFolder))
     {

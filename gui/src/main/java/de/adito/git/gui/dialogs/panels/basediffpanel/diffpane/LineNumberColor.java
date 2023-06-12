@@ -2,7 +2,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -16,15 +16,15 @@ import java.util.Objects;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class LineNumberColor
 {
-  @NotNull
+  @NonNull
   private final Color color;
-  @NotNull
+  @NonNull
   private final Rectangle coloredArea;
 
   /**
    * @return Color that the area should be colored in
    */
-  @NotNull
+  @NonNull
   Color getColor()
   {
     return color;
@@ -33,7 +33,7 @@ class LineNumberColor
   /**
    * @return Area that should be colored as Rectangle
    */
-  @NotNull
+  @NonNull
   Rectangle getColoredArea()
   {
     return coloredArea;

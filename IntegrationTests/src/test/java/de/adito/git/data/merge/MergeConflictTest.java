@@ -13,8 +13,8 @@ import de.adito.git.gui.progress.SimpleAsyncProgressFacade;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.StandAloneDiffProviderImpl;
 import de.adito.git.impl.data.diff.*;
+import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -82,7 +82,7 @@ public class MergeConflictTest
    * @return contents of the file as string, or null if any exception occurred while trying to read the file
    */
   @Nullable
-  private static String readResourceFile(@NotNull String pFileName)
+  private static String readResourceFile(@NonNull String pFileName)
   {
     try (InputStream resourceAsStream = MergeConflictTest.class.getResourceAsStream(pFileName))
     {
@@ -105,7 +105,7 @@ public class MergeConflictTest
    * @param pCoreFileName name of the folder that contains the files, should be relevant to what happens inside the test since this name is displayed as the name of the test
    * @return List with paths to the relevant files for setting up a test merge
    */
-  private static List<String> createFullFileNames(@NotNull String pCoreFileName, @NotNull String pFileExtension)
+  private static List<String> createFullFileNames(@NonNull String pCoreFileName, @NonNull String pFileExtension)
   {
     return List.of(pCoreFileName, pCoreFileName + "/Original" + pFileExtension, pCoreFileName + "/VersionA" + pFileExtension,
                    pCoreFileName + "/VersionB" + pFileExtension, pCoreFileName + "/Expected" + pFileExtension);
@@ -114,8 +114,8 @@ public class MergeConflictTest
   @SuppressWarnings("unused") // pName wird zur besseren Lesbarkeit des Testnamens verwendet, siehe name in der ParameterizedTest Annotation
   @ParameterizedTest(name = "{index} : {0}")
   @MethodSource("getConflictFiles")
-  void performAutoResolve(@NotNull String pName, @NotNull String pFileName, @NotNull String pOriginalContents, @NotNull String pVersionAContents,
-                          @NotNull String pVersionBContents, @Nullable String pExpectedResult)
+  void performAutoResolve(@NonNull String pName, @NonNull String pFileName, @NonNull String pOriginalContents, @NonNull String pVersionAContents,
+                          @NonNull String pVersionBContents, @Nullable String pExpectedResult)
       throws AditoGitException, IOException
   {
     SimpleAsyncProgressFacade asyncProgressFacade = new SimpleAsyncProgressFacade();

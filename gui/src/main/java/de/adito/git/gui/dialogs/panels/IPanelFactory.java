@@ -2,7 +2,7 @@ package de.adito.git.gui.dialogs.panels;
 
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.gui.dialogs.AditoBaseDialog;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -24,7 +24,7 @@ public interface IPanelFactory
    * @param pLowerComponent Component that is only shown if the user clicks on the "Show more" button.
    * @return JPanel with the components laid out as described
    */
-  <T> ExpandablePanel<T> getExpandablePanel(@NotNull @Assisted("upper") AditoBaseDialog<T> pUpperComponent, @NotNull @Assisted("lower") JComponent pLowerComponent);
+  <T> ExpandablePanel<T> getExpandablePanel(@NonNull @Assisted("upper") AditoBaseDialog<T> pUpperComponent, @NonNull @Assisted("lower") JComponent pLowerComponent);
 
   /**
    * Creates a panel that has a label that will take the value of pMessage and a checkbox below. The checkbox will have the description from pCheckboxText
@@ -33,7 +33,7 @@ public interface IPanelFactory
    * @param pCheckboxText Text set as description for the checkbox
    * @return Panel with a label and a checkbox laid out as described above
    */
-  CheckboxPanel createCheckboxPanel(@NotNull @Assisted("message") String pMessage, @NotNull @Assisted("checkbox") String pCheckboxText);
+  CheckboxPanel createCheckboxPanel(@NonNull @Assisted("message") String pMessage, @NonNull @Assisted("checkbox") String pCheckboxText);
 
   /**
    * Creates a panel with a textfield and some borders, also gives the textField the pre-set value of pDefault
@@ -49,7 +49,7 @@ public interface IPanelFactory
    * @param pMessage String used as value for the central label
    * @return Styled panel displaying a simple message
    */
-  NotificationPanel createNotificationPanel(@NotNull String pMessage);
+  NotificationPanel createNotificationPanel(@NonNull String pMessage);
 
   /**
    * Creates a panel with a label of value pMessage above a combobox that has the options passed in pOptions.
@@ -59,6 +59,6 @@ public interface IPanelFactory
    * @param pOptions Options for the ComboBox
    * @return Panel with a label and a combobox, laid out as described above
    */
-  ComboBoxPanel<Object> createComboBoxPanel(@NotNull String pMessage, @NotNull List<Object> pOptions);
+  ComboBoxPanel<Object> createComboBoxPanel(@NonNull String pMessage, @NonNull List<Object> pOptions);
 
 }

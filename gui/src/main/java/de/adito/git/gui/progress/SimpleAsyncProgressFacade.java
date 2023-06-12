@@ -2,7 +2,7 @@ package de.adito.git.gui.progress;
 
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.util.NotImplementedException;
 
@@ -18,9 +18,9 @@ import java.util.concurrent.Future;
 public class SimpleAsyncProgressFacade implements IAsyncProgressFacade
 {
 
-  @NotNull
+  @NonNull
   @Override
-  public <T, Ex extends Throwable> Future<T> executeInBackground(@NotNull String pSimpleName, @NotNull IExec<T, Ex> pExecutor)
+  public <T, Ex extends Throwable> Future<T> executeInBackground(@NonNull String pSimpleName, @NonNull IExec<T, Ex> pExecutor)
   {
     try
     {
@@ -33,14 +33,14 @@ public class SimpleAsyncProgressFacade implements IAsyncProgressFacade
   }
 
   @Override
-  public @NotNull <T, Ex extends Throwable> Future<T> executeInBackgroundWithoutIndexing(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  public @NonNull <T, Ex extends Throwable> Future<T> executeInBackgroundWithoutIndexing(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor)
   {
     throw new NotImplementedException();
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public <T, Ex extends Throwable> T executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  public <T, Ex extends Throwable> T executeAndBlockWithProgress(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor)
   {
     try
     {
@@ -53,8 +53,8 @@ public class SimpleAsyncProgressFacade implements IAsyncProgressFacade
   }
 
   @Override
-  @NotNull
-  public <T, Ex extends Throwable> T executeAndBlockWithProgressWithoutIndexing(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  @NonNull
+  public <T, Ex extends Throwable> T executeAndBlockWithProgressWithoutIndexing(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor)
   {
     throw new NotImplementedException();
   }

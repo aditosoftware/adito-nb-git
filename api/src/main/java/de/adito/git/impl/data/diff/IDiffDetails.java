@@ -3,7 +3,7 @@ package de.adito.git.impl.data.diff;
 import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.EChangeSide;
 import de.adito.git.api.data.diff.EChangeType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 /**
  * @author m.kaspera, 19.03.2020
@@ -11,13 +11,13 @@ import org.jetbrains.annotations.NotNull;
 public interface IDiffDetails
 {
 
-  @NotNull
+  @NonNull
   String getId(EChangeSide pChangeSide);
 
-  @NotNull
+  @NonNull
   EChangeType getChangeType();
 
-  @NotNull
+  @NonNull
   EFileType getFileType(EChangeSide pChangeSide);
 
 }

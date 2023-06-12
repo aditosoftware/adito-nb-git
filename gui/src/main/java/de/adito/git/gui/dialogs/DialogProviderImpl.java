@@ -19,7 +19,7 @@ import de.adito.git.gui.swing.CommitDialogConditionalButton;
 import de.adito.git.gui.swing.ConditionalDialogButton;
 import de.adito.git.gui.swing.MergeConflictConditionalButton;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.filechooser.FileFilter;
@@ -47,8 +47,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                                  @NotNull IMergeDetails pMergeDetails, boolean pOnlyConflicting,
+  public @NonNull IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                                                  @NonNull IMergeDetails pMergeDetails, boolean pOnlyConflicting,
                                                                                                   boolean pShowAutoResolve, String... pDialogTitle)
   {
     DialogResult<MergeConflictDialog, Object> result = null;
@@ -88,9 +88,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff,
-                                                                                                                                @NotNull String pYoursOrigin,
-                                                                                                                                @NotNull String pTheirsOrigin)
+  public @NonNull IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NonNull IMergeData pMergeDiff,
+                                                                                                                                @NonNull String pYoursOrigin,
+                                                                                                                                @NonNull String pTheirsOrigin)
   {
     DialogResult<MergeConflictResolutionDialog, Object> result = null;
     try
@@ -124,7 +124,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs,
+  public @NonNull IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NonNull File pProjectDirectory, @NonNull List<IFileDiff> pFileDiffs,
                                                                        @Nullable String pSelectedFile, @Nullable String pTitle, @Nullable String pLeftHeader,
                                                                        @Nullable String pRightHeader, boolean pAcceptChange, boolean pShowFileTree)
   {
@@ -172,9 +172,9 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull ICommitDialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                         @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                                                                                         @NotNull String pMessageTemplate)
+  public @NonNull ICommitDialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                                         @NonNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                                                                         @NonNull String pMessageTemplate)
   {
     DialogResult<CommitDialog, CommitDialogResult> result = null;
     try
@@ -217,7 +217,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull INewBranchDialogResult<NewBranchDialog, Boolean> showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository)
+  public @NonNull INewBranchDialogResult<NewBranchDialog, Boolean> showNewBranchDialog(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return new NewBranchDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createNewBranchDialog(pValidConsumer, pRepository),
                                                                       "New Branch", List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
@@ -239,7 +239,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IResetDialogResult<ResetDialog, EResetType> showResetDialog()
+  public @NonNull IResetDialogResult<ResetDialog, EResetType> showResetDialog()
   {
     return new ResetDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createResetDialog(),
                                                                   "Reset", List.of(EButtons.OK, EButtons.ABORT).toArray(new EButtons[0])));
@@ -261,7 +261,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IPushDialogResult<PushDialog, Boolean> showPushDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<ICommit> pCommitList)
+  public @NonNull IPushDialogResult<PushDialog, Boolean> showPushDialog(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull List<ICommit> pCommitList)
   {
     DialogResult<PushDialog, Boolean> result = null;
     try
@@ -293,8 +293,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IStashedCommitSelectionDialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(
-      @NotNull Observable<Optional<IRepository>> pRepo, @NotNull List<ICommit> pStashedCommits)
+  public @NonNull IStashedCommitSelectionDialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(
+      @NonNull Observable<Optional<IRepository>> pRepo, @NonNull List<ICommit> pStashedCommits)
   {
     DialogResult<StashedCommitSelectionDialog, String> result = null;
     try
@@ -326,7 +326,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(@NotNull String pMessage)
+  public @NonNull IUserPromptDialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(@NonNull String pMessage)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createPasswordPromptDialog(),
                                                                        pMessage, List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
@@ -348,7 +348,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<UserPromptPanel, Object> showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefault)
+  public @NonNull IUserPromptDialogResult<UserPromptPanel, Object> showUserPromptDialog(@NonNull String pMessage, @Nullable String pDefault)
   {
     final String defaultValue = pDefault;
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
@@ -357,13 +357,13 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pMessage)
+  public @NonNull IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NonNull String pMessage)
   {
     return this.showYesNoDialog(pMessage, pMessage);
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pTitle, @NotNull String pMessage)
+  public @NonNull IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NonNull String pTitle, @NonNull String pMessage)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createNotificationPanel(pMessage),
@@ -378,8 +378,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@Nullable String pDialogTitle, @NotNull String pMessage,
-                                                                              @NotNull List<EButtons> pShownButtons, @NotNull List<EButtons> pOkayButtons)
+  public IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@Nullable String pDialogTitle, @NonNull String pMessage,
+                                                                              @NonNull List<EButtons> pShownButtons, @NonNull List<EButtons> pOkayButtons)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createNotificationPanel(pMessage),
@@ -393,9 +393,9 @@ class DialogProviderImpl implements IDialogProvider
     };
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public IChangeTrackedBranchDialogResult<NotificationPanel, Object> showChangeTrackedBranchDialog(@NotNull String pMessage)
+  public IChangeTrackedBranchDialogResult<NotificationPanel, Object> showChangeTrackedBranchDialog(@NonNull String pMessage)
   {
     return new ChangeTrackedBranchDialogResult<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                                 panelFactory.createNotificationPanel(pMessage),
@@ -430,10 +430,10 @@ class DialogProviderImpl implements IDialogProvider
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public IRevertDialogResult<RevertFilesDialog, Object> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepositoryObs,
-                                                                         @NotNull List<IFileChangeType> pFilesToRevert, @NotNull File pProjectDirectory)
+  public IRevertDialogResult<RevertFilesDialog, Object> showRevertDialog(@NonNull Observable<Optional<IRepository>> pRepositoryObs,
+                                                                         @NonNull List<IFileChangeType> pFilesToRevert, @NonNull File pProjectDirectory)
   {
 
     DialogResult<RevertFilesDialog, Object> result = null;
@@ -464,8 +464,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage,
-                                                                                                  @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
+  public @NonNull IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NonNull String pMessage,
+                                                                                                  @NonNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
                                                                                                   @Nullable FileFilter pFileFilter)
   {
     DialogResult<FileSelectionDialog, Object> result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory
@@ -475,8 +475,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IFileSelectionDialogResult<NewFileDialog, Object> showNewFileDialog(@NotNull String pMessage,
-                                                                                      @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
+  public @NonNull IFileSelectionDialogResult<NewFileDialog, Object> showNewFileDialog(@NonNull String pMessage,
+                                                                                      @NonNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
                                                                                       @Nullable FileFilter pFileFilter, @Nullable String pFileName)
   {
     DialogResult<NewFileDialog, Object> result = dialogDisplayer.showDialog(pValidConsumer -> dialogFactory
@@ -501,7 +501,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IGitConfigDialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(@NotNull Observable<Optional<IRepository>> pRepository)
+  public @NonNull IGitConfigDialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     String repoName = pRepository.blockingFirst().map(pRepo -> pRepo.getTopLevelDirectory().getName()).orElse("unknown repository");
     DialogResult<GitConfigDialog, Multimap<String, Object>> result = null;
@@ -535,7 +535,7 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IStashChangesDialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog()
+  public @NonNull IStashChangesDialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog()
   {
     return new StashChangesDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> dialogFactory.createStashChangesDialog(),
                                                                          "Stash Changes - stash message",
@@ -558,8 +558,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(@NotNull String pMessage, @Nullable String pSshKeyLocation,
-                                                                                         @Nullable char[] pPassphrase, @NotNull IKeyStore pKeyStore)
+  public @NonNull IUserPromptDialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(@NonNull String pMessage, @Nullable String pSshKeyLocation,
+                                                                                         @Nullable char[] pPassphrase, @NonNull IKeyStore pKeyStore)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            dialogFactory.createSshInfoPromptDialog(pMessage, pSshKeyLocation, pValidConsumer,
@@ -568,17 +568,17 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public @NotNull IUserPromptDialogResult<CheckboxPanel, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText)
+  public @NonNull IUserPromptDialogResult<CheckboxPanel, Boolean> showCheckboxPrompt(@NonNull String pMessage, @NonNull String pCheckboxText)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                            panelFactory.createCheckboxPanel(pMessage, pCheckboxText),
                                                                        "", List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NotNull Consumer<ICommit> pSelectedCommitCallback,
-                                                                       @NotNull Observable<Optional<IRepository>> pRepository)
+  public DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NonNull Consumer<ICommit> pSelectedCommitCallback,
+                                                                       @NonNull Observable<Optional<IRepository>> pRepository)
   {
     DialogResult<TagOverviewDialog, Object> result = null;
     try
@@ -595,16 +595,16 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public IUserPromptDialogResult<ComboBoxPanel<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions)
+  public IUserPromptDialogResult<ComboBoxPanel<Object>, Object> showComboBoxDialog(@NonNull String pMessage, @NonNull List<Object> pOptions)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> panelFactory.createComboBoxPanel(pMessage, pOptions),
                                                                        "", List.of(EButtons.OK, EButtons.CANCEL).toArray(new EButtons[0])));
   }
 
   @Override
-  public IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NotNull Observable<Optional<IRepository>> pRepositoryObs,
-                                                                                                              @NotNull List<IFileChangeType> pFilesToRevert,
-                                                                                                              @NotNull File pProjectDir)
+  public IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NonNull Observable<Optional<IRepository>> pRepositoryObs,
+                                                                                                              @NonNull List<IFileChangeType> pFilesToRevert,
+                                                                                                              @NonNull File pProjectDir)
   {
     return new StashChangesQuestionDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer ->
                                                                                      dialogFactory.createStashChangesQuestionDialog(pRepositoryObs, pFilesToRevert,
@@ -615,8 +615,8 @@ class DialogProviderImpl implements IDialogProvider
   }
 
   @Override
-  public <T> IUserPromptDialogResult<AditoBaseDialog<T>, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
-                                                                       @NotNull List<EButtons> pOkayButtons)
+  public <T> IUserPromptDialogResult<AditoBaseDialog<T>, T> showDialog(@NonNull AditoBaseDialog<T> pComponent, @NonNull String pTitle, @NonNull List<EButtons> pButtonList,
+                                                                       @NonNull List<EButtons> pOkayButtons)
   {
     return new UserPromptDialogResultImpl<>(dialogDisplayer.showDialog(pValidConsumer -> pComponent, pTitle, pButtonList.toArray(new EButtons[0])))
     {
@@ -669,7 +669,7 @@ class DialogProviderImpl implements IDialogProvider
    * @param pOriginalPressedButton Object/Button to check
    * @return the object itself in case it is not a ConditionalDialogButton, the button that the ConditionalDialogButton reports as pressed otherwise
    */
-  private static Object getPressedButton(@NotNull Object pOriginalPressedButton)
+  private static Object getPressedButton(@NonNull Object pOriginalPressedButton)
   {
     if (pOriginalPressedButton instanceof ConditionalDialogButton)
     {

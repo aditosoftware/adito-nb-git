@@ -8,7 +8,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.actions.GitIndexLockUtil;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.MouseAdapter;
@@ -33,9 +33,9 @@ class AbortLabelController extends ObservingLabelController<IRepositoryState>
   private MouseListener mouseListener = voidListener;
   private final IDialogProvider dialogProvider;
 
-  public AbortLabelController(@NotNull BranchWindowContent pBranchWindowContent, @NotNull Observable<Optional<IRepositoryState>> pRepoStateObservable,
-                              @NotNull Observable<Optional<IRepository>> pRepositoryObservable, @NotNull INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
-                              @NotNull IDialogProvider pDialogProvider)
+  public AbortLabelController(@NonNull BranchWindowContent pBranchWindowContent, @NonNull Observable<Optional<IRepositoryState>> pRepoStateObservable,
+                              @NonNull Observable<Optional<IRepository>> pRepositoryObservable, @NonNull INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
+                              @NonNull IDialogProvider pDialogProvider)
   {
     super("", pRepoStateObservable);
     branchWindowContent = pBranchWindowContent;

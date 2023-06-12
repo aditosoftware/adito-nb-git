@@ -5,7 +5,7 @@ import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.gui.swing.TextPaneUtil;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -102,10 +102,10 @@ class LineNumberModelTest
    * @throws InterruptedException if the sleep or invokeAndWait method is interrupted while they wait for a result/timer
    * @throws Exception            if any exception would happen while setting up the mocks in the invokeSynchronouslyASAP method
    */
-  @NotNull
-  private static LineNumberModel setUpLineNumberModelTest(@NotNull AtomicReference<IDeltaTextChangeEvent> textEventRef, @NotNull AtomicReference<LineNumber[]> lineNumbersRef,
-                                                          @NotNull LineNumber[] lineNumbers, @NotNull IDeltaTextChangeEvent textChangeMock,
-                                                          @NotNull AtomicReference<MockedStatic<TextPaneUtil>> mockStatic) throws Exception
+  @NonNull
+  private static LineNumberModel setUpLineNumberModelTest(@NonNull AtomicReference<IDeltaTextChangeEvent> textEventRef, @NonNull AtomicReference<LineNumber[]> lineNumbersRef,
+                                                          @NonNull LineNumber[] lineNumbers, @NonNull IDeltaTextChangeEvent textChangeMock,
+                                                          @NonNull AtomicReference<MockedStatic<TextPaneUtil>> mockStatic) throws Exception
   {
     JEditorPane editorPane = new JEditorPane();
     BehaviorSubject<IDeltaTextChangeEvent> textEventObs = BehaviorSubject.createDefault(Mockito.mock(IDeltaTextChangeEvent.class));

@@ -9,12 +9,12 @@ import de.adito.git.api.data.IRemote;
 import de.adito.git.api.exception.UnknownRemoteRepositoryException;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.impl.RepositoryImplHelper;
+import lombok.NonNull;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.UserConfig;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -80,7 +80,7 @@ public class ConfigImpl implements IConfig
 
   @Nullable
   @Override
-  public char[] getPassphrase(@NotNull String pSSHKeyLocation)
+  public char[] getPassphrase(@NonNull String pSSHKeyLocation)
   {
     return keyStore.read(pSSHKeyLocation);
   }
@@ -103,13 +103,13 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName)
+  public @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NonNull String pName)
   {
     return git.getRepository().getConfig().getString(pSectionKey, pSubSectionKey, pName);
   }
 
   @Override
-  public @NotNull List<IRemote> getRemotes()
+  public @NonNull List<IRemote> getRemotes()
   {
     List<IRemote> remotes = new ArrayList<>();
     Set<String> remoteNames = git.getRepository().getRemoteNames();
@@ -152,7 +152,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setUserName(@NotNull String pUserName)
+  public void setUserName(@NonNull String pUserName)
   {
     git.getRepository().getConfig().setString(USER_SECTION_KEY, null, USER_NAME_KEY, pUserName);
     try
@@ -166,7 +166,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setUserEmail(@NotNull String pUserEmail)
+  public void setUserEmail(@NonNull String pUserEmail)
   {
     git.getRepository().getConfig().setString(USER_SECTION_KEY, null, USER_EMAIL_KEY, pUserEmail);
     try
@@ -191,7 +191,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @NotNull String pRemoteName)
+  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @NonNull String pRemoteName)
   {
     logger.log(Level.INFO, () -> String.format("Git: Setting ssh key location for remote \"%s\" to %s", pRemoteName, pSshKeyLocation));
     String remoteUrl = git.getRepository().getConfig().getString(REMOTE_SECTION_KEY, pRemoteName, REMOTE_URL_KEY);
@@ -246,7 +246,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName, @NotNull String pValue)
+  public boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NonNull String pName, @NonNull String pValue)
   {
     StoredConfig config = git.getRepository().getConfig();
     config.setString(pSectionKey, pSubSectionKey, pName, pValue);
@@ -283,7 +283,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName)
+  public void establishTrackingRelationship(@NonNull String pBranchname, @NonNull String pRemoteBranchname, @NonNull String pRemoteName)
   {
     logger.log(Level.INFO, () -> String.format("Git: establishing tracking relationsship between %s and remote branch %s on remote %s", pBranchname, pRemoteBranchname,
                                                pRemoteName));
@@ -301,7 +301,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public void saveRemote(@NotNull IRemote pRemote)
+  public void saveRemote(@NonNull IRemote pRemote)
   {
     StoredConfig config = git.getRepository().getConfig();
     config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemote.getName(), "url", pRemote.getUrl());
@@ -317,7 +317,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl)
+  public boolean addRemote(@NonNull String pRemoteName, @NonNull String pRemoteUrl)
   {
     StoredConfig config = git.getRepository().getConfig();
     config.setString(ConfigConstants.CONFIG_REMOTE_SECTION, pRemoteName, "url", pRemoteUrl);
@@ -334,7 +334,7 @@ public class ConfigImpl implements IConfig
   }
 
   @Override
-  public boolean removeRemote(@NotNull IRemote pRemote)
+  public boolean removeRemote(@NonNull IRemote pRemote)
   {
     StoredConfig config = git.getRepository().getConfig();
     config.unsetSection(REMOTE_SECTION_KEY, pRemote.getName());

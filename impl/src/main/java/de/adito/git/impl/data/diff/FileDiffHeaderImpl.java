@@ -5,8 +5,8 @@ import de.adito.git.api.data.diff.EChangeSide;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileDiffHeader;
 import de.adito.git.impl.EnumMappings;
+import lombok.NonNull;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -22,13 +22,13 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   private final IDiffPathInfo diffPathInfo;
   private final IDiffDetails diffDetails;
 
-  public FileDiffHeaderImpl(@NotNull IDiffPathInfo pDiffPathInfo, @NotNull IDiffDetails pDiffDetails)
+  public FileDiffHeaderImpl(@NonNull IDiffPathInfo pDiffPathInfo, @NonNull IDiffDetails pDiffDetails)
   {
     diffPathInfo = pDiffPathInfo;
     diffDetails = pDiffDetails;
   }
 
-  public FileDiffHeaderImpl(@NotNull DiffEntry pDiffEntry, @Nullable File pTopLevelDirectory)
+  public FileDiffHeaderImpl(@NonNull DiffEntry pDiffEntry, @Nullable File pTopLevelDirectory)
   {
     this(new DiffPathInfoImpl(pTopLevelDirectory, pDiffEntry.getOldPath(), pDiffEntry.getNewPath()),
          new DiffDetailsImpl(pDiffEntry.getOldId().toString(), pDiffEntry.getNewId().toString(), EnumMappings.toEChangeType(pDiffEntry.getChangeType()),
@@ -38,9 +38,9 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
-  public String getId(@NotNull EChangeSide pSide)
+  public String getId(@NonNull EChangeSide pSide)
   {
     return diffDetails.getId(pSide);
   }
@@ -48,7 +48,7 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public EChangeType getChangeType()
   {
@@ -58,9 +58,9 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
-  public EFileType getFileType(@NotNull EChangeSide pSide)
+  public EFileType getFileType(@NonNull EChangeSide pSide)
   {
     return diffDetails.getFileType(pSide);
   }
@@ -68,14 +68,14 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
-  public String getFilePath(@NotNull EChangeSide pSide)
+  public String getFilePath(@NonNull EChangeSide pSide)
   {
     return diffPathInfo.getFilePath(pSide);
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String getFilePath()
   {
@@ -97,7 +97,7 @@ public class FileDiffHeaderImpl implements IFileDiffHeader
 
   @Nullable
   @Override
-  public String getFileExtension(@NotNull EChangeSide pChangeSide)
+  public String getFileExtension(@NonNull EChangeSide pChangeSide)
   {
     String[] nameParts = Paths.get(getFilePath(pChangeSide)).getFileName().toString().split("[.]");
     if (nameParts.length <= 1)

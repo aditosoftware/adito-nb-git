@@ -1,7 +1,7 @@
 package de.adito.git.api.data.diff;
 
 import de.adito.git.api.data.EFileType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -18,13 +18,13 @@ public interface IFileDiffHeader
    * @param pSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
    * @return the identifier for the file/object on the specified side of the tree
    */
-  @NotNull
-  String getId(@NotNull EChangeSide pSide);
+  @NonNull
+  String getId(@NonNull EChangeSide pSide);
 
   /**
    * @return {@link EChangeType} that tells which kind of change happened (add/remove...)
    */
-  @NotNull
+  @NonNull
   EChangeType getChangeType();
 
   /**
@@ -33,8 +33,8 @@ public interface IFileDiffHeader
    * @param pSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
    * @return {@link EFileType} which kind of file
    */
-  @NotNull
-  EFileType getFileType(@NotNull EChangeSide pSide);
+  @NonNull
+  EFileType getFileType(@NonNull EChangeSide pSide);
 
   /**
    * returns filePath for the given side
@@ -42,7 +42,7 @@ public interface IFileDiffHeader
    * @param pChangeSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
    * @return the path from root to the file
    */
-  String getFilePath(@NotNull EChangeSide pChangeSide);
+  String getFilePath(@NonNull EChangeSide pChangeSide);
 
   /**
    * returns the same as getFilePath(EChangeSide.NEW) if file is not deleted,
@@ -67,30 +67,30 @@ public interface IFileDiffHeader
    * @param pChangeSide {@link EChangeSide} that tells if the older or later branch/commit/... should be inspected
    * @return File extension of the file on the specified side
    */
-  @Nullable String getFileExtension(@NotNull EChangeSide pChangeSide);
+  @Nullable String getFileExtension(@NonNull EChangeSide pChangeSide);
 
   IFileDiffHeader EMPTY_HEADER = new IFileDiffHeader()
   {
     @Override
-    public @NotNull String getId(@NotNull EChangeSide pSide)
+    public @NonNull String getId(@NonNull EChangeSide pSide)
     {
       return "";
     }
 
     @Override
-    public @NotNull EChangeType getChangeType()
+    public @NonNull EChangeType getChangeType()
     {
       return EChangeType.MODIFY;
     }
 
     @Override
-    public @NotNull EFileType getFileType(@NotNull EChangeSide pSide)
+    public @NonNull EFileType getFileType(@NonNull EChangeSide pSide)
     {
       return EFileType.FILE;
     }
 
     @Override
-    public String getFilePath(@NotNull EChangeSide pChangeSide)
+    public String getFilePath(@NonNull EChangeSide pChangeSide)
     {
       return "";
     }
@@ -108,7 +108,7 @@ public interface IFileDiffHeader
     }
 
     @Override
-    public @Nullable String getFileExtension(@NotNull EChangeSide pChangeSide)
+    public @Nullable String getFileExtension(@NonNull EChangeSide pChangeSide)
     {
       return null;
     }

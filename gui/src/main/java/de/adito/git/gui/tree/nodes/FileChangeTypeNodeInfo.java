@@ -1,7 +1,7 @@
 package de.adito.git.gui.tree.nodes;
 
 import de.adito.git.api.data.diff.IFileChangeType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.io.File;
 import java.util.List;
@@ -23,26 +23,26 @@ public class FileChangeTypeNodeInfo
    * @param pNodeFile        Folder or file that the node represents
    * @param pMembers         List of IFileChangeTypes that are children of pNodeFile
    */
-  public FileChangeTypeNodeInfo(@NotNull String pNodeDescription, @NotNull File pNodeFile, @NotNull List<IFileChangeType> pMembers)
+  public FileChangeTypeNodeInfo(@NonNull String pNodeDescription, @NonNull File pNodeFile, @NonNull List<IFileChangeType> pMembers)
   {
     nodeDescription = pNodeDescription;
     nodeFile = pNodeFile;
     members = pMembers;
   }
 
-  @NotNull
+  @NonNull
   public File getNodeFile()
   {
     return nodeFile;
   }
 
-  @NotNull
+  @NonNull
   public List<IFileChangeType> getMembers()
   {
     return members;
   }
 
-  @NotNull
+  @NonNull
   public String getNodeDescription()
   {
     return nodeDescription;
@@ -54,13 +54,13 @@ public class FileChangeTypeNodeInfo
    * @param pOtherNodeInfo FileChangeTypeNodeInfo of the node that should be merged with the current one, called from the node with the parent file
    *                       on the node that contains the child
    */
-  public void collapse(@NotNull FileChangeTypeNodeInfo pOtherNodeInfo)
+  public void collapse(@NonNull FileChangeTypeNodeInfo pOtherNodeInfo)
   {
     nodeDescription = nodeDescription + " / " + pOtherNodeInfo.getNodeDescription();
     nodeFile = pOtherNodeInfo.getNodeFile();
   }
 
-  public void setMembers(@NotNull List<IFileChangeType> pMembers)
+  public void setMembers(@NonNull List<IFileChangeType> pMembers)
   {
     members = pMembers;
   }

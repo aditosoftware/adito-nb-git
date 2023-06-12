@@ -5,7 +5,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.TrackedBranchStatus;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ExecutionException;
@@ -30,8 +30,8 @@ public abstract class TrackedBranchStatusCache
     statusCache = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.MINUTES).build(CacheLoader.from(this::getTrackedBranchStatus));
   }
 
-  @NotNull
-  protected abstract TrackedBranchStatus getTrackedBranchStatus(@NotNull IBranch pBranch);
+  @NonNull
+  protected abstract TrackedBranchStatus getTrackedBranchStatus(@NonNull IBranch pBranch);
 
   /**
    * Retrieves the TrackedBranchStatus for the given branch from the cache, or caluclates it and puts the value in the cache
@@ -40,7 +40,7 @@ public abstract class TrackedBranchStatusCache
    * @return TrackedBranchStatus
    */
   @Nullable
-  public TrackedBranchStatus get(@NotNull IBranch pBranch)
+  public TrackedBranchStatus get(@NonNull IBranch pBranch)
   {
     try
     {

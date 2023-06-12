@@ -4,7 +4,7 @@ import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -22,7 +22,7 @@ public class DiffPaneContainer extends JPanel implements IDiscardable
   private static final int MARGIN = 3;
   private final DiffPane diffPane;
 
-  public DiffPaneContainer(@NotNull JEditorPane pEditorPane, @Nullable String pHeader, int pHeaderAlignment)
+  public DiffPaneContainer(@NonNull JEditorPane pEditorPane, @Nullable String pHeader, int pHeaderAlignment)
   {
     super(new BorderLayout());
     diffPane = new DiffPane(pEditorPane);
@@ -47,8 +47,8 @@ public class DiffPaneContainer extends JPanel implements IDiscardable
    * @param pTextChangeEventObservable Observable that fires a new DeltaTextChangeEvent if the text on any side of the Diff changes
    * @return LineNumberModel that keeps track of the y coordinates for each line in the editor of this diffPane
    */
-  @NotNull
-  public LineNumberModel createLineNumberModel(@NotNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable)
+  @NonNull
+  public LineNumberModel createLineNumberModel(@NonNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable)
   {
     return diffPane.createLineNumberModel(pTextChangeEventObservable);
   }
@@ -61,7 +61,7 @@ public class DiffPaneContainer extends JPanel implements IDiscardable
    * @param pLineOrientation        String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    *                                Defaults to BorderLayout.WEST if another String is passed
    */
-  public void addLineNumPanel(@NotNull LineNumberModel pLineNumberModel, @NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull String pLineOrientation)
+  public void addLineNumPanel(@NonNull LineNumberModel pLineNumberModel, @NonNull LineChangeMarkingModel pLineChangeMarkingModel, @NonNull String pLineOrientation)
   {
     diffPane.addLineNumPanel(pLineNumberModel, pLineChangeMarkingModel, pLineOrientation);
   }
@@ -77,9 +77,9 @@ public class DiffPaneContainer extends JPanel implements IDiscardable
    * @param pDiscardIcon        ImageIcon for the discard button
    * @param pOrientation        String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    */
-  public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull LineNumberModel pLineNumberModel, @NotNull ViewLineChangeMarkingModel pLeftMarkingsModel,
-                                   @NotNull ViewLineChangeMarkingModel pRightMarkingsModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
-                                   @NotNull String pOrientation)
+  public void addChoiceButtonPanel(@NonNull DiffPanelModel pModel, @NonNull LineNumberModel pLineNumberModel, @NonNull ViewLineChangeMarkingModel pLeftMarkingsModel,
+                                   @NonNull ViewLineChangeMarkingModel pRightMarkingsModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
+                                   @NonNull String pOrientation)
   {
     diffPane.addChoiceButtonPanel(pModel, pLineNumberModel, pLeftMarkingsModel, pRightMarkingsModel, pAcceptIcon, pDiscardIcon, pOrientation);
   }

@@ -8,8 +8,8 @@ import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -59,7 +59,7 @@ public class CommitNBAction extends NBAction
   }
 
   @Override
-  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
     return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
   }

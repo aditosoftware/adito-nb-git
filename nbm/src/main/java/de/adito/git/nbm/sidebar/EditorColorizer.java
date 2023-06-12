@@ -12,7 +12,7 @@ import de.adito.git.nbm.util.DocumentObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.loaders.DataObject;
 import org.openide.windows.WindowManager;
 
@@ -97,7 +97,7 @@ class EditorColorizer extends JPanel implements IDiscardable
                        }));
   }
 
-  @NotNull
+  @NonNull
   private Observable<EChangeType> _observeChangeType()
   {
     return observableCache.calculateParallel("changeType", () -> repository
@@ -110,7 +110,7 @@ class EditorColorizer extends JPanel implements IDiscardable
                 .orElse(EChangeType.SAME))));
   }
 
-  @NotNull
+  @NonNull
   private Observable<List<IChangeDelta>> _observeChunks()
   {
     return observableCache.calculateParallel("chunks", () -> {
@@ -138,7 +138,7 @@ class EditorColorizer extends JPanel implements IDiscardable
     });
   }
 
-  @NotNull
+  @NonNull
   private Observable<List<_ChangeHolder>> _observeRectangles()
   {
     return observableCache.calculateParallel("rectangles", () -> Observable.combineLatest(_observeChunks(),
@@ -153,8 +153,8 @@ class EditorColorizer extends JPanel implements IDiscardable
    * @param pHeight     height of the targetPanel and thus the height of the bufferedImage
    * @return BufferedImage containing all the _ChangeHolders, background trasnparent
    */
-  @NotNull
-  private BufferedImage _createBufferedImage(@NotNull List<_ChangeHolder> pChangeList, int pHeight)
+  @NonNull
+  private BufferedImage _createBufferedImage(@NonNull List<_ChangeHolder> pChangeList, int pHeight)
   {
     BufferedImage image = new BufferedImage(COLORIZER_WIDTH, Math.max(1, pHeight), BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = (Graphics2D) image.getGraphics();
@@ -196,7 +196,7 @@ class EditorColorizer extends JPanel implements IDiscardable
   }
 
 
-  @NotNull
+  @NonNull
   private List<_ChangeHolder> _calculateRectangles(JTextComponent pTarget, List<IChangeDelta> pDeltaList)
   {
     List<EditorColorizer._ChangeHolder> newChangeList = new ArrayList<>();
@@ -221,7 +221,7 @@ class EditorColorizer extends JPanel implements IDiscardable
    * @param pChange              A chunk of a file that was changed
    * @param pLineNumberPositions Array with LineNumbers, giving the y Location of each line
    */
-  @NotNull
+  @NonNull
   private _ChangeHolder _calculateRec(JTextComponent pTarget, IChangeDelta pChange, LineNumber[] pLineNumberPositions)
   {
     int startLine = 0;

@@ -18,7 +18,7 @@ import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -49,7 +49,7 @@ class CheckoutAction extends AbstractTableAction
   @Inject
   CheckoutAction(IPrefStore pPrefStore, IDialogProvider pDialogProvider, IAsyncProgressFacade pProgressFactory, ISaveUtil pSaveUtil,
                  MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<IBranch>> pBranch,
-                 @NotNull INotifyUtil pNotifyUtil)
+                 @NonNull INotifyUtil pNotifyUtil)
   {
     super(Util.getResource(CheckoutAction.class, "checkoutTitle"), _getIsEnabledObservable(pRepository, pBranch));
     prefStore = pPrefStore;
@@ -115,7 +115,7 @@ class CheckoutAction extends AbstractTableAction
     }
   }
 
-  private void _unstash(IRepository pRepository, @NotNull IProgressHandle pProgress)
+  private void _unstash(IRepository pRepository, @NonNull IProgressHandle pProgress)
   {
     pRepository.setUpdateFlag(true);
     pProgress.setDescription(Util.getResource(CheckoutAction.class, "checkoutProgressUnstashMsg"));

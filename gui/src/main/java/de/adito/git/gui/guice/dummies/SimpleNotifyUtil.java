@@ -1,7 +1,7 @@
 package de.adito.git.gui.guice.dummies;
 
 import de.adito.git.api.INotifyUtil;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionListener;
@@ -25,13 +25,13 @@ public class SimpleNotifyUtil implements INotifyUtil
   }
 
   @Override
-  public void notify(@NotNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose)
+  public void notify(@NonNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose)
   {
     notify(pEx, pMessage, pAutoDispose, null);
   }
 
   @Override
-  public void notify(@NotNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pActionListener)
+  public void notify(@NonNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pActionListener)
   {
     notify("Encountered Exception: " + pEx.getClass().getSimpleName(), pMessage + "\n\n" + pEx.getMessage() + "\n\n" + Arrays.toString(pEx.getStackTrace()),
            pAutoDispose, pActionListener);

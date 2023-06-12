@@ -1,7 +1,7 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.IRemote;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.Objects;
 
@@ -17,7 +17,7 @@ public class RemoteImpl implements IRemote
   private final String url;
   private final String fetchInfo;
 
-  public RemoteImpl(@NotNull String pName, @NotNull String pUrl, @NotNull String pFetchInfo)
+  public RemoteImpl(@NonNull String pName, @NonNull String pUrl, @NonNull String pFetchInfo)
   {
     name = pName;
     url = pUrl;

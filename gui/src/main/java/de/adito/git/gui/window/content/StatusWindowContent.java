@@ -16,11 +16,10 @@ import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.StatusTree;
 import de.adito.git.gui.tree.models.*;
 import de.adito.util.reactive.cache.*;
-import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -95,14 +94,14 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
     });
   }
 
-  private void _initGui(@NotNull File pProjectDirectory, Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
+  private void _initGui(@NonNull File pProjectDirectory, Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
   {
     setLayout(new BorderLayout());
     _initActions(pProjectDirectory, pPopupMenuEntries);
     add(treeViewPanel, BorderLayout.CENTER);
   }
 
-  private void _initActions(@NotNull File pProjectDirectory, Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
+  private void _initActions(@NonNull File pProjectDirectory, Supplier<Multimap<Integer, Component>> pPopupMenuEntries)
   {
     Action commitAction = actionProvider.getCommitAction(repository, selectionObservable, "");
     Action diffToHeadAction = actionProvider.getDiffToHeadAction(repository, selectionObservable, true);
@@ -167,7 +166,7 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
     discardableActions.add((IDiscardable) applyPatchAction);
   }
 
-  private JPopupMenu _getPopupMenu(@NotNull Multimap<Integer, Action> pActions, @NotNull Supplier<Multimap<Integer, Component>> pAdditionalComponents)
+  private JPopupMenu _getPopupMenu(@NonNull Multimap<Integer, Action> pActions, @NonNull Supplier<Multimap<Integer, Component>> pAdditionalComponents)
   {
     JPopupMenu popupMenu = new JPopupMenu();
     Multimap<Integer, Component> componentMultimap = pAdditionalComponents.get();
@@ -219,14 +218,14 @@ class StatusWindowContent extends ObservableTreePanel implements IDiscardable, I
     return statusTree.getTree();
   }
 
-  @NotNull
+  @NonNull
   @Override
   public JComponent getComponent()
   {
     return this;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public Observable<Optional<List<File>>> observeSelectedItems()
   {

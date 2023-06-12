@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs.filechooser;
 import de.adito.git.gui.swing.TextFieldWithPlaceholder;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -25,7 +25,7 @@ public class FileChooserPanel extends JPanel
   final double pref = TableLayout.PREFERRED;
   TableLayoutUtil tlu;
 
-  FileChooserPanel(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter)
+  FileChooserPanel(@NonNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter)
   {
     fc = FileChooserProvider.getFileChooser();
     fc.setFileFilter(pFileFilter);
@@ -36,7 +36,7 @@ public class FileChooserPanel extends JPanel
   /**
    * @return JTextField that displays the selected file
    */
-  @NotNull
+  @NonNull
   public JTextField getTargetPathField()
   {
     return targetPath;
@@ -45,13 +45,13 @@ public class FileChooserPanel extends JPanel
   /**
    * @return the currently selected file that is displayed in the textfield
    */
-  @NotNull
+  @NonNull
   public String getSelectedFile()
   {
     return targetPath.getText();
   }
 
-  private void _initComponents(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode)
+  private void _initComponents(@NonNull FileChooserProvider.FileSelectionMode pFileSelectionMode)
   {
 
 

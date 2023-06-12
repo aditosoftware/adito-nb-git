@@ -7,7 +7,7 @@ import de.adito.git.api.data.ICommitFilter;
 import de.adito.git.gui.window.HistoryTableManager;
 import de.adito.git.gui.window.IWindowProvider;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.util.NbBundle;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
@@ -40,7 +40,7 @@ class WindowProviderNBImpl implements IWindowProvider
   }
 
   @Override
-  public void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter)
+  public void showCommitHistoryWindow(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull ICommitFilter pCommitFilter)
   {
     try
     {
@@ -61,14 +61,14 @@ class WindowProviderNBImpl implements IWindowProvider
   }
 
   @Override
-  public void showStatusWindow(@NotNull Observable<Optional<IRepository>> pRepository)
+  public void showStatusWindow(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     _SingletonIdentifier identifier = new _SingletonIdentifier(pRepository, "showStatusWindow");
     _openTCinEDT(identifier, () -> topComponentFactory.createStatusWindowTopComponent(pRepository));
   }
 
-  @NotNull
-  private static IRepository _getRepository(@NotNull Observable<Optional<IRepository>> pRepo)
+  @NonNull
+  private static IRepository _getRepository(@NonNull Observable<Optional<IRepository>> pRepo)
   {
     return pRepo
         .blockingFirst()
@@ -81,7 +81,7 @@ class WindowProviderNBImpl implements IWindowProvider
    *
    * @param pComponentSupplier The supplier for the AbstractRepositoryTopComponent that should be displayed
    */
-  private static void _openTCinEDT(@NotNull _SingletonIdentifier pIdentifier, @NotNull Supplier<AbstractRepositoryTopComponent> pComponentSupplier)
+  private static void _openTCinEDT(@NonNull _SingletonIdentifier pIdentifier, @NonNull Supplier<AbstractRepositoryTopComponent> pComponentSupplier)
   {
     for (TopComponent openedTC : TopComponent.getRegistry().getOpened())
     {

@@ -1,7 +1,7 @@
 package de.adito.git.gui.guice.dummies;
 
 import de.adito.git.gui.IEditorKitProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.text.EditorKit;
 import javax.swing.text.StyledEditorKit;
@@ -11,16 +11,16 @@ import javax.swing.text.StyledEditorKit;
  */
 public class SimpleEditorKitProvider implements IEditorKitProvider
 {
-  @NotNull
+  @NonNull
   @Override
-  public EditorKit getEditorKit(@NotNull String pFileDirectory)
+  public EditorKit getEditorKit(@NonNull String pFileDirectory)
   {
     return new StyledEditorKit();
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public EditorKit getEditorKitForContentType(@NotNull String pContentType)
+  public EditorKit getEditorKitForContentType(@NonNull String pContentType)
   {
     return new StyledEditorKit();
   }

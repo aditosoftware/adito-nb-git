@@ -1,7 +1,7 @@
 package de.adito.git.gui.rxjava;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -15,14 +15,14 @@ public class ViewPortSizeObservable extends AbstractListenerObservable<ChangeLis
 
   private Dimension cachedViewportSize = new Dimension(0, 0);
 
-  public ViewPortSizeObservable(@NotNull JViewport pListenableValue)
+  public ViewPortSizeObservable(@NonNull JViewport pListenableValue)
   {
     super(pListenableValue);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected ChangeListener registerListener(@NotNull JViewport pJViewport, @NotNull AbstractListenerObservable.IFireable<Dimension> pIFireable)
+  protected ChangeListener registerListener(@NonNull JViewport pJViewport, @NonNull AbstractListenerObservable.IFireable<Dimension> pIFireable)
   {
     ChangeListener changeListener = e -> {
       if (!pJViewport.getViewRect().getSize().equals(cachedViewportSize))
@@ -36,7 +36,7 @@ public class ViewPortSizeObservable extends AbstractListenerObservable<ChangeLis
   }
 
   @Override
-  protected void removeListener(@NotNull JViewport pJViewport, @NotNull ChangeListener pChangeListener)
+  protected void removeListener(@NonNull JViewport pJViewport, @NonNull ChangeListener pChangeListener)
   {
     pJViewport.removeChangeListener(pChangeListener);
   }
