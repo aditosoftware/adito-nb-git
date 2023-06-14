@@ -3,7 +3,7 @@ package de.adito.git.gui.swing;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IBeforeCommitAction;
 import de.adito.git.gui.DelayedSupplier;
 import de.adito.git.gui.dialogs.EButtons;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -22,8 +22,8 @@ public class CommitDialogConditionalButton extends ConditionalDialogButton
   private final DelayedSupplier<List<File>> selectedFiles;
   private EButtons pressedButton;
 
-  public CommitDialogConditionalButton(@NotNull EButtons pButton, @NotNull DelayedSupplier<List<IBeforeCommitAction>> pBeforeCommitActions,
-                                       @NotNull DelayedSupplier<List<File>> pSelectedFiles)
+  public CommitDialogConditionalButton(@NonNull EButtons pButton, @NonNull DelayedSupplier<List<IBeforeCommitAction>> pBeforeCommitActions,
+                                       @NonNull DelayedSupplier<List<File>> pSelectedFiles)
   {
     super(pButton.toString());
     pressedButton = pButton;
@@ -32,14 +32,14 @@ public class CommitDialogConditionalButton extends ConditionalDialogButton
   }
 
   @Override
-  @NotNull
+  @NonNull
   ActionListener getCustomListener()
   {
     return new ActionListenerFilter();
   }
 
   @Override
-  @NotNull
+  @NonNull
   public EButtons getPressedButton()
   {
     return pressedButton;

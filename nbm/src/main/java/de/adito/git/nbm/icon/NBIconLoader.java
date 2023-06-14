@@ -2,7 +2,7 @@ package de.adito.git.nbm.icon;
 
 import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.gui.icon.MissingIcon;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.util.ImageUtilities;
 
 import javax.swing.*;
@@ -21,9 +21,9 @@ public class NBIconLoader implements IIconLoader
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
-  public ImageIcon getIcon(@NotNull String pIconBase)
+  public ImageIcon getIcon(@NonNull String pIconBase)
   {
     if (iconCache.containsKey(pIconBase))
     {

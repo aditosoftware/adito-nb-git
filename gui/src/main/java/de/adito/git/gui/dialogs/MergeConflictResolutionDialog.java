@@ -13,7 +13,7 @@ import de.adito.git.gui.swing.ComponentResizeListener;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.diff.EConflictType;
 import de.adito.git.impl.data.diff.ResolveOptionsProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -77,7 +77,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
     addPropertyChangeListener(new NBdialogResizeListener(this, prefStore, PREF_STORE_SIZE_KEY));
   }
 
-  @NotNull
+  @NonNull
   private JToolBar _initToolbar(IIconLoader pIconLoader)
   {
     JToolBar toolbar = new JToolBar();
@@ -145,7 +145,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
    *
    * @param pConflictSide EConflictSide that should be accepted
    */
-  public static void acceptNonConflictingDeltas(@NotNull IMergeData pMergeDiff, @NotNull EConflictSide pConflictSide)
+  public static void acceptNonConflictingDeltas(@NonNull IMergeData pMergeDiff, @NonNull EConflictSide pConflictSide)
   {
     for (IChangeDelta changeDelta : pMergeDiff.getDiff(pConflictSide).getChangeDeltas())
     {
@@ -163,7 +163,7 @@ class MergeConflictResolutionDialog extends AditoBaseDialog<Object> implements I
   {
     private final EConflictSide conflictSide;
 
-    _AcceptAllActionImpl(@NotNull EConflictSide pConflictSide, IIconLoader pIconLoader)
+    _AcceptAllActionImpl(@NonNull EConflictSide pConflictSide, IIconLoader pIconLoader)
     {
       super("", pIconLoader.getIcon(pConflictSide == EConflictSide.YOURS ? Constants.ACCEPT_ALL_LEFT : Constants.ACCEPT_ALL_RIGHT));
       putValue(SHORT_DESCRIPTION, "accept remaining " + pConflictSide.name() + " changes");

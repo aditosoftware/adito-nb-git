@@ -5,13 +5,13 @@ import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.EPushResult;
 import de.adito.git.api.data.ITrackingRefUpdate;
 import de.adito.git.api.data.diff.EChangeType;
+import lombok.NonNull;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.RepositoryState;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -26,8 +26,8 @@ public class EnumMappings
    * @param pStatus RemoteRefUpdate.Status to map to PushResult
    * @return PushResult corresponding to pStatus
    */
-  @NotNull
-  public static EPushResult toPushResult(@NotNull RemoteRefUpdate.Status pStatus)
+  @NonNull
+  public static EPushResult toPushResult(@NonNull RemoteRefUpdate.Status pStatus)
   {
     EPushResult result;
     switch (pStatus)
@@ -60,8 +60,8 @@ public class EnumMappings
    * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
    * @return translated {@link EChangeType}
    */
-  @NotNull
-  public static EChangeType toEChangeType(@NotNull DiffEntry.ChangeType pChangeType)
+  @NonNull
+  public static EChangeType toEChangeType(@NonNull DiffEntry.ChangeType pChangeType)
   {
     switch (pChangeType)
     {
@@ -84,7 +84,7 @@ public class EnumMappings
    * @param pChangeType {@link org.eclipse.jgit.diff.DiffEntry.ChangeType} to translate to an {@link EChangeType}
    * @return translated {@link EChangeType}
    */
-  static EChangeType toEChangeType(@NotNull Edit.Type pChangeType)
+  static EChangeType toEChangeType(@NonNull Edit.Type pChangeType)
   {
     switch (pChangeType)
     {
@@ -105,7 +105,7 @@ public class EnumMappings
    * @param pFileMode {@link FileMode} to translate to {@link EFileType}
    * @return translated {@link EFileType}
    */
-  public static EFileType toEFileType(@NotNull FileMode pFileMode)
+  public static EFileType toEFileType(@NonNull FileMode pFileMode)
   {
     switch (pFileMode.getBits())
     {
@@ -245,7 +245,7 @@ public class EnumMappings
    * @return EChangeType that corresponds to the given Edit.Type
    */
   @Nullable
-  public static de.adito.git.api.data.diff.EChangeType toChangeType(@NotNull Edit.Type pType)
+  public static de.adito.git.api.data.diff.EChangeType toChangeType(@NonNull Edit.Type pType)
   {
     de.adito.git.api.data.diff.EChangeType returnValue;
     switch (pType)

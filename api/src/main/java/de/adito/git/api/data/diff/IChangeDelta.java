@@ -2,7 +2,7 @@ package de.adito.git.api.data.diff;
 
 import de.adito.git.impl.data.diff.ConflictType;
 import de.adito.git.impl.data.diff.ResolveOptionsProvider;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -172,8 +172,8 @@ public interface IChangeDelta extends IDelta
    * @param pFileDiffHeader         IFileDiffHeader containing information about the path and extension of the file
    * @return EConflictType denoting the type of conflict the deltas have. Can also be NONE, indicating there is no conflict
    */
-  ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NotNull EConflictSide pConflictSide, @NotNull ResolveOptionsProvider pResolveOptionsProvider,
-                                 @NotNull IFileDiffHeader pFileDiffHeader);
+  ConflictType isConflictingWith(IChangeDelta pOtherChangeDelta, @NonNull EConflictSide pConflictSide, @NonNull ResolveOptionsProvider pResolveOptionsProvider,
+                                 @NonNull IFileDiffHeader pFileDiffHeader);
 
   /**
    * get the text of one side of this delta
@@ -230,5 +230,5 @@ public interface IChangeDelta extends IDelta
    * @param pChangeSide EChangeSide that the index should be checked for
    * @return true if the index is part of this change, false otherwise
    */
-  boolean isPartOfDelta(int pIndex, @NotNull EChangeSide pChangeSide);
+  boolean isPartOfDelta(int pIndex, @NonNull EChangeSide pChangeSide);
 }

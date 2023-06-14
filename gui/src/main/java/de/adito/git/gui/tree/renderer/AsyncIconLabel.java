@@ -2,7 +2,7 @@ package de.adito.git.gui.tree.renderer;
 
 import de.adito.git.gui.concurrency.GitProcessExecutors;
 import de.adito.git.gui.icon.MissingIcon;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 public class AsyncIconLabel extends JLabel
 {
 
-  public AsyncIconLabel(@Nullable Icon pDefaultImage, @NotNull Supplier<Image> pIconSupplier)
+  public AsyncIconLabel(@Nullable Icon pDefaultImage, @NonNull Supplier<Image> pIconSupplier)
   {
     super(pDefaultImage == null ? MissingIcon.get16x16() : pDefaultImage, SwingConstants.CENTER);
     GitProcessExecutors.submit(() -> {
@@ -27,7 +27,7 @@ public class AsyncIconLabel extends JLabel
     });
   }
 
-  public AsyncIconLabel(@NotNull Supplier<Image> pIconSupplier)
+  public AsyncIconLabel(@NonNull Supplier<Image> pIconSupplier)
   {
     this(null, pIconSupplier);
   }

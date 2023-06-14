@@ -1,6 +1,6 @@
 package de.adito.git.nbm.wizard;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -23,7 +23,7 @@ public class CloneWizardPanel1Test
    */
   @ParameterizedTest
   @MethodSource("_provideUrls")
-  void testCorrectUrls(@NotNull String pInuput, boolean pExpected)
+  void testCorrectUrls(@NonNull String pInuput, boolean pExpected)
   {
     assertEquals(pExpected, CloneWizardPanel1._isValidUrlPattern(pInuput));
   }
@@ -31,7 +31,7 @@ public class CloneWizardPanel1Test
   /**
    * @return Arguments for the test
    */
-  @NotNull
+  @NonNull
   private static Stream<Arguments> _provideUrls()
   {
     return Stream.of(Arguments.of("https://gitintern.aditosoftware.local/devs/aditoonline.git", true),

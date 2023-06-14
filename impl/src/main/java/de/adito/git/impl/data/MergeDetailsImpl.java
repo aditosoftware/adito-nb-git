@@ -2,7 +2,7 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.IMergeData;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -25,19 +25,19 @@ public class MergeDetailsImpl implements IMergeDetails
   }
 
   @Override
-  public @NotNull List<IMergeData> getMergeConflicts()
+  public @NonNull List<IMergeData> getMergeConflicts()
   {
     return mergeData;
   }
 
   @Override
-  public @NotNull String getYoursOrigin()
+  public @NonNull String getYoursOrigin()
   {
     return yoursOrigin;
   }
 
   @Override
-  public @NotNull String getTheirsOrigin()
+  public @NonNull String getTheirsOrigin()
   {
     return theirsOrigin;
   }

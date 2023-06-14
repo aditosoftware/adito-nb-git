@@ -20,7 +20,7 @@ import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.renderer.TagTreeCellRenderer;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -89,8 +89,8 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
    * @param pQuickSearchProvider QuickSearchProvider to attach to a tree/table for QuickSearch support
    * @return TreeModel for the Tree used in this dialog
    */
-  @NotNull
-  private DefaultTreeModel _initTree(@NotNull IIconLoader pIconLoader, @NotNull IQuickSearchProvider pQuickSearchProvider)
+  @NonNull
+  private DefaultTreeModel _initTree(@NonNull IIconLoader pIconLoader, @NonNull IQuickSearchProvider pQuickSearchProvider)
   {
     DefaultTreeModel treeModel = new DefaultTreeModel(null);
     tree.init(this, treeModel);
@@ -109,9 +109,9 @@ class TagOverviewDialog extends AditoBaseDialog<Object> implements IDiscardable
    * @param pSelectedTagObservable Observable with the currently selected Tag
    * @return PopupMouseListener that shows a popup for the selected item
    */
-  @NotNull
-  private PopupMouseListener _getPopupMouseListener(@NotNull IActionProvider pActionProvider, @NotNull Observable<Optional<IRepository>> pRepository,
-                                                    @NotNull ObservableTreeSelectionModel pSelectionModel, @NotNull Observable<Optional<ITag>> pSelectedTagObservable)
+  @NonNull
+  private PopupMouseListener _getPopupMouseListener(@NonNull IActionProvider pActionProvider, @NonNull Observable<Optional<IRepository>> pRepository,
+                                                    @NonNull ObservableTreeSelectionModel pSelectionModel, @NonNull Observable<Optional<ITag>> pSelectedTagObservable)
   {
     JPopupMenu popupMenu = new JPopupMenu();
     selectCommitAction = new _SelectCommitAction(pSelectionModel);

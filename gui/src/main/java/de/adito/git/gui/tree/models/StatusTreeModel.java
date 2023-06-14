@@ -7,7 +7,7 @@ import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.tree.TreeNode;
 import java.io.File;
@@ -24,7 +24,7 @@ public class StatusTreeModel extends ObservingTreeModel<IFileChangeType> impleme
 
   private final Comparator<TreeNode> comparator = _getDefaultComparator();
 
-  public StatusTreeModel(@NotNull File pProjectDirectory)
+  public StatusTreeModel(@NonNull File pProjectDirectory)
   {
     super(pProjectDirectory);
   }
@@ -35,8 +35,8 @@ public class StatusTreeModel extends ObservingTreeModel<IFileChangeType> impleme
     service.shutdown();
   }
 
-  @NotNull
-  private List<TreeUpdate> _calculateTree(@NotNull List<IFileChangeType> pList)
+  @NonNull
+  private List<TreeUpdate> _calculateTree(@NonNull List<IFileChangeType> pList)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();
@@ -70,7 +70,7 @@ public class StatusTreeModel extends ObservingTreeModel<IFileChangeType> impleme
     return treeUpdates;
   }
 
-  void _treeChanged(@NotNull List<IFileChangeType> pList, Runnable... pDoAfter)
+  void _treeChanged(@NonNull List<IFileChangeType> pList, Runnable... pDoAfter)
   {
     try
     {

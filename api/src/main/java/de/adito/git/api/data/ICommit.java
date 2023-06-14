@@ -1,7 +1,7 @@
 package de.adito.git.api.data;
 
 import de.adito.git.api.dag.IDAGObject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.time.Instant;
 import java.util.List;
@@ -59,7 +59,7 @@ public interface ICommit extends IDAGObject<ICommit>
     /**
      * @return List of ICommits that form the parents of this ICommit
      */
-    @NotNull
+    @NonNull
     List<ICommit> getParents();
 
     /**
@@ -67,5 +67,5 @@ public interface ICommit extends IDAGObject<ICommit>
      *
      * @param pCommits list of commits that should be given out as parents
      */
-    void setParents(@NotNull List<ICommit> pCommits);
+    void setParents(@NonNull List<ICommit> pCommits);
 }

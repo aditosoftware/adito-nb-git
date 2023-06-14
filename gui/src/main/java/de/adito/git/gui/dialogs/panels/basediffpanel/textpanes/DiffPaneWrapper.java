@@ -9,7 +9,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.diffpane.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -35,7 +35,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   private final Disposable editorKitDisposable;
   private final ScrollbarMarkingsModel scrollbarMarkingsModel;
   private final CaretVisibleFocusListener caretVisibleFocusListener;
-  @NotNull
+  @NonNull
   private final BehaviorSubject<IDeltaTextChangeEvent> textChangeSubject = BehaviorSubject.create();
   private IFileDiff currentFileDiff;
 
@@ -43,7 +43,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    * @param pModel           DiffPanelModel that defines what is done when inserting text/how the LineNumbers are retrieved
    * @param pHeaderAlignment alignment of the header
    */
-  public DiffPaneWrapper(@NotNull DiffPanelModel pModel, @Nullable String pHeader, int pHeaderAlignment, @NotNull Observable<Optional<EditorKit>> pEditorKitObservable)
+  public DiffPaneWrapper(@NonNull DiffPanelModel pModel, @Nullable String pHeader, int pHeaderAlignment, @NonNull Observable<Optional<EditorKit>> pEditorKitObservable)
   {
     model = pModel;
     editorPane = new JEditorPane();
@@ -66,7 +66,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    *
    * @return LineNumberModel
    */
-  @NotNull
+  @NonNull
   public LineNumberModel createLineNumberModel()
   {
     return diffPaneContainer.createLineNumberModel(textChangeSubject);
@@ -75,7 +75,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   /**
    * @return JScrollPane with the content of this DiffPane, add this to your panel
    */
-  public @NotNull JScrollPane getScrollPane()
+  public @NonNull JScrollPane getScrollPane()
   {
     return diffPaneContainer.getScrollPane();
   }
@@ -84,7 +84,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
    * @return DiffPane that this wrapper is made for, only use this to add LineNumber/ChoiceButtonPanels. Add the JScrollPane via getScrollPane() to
    * the panel/component that should display the DiffPane
    */
-  public @NotNull DiffPaneContainer getPaneContainer()
+  public @NonNull DiffPaneContainer getPaneContainer()
   {
     return diffPaneContainer;
   }
@@ -92,7 +92,7 @@ public class DiffPaneWrapper implements IDiscardable, IPaneWrapper
   /**
    * @return the JEditorPane displaying the text for this DiffPaneWrapper
    */
-  public @NotNull JEditorPane getEditorPane()
+  public @NonNull JEditorPane getEditorPane()
   {
     return editorPane;
   }

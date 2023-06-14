@@ -1,6 +1,6 @@
 package de.adito.git.gui.tree;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -36,8 +36,8 @@ public class TreeUtil
    * @param pTreePath TreePath of the selected node
    * @return full name of the tag of the selected node
    */
-  @NotNull
-  public static Path pathFromTreePath(@NotNull TreePath pTreePath)
+  @NonNull
+  public static Path pathFromTreePath(@NonNull TreePath pTreePath)
   {
     // PathCount == 1: only root, the root label does not factor into the tag path
     if (pTreePath.getPathCount() > 1)

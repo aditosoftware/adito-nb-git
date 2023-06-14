@@ -1,6 +1,6 @@
 package de.adito.git.gui.swing;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.text.*;
@@ -22,7 +22,7 @@ public class TextPaneUtil
    * @return Array of LineNumbers, each representing one Line. The LineNumbers are sorted, so position 0 in the array is the LineNumber of line 1
    * @throws BadLocationException if one of the accessed lineNumbers is out of bounds
    */
-  public static LineNumber[] calculateLineYPositions(@NotNull JTextComponent pEditorPane, @Nullable View pView) throws BadLocationException
+  public static LineNumber[] calculateLineYPositions(@NonNull JTextComponent pEditorPane, @Nullable View pView) throws BadLocationException
   {
     int numLines = pEditorPane.getDocument().getDefaultRootElement().getElementCount();
     return _calculateLineNumbers(pEditorPane, pView, pEditorPane.getFontMetrics(pEditorPane.getFont()).getHeight(), 0,
@@ -43,7 +43,7 @@ public class TextPaneUtil
    * @return Set of LineNumbers
    * @throws BadLocationException if one of the accessed lineNumbers is out of bounds
    */
-  private static LineNumber[] _calculateLineNumbers(@NotNull JTextComponent pEditorPane, @Nullable View pView,
+  private static LineNumber[] _calculateLineNumbers(@NonNull JTextComponent pEditorPane, @Nullable View pView,
                                                     int pLineHeight, int pStartIndex, int pEndIndex, LineNumber[] pLineNumbers)
       throws BadLocationException
   {
@@ -81,7 +81,7 @@ public class TextPaneUtil
    * @throws BadLocationException if the lineIndex is out of bounds
    */
   @Nullable
-  private static LineNumber _calculateLineNumberPos(@NotNull JTextComponent pEditorPane, @Nullable View pView, int pLineIndex) throws BadLocationException
+  private static LineNumber _calculateLineNumberPos(@NonNull JTextComponent pEditorPane, @Nullable View pView, int pLineIndex) throws BadLocationException
   {
     if (pEditorPane.getDocument().getDefaultRootElement().getElementCount() < pLineIndex)
       return null;

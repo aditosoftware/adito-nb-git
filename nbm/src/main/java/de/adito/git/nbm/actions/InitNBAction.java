@@ -9,7 +9,7 @@ import de.adito.git.nbm.repo.RepositoryCache;
 import de.adito.git.nbm.util.ProjectUtility;
 import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -49,7 +49,7 @@ public class InitNBAction extends NBAction
   }
 
   @Override
-  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
     return null;
   }

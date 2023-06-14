@@ -1,7 +1,7 @@
 package de.adito.git.gui.prefs;
 
 import de.adito.git.api.prefs.IPrefStore;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -17,19 +17,19 @@ public class DummyPrefStore implements IPrefStore
 
   @Nullable
   @Override
-  public String get(@NotNull String pKey)
+  public String get(@NonNull String pKey)
   {
     return store.get(pKey);
   }
 
   @Override
-  public @Nullable String get(@NotNull String pModulePath, @NotNull String pKey)
+  public @Nullable String get(@NonNull String pModulePath, @NonNull String pKey)
   {
     return store.get(pKey);
   }
 
   @Override
-  public void put(@NotNull String pKey, @Nullable String pValue)
+  public void put(@NonNull String pKey, @Nullable String pValue)
   {
     if(pValue == null)
       store.remove(pKey);

@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 import de.adito.git.api.IDiscardable;
 import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.swing.LineNumber;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -20,9 +20,9 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
 
   static final int Y_ICON_OFFSET = 2;
 
-  @NotNull
+  @NonNull
   private final LineNumberModel lineNumberModel;
-  @NotNull
+  @NonNull
   private final JEditorPane editorPane;
   private final int acceptChangeIconXVal;
   private final int discardChangeIconXVal;
@@ -30,11 +30,11 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
   private final ImageIcon acceptIcon;
   @Nullable
   private final ImageIcon discardIcon;
-  @NotNull
+  @NonNull
   private final EChangeSide changeSide;
-  @NotNull
+  @NonNull
   private TreeMap<Integer, IconInfo> acceptCoordinateMapping = new TreeMap<>();
-  @NotNull
+  @NonNull
   private TreeMap<Integer, IconInfo> discardCoordinateMapping = new TreeMap<>();
 
 
@@ -46,8 +46,8 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
    * @param pDiscardIcon     icon used for the "discard changes" action. pass null if no discard action is wanted
    * @param pOrientation     BorderLayout.EAST or BorderLayout.WEST, this parameter determines whether the discard or accept icon is the right or left icon
    */
-  public IconInfoModel(@NotNull LineNumberModel pLineNumberModel, @NotNull EChangeSide pChangeSide, @NotNull JEditorPane pEditorPane, @Nullable ImageIcon pAcceptIcon,
-                       @Nullable ImageIcon pDiscardIcon, @NotNull String pOrientation)
+  public IconInfoModel(@NonNull LineNumberModel pLineNumberModel, @NonNull EChangeSide pChangeSide, @NonNull JEditorPane pEditorPane, @Nullable ImageIcon pAcceptIcon,
+                       @Nullable ImageIcon pDiscardIcon, @NonNull String pOrientation)
   {
     changeSide = pChangeSide;
     editorPane = pEditorPane;
@@ -79,7 +79,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
   }
 
   @Override
-  public void lineNumbersChanged(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
   {
     calculateIconInfos(pTextChangeEvent, pLineNumbers);
   }
@@ -89,7 +89,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
    * @param pYEnd   end coordinate for the interval to be drawn, must be bigger or equal to pYStart for this method to work correctly
    * @return all icons that have to be drawn for the given interval. Also includes icons that only clip the interval. If pYStart is bigger than pYEnd returns an emtpy list
    */
-  @NotNull
+  @NonNull
   public List<IconInfo> getIconInfosToDraw(int pYStart, int pYEnd)
   {
     if (pYStart > pYEnd)
@@ -114,7 +114,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
    * @param pTextChangeEvent IDeltaTextChangeEvent that contains all ChangeDeltas for the current diff/merge
    * @param pLineNumbers     array of LineNumbers that give the y coordinates of each line
    */
-  private void calculateIconInfos(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
+  private void calculateIconInfos(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
   {
     List<IconInfo> acceptIconInfoList = new ArrayList<>();
     List<IconInfo> discardIconInfoList = new ArrayList<>();
@@ -187,7 +187,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
    * @return IconInfo that is clipping the given y coordinate or null if no IconInfo is clipping the given y value
    */
   @Nullable
-  private IconInfo getClippingIcon(@NotNull TreeMap<Integer, IconInfo> pTreeMap, int pYStart)
+  private IconInfo getClippingIcon(@NonNull TreeMap<Integer, IconInfo> pTreeMap, int pYStart)
   {
     Map.Entry<Integer, IconInfo> lineNumberEntryBefore = pTreeMap.floorEntry(pYStart);
     if (Optional.ofNullable(lineNumberEntryBefore)
@@ -207,8 +207,8 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
    * @param pIconInfoList list of IconInfos
    * @return TreeMap of the IconsInfos, with their y value as the key and the IconInfo itself as value
    */
-  @NotNull
-  private TreeMap<Integer, IconInfo> calculateCoordinateMapping(@NotNull List<IconInfo> pIconInfoList)
+  @NonNull
+  private TreeMap<Integer, IconInfo> calculateCoordinateMapping(@NonNull List<IconInfo> pIconInfoList)
   {
     TreeMap<Integer, IconInfo> iconInfoMap = new TreeMap<>();
     for (IconInfo iconInfo : pIconInfoList)

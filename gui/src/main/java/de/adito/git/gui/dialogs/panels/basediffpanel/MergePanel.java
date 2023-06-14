@@ -19,7 +19,7 @@ import de.adito.git.impl.data.diff.EConflictType;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -62,9 +62,9 @@ public class MergePanel extends JPanel implements IDiscardable
   private DiffPaneWrapper theirsPaneWrapper;
   private CaretMovedListener caretListener;
 
-  public MergePanel(@NotNull IIconLoader pIconLoader, @NotNull IMergeData pMergeDiff, @NotNull String pYoursOrigin, @NotNull String pTheirsOrigin,
+  public MergePanel(@NonNull IIconLoader pIconLoader, @NonNull IMergeData pMergeDiff, @NonNull String pYoursOrigin, @NonNull String pTheirsOrigin,
                     @Nullable ImageIcon pAcceptYoursIcon, @Nullable ImageIcon pAcceptTheirsIcon, @Nullable ImageIcon pDiscardIcon,
-                    @NotNull IEditorKitProvider pEditorKitProvider)
+                    @NonNull IEditorKitProvider pEditorKitProvider)
   {
     iconLoader = pIconLoader;
     mergeDiff = pMergeDiff;
@@ -88,7 +88,7 @@ public class MergePanel extends JPanel implements IDiscardable
                                                .orElseGet(() -> pEditorKitProvider.getEditorKitForContentType("text/plain"))));
   }
 
-  private void _initGui(@NotNull String pYoursOrigin, @NotNull String pTheirsOrigin)
+  private void _initGui(@NonNull String pYoursOrigin, @NonNull String pTheirsOrigin)
   {
     forkPointPaneWrapper = new ForkPointPaneWrapper(mergeDiff, editorKitObservable);
     DiffPanelModel yoursModel = new DiffPanelModel(mergeDiff.getDiff(EConflictSide.YOURS).getDiffTextChangeObservable(), EChangeSide.NEW)
@@ -133,7 +133,7 @@ public class MergePanel extends JPanel implements IDiscardable
    * @param yoursModel  Model containing the changes of the "yours" side of the merge
    * @param theirsModel Model containing the changes of the "theirs" side of the merge
    */
-  private void initModels(@NotNull DiffPanelModel yoursModel, @NotNull DiffPanelModel theirsModel)
+  private void initModels(@NonNull DiffPanelModel yoursModel, @NonNull DiffPanelModel theirsModel)
   {
     LineNumberModel yourLineNumberModel = yoursPaneWrapper.createLineNumberModel();
     LineChangeMarkingModel yourLineChangeMarkingModel = new LineChangeMarkingModel(yourLineNumberModel, EChangeSide.NEW);
@@ -171,8 +171,8 @@ public class MergePanel extends JPanel implements IDiscardable
    *                                             content, in relation to the scrollPane of the forkPoint EditorPane. This model is required in order to draw the
    *                                             connections between associated changes
    */
-  private void initYoursPanel(@NotNull DiffPanelModel pYoursModel, @NotNull LineNumberModel pYourLineNumberModel, @NotNull LineChangeMarkingModel pYourChangeMarkingModel,
-                              @NotNull ViewLineChangeMarkingModel pYourViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointYourViewChangeMarkingModel)
+  private void initYoursPanel(@NonNull DiffPanelModel pYoursModel, @NonNull LineNumberModel pYourLineNumberModel, @NonNull LineChangeMarkingModel pYourChangeMarkingModel,
+                              @NonNull ViewLineChangeMarkingModel pYourViewChangeMarkingModel, @NonNull ViewLineChangeMarkingModel pForkpointYourViewChangeMarkingModel)
   {
     yoursPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     yoursPaneWrapper.getScrollPane().setLayout(new LeftSideVSBScrollPaneLayout());
@@ -198,8 +198,8 @@ public class MergePanel extends JPanel implements IDiscardable
    *                                              content, in relation to the scrollPane of the forkPoint EditorPane. This model is required in order to draw the
    *                                              connections between associated changes
    */
-  private void initTheirsPanel(@NotNull DiffPanelModel pTheirsModel, @NotNull LineNumberModel pTheirLineNumberModel, @NotNull LineChangeMarkingModel pTheirChangeMarkingModel,
-                               @NotNull ViewLineChangeMarkingModel pTheirViewChangeMarkingModel, @NotNull ViewLineChangeMarkingModel pForkpointTheirViewChangeMarkingModel)
+  private void initTheirsPanel(@NonNull DiffPanelModel pTheirsModel, @NonNull LineNumberModel pTheirLineNumberModel, @NonNull LineChangeMarkingModel pTheirChangeMarkingModel,
+                               @NonNull ViewLineChangeMarkingModel pTheirViewChangeMarkingModel, @NonNull ViewLineChangeMarkingModel pForkpointTheirViewChangeMarkingModel)
   {
     theirsPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
 
@@ -220,16 +220,16 @@ public class MergePanel extends JPanel implements IDiscardable
    * @param pForkpointYourChangeMarkingModel  LineChangeMarkingModel that contains the coordinates of the colored areas showing the changes of the YOURS side
    * @param pForkpointTheirChangeMarkingModel LineChangeMarkingModel that contains the coordinates of the colored areas showing the changes of the THEIRS side
    */
-  private void initForkPointPanel(@NotNull LineNumberModel pForkpointYourLineNumberModel, @NotNull LineNumberModel pForkpointLineTheirNumberModel,
-                                  @NotNull LineChangeMarkingModel pForkpointYourChangeMarkingModel,
-                                  @NotNull LineChangeMarkingModel pForkpointTheirChangeMarkingModel)
+  private void initForkPointPanel(@NonNull LineNumberModel pForkpointYourLineNumberModel, @NonNull LineNumberModel pForkpointLineTheirNumberModel,
+                                  @NonNull LineChangeMarkingModel pForkpointYourChangeMarkingModel,
+                                  @NonNull LineChangeMarkingModel pForkpointTheirChangeMarkingModel)
   {
     forkPointPaneWrapper.getScrollPane().getVerticalScrollBar().setUnitIncrement(Constants.SCROLL_SPEED_INCREMENT);
     forkPointPaneWrapper.getPaneContainer().addLineNumPanel(pForkpointYourLineNumberModel, pForkpointYourChangeMarkingModel, BorderLayout.WEST);
     forkPointPaneWrapper.getPaneContainer().addLineNumPanel(pForkpointLineTheirNumberModel, pForkpointTheirChangeMarkingModel, BorderLayout.EAST);
   }
 
-  @NotNull
+  @NonNull
   public List<Action> getActions()
   {
     SynchronizedBoundedRangeModel forkPointModel = theirsCoupling.getModel(FORKPOINT_MODEL_KEY);
@@ -263,7 +263,7 @@ public class MergePanel extends JPanel implements IDiscardable
    *
    * @return List of Actions
    */
-  @NotNull
+  @NonNull
   public List<MergeChunkAction> getMergeChunkActions()
   {
     return List.of(useLeftChunk, useRightChunk, useLeftThenRightChunk, useRightThenLeftChunk);
@@ -316,10 +316,10 @@ public class MergePanel extends JPanel implements IDiscardable
   private static class EnhancedAbstractAction extends AbstractAction
   {
 
-    @NotNull
+    @NonNull
     private final Consumer<ActionEvent> doOnActionPerformed;
 
-    EnhancedAbstractAction(@Nullable String pTitle, @Nullable ImageIcon pIcon, @Nullable String pShortDescription, @NotNull Consumer<ActionEvent> pDoOnActionPerformed)
+    EnhancedAbstractAction(@Nullable String pTitle, @Nullable ImageIcon pIcon, @Nullable String pShortDescription, @NonNull Consumer<ActionEvent> pDoOnActionPerformed)
     {
       super(pTitle, pIcon);
       doOnActionPerformed = pDoOnActionPerformed;
@@ -369,7 +369,7 @@ public class MergePanel extends JPanel implements IDiscardable
     }
 
     @Override
-    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    void actionPerformed0(@NonNull ConflictPair pConflictPair)
     {
       IChangeDelta yoursDelta = yoursPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.YOURS));
       mergeDiff.acceptDelta(yoursDelta, EConflictSide.YOURS);
@@ -388,7 +388,7 @@ public class MergePanel extends JPanel implements IDiscardable
     }
 
     @Override
-    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    void actionPerformed0(@NonNull ConflictPair pConflictPair)
     {
       IChangeDelta theirsDelta = theirsPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.THEIRS));
       mergeDiff.acceptDelta(theirsDelta, EConflictSide.THEIRS);
@@ -407,7 +407,7 @@ public class MergePanel extends JPanel implements IDiscardable
     }
 
     @Override
-    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    void actionPerformed0(@NonNull ConflictPair pConflictPair)
     {
       IChangeDelta yoursDelta = yoursPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.YOURS));
       mergeDiff.acceptDelta(yoursDelta, EConflictSide.YOURS);
@@ -426,7 +426,7 @@ public class MergePanel extends JPanel implements IDiscardable
     }
 
     @Override
-    void actionPerformed0(@NotNull ConflictPair pConflictPair)
+    void actionPerformed0(@NonNull ConflictPair pConflictPair)
     {
       IChangeDelta theirsDelta = theirsPaneWrapper.getFileDiff().getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.THEIRS));
       mergeDiff.acceptDelta(theirsDelta, EConflictSide.THEIRS);
@@ -479,6 +479,6 @@ public class MergePanel extends JPanel implements IDiscardable
     /**
      * @param pConflictPair ConflictPair denoting the indices of the currently selected deltas that should be resolved
      */
-    abstract void actionPerformed0(@NotNull ConflictPair pConflictPair);
+    abstract void actionPerformed0(@NonNull ConflictPair pConflictPair);
   }
 }

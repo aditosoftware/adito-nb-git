@@ -1,6 +1,6 @@
 package de.adito.git.gui.tree;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.MutableTreeNode;
@@ -28,7 +28,7 @@ public class TreeUpdate
     ROOT
   }
 
-  private TreeUpdate(@NotNull TYPE pType, @NotNull MutableTreeNode pNode, @Nullable MutableTreeNode pParent, int pIndex)
+  private TreeUpdate(@NonNull TYPE pType, @NonNull MutableTreeNode pNode, @Nullable MutableTreeNode pParent, int pIndex)
   {
 
     type = pType;
@@ -43,7 +43,7 @@ public class TreeUpdate
    * @param pIndex  index that pNode should be inserted at
    * @return TreeUpdate with the specified attributes
    */
-  public static TreeUpdate createInsert(@NotNull MutableTreeNode pNode, @NotNull MutableTreeNode pParent, int pIndex)
+  public static TreeUpdate createInsert(@NonNull MutableTreeNode pNode, @NonNull MutableTreeNode pParent, int pIndex)
   {
     return new TreeUpdate(TYPE.INSERT, pNode, pParent, pIndex);
   }
@@ -52,7 +52,7 @@ public class TreeUpdate
    * @param pNode Node that should be removed
    * @return TreeUpdate with the specified attributes
    */
-  public static TreeUpdate createRemove(@NotNull MutableTreeNode pNode)
+  public static TreeUpdate createRemove(@NonNull MutableTreeNode pNode)
   {
     return new TreeUpdate(TYPE.REMOVE, pNode, null, -1);
   }
@@ -61,7 +61,7 @@ public class TreeUpdate
    * @param pNode Node that should become the new root node
    * @return TreeUpdate with the specified attributes
    */
-  public static TreeUpdate createRoot(@NotNull MutableTreeNode pNode)
+  public static TreeUpdate createRoot(@NonNull MutableTreeNode pNode)
   {
     return new TreeUpdate(TYPE.ROOT, pNode, null, -1);
   }
@@ -69,7 +69,7 @@ public class TreeUpdate
   /**
    * @return TYPE of the update
    */
-  @NotNull
+  @NonNull
   public TYPE getType()
   {
     return type;
@@ -86,7 +86,7 @@ public class TreeUpdate
   /**
    * @return the node that is affected by the operation
    */
-  @NotNull
+  @NonNull
   public MutableTreeNode getNode()
   {
     return node;

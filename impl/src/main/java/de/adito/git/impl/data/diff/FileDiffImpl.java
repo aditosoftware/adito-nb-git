@@ -7,9 +7,9 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
 import io.reactivex.rxjava3.subjects.Subject;
+import lombok.NonNull;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -35,8 +35,8 @@ public class FileDiffImpl implements IFileDiff
   private String newVersion;
   private List<IChangeDelta> changeDeltas;
 
-  public FileDiffImpl(@NotNull IFileDiffHeader pFileDiffHeader, @NotNull EditList pEditList, @NotNull IFileContentInfo pOriginalFileContentInfo,
-                      @NotNull IFileContentInfo pNewFileContentInfo)
+  public FileDiffImpl(@NonNull IFileDiffHeader pFileDiffHeader, @NonNull EditList pEditList, @NonNull IFileContentInfo pOriginalFileContentInfo,
+                      @NonNull IFileContentInfo pNewFileContentInfo)
   {
     fileDiffHeader = pFileDiffHeader;
     editList = pEditList;
@@ -45,7 +45,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull IFileDiffHeader getFileHeader()
+  public @NonNull IFileDiffHeader getFileHeader()
   {
     return fileDiffHeader;
   }
@@ -67,7 +67,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public Charset getEncoding(@NotNull EChangeSide pChangeSide)
+  public Charset getEncoding(@NonNull EChangeSide pChangeSide)
   {
     return pChangeSide == EChangeSide.NEW ? newFileContentInfo.getEncoding().get() : originalFileContentInfo.getEncoding().get();
   }
@@ -138,7 +138,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull List<IDeltaTextChangeEvent> acceptDelta(@NotNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents, boolean pOverride)
+  public @NonNull List<IDeltaTextChangeEvent> acceptDelta(@NonNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve, boolean pCreateTextEvents, boolean pOverride)
   {
     if (pUseWordBasedResolve)
       return _applyDeltaParts(pChangeDelta, EChangeSide.NEW, pCreateTextEvents);
@@ -146,7 +146,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull IDeltaTextChangeEvent appendDeltaText(@NotNull IChangeDelta pChangeDelta)
+  public @NonNull IDeltaTextChangeEvent appendDeltaText(@NonNull IChangeDelta pChangeDelta)
   {
     DeltaTextChangeEventImpl deltaTextChangeEvent;
     if (oldVersion == null || newVersion == null)
@@ -175,7 +175,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull List<IDeltaTextChangeEvent> revertDelta(@NotNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve)
+  public @NonNull List<IDeltaTextChangeEvent> revertDelta(@NonNull IChangeDelta pChangeDelta, boolean pUseWordBasedResolve)
   {
     if (pUseWordBasedResolve)
       return _applyDeltaParts(pChangeDelta, EChangeSide.OLD, true);
@@ -348,7 +348,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public void discardDelta(@NotNull IChangeDelta pChangeDelta)
+  public void discardDelta(@NonNull IChangeDelta pChangeDelta)
   {
     int deltaIndex = changeDeltas.indexOf(pChangeDelta);
     if (deltaIndex != -1)
@@ -362,7 +362,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public void setResolved(@NotNull IChangeDelta pChangeDelta)
+  public void setResolved(@NonNull IChangeDelta pChangeDelta)
   {
     int deltaIndex = changeDeltas.indexOf(pChangeDelta);
     if (deltaIndex != -1)
@@ -429,7 +429,7 @@ public class FileDiffImpl implements IFileDiff
    *                       If the delta is e.g. a one-line change and the line is replaced by the modify operation, the delta should still span that line.
    *                       The argument is -1 if not a modify operation or no delta was affected
    */
-  private void _processInsertEvent(int pOffset, @NotNull String pText, EChangeSide pChangeSide, int pModifiedDelta, boolean pTrySnapToDelta)
+  private void _processInsertEvent(int pOffset, @NonNull String pText, EChangeSide pChangeSide, int pModifiedDelta, boolean pTrySnapToDelta)
   {
     int lineOffset;
     lineOffset = pText.split("\n", -1).length - 1;
@@ -509,7 +509,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public String getText(@NotNull EChangeSide pChangeSide)
+  public String getText(@NonNull EChangeSide pChangeSide)
   {
     if (oldVersion == null || newVersion == null)
       _loadFileContent();
@@ -517,8 +517,8 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull List<ConflictPair> markConflicting(@NotNull IFileDiff pOtherFileDiff, @NotNull EConflictSide pConflictSide,
-                                                     @NotNull ResolveOptionsProvider pResolveOptionsProvider)
+  public @NonNull List<ConflictPair> markConflicting(@NonNull IFileDiff pOtherFileDiff, @NonNull EConflictSide pConflictSide,
+                                                     @NonNull ResolveOptionsProvider pResolveOptionsProvider)
   {
     List<ConflictPair> conflictPairs = new ArrayList<>();
     if (oldVersion == null || newVersion == null)
@@ -552,7 +552,7 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull File getFile()
+  public @NonNull File getFile()
   {
     String filePath = fileDiffHeader.getAbsoluteFilePath();
     if (filePath == null)
@@ -561,13 +561,13 @@ public class FileDiffImpl implements IFileDiff
   }
 
   @Override
-  public @NotNull File getFile(@NotNull EChangeSide pChangeSide)
+  public @NonNull File getFile(@NonNull EChangeSide pChangeSide)
   {
     return new File(fileDiffHeader.getFilePath(pChangeSide));
   }
 
   @Override
-  public @NotNull EChangeType getChangeType()
+  public @NonNull EChangeType getChangeType()
   {
     return fileDiffHeader.getChangeType();
   }
@@ -603,9 +603,9 @@ public class FileDiffImpl implements IFileDiff
   private class ChangeDeltaImplFactory implements IChangeDeltaFactory<IChangeDelta>
   {
 
-    @NotNull
+    @NonNull
     @Override
-    public IChangeDelta createDelta(@NotNull Edit pEdit, @NotNull ChangeDeltaTextOffsets pDeltaTextOffsets)
+    public IChangeDelta createDelta(@NonNull Edit pEdit, @NonNull ChangeDeltaTextOffsets pDeltaTextOffsets)
     {
       return new ChangeDeltaImpl(pEdit, new ChangeStatusImpl(EChangeStatus.PENDING, EnumMappings.toChangeType(pEdit.getType()), EConflictType.NONE),
                                  pDeltaTextOffsets, FileDiffImpl.this::getText);

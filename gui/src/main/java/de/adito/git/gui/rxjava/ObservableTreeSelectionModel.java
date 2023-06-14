@@ -5,7 +5,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
@@ -206,14 +206,14 @@ public class ObservableTreeSelectionModel implements TreeSelectionModel, IDiscar
   private static class _TreeSelectionObservable extends AbstractListenerObservable<TreeSelectionListener, TreeSelectionModel, TreePath[]>
   {
 
-    _TreeSelectionObservable(@NotNull TreeSelectionModel pListenableValue)
+    _TreeSelectionObservable(@NonNull TreeSelectionModel pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected TreeSelectionListener registerListener(@NotNull TreeSelectionModel pTreeSelectionModel, @NotNull IFireable<TreePath[]> pIFireable)
+    protected TreeSelectionListener registerListener(@NonNull TreeSelectionModel pTreeSelectionModel, @NonNull IFireable<TreePath[]> pIFireable)
     {
       TreeSelectionListener listener = e -> pIFireable.fireValueChanged(pTreeSelectionModel.getSelectionPaths());
       pTreeSelectionModel.addTreeSelectionListener(listener);
@@ -221,7 +221,7 @@ public class ObservableTreeSelectionModel implements TreeSelectionModel, IDiscar
     }
 
     @Override
-    protected void removeListener(@NotNull TreeSelectionModel pTreeSelectionModel, @NotNull TreeSelectionListener pTreeSelectionListener)
+    protected void removeListener(@NonNull TreeSelectionModel pTreeSelectionModel, @NonNull TreeSelectionListener pTreeSelectionListener)
     {
       pTreeSelectionModel.removeTreeSelectionListener(pTreeSelectionListener);
     }

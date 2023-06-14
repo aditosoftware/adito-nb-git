@@ -4,7 +4,7 @@ import de.adito.git.api.IKeyStore;
 import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.IRemote;
 import de.adito.git.api.prefs.IPrefStore;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public class CloneConfig implements IConfig
   private final IPrefStore prefStore;
   private char[] passphrase;
 
-  public CloneConfig(@NotNull IKeyStore pKeyStore, @NotNull IPrefStore pPrefStore)
+  public CloneConfig(@NonNull IKeyStore pKeyStore, @NonNull IPrefStore pPrefStore)
   {
     keyStore = pKeyStore;
     prefStore = pPrefStore;
@@ -46,7 +46,7 @@ public class CloneConfig implements IConfig
 
   @Nullable
   @Override
-  public char[] getPassphrase(@NotNull String pSshKeyLocation)
+  public char[] getPassphrase(@NonNull String pSshKeyLocation)
   {
     if (passphrase == null)
       passphrase = keyStore.read(pSshKeyLocation);
@@ -61,13 +61,13 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName)
+  public @Nullable String get(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NonNull String pName)
   {
     return null;
   }
 
   @Override
-  public @NotNull List<IRemote> getRemotes()
+  public @NonNull List<IRemote> getRemotes()
   {
     return List.of();
   }
@@ -85,13 +85,13 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void setUserName(@NotNull String pUserName)
+  public void setUserName(@NonNull String pUserName)
   {
     //not implemented
   }
 
   @Override
-  public void setUserEmail(@NotNull String pUserEmail)
+  public void setUserEmail(@NonNull String pUserEmail)
   {
     //not implemented
   }
@@ -104,7 +104,7 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @NotNull String pRemoteName)
+  public void setSshKeyLocation(@Nullable String pSshKeyLocation, @NonNull String pRemoteName)
   {
     // not implemented
   }
@@ -129,7 +129,7 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NotNull String pName, @NotNull String pValue)
+  public boolean setValue(@Nullable String pSectionKey, @Nullable String pSubSectionKey, @NonNull String pName, @NonNull String pValue)
   {
     return false;
   }
@@ -149,25 +149,25 @@ public class CloneConfig implements IConfig
   }
 
   @Override
-  public void establishTrackingRelationship(@NotNull String pBranchname, @NotNull String pRemoteBranchname, @NotNull String pRemoteName)
+  public void establishTrackingRelationship(@NonNull String pBranchname, @NonNull String pRemoteBranchname, @NonNull String pRemoteName)
   {
     // no implemented
   }
 
   @Override
-  public void saveRemote(@NotNull IRemote pRemote)
+  public void saveRemote(@NonNull IRemote pRemote)
   {
     // not implemented
   }
 
   @Override
-  public boolean addRemote(@NotNull String pRemoteName, @NotNull String pRemoteUrl)
+  public boolean addRemote(@NonNull String pRemoteName, @NonNull String pRemoteUrl)
   {
     // not implemented
     return false;
   }
 
-  public boolean removeRemote(@NotNull IRemote pRemote)
+  public boolean removeRemote(@NonNull IRemote pRemote)
   {
     // not implemented
     return false;

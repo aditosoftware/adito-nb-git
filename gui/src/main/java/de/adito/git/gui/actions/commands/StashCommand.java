@@ -8,7 +8,7 @@ import de.adito.git.gui.dialogs.results.IMergeConflictDialogResult;
 import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,8 +28,8 @@ public class StashCommand
    * @param pRepository            current Repository
    * @param pStashedCommitId       sha-1 id of the stashed commit to un-stash
    */
-  public static void doUnStashing(@NotNull MergeConflictSequence pMergeConflictSequence, @NotNull String pStashedCommitId,
-                                  @NotNull Observable<Optional<IRepository>> pRepository)
+  public static void doUnStashing(@NonNull MergeConflictSequence pMergeConflictSequence, @NonNull String pStashedCommitId,
+                                  @NonNull Observable<Optional<IRepository>> pRepository)
   {
     pRepository.blockingFirst().ifPresent(pRepo -> {
       List<IMergeData> stashConflicts;

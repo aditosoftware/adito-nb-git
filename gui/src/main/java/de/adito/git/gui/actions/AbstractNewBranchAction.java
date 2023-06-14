@@ -8,7 +8,7 @@ import de.adito.git.gui.dialogs.results.INewBranchDialogResult;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -28,7 +28,7 @@ abstract class AbstractNewBranchAction extends AbstractAction implements IDiscar
   private final INotifyUtil notifyUtil;
 
   AbstractNewBranchAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, Observable<Optional<IRepository>> pRepository,
-                          Observable<Optional<ICommit>> pStartingPoint, @NotNull INotifyUtil pNotifyUtil)
+                          Observable<Optional<ICommit>> pStartingPoint, @NonNull INotifyUtil pNotifyUtil)
   {
     this(pProgressFacade, pDialogProvider, pRepository, pStartingPoint, Observable.just(Optional.of(true)), pNotifyUtil);
   }
@@ -38,7 +38,7 @@ abstract class AbstractNewBranchAction extends AbstractAction implements IDiscar
    * @param pDialogProvider The Interface to provide functionality of giving an overlying framework
    */
   AbstractNewBranchAction(IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, Observable<Optional<IRepository>> pRepository,
-                          Observable<Optional<ICommit>> pStartingPoint, Observable<Optional<Boolean>> pIsValidObservable, @NotNull INotifyUtil pNotifyUtil)
+                          Observable<Optional<ICommit>> pStartingPoint, Observable<Optional<Boolean>> pIsValidObservable, @NonNull INotifyUtil pNotifyUtil)
   {
     progressFacade = pProgressFacade;
     dialogProvider = pDialogProvider;

@@ -17,7 +17,7 @@ import de.adito.git.gui.dialogs.results.IChangeTrackedBranchDialogResult;
 import de.adito.git.gui.dialogs.results.IPushDialogResult;
 import de.adito.git.gui.dialogs.results.IUserPromptDialogResult;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -127,8 +127,8 @@ class PushAction extends AbstractAction
    * @param pRepo current repo
    * @return List of unpushed commits, or null if any error occurs while determining the unpushed commits
    */
-  @NotNull
-  private List<ICommit> _determineUnpushedCommits(@NotNull IRepository pRepo)
+  @NonNull
+  private List<ICommit> _determineUnpushedCommits(@NonNull IRepository pRepo)
   {
     try
     {
@@ -149,8 +149,8 @@ class PushAction extends AbstractAction
    * @param pRemoteName name of the remote to push to
    * @param repoState   current state of the repo
    */
-  static void _performPush(@NotNull IProgressHandle pHandle, @NotNull IRepository pRepo, boolean pIsPushTags,
-                           @Nullable String pRemoteName, @Nullable IRepositoryState repoState, @NotNull INotifyUtil pNotifyUtil)
+  static void _performPush(@NonNull IProgressHandle pHandle, @NonNull IRepository pRepo, boolean pIsPushTags,
+                           @Nullable String pRemoteName, @Nullable IRepositoryState repoState, @NonNull INotifyUtil pNotifyUtil)
   {
     try
     {
@@ -221,7 +221,7 @@ class PushAction extends AbstractAction
     return false;
   }
 
-  private static void _doPush(@NotNull IRepository pRepo, Boolean pIsPushTags, String pRemoteName, @NotNull INotifyUtil pNotifyUtil) throws AditoGitException
+  private static void _doPush(@NonNull IRepository pRepo, Boolean pIsPushTags, String pRemoteName, @NonNull INotifyUtil pNotifyUtil) throws AditoGitException
   {
     Map<String, EPushResult> failedPushResults = pRepo.push(pIsPushTags, pRemoteName);
 

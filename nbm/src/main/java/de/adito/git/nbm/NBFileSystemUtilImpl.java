@@ -7,9 +7,9 @@ import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.gui.icon.MissingIcon;
+import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.actions.Openable;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.cookies.OpenCookie;
@@ -56,7 +56,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     iconCache = CacheBuilder.newBuilder().maximumSize(5000).expireAfterAccess(30, TimeUnit.SECONDS).build(new CacheLoader<>()
     {
       @Override
-      public Image load(@NotNull _IconKey pIconKey)
+      public Image load(@NonNull _IconKey pIconKey)
       {
         return _loadImage(pIconKey.file, pIconKey.pIsOpened);
       }
@@ -64,13 +64,13 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
   }
 
   @Override
-  public void openFile(@NotNull String pAbsolutePath) throws AditoGitException
+  public void openFile(@NonNull String pAbsolutePath) throws AditoGitException
   {
     openFile(new File(pAbsolutePath));
   }
 
   @Override
-  public void openFile(@NotNull File pFile) throws AditoGitException
+  public void openFile(@NonNull File pFile) throws AditoGitException
   {
     try
     {
@@ -90,7 +90,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     }
   }
 
-  public void preLoadIcons(@NotNull List<IFileChangeType> pFiles)
+  public void preLoadIcons(@NonNull List<IFileChangeType> pFiles)
   {
     if (pFiles.size() > 50)
     {
@@ -102,9 +102,9 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public Image getIcon(@NotNull File pFile, boolean pIsOpened)
+  public Image getIcon(@NonNull File pFile, boolean pIsOpened)
   {
     try
     {
@@ -117,9 +117,9 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     return defaultMissingIconImage;
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public Charset getEncoding(@NotNull File pFile)
+  public Charset getEncoding(@NonNull File pFile)
   {
     try
     {
@@ -131,9 +131,9 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public Charset getEncoding(@NotNull byte[] pContent)
+  public Charset getEncoding(@NonNull byte[] pContent)
   {
     FileObject tempFo = null;
 
@@ -170,7 +170,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
    *
    * @param pFileChangeTypes List of IFileChangeTypes for which the icons should be pre-loaded
    */
-  private void _preLoadInParallel(@NotNull List<IFileChangeType> pFileChangeTypes)
+  private void _preLoadInParallel(@NonNull List<IFileChangeType> pFileChangeTypes)
   {
     int numberPerThread = pFileChangeTypes.size() / NUM_CORES;
     for (int index = 0; index < NUM_CORES; index++)
@@ -187,7 +187,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
    *
    * @param pFileChangeTypes List of IFileChangeTypes for which the icons should be pre-loaded
    */
-  private void _preLoadIcons(@NotNull List<IFileChangeType> pFileChangeTypes)
+  private void _preLoadIcons(@NonNull List<IFileChangeType> pFileChangeTypes)
   {
     for (IFileChangeType fileChangeType : pFileChangeTypes)
     {
@@ -233,8 +233,8 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
    * @param pFileExtension extension of the file, used to determine the icon/image
    * @return Image representing the type of file
    */
-  @NotNull
-  private Image _createArtificialIcon(@NotNull String pFileExtension)
+  @NonNull
+  private Image _createArtificialIcon(@NonNull String pFileExtension)
   {
     FileObject tempFo = null;
     Image image = null;
@@ -274,7 +274,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
     final long lastModified;
     final boolean pIsOpened;
 
-    _IconKey(@NotNull File pFile, long pLastModified, boolean pPIsOpened)
+    _IconKey(@NonNull File pFile, long pLastModified, boolean pPIsOpened)
     {
       file = pFile;
       lastModified = pLastModified;

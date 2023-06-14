@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionListener;
@@ -40,7 +40,7 @@ public interface INotifyUtil
    * @param pMessage     Message
    * @param pAutoDispose <tt>true</tt> if the balloon should dispose automatically after a couple of seconds
    */
-  void notify(@NotNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose);
+  void notify(@NonNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose);
 
   /**
    * Shows a simple balloon to display a pMessage to the user. Invokes the passed action on click if the action is non-null
@@ -50,6 +50,6 @@ public interface INotifyUtil
    * @param pAutoDispose    <tt>true</tt> if the balloon should dispose automatically after a couple of seconds
    * @param pActionListener Action to invoke if the user clicks on the notification text
    */
-  void notify(@NotNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pActionListener);
+  void notify(@NonNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pActionListener);
 
 }

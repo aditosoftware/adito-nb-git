@@ -1,7 +1,7 @@
 package de.adito.git.gui.swing;
 
 import de.adito.git.api.prefs.IPrefStore;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
@@ -19,7 +19,7 @@ public class ComponentResizeListener extends ComponentAdapter
   private final IPrefStore prefStore;
   private final String prefStoreKey;
 
-  public ComponentResizeListener(@NotNull IPrefStore pPrefStore, @NotNull String pPrefStoreKey)
+  public ComponentResizeListener(@NonNull IPrefStore pPrefStore, @NonNull String pPrefStoreKey)
   {
     prefStore = pPrefStore;
     prefStoreKey = pPrefStoreKey;
@@ -37,8 +37,8 @@ public class ComponentResizeListener extends ComponentAdapter
    * @param pDefaultSize  default size that is used if no preferred size is stored in the prefStore
    * @return Size stored in the PrefStore, or a default value
    */
-  @NotNull
-  public static Dimension _getPreferredSize(@NotNull IPrefStore pPrefStore, @NotNull String pPrefStoreKey, @NotNull Dimension pDefaultSize)
+  @NonNull
+  public static Dimension _getPreferredSize(@NonNull IPrefStore pPrefStore, @NonNull String pPrefStoreKey, @NonNull Dimension pDefaultSize)
   {
     String sizeKey = pPrefStore.get(pPrefStoreKey);
     return sizeKey == null ? pDefaultSize : new Dimension(Integer.parseInt(sizeKey.split("x")[0]), Integer.parseInt(sizeKey.split("x")[1]));

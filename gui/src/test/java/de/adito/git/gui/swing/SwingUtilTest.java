@@ -1,6 +1,6 @@
 package de.adito.git.gui.swing;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -71,14 +71,14 @@ class SwingUtilTest
    */
   @ParameterizedTest
   @MethodSource("visibilityTestValues")
-  void isCompletelyVisible(@NotNull Rectangle pRectangle, @NotNull List<Rectangle> pWindowBounds, boolean pExcpectedResult)
+  void isCompletelyVisible(@NonNull Rectangle pRectangle, @NonNull List<Rectangle> pWindowBounds, boolean pExcpectedResult)
   {
     assertEquals(pExcpectedResult, SwingUtil.isCompletelyVisible(pRectangle, pWindowBounds));
   }
 
   @ParameterizedTest
   @MethodSource("adjacentRectanglesTestValues")
-  void isAdjacentRectanglesTest(@NotNull Rectangle pLeftRectangle, @NotNull Rectangle pRightRectangle, boolean pExpectedResult)
+  void isAdjacentRectanglesTest(@NonNull Rectangle pLeftRectangle, @NonNull Rectangle pRightRectangle, boolean pExpectedResult)
   {
     assertEquals(pExpectedResult, SwingUtil.isAdjacentRectangles(pLeftRectangle, pRightRectangle));
   }

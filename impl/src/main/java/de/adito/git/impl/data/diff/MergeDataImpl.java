@@ -1,9 +1,9 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
+import lombok.NonNull;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -47,15 +47,15 @@ public class MergeDataImpl implements IMergeData
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public IFileDiff getDiff(@NotNull EConflictSide conflictSide)
+  public IFileDiff getDiff(@NonNull EConflictSide conflictSide)
   {
     return conflictSide == EConflictSide.YOURS ? yourSideDiff : theirSideDiff;
   }
 
   @Override
-  public void acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull EConflictSide conflictSide)
+  public void acceptDelta(@NonNull IChangeDelta acceptedDelta, @NonNull EConflictSide conflictSide)
   {
     if (acceptedDelta.getChangeStatus() == EChangeStatus.UNDEFINED)
     {
@@ -79,7 +79,7 @@ public class MergeDataImpl implements IMergeData
    * @param pOtherDiff    IFileDiff that doesn't contain the Delta to accept, has to also change due to the effects of the applied delta
    * @param pConflictSide CONFLICT_SIDE from which the accepted chunk originates
    */
-  private void _acceptDelta(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, EConflictSide pConflictSide)
+  private void _acceptDelta(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff, EConflictSide pConflictSide)
   {
     List<IDeltaTextChangeEvent> deltaTextChangeEvents;
     AtomicBoolean trySnapToDelta = new AtomicBoolean(false);
@@ -113,7 +113,7 @@ public class MergeDataImpl implements IMergeData
    * @param pConflictSide Side of the conflict that has the accepted delta
    * @return true if the changeDelta is part of a conflictPair and the other side has status ACCEPTED, false otherwise
    */
-  private boolean _isCounterPartAccepted(@NotNull ConflictPair pConflictPair, @NotNull IFileDiff pOtherDiff,
+  private boolean _isCounterPartAccepted(@NonNull ConflictPair pConflictPair, @NonNull IFileDiff pOtherDiff,
                                          EConflictSide pConflictSide)
   {
     return pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)))
@@ -123,7 +123,7 @@ public class MergeDataImpl implements IMergeData
 
   @Override
   @Nullable
-  public ConflictPair getConflictPair(@NotNull IChangeDelta pDelta, @NotNull IFileDiff pFileDiff, @NotNull EConflictSide pConflictSide)
+  public ConflictPair getConflictPair(@NonNull IChangeDelta pDelta, @NonNull IFileDiff pFileDiff, @NonNull EConflictSide pConflictSide)
   {
     int deltaIndex = pFileDiff.getChangeDeltas().indexOf(pDelta);
     if (conflictPairs != null)
@@ -134,7 +134,7 @@ public class MergeDataImpl implements IMergeData
   }
 
   @Override
-  public void discardChange(@NotNull IChangeDelta discardedDelta, @NotNull EConflictSide conflictSide)
+  public void discardChange(@NonNull IChangeDelta discardedDelta, @NonNull EConflictSide conflictSide)
   {
     if (conflictSide == EConflictSide.YOURS)
     {
@@ -173,7 +173,7 @@ public class MergeDataImpl implements IMergeData
   }
 
   @Override
-  public void markConflicting(@NotNull ResolveOptionsProvider pResolveOptionsProvider)
+  public void markConflicting(@NonNull ResolveOptionsProvider pResolveOptionsProvider)
   {
     theirSideDiff.markConflicting(yourSideDiff, EConflictSide.YOURS, pResolveOptionsProvider);
     conflictPairs = yourSideDiff.markConflicting(theirSideDiff, EConflictSide.THEIRS, pResolveOptionsProvider);
@@ -185,7 +185,7 @@ public class MergeDataImpl implements IMergeData
    * @param pEditList      First list of edits
    * @param pOtherEditList second list of edits
    */
-  public static void adjustEditListForMerge(@NotNull EditList pEditList, @NotNull EditList pOtherEditList)
+  public static void adjustEditListForMerge(@NonNull EditList pEditList, @NonNull EditList pOtherEditList)
   {
     for (int mainIndex = 0; mainIndex < pEditList.size(); mainIndex++)
     {

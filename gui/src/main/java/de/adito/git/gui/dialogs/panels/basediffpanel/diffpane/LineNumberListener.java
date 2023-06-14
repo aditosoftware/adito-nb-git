@@ -2,7 +2,7 @@ package de.adito.git.gui.dialogs.panels.basediffpanel.diffpane;
 
 import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.swing.LineNumber;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 /**
  * Listener for changes in a LineNumberModel
@@ -17,6 +17,6 @@ public interface LineNumberListener
    * @param pLineNumbers     Array containing a LineNumber Object for each line present in the editor. Contains the line number and coordinates at which the line number
    *                         should be drawn
    */
-  void lineNumbersChanged(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers);
+  void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers);
 
 }

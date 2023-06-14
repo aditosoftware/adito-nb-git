@@ -1,6 +1,6 @@
 package de.adito.git.api.data;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -44,7 +44,7 @@ public enum EAutoResolveOptions
    * @param pBooleanValue Boolean encoded as String
    * @return EAutoResolveOptions determined by the algorithm sketched above
    */
-  @NotNull
+  @NonNull
   public static EAutoResolveOptions getFromBoolean(@Nullable String pBooleanValue)
   {
     if (pBooleanValue == null)
@@ -61,7 +61,7 @@ public enum EAutoResolveOptions
    * @param pStringValue EAutoResolveOption encoded as string
    * @return EAutoResolveOption decoded from the string
    */
-  @NotNull
+  @NonNull
   public static EAutoResolveOptions getFromStringValue(@Nullable String pStringValue)
   {
     if (pStringValue == null || ASK.stringValue.equals(pStringValue))

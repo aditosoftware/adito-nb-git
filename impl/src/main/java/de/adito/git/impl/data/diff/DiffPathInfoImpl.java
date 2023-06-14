@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.EChangeSide;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -16,7 +16,7 @@ public final class DiffPathInfoImpl implements IDiffPathInfo
   private final String oldFilePath;
   private final String newFilePath;
 
-  public DiffPathInfoImpl(@Nullable File pTopLevelDirectory, @NotNull String pOldFilePath, @NotNull String pNewFilePath)
+  public DiffPathInfoImpl(@Nullable File pTopLevelDirectory, @NonNull String pOldFilePath, @NonNull String pNewFilePath)
   {
     topLevelDirectory = pTopLevelDirectory;
     oldFilePath = pOldFilePath;
@@ -30,7 +30,7 @@ public final class DiffPathInfoImpl implements IDiffPathInfo
     return topLevelDirectory;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public String getFilePath(EChangeSide pChangeSide)
   {

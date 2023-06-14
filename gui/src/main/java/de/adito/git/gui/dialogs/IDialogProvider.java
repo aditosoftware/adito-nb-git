@@ -14,7 +14,7 @@ import de.adito.git.gui.dialogs.filechooser.FileChooserProvider;
 import de.adito.git.gui.dialogs.panels.*;
 import de.adito.git.gui.dialogs.results.*;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.filechooser.FileFilter;
@@ -39,9 +39,9 @@ public interface IDialogProvider
    * @param pDialogTitle     Optional title for the dialog, only the first passed String is used
    * @return DialogResult with information such as "has the user pressed OK?"
    */
-  @NotNull
-  IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                  @NotNull IMergeDetails pMergeDetails, boolean pOnlyConflicting,
+  @NonNull
+  IMergeConflictDialogResult<MergeConflictDialog, Object> showMergeConflictDialog(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                                  @NonNull IMergeDetails pMergeDetails, boolean pOnlyConflicting,
                                                                                   boolean pShowAutoResolve, String... pDialogTitle);
 
   /**
@@ -52,10 +52,10 @@ public interface IDialogProvider
    * @param pTheirsOrigin name of the branch/commit that is the origin of the theirs version
    * @return DialogResult with information such as "has the user pressed OK?"
    */
-  @NotNull
-  IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NotNull IMergeData pMergeDiff,
-                                                                                                                @NotNull String pYoursOrigin,
-                                                                                                                @NotNull String pTheirsOrigin);
+  @NonNull
+  IMergeConflictResolutionDialogResult<MergeConflictResolutionDialog, Object> showMergeConflictResolutionDialog(@NonNull IMergeData pMergeDiff,
+                                                                                                                @NonNull String pYoursOrigin,
+                                                                                                                @NonNull String pTheirsOrigin);
 
   /**
    * Shows a dialog which show which changes happened to a file, based on the IFileDiffs
@@ -70,8 +70,8 @@ public interface IDialogProvider
    * @param pShowFileTree     true if the tree with pFileDiffs should be shown. This enables the user to choose which file from pFileDiffs to display
    * @return DialogResult with information such as "has the user pressed OK?"
    */
-  @NotNull
-  IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NotNull File pProjectDirectory, @NotNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile,
+  @NonNull
+  IDiffDialogResult<DiffDialog, Object> showDiffDialog(@NonNull File pProjectDirectory, @NonNull List<IFileDiff> pFileDiffs, @Nullable String pSelectedFile,
                                                        @Nullable String pTitle, @Nullable String pLeftHeader, @Nullable String pRightHeader,
                                                        boolean pAcceptChange, boolean pShowFileTree);
 
@@ -83,10 +83,10 @@ public interface IDialogProvider
    * @param pMessageTemplate message that should be set as the commit message at the start
    * @return DialogResult with information such as "has the user pressed OK?", which files the user selected to be commited and if the commit should be amended
    */
-  @NotNull
-  ICommitDialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                         @NotNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
-                                                                         @NotNull String pMessageTemplate);
+  @NonNull
+  ICommitDialogResult<CommitDialog, CommitDialogResult> showCommitDialog(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                         @NonNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
+                                                                         @NonNull String pMessageTemplate);
 
   /**
    * Shows a dialog with which the user can create a new branch
@@ -94,15 +94,15 @@ public interface IDialogProvider
    * @param pRepository Observable with the current Repository
    * @return DialogResult with information such as "has the user pressed OK?" and the name of the branch that should be created
    */
-  @NotNull
-  INewBranchDialogResult<NewBranchDialog, Boolean> showNewBranchDialog(@NotNull Observable<Optional<IRepository>> pRepository);
+  @NonNull
+  INewBranchDialogResult<NewBranchDialog, Boolean> showNewBranchDialog(@NonNull Observable<Optional<IRepository>> pRepository);
 
   /**
    * Shows a dialog where the user can select the reset type
    *
    * @return DialogResult with information such as "has the user pressed OK?" and the EResetType the user selected
    */
-  @NotNull
+  @NonNull
   IResetDialogResult<ResetDialog, EResetType> showResetDialog();
 
   /**
@@ -112,8 +112,8 @@ public interface IDialogProvider
    * @param pCommitList List of commits that will be pushed
    * @return DialogResult with information such as "has the user pressed OK?", the information is a boolean that shows if tags should be pushed as well
    */
-  @NotNull
-  IPushDialogResult<PushDialog, Boolean> showPushDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<ICommit> pCommitList);
+  @NonNull
+  IPushDialogResult<PushDialog, Boolean> showPushDialog(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull List<ICommit> pCommitList);
 
   /**
    * Shows a dialog where the user can select a stashed commit, or delete stashed commits
@@ -122,9 +122,9 @@ public interface IDialogProvider
    * @param pStashedCommits List of currently stashed commits
    * @return DialogResult with information such as "has the user pressed OK?" and the ID of the stashed commit the user has selected
    */
-  @NotNull
-  IStashedCommitSelectionDialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                                             @NotNull List<ICommit> pStashedCommits);
+  @NonNull
+  IStashedCommitSelectionDialogResult<StashedCommitSelectionDialog, String> showStashedCommitSelectionDialog(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                                                             @NonNull List<ICommit> pStashedCommits);
 
   /**
    * Shows a dialog that allows the user to enter a password
@@ -132,8 +132,8 @@ public interface IDialogProvider
    * @param pMessage Message to display for the user (should contain information about the use of the password)
    * @return DialogResult with information such as "has the user pressed OK?" and a char array containing the entered password. Null this ASAP
    */
-  @NotNull
-  IUserPromptDialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(@NotNull String pMessage);
+  @NonNull
+  IUserPromptDialogResult<PasswordPromptDialog, char[]> showPasswordPromptDialog(@NonNull String pMessage);
 
   /**
    * Shows a basic prompt dialog with a message for the user and an input field
@@ -142,8 +142,8 @@ public interface IDialogProvider
    * @param pDefaultValue default value for the input field
    * @return DialogResult with information such as "has the user pressed OK?" and the text the user entered
    */
-  @NotNull
-  IUserPromptDialogResult<UserPromptPanel, Object> showUserPromptDialog(@NotNull String pMessage, @Nullable String pDefaultValue);
+  @NonNull
+  IUserPromptDialogResult<UserPromptPanel, Object> showUserPromptDialog(@NonNull String pMessage, @Nullable String pDefaultValue);
 
   /**
    * Shows a basic yes no dialog with the specified message as information for the user
@@ -152,8 +152,8 @@ public interface IDialogProvider
    * @return DialogResult with information about the choice of the user
    * @see #showYesNoDialog(String, String)
    */
-  @NotNull
-  IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pMessage);
+  @NonNull
+  IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NonNull String pMessage);
 
   /**
    * Shows a basic yes no dialog with the specified title and message as information for the user
@@ -163,8 +163,8 @@ public interface IDialogProvider
    * @return DialogResult with information about the choice of the user
    * @see #showYesNoDialog(String)
    */
-  @NotNull
-  IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NotNull String pTitle, @NotNull String pMessage);
+  @NonNull
+  IUserPromptDialogResult<NotificationPanel, Object> showYesNoDialog(@NonNull String pTitle, @NonNull String pMessage);
 
   /**
    * Shows a dialog with the specified message and the passed buttons.
@@ -175,8 +175,8 @@ public interface IDialogProvider
    * @param pOkayButtons  Buttons that are considered as "User confirmed the dialog"
    * @return DialogResult with information about the choice of the user
    */
-  IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@Nullable String pDialogTitle, @NotNull String pMessage, @NotNull List<EButtons> pShownButtons,
-                                                                       @NotNull List<EButtons> pOkayButtons);
+  IUserPromptDialogResult<NotificationPanel, Object> showMessageDialog(@Nullable String pDialogTitle, @NonNull String pMessage, @NonNull List<EButtons> pShownButtons,
+                                                                       @NonNull List<EButtons> pOkayButtons);
 
   /**
    * Aks the user if he wants to push to the tracked branch (different name than the local branch) or if he wants to create a new branch
@@ -184,7 +184,7 @@ public interface IDialogProvider
    * @param pMessage message to display, should inform the user about which branch is tracked and what name the created branch should have
    * @return DialogResult with information about the choice of the user
    */
-  @NotNull IChangeTrackedBranchDialogResult<NotificationPanel, Object> showChangeTrackedBranchDialog(@NotNull String pMessage);
+  @NonNull IChangeTrackedBranchDialogResult<NotificationPanel, Object> showChangeTrackedBranchDialog(@NonNull String pMessage);
 
   /**
    * Shows a dialog that presents the user the list of files to be reverted as tree
@@ -194,9 +194,9 @@ public interface IDialogProvider
    * @param pProjectDir    top-level directory of the project
    * @return DialogResult with information such as "has the user pressed OK?"
    */
-  @NotNull
-  IRevertDialogResult<RevertFilesDialog, Object> showRevertDialog(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull List<IFileChangeType> pFilesToRevert,
-                                                                  @NotNull File pProjectDir);
+  @NonNull
+  IRevertDialogResult<RevertFilesDialog, Object> showRevertDialog(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull List<IFileChangeType> pFilesToRevert,
+                                                                  @NonNull File pProjectDir);
 
   /**
    * Shows a dialog with a field and a file chooser, works best for selecting an existing file. For creating a file see showNewFileDialog
@@ -206,9 +206,9 @@ public interface IDialogProvider
    * @param pFileFilter        FileFilter for the FileChooser, determines which files are shown
    * @return DialogResult with information such as "has the user pressed OK?" and the selected file as getMessage
    */
-  @NotNull
-  IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NotNull String pMessage,
-                                                                                  @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
+  @NonNull
+  IFileSelectionDialogResult<FileSelectionDialog, Object> showFileSelectionDialog(@NonNull String pMessage,
+                                                                                  @NonNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
                                                                                   @Nullable FileFilter pFileFilter);
 
   /**
@@ -220,9 +220,9 @@ public interface IDialogProvider
    * @param pFileName          suggested fileName
    * @return DialogResult with information such as "has the user pressed OK?" and the selected file as getMessage
    */
-  @NotNull
-  IFileSelectionDialogResult<NewFileDialog, Object> showNewFileDialog(@NotNull String pMessage,
-                                                                      @NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
+  @NonNull
+  IFileSelectionDialogResult<NewFileDialog, Object> showNewFileDialog(@NonNull String pMessage,
+                                                                      @NonNull FileChooserProvider.FileSelectionMode pFileSelectionMode,
                                                                       @Nullable FileFilter pFileFilter, @Nullable String pFileName);
 
   /**
@@ -231,15 +231,15 @@ public interface IDialogProvider
    * @param pRepository Observable with the current Repository
    * @return DialogResult with information such as "has the user pressed OK?" and a MultiMap with the chosen settings as information
    */
-  @NotNull
-  IGitConfigDialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(@NotNull Observable<Optional<IRepository>> pRepository);
+  @NonNull
+  IGitConfigDialogResult<GitConfigDialog, Multimap<String, Object>> showGitConfigDialog(@NonNull Observable<Optional<IRepository>> pRepository);
 
   /**
    * Shows a dialog that allows the user to set a commit message to be used for the stash commit
    *
    * @return DialogResult with information such as "has the user pressed OK?" and the "commit message" for the stash commit
    */
-  @NotNull
+  @NonNull
   IStashChangesDialogResult<StashChangesDialog, StashChangesResult> showStashChangesDialog();
 
   /**
@@ -251,9 +251,9 @@ public interface IDialogProvider
    * @param pKeyStore       KeyStore used to store and retrieve passphrases for the ssh keys
    * @return DialogResult with information such as "has the user pressed OK?", ssh key location as message and the passphrase as char array in the information
    */
-  @NotNull
-  IUserPromptDialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(@NotNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase,
-                                                                         @NotNull IKeyStore pKeyStore);
+  @NonNull
+  IUserPromptDialogResult<SshInfoPrompt, char[]> showSshInfoPromptDialog(@NonNull String pMessage, @Nullable String pSshKeyLocation, @Nullable char[] pPassphrase,
+                                                                         @NonNull IKeyStore pKeyStore);
 
   /**
    * Shows a dialog with some text and a checkbox (with its own description) that the use can tick
@@ -262,8 +262,8 @@ public interface IDialogProvider
    * @param pCheckboxText description of the textbox
    * @return DialogResult with information such as "has the user pressed OK?" and if the checkbox was ticket as information
    */
-  @NotNull
-  IUserPromptDialogResult<CheckboxPanel, Boolean> showCheckboxPrompt(@NotNull String pMessage, @NotNull String pCheckboxText);
+  @NonNull
+  IUserPromptDialogResult<CheckboxPanel, Boolean> showCheckboxPrompt(@NonNull String pMessage, @NonNull String pCheckboxText);
 
   /**
    * Shows a dialog with an overview over all tags of the current repository
@@ -272,9 +272,9 @@ public interface IDialogProvider
    * @param pRepository             Observable with the current Repository
    * @return DialogResult with information such as "has the user pressed OK?"
    */
-  @NotNull
-  DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NotNull Consumer<ICommit> pSelectecCommitCallback,
-                                                                @NotNull Observable<Optional<IRepository>> pRepository);
+  @NonNull
+  DialogResult<TagOverviewDialog, Object> showTagOverviewDialog(@NonNull Consumer<ICommit> pSelectecCommitCallback,
+                                                                @NonNull Observable<Optional<IRepository>> pRepository);
 
   /**
    * Shows a dialog with a short message explaining the reason for the dialog to the user and a comboBox where the user may select one item
@@ -283,7 +283,7 @@ public interface IDialogProvider
    * @param pOptions List of possible options to select from the comboBox
    * @return DialogResult with information such as "has the user pressed OK?" and which item of the combobox the user selected
    */
-  IUserPromptDialogResult<ComboBoxPanel<Object>, Object> showComboBoxDialog(@NotNull String pMessage, @NotNull List<Object> pOptions);
+  IUserPromptDialogResult<ComboBoxPanel<Object>, Object> showComboBoxDialog(@NonNull String pMessage, @NonNull List<Object> pOptions);
 
 
   /**
@@ -294,9 +294,9 @@ public interface IDialogProvider
    * @param pProjectDir    Top-level directory of the current project
    * @return DialogResult with Information on whether to discard the changes, stash the changes or abort the current action
    */
-  IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                                                                       @NotNull List<IFileChangeType> pFilesToRevert,
-                                                                                                       @NotNull File pProjectDir);
+  IStashChangesQuestionDialogResult<StashChangesQuestionDialog, Object> showStashChangesQuestionDialog(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                                                                       @NonNull List<IFileChangeType> pFilesToRevert,
+                                                                                                       @NonNull File pProjectDir);
 
   /**
    * Shows a dialog that contains the passed AditoBaseDialog as its content
@@ -308,8 +308,8 @@ public interface IDialogProvider
    * @param <T>          Return Type of the getInformation method call to the AditoBaseDialog
    * @return IUserPromptDialogResult
    */
-  <T> IUserPromptDialogResult<AditoBaseDialog<T>, T> showDialog(@NotNull AditoBaseDialog<T> pComponent, @NotNull String pTitle, @NotNull List<EButtons> pButtonList,
-                                                                @NotNull List<EButtons> pOkayButtons);
+  <T> IUserPromptDialogResult<AditoBaseDialog<T>, T> showDialog(@NonNull AditoBaseDialog<T> pComponent, @NonNull String pTitle, @NonNull List<EButtons> pButtonList,
+                                                                @NonNull List<EButtons> pOkayButtons);
 
   /**
    * Get an IPanelFactory that can create panels which can be used to piece together a dialog

@@ -10,7 +10,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
@@ -99,8 +99,8 @@ public class RepositoryCache
    * @param pProject The Project for which the repository should be returned
    * @return The repository of the project
    */
-  @NotNull
-  public Observable<Optional<IRepository>> findRepository(@NotNull Project pProject)
+  @NonNull
+  public Observable<Optional<IRepository>> findRepository(@NonNull Project pProject)
   {
     return providers.switchMap(pRepoProviders -> pRepoProviders.stream()
             .filter(pRepo -> pRepo.getRepositoryFolder().equals(pProject.getProjectDirectory()))
@@ -110,7 +110,7 @@ public class RepositoryCache
         .distinctUntilChanged();
   }
 
-  @NotNull
+  @NonNull
   public Observable<List<IRepository>> repositories()
   {
     Scheduler gitRepoScheduler = Schedulers.from(Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
@@ -149,7 +149,7 @@ public class RepositoryCache
    *
    * @param pProjectFolder the project to remove
    */
-  private void _doOnProjectClose(@NotNull FileObject pProjectFolder)
+  private void _doOnProjectClose(@NonNull FileObject pProjectFolder)
   {
     ArrayList<RepositoryProvider> clonedList = new ArrayList<>(providers.getValue());
     for (RepositoryProvider repositoryProvider : providers.getValue())

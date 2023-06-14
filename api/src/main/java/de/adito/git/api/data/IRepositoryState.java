@@ -1,7 +1,7 @@
 package de.adito.git.api.data;
 
 import de.adito.git.api.IRepository;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public interface IRepositoryState
    *
    * @return the current branch
    */
-  @NotNull
+  @NonNull
   IBranch getCurrentBranch();
 
   /**
@@ -35,7 +35,7 @@ public interface IRepositoryState
    *
    * @return current State of the repository
    */
-  @NotNull
+  @NonNull
   IRepository.State getState();
 
   /**
@@ -71,7 +71,7 @@ public interface IRepositoryState
    *
    * @return names of the remotes stored in the config
    */
-  @NotNull
+  @NonNull
   List<String> getRemotes();
 
 }

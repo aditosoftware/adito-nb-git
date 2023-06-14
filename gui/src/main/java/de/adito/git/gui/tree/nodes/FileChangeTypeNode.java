@@ -1,7 +1,7 @@
 package de.adito.git.gui.tree.nodes;
 
 import de.adito.git.api.data.ICommit;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -20,12 +20,12 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
   @Nullable
   private ICommit assignedCommit;
 
-  public FileChangeTypeNode(@NotNull FileChangeTypeNodeInfo pUserObject)
+  public FileChangeTypeNode(@NonNull FileChangeTypeNodeInfo pUserObject)
   {
     super(pUserObject);
   }
 
-  public FileChangeTypeNode(@NotNull FileChangeTypeNodeInfo pUserObject, @Nullable ICommit pAssignedCommit)
+  public FileChangeTypeNode(@NonNull FileChangeTypeNodeInfo pUserObject, @Nullable ICommit pAssignedCommit)
   {
     super(pUserObject);
     assignedCommit = pAssignedCommit;
@@ -43,7 +43,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
   /**
    * @param pUserObject FileChangeTypeNodeInfo to be stored in the userObject of the DefaultMutableTreeNode
    */
-  public void setInfo(@NotNull FileChangeTypeNodeInfo pUserObject)
+  public void setInfo(@NonNull FileChangeTypeNodeInfo pUserObject)
   {
     setUserObject(pUserObject);
   }
@@ -54,7 +54,7 @@ public class FileChangeTypeNode extends DefaultMutableTreeNode
    * @return FileChangeTypeNode that is a child of pNode and has the file in the userObject, null if no matching node was found
    */
   @Nullable
-  public static FileChangeTypeNode getChildNodeForFile(@NotNull FileChangeTypeNode pNode, @NotNull File pFile)
+  public static FileChangeTypeNode getChildNodeForFile(@NonNull FileChangeTypeNode pNode, @NonNull File pFile)
   {
     if (pNode.children != null)
     {

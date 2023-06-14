@@ -1,7 +1,7 @@
 package de.adito.git.impl.util;
 
+import lombok.NonNull;
 import org.eclipse.jgit.diff.RawTextComparator;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -35,20 +35,20 @@ public class GitRawTextComparator
       current = DEFAULT_COMPARATOR;
   }
 
-  private GitRawTextComparator(@NotNull String pDisplayValue, @NotNull RawTextComparator pValue)
+  private GitRawTextComparator(@NonNull String pDisplayValue, @NonNull RawTextComparator pValue)
   {
     displayValue = pDisplayValue;
     value = pValue;
   }
 
-  @NotNull
+  @NonNull
   public RawTextComparator getValue()
   {
     return value;
   }
 
   @Override
-  @NotNull
+  @NonNull
   public String toString()
   {
     return displayValue;
@@ -77,7 +77,7 @@ public class GitRawTextComparator
    *
    * @return list of GitRawTextComparators
    */
-  @NotNull
+  @NonNull
   public static List<GitRawTextComparator> getInstances()
   {
     return INSTANCES;
@@ -88,7 +88,7 @@ public class GitRawTextComparator
    *
    * @return the currently set GitRawTextComparator
    */
-  @NotNull
+  @NonNull
   public static GitRawTextComparator getCurrent()
   {
     return current;

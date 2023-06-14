@@ -1,6 +1,6 @@
 package de.adito.git.api.data;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 /**
  * Represents an object containing all information about a remote
@@ -37,7 +37,7 @@ public interface IRemote
    * @param pRemoteName name of the remote
    * @return String for the fetchInfo
    */
-  static String getFetchStringFromName(@NotNull String pRemoteName)
+  static String getFetchStringFromName(@NonNull String pRemoteName)
   {
     return "+refs/heads/*:refs/remotes/" + pRemoteName + "/*";
   }

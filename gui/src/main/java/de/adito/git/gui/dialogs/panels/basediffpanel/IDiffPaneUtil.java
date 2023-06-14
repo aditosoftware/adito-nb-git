@@ -11,7 +11,7 @@ import de.adito.git.gui.swing.SynchronizedBoundedRangeModel;
 import de.adito.git.impl.util.BiNavigateAbleMap;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -38,7 +38,7 @@ public interface IDiffPaneUtil
    * @return ChangeDelta that the caret of the textPane is positioned at, or null if the caret is positioned in a place without ChangeDelta
    */
   @Nullable
-  static IChangeDelta getCurrentDelta(@NotNull JTextComponent pTextComponent, @NotNull List<IChangeDelta> pChangeDeltas, @NotNull EChangeSide pChangeSide)
+  static IChangeDelta getCurrentDelta(@NonNull JTextComponent pTextComponent, @NonNull List<IChangeDelta> pChangeDeltas, @NonNull EChangeSide pChangeSide)
   {
     int currentDotIndex = pTextComponent.getCaret().getDot();
     for (IChangeDelta changeDelta : pChangeDeltas)
@@ -104,7 +104,7 @@ public interface IDiffPaneUtil
    * @param pMoveToDelta   The delta that the caret should be moved to. If null, the caret is not moved at all
    * @param pChangeSide    which side of a IFileChangeChunk should be taken
    */
-  static void moveCaretToDelta(@NotNull JTextComponent pTextComponent, @Nullable IChangeDelta pMoveToDelta, EChangeSide pChangeSide)
+  static void moveCaretToDelta(@NonNull JTextComponent pTextComponent, @Nullable IChangeDelta pMoveToDelta, EChangeSide pChangeSide)
   {
     if (pMoveToDelta == null)
       return;
@@ -120,7 +120,7 @@ public interface IDiffPaneUtil
    * @param pCurrentPane second IPaneWrapper whose scrollPane should be synchronized
    * @param pFileDiffObs Observable that has the current FileDiff
    */
-  static ScrollBarCoupling synchronize(@NotNull IPaneWrapper pOldPane, @Nullable String pModel1Key, @NotNull IPaneWrapper pCurrentPane, @Nullable String pModel2Key,
+  static ScrollBarCoupling synchronize(@NonNull IPaneWrapper pOldPane, @Nullable String pModel1Key, @NonNull IPaneWrapper pCurrentPane, @Nullable String pModel2Key,
                                        Observable<Optional<Object>> pStartHeightCalculations, Observable<Optional<IFileDiff>> pFileDiffObs)
   {
     CompositeDisposable disposables = new CompositeDisposable();
@@ -157,9 +157,9 @@ public interface IDiffPaneUtil
    * @param pUseInverseMapping Determines if the scrollPane uses the inverse of the height mappings. When combining two scrollPanes, one should have true here, the other
    *                           false
    */
-  private static void _syncPanes(@NotNull JScrollPane pScrollPane, @NotNull JScrollPane pSecondScrollPane,
-                                 @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshFunction,
-                                 @NotNull Observable<Optional<List<IChangeDelta>>> pChangeEventObs, boolean pUseInverseMapping)
+  private static void _syncPanes(@NonNull JScrollPane pScrollPane, @NonNull JScrollPane pSecondScrollPane,
+                                 @NonNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshFunction,
+                                 @NonNull Observable<Optional<List<IChangeDelta>>> pChangeEventObs, boolean pUseInverseMapping)
   {
     if (pScrollPane.getVerticalScrollBar().getModel() instanceof SynchronizedBoundedRangeModel)
     {
@@ -216,7 +216,7 @@ public interface IDiffPaneUtil
    *
    * @param pUpwardsModels BoundedModels in their normal form
    */
-  static void bridge(@NotNull List<BoundedRangeModel> pUpwardsModels)
+  static void bridge(@NonNull List<BoundedRangeModel> pUpwardsModels)
   {
     for (BoundedRangeModel model : pUpwardsModels)
     {
@@ -234,7 +234,7 @@ public interface IDiffPaneUtil
     private final HashMap<String, SynchronizedBoundedRangeModel> modelMap = new HashMap<>();
     private final CompositeDisposable disposables;
 
-    ScrollBarCoupling(@NotNull SynchronizedBoundedRangeModel pModel1, @Nullable String pModel1Key, @NotNull SynchronizedBoundedRangeModel pModel2,
+    ScrollBarCoupling(@NonNull SynchronizedBoundedRangeModel pModel1, @Nullable String pModel1Key, @NonNull SynchronizedBoundedRangeModel pModel2,
                       @Nullable String pModel2Key, CompositeDisposable pDisposables)
     {
       modelMap.put(pModel1Key == null ? "model1" : pModel1Key, pModel1);
@@ -249,7 +249,7 @@ public interface IDiffPaneUtil
      * @return SynchronizedBoundedRangeModel registered with the given key, or null if none exists for that key
      */
     @Nullable
-    public SynchronizedBoundedRangeModel getModel(@NotNull String pModelKey)
+    public SynchronizedBoundedRangeModel getModel(@NonNull String pModelKey)
     {
       return modelMap.get(pModelKey);
     }

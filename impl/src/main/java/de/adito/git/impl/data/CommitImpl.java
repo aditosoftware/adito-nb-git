@@ -1,9 +1,9 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.ICommit;
+import lombok.NonNull;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.*;
@@ -19,7 +19,7 @@ public class CommitImpl implements ICommit
   private List<ICommit> parents = null;
   public static final ICommit VOID_COMMIT = VoidCommit.getInstance();
 
-  public CommitImpl(@NotNull RevCommit pRevCommit)
+  public CommitImpl(@NonNull RevCommit pRevCommit)
   {
     revCommit = pRevCommit;
   }
@@ -90,7 +90,7 @@ public class CommitImpl implements ICommit
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public List<ICommit> getParents()
   {
@@ -102,7 +102,7 @@ public class CommitImpl implements ICommit
   }
 
   @Override
-  public void setParents(@NotNull List<ICommit> pCommits)
+  public void setParents(@NonNull List<ICommit> pCommits)
   {
     parents = pCommits;
   }

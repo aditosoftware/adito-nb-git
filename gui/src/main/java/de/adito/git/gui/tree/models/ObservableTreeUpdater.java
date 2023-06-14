@@ -6,7 +6,7 @@ import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.diff.IFileChangeType;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class ObservableTreeUpdater<T> implements IDiscardable
    * @param pDoAfterJobs    Jobs/Actions that should be executed after the model finished updating. NOTE: Will be executed in the EDT
    * @param pDoBeforeJobs   Jobs/Actions that should be executed before the model starts updating. NOTE: Will be executed in an RXJava computation thread
    */
-  public ObservableTreeUpdater(@NotNull Observable<List<T>> pChangeList, @NotNull BaseObservingTreeModel<T> pTreeModel,
+  public ObservableTreeUpdater(@NonNull Observable<List<T>> pChangeList, @NonNull BaseObservingTreeModel<T> pTreeModel,
                                IFileSystemUtil pFileSystemUtil, Runnable[] pDoAfterJobs, Runnable... pDoBeforeJobs)
   {
     changeList = pChangeList;

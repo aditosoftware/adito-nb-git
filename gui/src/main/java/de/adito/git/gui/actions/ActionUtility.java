@@ -13,7 +13,7 @@ import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.gui.dialogs.results.IStashChangesQuestionDialogResult;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.MessageFormat;
@@ -41,7 +41,7 @@ class ActionUtility
    * @return true if the user selected an option that allows the action to continue, false if the user aborted
    * @throws AditoGitException thrown when trying to discard the changes and either HEAD cannot be determined or some other error occurs during the reset
    */
-  static boolean handleStash(@NotNull IPrefStore pPrefStore, @NotNull IDialogProvider pDialogProvider, @NotNull IRepository pRepository, @NotNull String pStashKey,
+  static boolean handleStash(@NonNull IPrefStore pPrefStore, @NonNull IDialogProvider pDialogProvider, @NonNull IRepository pRepository, @NonNull String pStashKey,
                              @Nullable IProgressHandle pHandle) throws AditoGitException
   {
     List<IFileChangeType> changedFiles = pRepository.getStatus().blockingFirst().map(IFileStatus::getUncommitted).orElse(List.of());

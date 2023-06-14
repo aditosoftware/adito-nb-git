@@ -6,7 +6,7 @@ import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.gui.swing.SwingUtil;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -23,21 +23,21 @@ import java.util.List;
 class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListener, ViewLineChangeMarkingsListener, IconInfoModelListener
 {
 
-  @NotNull
+  @NonNull
   private final JViewport viewport;
-  @NotNull
+  @NonNull
   private final LineNumberModel lineNumberModel;
-  @NotNull
+  @NonNull
   private final ViewLineChangeMarkingModel leftMarkingsModel;
-  @NotNull
+  @NonNull
   private final ViewLineChangeMarkingModel rightMarkingsModel;
   @Nullable
   private final ImageIcon discardIcon;
   @Nullable
   private final ImageIcon acceptIcon;
-  @NotNull
+  @NonNull
   private List<ChangedChunkConnection> changedChunkConnectionsToDraw = new ArrayList<>();
-  @NotNull
+  @NonNull
   private final IconInfoModel iconInfoModel;
 
   /**
@@ -51,9 +51,9 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
    * @param pDiscardIcon        icon used for the discard option. Null if the panel should allow the accept action only
    * @param pOrientation        String with the orientation (as BorderLayout.EAST/WEST) of this panel, determines the order of accept/discardButtons
    */
-  ChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull JViewport pViewport, @NotNull LineNumberModel pLineNumberModel,
-                    @NotNull ViewLineChangeMarkingModel pLeftMarkingsModel, @NotNull ViewLineChangeMarkingModel pRightMarkingsModel,
-                    @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon, @NotNull String pOrientation)
+  ChoiceButtonPanel(@NonNull DiffPanelModel pModel, @NonNull JEditorPane pEditorPane, @NonNull JViewport pViewport, @NonNull LineNumberModel pLineNumberModel,
+                    @NonNull ViewLineChangeMarkingModel pLeftMarkingsModel, @NonNull ViewLineChangeMarkingModel pRightMarkingsModel,
+                    @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon, @NonNull String pOrientation)
   {
     viewport = pViewport;
     lineNumberModel = pLineNumberModel;
@@ -109,7 +109,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
    * @param pDisplayArea Coordinates of the viewPort window, in view coordinates
    * @return List of ChangeChunkConnections that have to be drawn
    */
-  @NotNull
+  @NonNull
   private List<ChangedChunkConnection> _calculateChunkConnectionsToDraw(Rectangle pDisplayArea, List<LineNumberColor> pLeftLineNumberColors,
                                                                         List<LineNumberColor> pRightLineNumberColors)
   {
@@ -148,7 +148,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
    * @param pGraphics Graphics object to paint with
    * @param pChangedChunkConnectionsToDraw List of ChangedChunkConnections that represent the connections of the colored areas of the left- and right LineChangeMarkingModels
    */
-  private void _paintIcons(@NotNull Graphics pGraphics, @NotNull List<ChangedChunkConnection> pChangedChunkConnectionsToDraw)
+  private void _paintIcons(@NonNull Graphics pGraphics, @NonNull List<ChangedChunkConnection> pChangedChunkConnectionsToDraw)
   {
     // first draw the colored connections
     ((Graphics2D) pGraphics).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -174,13 +174,13 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
   }
 
   @Override
-  public void lineNumbersChanged(@NotNull IDeltaTextChangeEvent pTextChangeEvent, @NotNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
   {
     // do nothing, either the iconInfos or the viewLineChangeMarkins should also change -> will get notification about that -> don't do the same work twice
   }
 
   @Override
-  public void viewLineChangeMarkingChanged(@NotNull List<LineNumberColor> pAdaptedLineNumberColorList)
+  public void viewLineChangeMarkingChanged(@NonNull List<LineNumberColor> pAdaptedLineNumberColorList)
   {
     _recalcAndDraw(viewport);
   }

@@ -7,7 +7,7 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.impl.data.diff.ConflictPair;
 import de.adito.git.impl.data.diff.ResolveOption;
 import de.adito.git.nbm.IGitConstants;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class ImportResolveOption implements ResolveOption
 {
   @Override
-  public List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff, @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair)
+  public List<IDeltaTextChangeEvent> resolveConflict(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff, @NonNull EConflictSide pConflictSide, @NonNull ConflictPair pConflictPair)
   {
     IJsParserUtility jsParserUtility = IJsParserUtility.getInstance();
     IChangeDelta otherDelta = pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide)));
@@ -43,8 +43,8 @@ public class ImportResolveOption implements ResolveOption
   }
 
   @Override
-  public boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
-                                    @NotNull IFileDiffHeader pFileDiffHeader)
+  public boolean canResolveConflict(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherDelta, @NonNull EConflictSide pConflictSide,
+                                    @NonNull IFileDiffHeader pFileDiffHeader)
   {
     if (!"js".equals(pFileDiffHeader.getFileExtension(EChangeSide.NEW)))
       return false;
@@ -72,7 +72,7 @@ public class ImportResolveOption implements ResolveOption
    * @param pInsertMap Map that will include non-duplicate elements from both maps
    * @param pSecondMap source for the additional elemtents
    */
-  private static void combineNonDuplicates(@NotNull Multimap<String, String> pInsertMap, @NotNull Multimap<String, String> pSecondMap)
+  private static void combineNonDuplicates(@NonNull Multimap<String, String> pInsertMap, @NonNull Multimap<String, String> pSecondMap)
   {
     for (Map.Entry<String, String> entry : pSecondMap.entries())
     {

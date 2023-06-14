@@ -8,7 +8,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Node;
@@ -39,9 +39,9 @@ abstract class NBAction extends NodeAction implements Disposable
   // TopComponent.getRegistry.getXXX()
   Node[] lastActivated = new Node[0];
 
-  @NotNull
-  static Optional<List<IFileChangeType>> getUncommittedFilesOfNodes(@NotNull Node[] pActivatedNodes,
-                                                                    @NotNull Observable<Optional<IRepository>> pRepository)
+  @NonNull
+  static Optional<List<IFileChangeType>> getUncommittedFilesOfNodes(@NonNull Node[] pActivatedNodes,
+                                                                    @NonNull Observable<Optional<IRepository>> pRepository)
   {
     List<File> files = getAllFilesOfNodes(pActivatedNodes);
     List<IFileChangeType> uncommittedFiles;
@@ -65,8 +65,8 @@ abstract class NBAction extends NodeAction implements Disposable
    * @param pActivatedNodes the active nodes from NetBeans
    * @return a list of Files from activeNodes.
    */
-  @NotNull
-  static List<File> getAllFilesOfNodes(@NotNull Node[] pActivatedNodes)
+  @NonNull
+  static List<File> getAllFilesOfNodes(@NonNull Node[] pActivatedNodes)
   {
     List<File> fileList = new ArrayList<>();
     for (Node node : pActivatedNodes)
@@ -94,8 +94,8 @@ abstract class NBAction extends NodeAction implements Disposable
    * @param pActivatedNodes The nodes to check the repository
    * @return The repository of the node
    */
-  @NotNull
-  static Observable<Optional<IRepository>> getCurrentRepository(@NotNull Node[] pActivatedNodes)
+  @NonNull
+  static Observable<Optional<IRepository>> getCurrentRepository(@NonNull Node[] pActivatedNodes)
   {
     return Observable.just(repositoryObservable.blockingFirst(Optional.empty()));
   }
@@ -125,7 +125,7 @@ abstract class NBAction extends NodeAction implements Disposable
    * @param pRepositoryObservable Observable with the currently selected Repository
    * @return Observable that tells if the Action should be enabled or disabled (enabled = true)
    */
-  protected abstract Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable);
+  protected abstract Observable<Optional<Boolean>> getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepositoryObservable);
 
   @Override
   public void dispose()

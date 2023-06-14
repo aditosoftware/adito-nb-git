@@ -1,6 +1,6 @@
 package de.adito.git.impl.ssh;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -33,7 +33,7 @@ class ClearHttpCacheHandler
    *
    * @param pURL URL, für die die Cache Einträge entfernt werden sollen
    */
-  static void clearCache(@NotNull String pURL)
+  static void clearCache(@NonNull String pURL)
   {
     try
     {
@@ -63,7 +63,7 @@ class ClearHttpCacheHandler
     }
   }
 
-  private static void _removeFromCache(@NotNull Object obj)
+  private static void _removeFromCache(@NonNull Object obj)
   {
     try
     {
@@ -75,7 +75,7 @@ class ClearHttpCacheHandler
     }
   }
 
-  private static boolean _isPathEqual(@NotNull URL url, @NotNull Object pAuthenticator)
+  private static boolean _isPathEqual(@NonNull URL url, @NonNull Object pAuthenticator)
   {
     try
     {

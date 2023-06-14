@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
+import lombok.NonNull;
 import org.eclipse.jgit.diff.*;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LineIndexDiffUtilTest
 {
 
-  private static @NotNull Stream<Arguments> getTextOffsetsDeletedText()
+  private static @NonNull Stream<Arguments> getTextOffsetsDeletedText()
   {
     return Stream.of(
         // deleted a line
@@ -49,7 +49,7 @@ class LineIndexDiffUtilTest
    */
   @ParameterizedTest
   @MethodSource
-  void getTextOffsetsDeletedText(@NotNull ChangeDeltaTextOffsets pExpected, @NotNull Edit pEdit, @NotNull String pChangedContent)
+  void getTextOffsetsDeletedText(@NonNull ChangeDeltaTextOffsets pExpected, @NonNull Edit pEdit, @NonNull String pChangedContent)
   {
     EditList pEditList = EditList.singleton(pEdit);
 
@@ -83,7 +83,7 @@ class LineIndexDiffUtilTest
   }
 
 
-  private static @NotNull Stream<Arguments> testGetStartIndexSafely()
+  private static @NonNull Stream<Arguments> testGetStartIndexSafely()
   {
     return Stream.of(
         // getting the first start index

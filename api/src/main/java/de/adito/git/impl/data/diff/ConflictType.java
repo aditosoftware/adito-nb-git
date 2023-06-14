@@ -1,6 +1,6 @@
 package de.adito.git.impl.data.diff;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -13,17 +13,17 @@ public class ConflictType
   public static ConflictType CONFLICTING = new ConflictType(EConflictType.CONFLICTING);
   @Nullable
   private final ResolveOption resolveOption;
-  @NotNull
+  @NonNull
   private final EConflictType conflictType;
 
 
-  public ConflictType(@NotNull ResolveOption pResolveOption, @NotNull EConflictType pConflictType)
+  public ConflictType(@NonNull ResolveOption pResolveOption, @NonNull EConflictType pConflictType)
   {
     resolveOption = pResolveOption;
     conflictType = pConflictType;
   }
 
-  private ConflictType(@NotNull EConflictType pConflictType)
+  private ConflictType(@NonNull EConflictType pConflictType)
   {
     conflictType = pConflictType;
     resolveOption = null;
@@ -41,7 +41,7 @@ public class ConflictType
   /**
    * @return EConflictType that denotes the type of conflict
    */
-  @NotNull
+  @NonNull
   public EConflictType getConflictType()
   {
     return conflictType;

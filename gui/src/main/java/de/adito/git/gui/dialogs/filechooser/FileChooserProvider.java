@@ -1,6 +1,6 @@
 package de.adito.git.gui.dialogs.filechooser;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -75,7 +75,7 @@ public class FileChooserProvider
    * @param pFileFilter        FileFilter that determines which files are available for the user to select in the JFileChooser
    * @return JPanel consisting of a label, textfield and a JFileChooser that is connected to the textfield
    */
-  public static FileChooserPanel createFileChooserPanel(@NotNull FileSelectionMode pFileSelectionMode,
+  public static FileChooserPanel createFileChooserPanel(@NonNull FileSelectionMode pFileSelectionMode,
                                                         @Nullable FileFilter pFileFilter)
   {
     return new FileChooserPanel(pFileSelectionMode, pFileFilter);
@@ -88,7 +88,7 @@ public class FileChooserProvider
    * @param pFileFilter        FileFilter that determines which files are available for the user to select in the JFileChooser
    * @return JPanel consisting of a label, textfield and a JFileChooser that is connected to the textfield
    */
-  public static FileChooserPanel createNewFileChooserPanel(@NotNull FileSelectionMode pFileSelectionMode,
+  public static FileChooserPanel createNewFileChooserPanel(@NonNull FileSelectionMode pFileSelectionMode,
                                                            @Nullable FileFilter pFileFilter, @Nullable String pFileName)
   {
     return new NewFileChooserPanel(pFileSelectionMode, pFileFilter, pFileName);

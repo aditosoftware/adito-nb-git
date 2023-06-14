@@ -22,7 +22,7 @@ import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -90,7 +90,7 @@ class CherryPickAction extends AbstractTableAction
    * @param pHandle        ProgressHandle to display the current progress/step
    * @throws AditoGitException thrown if an error occurrs during cherry picking
    */
-  private void _performCherryPick(IRepository pRepo, List<ICommit> pCommitsToPick, @NotNull IProgressHandle pHandle) throws AditoGitException
+  private void _performCherryPick(IRepository pRepo, List<ICommit> pCommitsToPick, @NonNull IProgressHandle pHandle) throws AditoGitException
   {
     try
     {
@@ -119,7 +119,7 @@ class CherryPickAction extends AbstractTableAction
    *
    * @param pHandle ProgressHandle to display the current progress/step
    */
-  private void _performUnstash(@NotNull IProgressHandle pHandle)
+  private void _performUnstash(@NonNull IProgressHandle pHandle)
   {
     String stashedCommitId = prefStore.get(STASH_ID_KEY);
     if (stashedCommitId != null)

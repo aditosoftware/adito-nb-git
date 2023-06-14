@@ -1,6 +1,6 @@
 package de.adito.git.api.data;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
@@ -44,7 +44,7 @@ public interface IBlame
    * @param pIndex the line to get the timestamp
    * @return the timestamp
    */
-  @NotNull
+  @NonNull
   Date getTimeStamp(int pIndex);
 
   /**
@@ -53,7 +53,7 @@ public interface IBlame
    * @param pIndex line to read data of, 0 based.
    * @return the commit of the line
    */
-  @NotNull
+  @NonNull
   ICommit getSourceCommit(int pIndex);
 
   /**
@@ -62,7 +62,7 @@ public interface IBlame
    * @param pIndex number of the line
    * @return the path of the file
    */
-  @NotNull
+  @NonNull
   String getSourcePath(int pIndex);
 
   /**

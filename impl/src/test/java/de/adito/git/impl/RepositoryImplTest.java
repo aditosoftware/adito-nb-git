@@ -7,7 +7,7 @@ import de.adito.git.impl.data.FileStatusImpl;
 import de.adito.git.impl.data.IDataFactory;
 import de.adito.git.impl.ssh.ISshProvider;
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -152,7 +152,7 @@ class RepositoryImplTest
    * @param pRepoHelperMock MockedStatic of the RepositoryImplHelper
    * @param pThreadNames    List with the thread names in which the status call was executed
    */
-  private static void mockStatusCall(@NotNull MockedStatic<RepositoryImplHelper> pRepoHelperMock, @NotNull List<String> pThreadNames)
+  private static void mockStatusCall(@NonNull MockedStatic<RepositoryImplHelper> pRepoHelperMock, @NonNull List<String> pThreadNames)
   {
     pRepoHelperMock.when(() -> RepositoryImplHelper.status(Mockito.any())).thenAnswer((Answer<IFileStatus>) invocation -> {
       pThreadNames.add(Thread.currentThread().getName());
@@ -167,7 +167,7 @@ class RepositoryImplTest
   private static class FileSystemObserverDummy implements IFileSystemObserver
   {
 
-    @NotNull
+    @NonNull
     private final List<IFileSystemChangeListener> changeListeners;
 
     @Override

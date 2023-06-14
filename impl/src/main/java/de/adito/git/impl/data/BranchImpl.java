@@ -4,9 +4,9 @@ import de.adito.git.api.TrackedBranchStatusCache;
 import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.data.TrackedBranchStatus;
+import lombok.NonNull;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -27,7 +27,7 @@ public class BranchImpl implements IBranch
   @Nullable
   private String remoteName = null;
 
-  public BranchImpl(@NotNull Ref pBranchRef, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
+  public BranchImpl(@NonNull Ref pBranchRef, @NonNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     branchRef = pBranchRef;
     trackedBranchStatusCache = pTrackedBranchStatusCache;
@@ -56,7 +56,7 @@ public class BranchImpl implements IBranch
     this.simpleName = simpleNameRaw;
   }
 
-  public BranchImpl(@NotNull ObjectId pId, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
+  public BranchImpl(@NonNull ObjectId pId, @NonNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     trackedBranchStatusCache = pTrackedBranchStatusCache;
     branchType = EBranchType.DETACHED;

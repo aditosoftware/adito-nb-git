@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
+import lombok.NonNull;
 import org.eclipse.jgit.diff.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ final class LineIndexDiffUtil
    * @param <T>                 Type of the ChangeType created by the IChangeDeltaFactory
    * @return List of IChangeTypes
    */
-  static <T> @NotNull List<T> getTextOffsets(@NotNull String pOriginalContent, @NotNull String pChangedContent, @NotNull EditList pEditList, @NotNull IChangeDeltaFactory<T> pChangeDeltaFactory)
+  static <T> @NonNull List<T> getTextOffsets(@NonNull String pOriginalContent, @NonNull String pChangedContent, @NonNull EditList pEditList, @NonNull IChangeDeltaFactory<T> pChangeDeltaFactory)
   {
     List<T> list = new ArrayList<>();
     List<LineInfo> oldTextLineInfos = LineIndexDiffUtil.getLineInfos(pOriginalContent);
@@ -52,7 +52,7 @@ final class LineIndexDiffUtil
    * @param pIndex     index of the line
    * @return start index of the line, or +1 to the endIndex of the last line if index is out of bounds
    */
-  static int getStartIndexSafely(@NotNull List<LineInfo> pLineInfos, int pIndex)
+  static int getStartIndexSafely(@NonNull List<LineInfo> pLineInfos, int pIndex)
   {
     if (pLineInfos.size() > pIndex)
     {
@@ -71,7 +71,7 @@ final class LineIndexDiffUtil
    * @param pText String or text for which to generate a list of LineInfos
    * @return List of LineInfos with the start and endIndices of the lines in the String or text
    */
-  static @NotNull List<LineInfo> getLineInfos(@NotNull String pText)
+  static @NonNull List<LineInfo> getLineInfos(@NonNull String pText)
   {
     List<LineInfo> lineInfos = new ArrayList<>();
     int startIndex = 0;

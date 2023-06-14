@@ -2,7 +2,7 @@ package de.adito.git.nbm;
 
 import de.adito.git.api.IIgnoreFacade;
 import de.adito.git.nbm.repo.ProjectRepositoryDescription;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -77,7 +77,7 @@ class FileSystemObserverImplTest
    * @param fileUtilMockedStatic MockedStatic of the FileUtil class
    * @param isDiscard            true if the FileSystemObserverImpl should be discarded after creation, false otherwise
    */
-  private static void initFileSystemObserver(@NotNull MockedStatic<FileUtil> fileUtilMockedStatic, boolean isDiscard)
+  private static void initFileSystemObserver(@NonNull MockedStatic<FileUtil> fileUtilMockedStatic, boolean isDiscard)
   {
     IIgnoreFacade ignoreFacade = mock(IIgnoreFacade.class);
     when(ignoreFacade.isIgnored(Mockito.any())).thenReturn(false);
@@ -96,7 +96,7 @@ class FileSystemObserverImplTest
   {
 
     @Override
-    public boolean matches(@NotNull File pArgument)
+    public boolean matches(@NonNull File pArgument)
     {
       return pArgument.getName().equals(".git");
     }

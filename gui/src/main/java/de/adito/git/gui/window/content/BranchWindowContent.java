@@ -14,6 +14,7 @@ import de.adito.util.reactive.cache.*;
 import info.clearthought.layout.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;
@@ -46,7 +47,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
 
   @Inject
   public BranchWindowContent(IAsyncProgressFacade pProgressFacade, IActionProvider pProvider, INotifyUtil pNotifyUtil,
-                             @Assisted Observable<Optional<IRepository>> pObservableOptRepo, @NotNull IDialogProvider pDialogProvider)
+                             @Assisted Observable<Optional<IRepository>> pObservableOptRepo, @NonNull IDialogProvider pDialogProvider)
   {
     progressFacade = pProgressFacade;
     actionProvider = pProvider;
@@ -98,7 +99,7 @@ class BranchWindowContent extends JPanel implements Scrollable, IDiscardable
     return jLabel;
   }
 
-  @NotNull
+  @NonNull
   private Observable<Optional<List<IBranch>>> _observeBranches()
   {
     return observableCache.calculateParallel("branches", () -> observableOptRepo

@@ -1,6 +1,6 @@
 package de.adito.git.gui.concurrency;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -45,7 +45,7 @@ public class ComputationCycleExecutor extends ThreadPoolExecutor
     return super.isShutdown() && afterComputationsExecutor.isShutdown();
   }
 
-  @NotNull
+  @NonNull
   @Override
   public List<Runnable> shutdownNow()
   {
@@ -59,7 +59,7 @@ public class ComputationCycleExecutor extends ThreadPoolExecutor
    *
    * @param pRunnable Runnable to execute
    */
-  public void invokeAfterComputations(@NotNull Runnable pRunnable)
+  public void invokeAfterComputations(@NonNull Runnable pRunnable)
   {
     _removeFinishedFutures();
     afterComputationsExecutor.submit(_waitForLatch(pRunnable));
@@ -72,7 +72,7 @@ public class ComputationCycleExecutor extends ThreadPoolExecutor
    * @param pRunnable Runnable to execute
    * @param pKey      Key that is used to determine if there already is an action of this instance queued for this computation cycle
    */
-  public void invokeAfterComputations(@NotNull Runnable pRunnable, String pKey)
+  public void invokeAfterComputations(@NonNull Runnable pRunnable, String pKey)
   {
     _removeFinishedFutures();
     if (keyedTasksMap.containsKey(pKey))
@@ -106,7 +106,7 @@ public class ComputationCycleExecutor extends ThreadPoolExecutor
    *
    * @param pRunnable Runnable that should be executed ASAP
    */
-  public void invokeComputation(@NotNull Runnable pRunnable)
+  public void invokeComputation(@NonNull Runnable pRunnable)
   {
     Future<?> trackedFuture;
     while ((trackedFuture = trackedTasks.peek()) != null)

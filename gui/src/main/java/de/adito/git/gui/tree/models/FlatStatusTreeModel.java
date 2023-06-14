@@ -7,7 +7,7 @@ import de.adito.git.gui.tree.TreeModelBackgroundUpdater;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.tree.MutableTreeNode;
 import java.io.File;
@@ -22,13 +22,13 @@ import java.util.List;
 public class FlatStatusTreeModel extends BaseObservingTreeModel<IFileChangeType> implements IDiscardable
 {
 
-  public FlatStatusTreeModel(@NotNull File pProjectDirectory)
+  public FlatStatusTreeModel(@NonNull File pProjectDirectory)
   {
     super(pProjectDirectory);
   }
 
   @Override
-  void _treeChanged(@NotNull List<IFileChangeType> pChangeList, Runnable... pDoAfterJobs)
+  void _treeChanged(@NonNull List<IFileChangeType> pChangeList, Runnable... pDoAfterJobs)
   {
     try
     {
@@ -44,7 +44,7 @@ public class FlatStatusTreeModel extends BaseObservingTreeModel<IFileChangeType>
     }
   }
 
-  private List<TreeUpdate> _calculateTree(@NotNull List<IFileChangeType> pChangeList)
+  private List<TreeUpdate> _calculateTree(@NonNull List<IFileChangeType> pChangeList)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     FileChangeTypeNode rootNode = (FileChangeTypeNode) getRoot();

@@ -10,7 +10,7 @@ import de.adito.util.reactive.cache.ObservableCache;
 import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -46,7 +46,7 @@ public class DiffPane extends JPanel implements IDiscardable
     add(scrollPane, OnionColumnLayout.CENTER);
   }
 
-  @NotNull
+  @NonNull
   public JScrollPane getScrollPane()
   {
     return scrollPane;
@@ -56,8 +56,8 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pTextChangeEventObservable Observable that fires a new DeltaTextChangeEvent if the text on any side of the Diff changes
    * @return LineNumberModel that keeps track of the y coordinates for each line in the editor of this diffPane
    */
-  @NotNull
-  public LineNumberModel createLineNumberModel(@NotNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable)
+  @NonNull
+  public LineNumberModel createLineNumberModel(@NonNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable)
   {
     return new LineNumberModel(pTextChangeEventObservable, editorPane, _observeViewPortSize());
   }
@@ -70,7 +70,7 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pLineOrientation        String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    *                                Defaults to BorderLayout.WEST if another String is passed
    */
-  public void addLineNumPanel(@NotNull LineNumberModel pLineNumberModel, @NotNull LineChangeMarkingModel pLineChangeMarkingModel, @NotNull String pLineOrientation)
+  public void addLineNumPanel(@NonNull LineNumberModel pLineNumberModel, @NonNull LineChangeMarkingModel pLineChangeMarkingModel, @NonNull String pLineOrientation)
   {
     LineNumPanel lineNumPanel = new LineNumPanel(editorPane, pLineNumberModel, pLineChangeMarkingModel, getScrollPane().getViewport());
     discardables.add(lineNumPanel);
@@ -88,9 +88,9 @@ public class DiffPane extends JPanel implements IDiscardable
    * @param pDiscardIcon        ImageIcon for the discard button
    * @param pOrientation        String with the orientation of the Panel, pass either BorderLayout.EAST or BorderLayout.WEST.
    */
-  public void addChoiceButtonPanel(@NotNull DiffPanelModel pModel, @NotNull LineNumberModel pLineNumberModel, @NotNull ViewLineChangeMarkingModel pLeftMarkingsModel,
-                                   @NotNull ViewLineChangeMarkingModel pRightMarkingsModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
-                                   @NotNull String pOrientation)
+  public void addChoiceButtonPanel(@NonNull DiffPanelModel pModel, @NonNull LineNumberModel pLineNumberModel, @NonNull ViewLineChangeMarkingModel pLeftMarkingsModel,
+                                   @NonNull ViewLineChangeMarkingModel pRightMarkingsModel, @Nullable ImageIcon pAcceptIcon, @Nullable ImageIcon pDiscardIcon,
+                                   @NonNull String pOrientation)
   {
     ChoiceButtonPanel choiceButtonPanel = new ChoiceButtonPanel(pModel, editorPane, scrollPane.getViewport(), pLineNumberModel, pLeftMarkingsModel, pRightMarkingsModel,
                                                                 pAcceptIcon, pDiscardIcon, pOrientation);
@@ -106,7 +106,7 @@ public class DiffPane extends JPanel implements IDiscardable
     removeAll();
   }
 
-  @NotNull
+  @NonNull
   private Observable<Dimension> _observeViewPortSize()
   {
     return observableCache.calculateParallel("viewPortSize", () -> Observable

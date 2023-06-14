@@ -1,7 +1,7 @@
 package de.adito.git.impl.util;
 
+import lombok.NonNull;
 import org.apache.commons.lang3.NotImplementedException;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -117,7 +117,7 @@ public class BiNavigateAbleMap<K extends Comparable, V extends Comparable> exten
   }
 
   @Override
-  public void putAll(@NotNull Map<? extends K, ? extends V> pMap)
+  public void putAll(@NonNull Map<? extends K, ? extends V> pMap)
   {
     for (Map.Entry<? extends K, ? extends V> entry : pMap.entrySet())
     {

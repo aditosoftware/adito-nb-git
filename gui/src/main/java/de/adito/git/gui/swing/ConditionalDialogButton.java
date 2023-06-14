@@ -1,7 +1,7 @@
 package de.adito.git.gui.swing;
 
 import de.adito.git.gui.dialogs.EButtons;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -68,7 +68,7 @@ public abstract class ConditionalDialogButton extends JButton
    *
    * @return ActionListener that will be added to the parent of this class
    */
-  @NotNull
+  @NonNull
   abstract ActionListener getCustomListener();
 
   /**
@@ -76,6 +76,6 @@ public abstract class ConditionalDialogButton extends JButton
    *
    * @return EButtons
    */
-  @NotNull
+  @NonNull
   public abstract EButtons getPressedButton();
 }

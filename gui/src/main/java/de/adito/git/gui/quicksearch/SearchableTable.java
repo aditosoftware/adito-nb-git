@@ -2,7 +2,7 @@ package de.adito.git.gui.quicksearch;
 
 import de.adito.git.api.IDiscardable;
 import de.adito.swing.KeyForwardAdapter;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -29,7 +29,7 @@ public class SearchableTable extends JTable implements IDiscardable
    * @param pTableModel The TableModel for this table
    * @param pView       Component that can accommodate the searchField (if it is added to the table, the field is not shown)
    */
-  public SearchableTable(@Nullable TableModel pTableModel, @NotNull JPanel pView)
+  public SearchableTable(@Nullable TableModel pTableModel, @NonNull JPanel pView)
   {
     super(pTableModel);
     keyForwardAdapter = new KeyForwardAdapter(pView);

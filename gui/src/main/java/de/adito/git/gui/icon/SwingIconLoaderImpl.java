@@ -1,6 +1,6 @@
 package de.adito.git.gui.icon;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.Graphics;
@@ -20,9 +20,9 @@ public class SwingIconLoaderImpl implements IIconLoader
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
-  public ImageIcon getIcon(@NotNull String pIconBase)
+  public ImageIcon getIcon(@NonNull String pIconBase)
   {
     if (!pIconBase.startsWith("/"))
       pIconBase = "/" + pIconBase;
@@ -41,7 +41,7 @@ public class SwingIconLoaderImpl implements IIconLoader
       return new ImageIcon(resource);
   }
 
-  public ImageIcon getInverseIcon(@NotNull String pIconBase)
+  public ImageIcon getInverseIcon(@NonNull String pIconBase)
   {
     if (!pIconBase.startsWith("/"))
       pIconBase = "/" + pIconBase;

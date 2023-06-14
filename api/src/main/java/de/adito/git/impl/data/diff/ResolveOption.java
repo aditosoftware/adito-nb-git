@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ public interface ResolveOption
    * @param pConflictPair ConflictPair with the information about which indices the conflicting deltas have in each FileDiff
    * @return List of TextChangeEvents that have to be performed to resolve the conflict
    */
-  List<IDeltaTextChangeEvent> resolveConflict(@NotNull IChangeDelta acceptedDelta, @NotNull IFileDiff pAcceptedDiff, @NotNull IFileDiff pOtherDiff,
-                                              @NotNull EConflictSide pConflictSide, @NotNull ConflictPair pConflictPair);
+  List<IDeltaTextChangeEvent> resolveConflict(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff,
+                                              @NonNull EConflictSide pConflictSide, @NonNull ConflictPair pConflictPair);
 
   /**
    * @param pChangeDelta    conflicting delta
@@ -29,8 +29,8 @@ public interface ResolveOption
    * @param pFileDiffHeader IFileDiffHeader containing information about encoding and which kind of file the conflict originates from (xml, js...)
    * @return true if the ResolveOption can resolve the conflict
    */
-  boolean canResolveConflict(@NotNull IChangeDelta pChangeDelta, @NotNull IChangeDelta pOtherDelta, @NotNull EConflictSide pConflictSide,
-                             @NotNull IFileDiffHeader pFileDiffHeader);
+  boolean canResolveConflict(@NonNull IChangeDelta pChangeDelta, @NonNull IChangeDelta pOtherDelta, @NonNull EConflictSide pConflictSide,
+                             @NonNull IFileDiffHeader pFileDiffHeader);
 
   /**
    * Determines which ResolveOptions are applied first

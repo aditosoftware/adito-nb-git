@@ -8,7 +8,7 @@ import de.adito.git.gui.dialogs.panels.basediffpanel.DiffPanelModel;
 import de.adito.git.gui.dialogs.panels.basediffpanel.MouseFirstActionObservableWrapper;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -31,7 +31,7 @@ public class ScrollbarMarkingsModel implements IDiscardable
 
   private final CompositeDisposable disposable = new CompositeDisposable();
 
-  public ScrollbarMarkingsModel(@NotNull DiffPanelModel pModel, @NotNull JEditorPane pEditorPane, @NotNull MarkedScrollbar pMarkedScrollbar)
+  public ScrollbarMarkingsModel(@NonNull DiffPanelModel pModel, @NonNull JEditorPane pEditorPane, @NonNull MarkedScrollbar pMarkedScrollbar)
   {
     // add a mouseFirstActionObservable so that when the first mouse action by the user happens, the heights are recalculated. This is done to make it more likely that
     // the layouting by the editorPane is done when the heights for changed parts are retrieved
@@ -49,7 +49,7 @@ public class ScrollbarMarkingsModel implements IDiscardable
    * @param pModel      DiffPanelModel that contains Functions to get the start/endLine of a IFileChangeChunk
    * @param pEditorPane JEditorPane displaying the IFileChangeChunks
    */
-  private void _getMarkings(@NotNull DiffPanelModel pModel, @Nullable IFileDiff pFileDiff, @NotNull JEditorPane pEditorPane, @NotNull MarkedScrollbar pMarkedScrollbar)
+  private void _getMarkings(@NonNull DiffPanelModel pModel, @Nullable IFileDiff pFileDiff, @NonNull JEditorPane pEditorPane, @NonNull MarkedScrollbar pMarkedScrollbar)
   {
     if (pFileDiff != null)
     {

@@ -5,7 +5,7 @@ import de.adito.git.api.data.*;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.tree.models.ObservableTreeUpdater;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -58,8 +58,8 @@ interface IActionFactory
                                                 Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
 
-  RevertCommitsAction createRevertCommitsAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                                @NotNull Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
+  RevertCommitsAction createRevertCommitsAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                                @NonNull Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
   ResetAction createResetAction(Observable<Optional<IRepository>> pRepository, Observable<Optional<List<ICommit>>> pSelectedCommitsObservable);
 
@@ -114,17 +114,17 @@ interface IActionFactory
 
   ShowTagWindowAction createShowTagWindowAction(Consumer<ICommit> pSelectedCommitCallback, Observable<Optional<IRepository>> pRepository);
 
-  SwitchTreeViewAction createSwitchTreeViewAction(@NotNull JTree pTree, @NotNull File pProjectDirectory, @NotNull String pCallerName,
-                                                  @NotNull ObservableTreeUpdater<IFileChangeType> pObservableTreeUpdater);
+  SwitchTreeViewAction createSwitchTreeViewAction(@NonNull JTree pTree, @NonNull File pProjectDirectory, @NonNull String pCallerName,
+                                                  @NonNull ObservableTreeUpdater<IFileChangeType> pObservableTreeUpdater);
 
-  SwitchDiffTreeViewAction createSwitchDiffTreeViewAction(@NotNull JTree pTree, @NotNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater,
-                                                          @NotNull File pProjectDirectory, @NotNull String pCallerName);
+  SwitchDiffTreeViewAction createSwitchDiffTreeViewAction(@NonNull JTree pTree, @NonNull ObservableTreeUpdater<IDiffInfo> pObservableTreeUpdater,
+                                                          @NonNull File pProjectDirectory, @NonNull String pCallerName);
 
-  CreatePatchAction createPatchAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                      @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+  CreatePatchAction createPatchAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                      @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 
-  ApplyPatchAction createApplyPatchAction(@NotNull Observable<Optional<IRepository>> pRepository);
+  ApplyPatchAction createApplyPatchAction(@NonNull Observable<Optional<IRepository>> pRepository);
 
-  MarkResolvedAction createMarkResolvedAction(@NotNull Observable<Optional<IRepository>> pRepository,
-                                              @NotNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
+  MarkResolvedAction createMarkResolvedAction(@NonNull Observable<Optional<IRepository>> pRepository,
+                                              @NonNull Observable<Optional<List<IFileChangeType>>> pSelectedFilesObservable);
 }

@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -16,14 +16,14 @@ public interface IKeyStore
    * @param pPassword    sensitive information that should be stored
    * @param pDescription optional description
    */
-  void save(@NotNull String pKey, @NotNull char[] pPassword, @Nullable String pDescription);
+  void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription);
 
   /**
    * Deletes a key from the store. If the key was not in the store to begin with, does nothing.
    *
    * @param pKey identifier for the password
    */
-  void delete(@NotNull String pKey);
+  void delete(@NonNull String pKey);
 
   /**
    * Reads a key from the store.
@@ -31,6 +31,6 @@ public interface IKeyStore
    * @param pKey identifier for the password
    * @return the password stored under the passed key
    */
-  char[] read(@NotNull String pKey);
+  char[] read(@NonNull String pKey);
 
 }

@@ -2,8 +2,8 @@ package de.adito.git.impl.data;
 
 import de.adito.git.api.data.IBlame;
 import de.adito.git.api.data.ICommit;
+import lombok.NonNull;
 import org.eclipse.jgit.blame.BlameResult;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class BlameImpl implements IBlame
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public Date getTimeStamp(int pIndex)
   {
@@ -70,7 +70,7 @@ public class BlameImpl implements IBlame
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public ICommit getSourceCommit(int pIndex)
   {
@@ -80,7 +80,7 @@ public class BlameImpl implements IBlame
   /**
    * {@inheritDoc}
    */
-  @NotNull
+  @NonNull
   @Override
   public String getSourcePath(int pIndex)
   {

@@ -1,6 +1,6 @@
 package de.adito.git.api;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.awt.Color;
@@ -39,7 +39,7 @@ public class ColorPicker
   {
   }
 
-  @NotNull
+  @NonNull
   private static Color _getColor(String pKey)
   {
     Color colorForKey = UIManager.getColor(pKey);

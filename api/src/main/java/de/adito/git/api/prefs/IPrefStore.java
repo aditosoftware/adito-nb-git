@@ -1,6 +1,6 @@
 package de.adito.git.api.prefs;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -18,7 +18,7 @@ public interface IPrefStore
    * @return Value or <tt>null</tt>
    */
   @Nullable
-  String get(@NotNull String pKey);
+  String get(@NonNull String pKey);
 
   /**
    * Returns the value associated with the given key for the Storage in the given module
@@ -28,7 +28,7 @@ public interface IPrefStore
    * @return Value for key or <tt>null</tt>
    */
   @Nullable
-  String get(@NotNull String pModulePath, @NotNull String pKey);
+  String get(@NonNull String pModulePath, @NonNull String pKey);
 
   /**
    * Associate a key with a value
@@ -36,6 +36,6 @@ public interface IPrefStore
    * @param pKey   Key
    * @param pValue Value, <tt>null</tt> if the given key should be removed
    */
-  void put(@NotNull String pKey, @Nullable String pValue);
+  void put(@NonNull String pKey, @Nullable String pValue);
 
 }

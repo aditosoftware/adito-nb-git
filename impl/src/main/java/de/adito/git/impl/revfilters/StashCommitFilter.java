@@ -1,5 +1,6 @@
 package de.adito.git.impl.revfilters;
 
+import lombok.NonNull;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
@@ -7,7 +8,6 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +28,7 @@ public class StashCommitFilter extends RevFilter
   private final ArrayList<ObjectId> stashedCommitIdList = new ArrayList<>();
   private RevCommit latestStashedCommit = null;
 
-  public StashCommitFilter(@NotNull Git pGit)
+  public StashCommitFilter(@NonNull Git pGit)
   {
     git = pGit;
     try

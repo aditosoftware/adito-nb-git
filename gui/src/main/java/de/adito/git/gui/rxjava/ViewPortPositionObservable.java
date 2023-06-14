@@ -1,7 +1,7 @@
 package de.adito.git.gui.rxjava;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -16,14 +16,14 @@ import java.awt.Rectangle;
 public class ViewPortPositionObservable extends AbstractListenerObservable<ChangeListener, JViewport, Rectangle>
 {
 
-  public ViewPortPositionObservable(@NotNull JViewport pListenableValue)
+  public ViewPortPositionObservable(@NonNull JViewport pListenableValue)
   {
     super(pListenableValue);
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected ChangeListener registerListener(@NotNull JViewport pJViewport, @NotNull IFireable<Rectangle> pFireable)
+  protected ChangeListener registerListener(@NonNull JViewport pJViewport, @NonNull IFireable<Rectangle> pFireable)
   {
     ChangeListener changeListener = e -> {
       Rectangle rect = new Rectangle(pJViewport.getViewRect());
@@ -36,7 +36,7 @@ public class ViewPortPositionObservable extends AbstractListenerObservable<Chang
   }
 
   @Override
-  protected void removeListener(@NotNull JViewport pJViewport, @NotNull ChangeListener pChangeListener)
+  protected void removeListener(@NonNull JViewport pJViewport, @NonNull ChangeListener pChangeListener)
   {
     pJViewport.removeChangeListener(pChangeListener);
   }

@@ -7,6 +7,7 @@ import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
@@ -40,7 +41,7 @@ public class ResolveConflictsNBAction extends NBAction
   }
 
   @Override
-  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
     return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
   }

@@ -1,6 +1,6 @@
 package de.adito.git.nbm.dialogs;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -86,7 +86,7 @@ class DialogDisplayerNBImplTest
    */
   @ParameterizedTest
   @MethodSource("parseRectangleTestValues")
-  void parseRectangleTest(@NotNull String pValue, @Nullable Rectangle pExpected)
+  void parseRectangleTest(@NonNull String pValue, @Nullable Rectangle pExpected)
   {
     assertEquals(pExpected, DialogDisplayerNBImpl.parseRectangle(pValue));
   }

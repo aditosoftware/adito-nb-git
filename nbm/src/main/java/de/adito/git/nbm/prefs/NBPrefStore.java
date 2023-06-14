@@ -2,7 +2,7 @@ package de.adito.git.nbm.prefs;
 
 import com.google.inject.Singleton;
 import de.adito.git.api.prefs.IPrefStore;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.util.NbPreferences;
 
@@ -20,19 +20,19 @@ public class NBPrefStore implements IPrefStore
 
   @Nullable
   @Override
-  public String get(@NotNull String pKey)
+  public String get(@NonNull String pKey)
   {
     return preferences.get(pKey, null);
   }
 
   @Override
-  public @Nullable String get(@NotNull String pModulePath, @NotNull String pKey)
+  public @Nullable String get(@NonNull String pModulePath, @NonNull String pKey)
   {
     return NbPreferences.root().node(pModulePath).get(pKey, null);
   }
 
   @Override
-  public void put(@NotNull String pKey, @Nullable String pValue)
+  public void put(@NonNull String pKey, @Nullable String pValue)
   {
     if(pValue != null)
       preferences.put(pKey, pValue);

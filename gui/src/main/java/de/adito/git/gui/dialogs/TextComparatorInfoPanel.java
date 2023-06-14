@@ -3,7 +3,7 @@ package de.adito.git.gui.dialogs;
 import de.adito.git.impl.util.GitRawTextComparator;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.util.Vector;
@@ -29,7 +29,7 @@ public class TextComparatorInfoPanel extends JPanel
     tlu.add(1, 0, new JLabel("Whitespace Treatment:"));
   }
 
-  @NotNull
+  @NonNull
   private static JComboBox<GitRawTextComparator> getTextComparatorComboBox()
   {
     JComboBox<GitRawTextComparator> rawTextComparatorBox = new JComboBox<>(new Vector<>(GitRawTextComparator.getInstances()));

@@ -79,14 +79,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jetbrains</groupId>
-      <artifactId>annotations</artifactId>
-      <version>16.0.3</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>5.7.1</version>
@@ -119,9 +111,9 @@
 
     <!-- Lombok for additional annotations -->
     <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.24</version>
+      <groupId>de.adito.aditoweb</groupId>
+      <artifactId>adito-lombok-extended</artifactId>
+      <version>1.0.0</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -131,6 +123,7 @@
     <plugins>
       <!-- dependency plugin -->
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>3.1.2</version>
       </plugin>

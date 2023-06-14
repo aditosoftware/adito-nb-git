@@ -10,7 +10,7 @@ import de.adito.git.gui.window.content.ILookupComponent;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
 import org.openide.filesystems.FileObject;
@@ -43,13 +43,13 @@ import java.util.stream.Collectors;
 public class StatusWindowTopComponent extends AbstractRepositoryTopComponent implements ExplorerManager.Provider
 {
 
-  @NotNull
+  @NonNull
   private final IPrefStore prefStore;
   private final CompositeDisposable disposable = new CompositeDisposable();
   private final ExplorerManager em;
 
   @Inject
-  StatusWindowTopComponent(IWindowContentProvider pWindowContentProvider, @NotNull IPrefStore pPrefStore, @Assisted Observable<Optional<IRepository>> pRepository)
+  StatusWindowTopComponent(IWindowContentProvider pWindowContentProvider, @NonNull IPrefStore pPrefStore, @Assisted Observable<Optional<IRepository>> pRepository)
   {
     super(pRepository);
     prefStore = pPrefStore;
@@ -139,7 +139,7 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent imp
    */
   private static class FileNode extends AbstractNode
   {
-    public FileNode(@NotNull FileObject pFileObject)
+    public FileNode(@NonNull FileObject pFileObject)
     {
       super(Children.LEAF, Lookups.fixed(pFileObject));
     }
@@ -150,7 +150,7 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent imp
    */
   private static class RootNode extends AbstractNode
   {
-    public RootNode(@NotNull List<FileObject> pFileObjects)
+    public RootNode(@NonNull List<FileObject> pFileObjects)
     {
       super(Children.create(new FOChildFactory(pFileObjects), false));
     }
@@ -162,28 +162,28 @@ public class StatusWindowTopComponent extends AbstractRepositoryTopComponent imp
     {
       private final List<FileObject> fileObjects;
 
-      public FOChildFactory(@NotNull List<FileObject> pFileObjects)
+      public FOChildFactory(@NonNull List<FileObject> pFileObjects)
       {
         fileObjects = pFileObjects;
       }
 
       @Override
-      protected boolean createKeys(@NotNull List<FileObject> toPopulate)
+      protected boolean createKeys(@NonNull List<FileObject> toPopulate)
       {
         toPopulate.addAll(fileObjects);
         return true;
       }
 
-      @NotNull
+      @NonNull
       @Override
-      protected Node createNodeForKey(@NotNull FileObject pKey)
+      protected Node createNodeForKey(@NonNull FileObject pKey)
       {
         return new FileNode(pKey);
       }
 
-      @NotNull
+      @NonNull
       @Override
-      protected Node[] createNodesForKey(@NotNull FileObject pKey)
+      protected Node[] createNodesForKey(@NonNull FileObject pKey)
       {
         return new Node[]{createNodeForKey(pKey)};
       }

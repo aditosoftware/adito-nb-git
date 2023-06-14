@@ -1,6 +1,6 @@
 package de.adito.git.impl.data;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -17,7 +17,7 @@ public class SSHKeyDetails
   private final String remoteName;
   private final char[] passPhrase;
 
-  public SSHKeyDetails(@Nullable String pKeyLocation, @NotNull String pRemoteName, @Nullable char[] pPassPhrase)
+  public SSHKeyDetails(@Nullable String pKeyLocation, @NonNull String pRemoteName, @Nullable char[] pPassPhrase)
   {
     keyLocation = pKeyLocation;
     remoteName = pRemoteName;
@@ -36,7 +36,7 @@ public class SSHKeyDetails
   /**
    * @return the name of the remote this key should be assigned to
    */
-  @NotNull
+  @NonNull
   public String getRemoteName()
   {
     return remoteName;

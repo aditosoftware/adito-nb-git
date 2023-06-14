@@ -1,6 +1,6 @@
 package de.adito.git.api.dag;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +18,6 @@ public interface IDAGFilterIterator<T extends IDAGObject<T>> extends Iterator<T>
    * @param pNumEntries number of entries that should be attempted to read
    * @return List with 0 to pNumEntries, depending on how many could be read
    */
-  @NotNull List<T> tryReadEntries(int pNumEntries);
+  @NonNull List<T> tryReadEntries(int pNumEntries);
 
 }

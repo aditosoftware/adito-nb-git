@@ -1,7 +1,7 @@
 package de.adito.git.gui.dialogs.filechooser;
 
 import de.adito.git.gui.swing.TextFieldWithPlaceholder;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -17,7 +17,7 @@ public class NewFileChooserPanel extends FileChooserPanel
   private final TextFieldWithPlaceholder fileNameField;
   private final String fileName;
 
-  public NewFileChooserPanel(@NotNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter, @Nullable String pFileName)
+  public NewFileChooserPanel(@NonNull FileChooserProvider.FileSelectionMode pFileSelectionMode, @Nullable FileFilter pFileFilter, @Nullable String pFileName)
   {
     super(pFileSelectionMode, pFileFilter);
     fileName = pFileName;
@@ -51,7 +51,7 @@ public class NewFileChooserPanel extends FileChooserPanel
    * @return the currently selected file that is displayed in the textfield
    */
   @Override
-  @NotNull
+  @NonNull
   public String getSelectedFile()
   {
     String currentText = targetPath.getText();

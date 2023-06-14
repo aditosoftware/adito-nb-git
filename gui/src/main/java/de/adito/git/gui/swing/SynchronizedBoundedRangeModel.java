@@ -7,7 +7,7 @@ import de.adito.git.impl.util.BiNavigateAbleMap;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -34,8 +34,8 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
   private final AtomicInteger throttleCounter = new AtomicInteger(0);
   private final HashMap<BoundedRangeModel, List<_CoupledScrollbarInfo>> subListCache = new HashMap<>();
 
-  public SynchronizedBoundedRangeModel(@NotNull JScrollBar pCoupledBar, @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
-                                       @NotNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
+  public SynchronizedBoundedRangeModel(@NonNull JScrollBar pCoupledBar, @NonNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
+                                       @NonNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
   {
     coupledScrollbarInfos.add(new _CoupledScrollbarInfo(pCoupledBar, pRefreshMappings, pFileChangesEventObs, pUseInverseMap));
     throttleDisposable = throttler.throttleLast(16, TimeUnit.MILLISECONDS).subscribe(pScrollAmount -> {
@@ -57,8 +57,8 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
    * @param pFileChangesEventObs Observable that fires on FileChangeEvents to the Editor
    * @param pUseInverseMap       whether or not the inverse mapping should be used to determine the height mappings
    */
-  public void addCoupledScrollbar(@NotNull JScrollBar pToCouple, @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
-                                  @NotNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
+  public void addCoupledScrollbar(@NonNull JScrollBar pToCouple, @NonNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> pRefreshMappings,
+                                  @NonNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
   {
     _CoupledScrollbarInfo newInfo = new _CoupledScrollbarInfo(pToCouple, pRefreshMappings, pFileChangesEventObs, pUseInverseMap);
     coupledScrollbarInfos.add(newInfo);
@@ -114,7 +114,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
    * @param pNewValue       New Value of the scrollPane
    * @param pScrollbarInfos list of coupled Scrollbars with their informations
    */
-  private boolean _valueChanged(int pNewValue, @NotNull List<_CoupledScrollbarInfo> pScrollbarInfos)
+  private boolean _valueChanged(int pNewValue, @NonNull List<_CoupledScrollbarInfo> pScrollbarInfos)
   {
     int scrollAmount = pNewValue - getValue();
     if (scrollAmount == 0)
@@ -250,8 +250,8 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
     private BiNavigateAbleMap<Integer, Integer> map = new BiNavigateAbleMap<>();
     private Function<Integer, Boolean> setOtherScrollBarValueFunction;
 
-    _CoupledScrollbarInfo(@NotNull JScrollBar pToCouple, @NotNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
-                          @NotNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
+    _CoupledScrollbarInfo(@NonNull JScrollBar pToCouple, @NonNull Function<List<IChangeDelta>, BiNavigateAbleMap<Integer, Integer>> refreshMappings,
+                          @NonNull Observable<Optional<List<IChangeDelta>>> pFileChangesEventObs, boolean pUseInverseMap)
     {
       toCouple = pToCouple;
       this.refreshMappings = refreshMappings;
@@ -312,7 +312,7 @@ public class SynchronizedBoundedRangeModel extends DefaultBoundedRangeModel impl
       disposable.dispose();
     }
 
-    private Function<Integer, Boolean> _getSetOtherScrollbarFunction(@Nullable Object pOtherScrollbar, @NotNull JScrollBar pToCouple)
+    private Function<Integer, Boolean> _getSetOtherScrollbarFunction(@Nullable Object pOtherScrollbar, @NonNull JScrollBar pToCouple)
     {
       if (pOtherScrollbar instanceof SynchronizedBoundedRangeModel)
         return pInteger -> ((SynchronizedBoundedRangeModel) pOtherScrollbar)

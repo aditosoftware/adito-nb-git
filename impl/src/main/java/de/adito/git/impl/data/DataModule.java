@@ -8,8 +8,8 @@ import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.data.diff.ResolveOptionsProviderImpl;
 import de.adito.git.impl.data.diff.*;
+import lombok.NonNull;
 import org.apache.commons.lang3.NotImplementedException;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionListener;
@@ -42,19 +42,19 @@ public class DataModule extends AbstractModule
   {
 
     @Override
-    public void save(@NotNull String pKey, @NotNull char[] pPassword, @Nullable String pDescription)
+    public void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription)
     {
       throw new NotImplementedException();
     }
 
     @Override
-    public void delete(@NotNull String pKey)
+    public void delete(@NonNull String pKey)
     {
       throw new NotImplementedException();
     }
 
     @Override
-    public char[] read(@NotNull String pKey)
+    public char[] read(@NonNull String pKey)
     {
       throw new NotImplementedException();
     }
@@ -76,13 +76,13 @@ public class DataModule extends AbstractModule
     }
 
     @Override
-    public void notify(@NotNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose)
+    public void notify(@NonNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose)
     {
       throw new NotImplementedException();
     }
 
     @Override
-    public void notify(@NotNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pActionListener)
+    public void notify(@NonNull Exception pEx, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pActionListener)
     {
       throw new NotImplementedException();
     }
@@ -92,19 +92,19 @@ public class DataModule extends AbstractModule
   {
 
     @Override
-    public @Nullable String get(@NotNull String pKey)
+    public @Nullable String get(@NonNull String pKey)
     {
       throw new NotImplementedException();
     }
 
     @Override
-    public @Nullable String get(@NotNull String pModulePath, @NotNull String pKey)
+    public @Nullable String get(@NonNull String pModulePath, @NonNull String pKey)
     {
       throw new NotImplementedException();
     }
 
     @Override
-    public void put(@NotNull String pKey, @Nullable String pValue)
+    public void put(@NonNull String pKey, @Nullable String pValue)
     {
       throw new NotImplementedException();
     }

@@ -11,7 +11,6 @@ import de.adito.git.gui.icon.IIconLoader;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
 import lombok.*;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -187,7 +186,7 @@ class ChunkPopupWindow extends JWindow
    * @param pTextComponent       JTextComponent on which to perform the rollback
    */
   @VisibleForTesting
-  void _performRollback(@NotNull _RollbackInformation pRollbackInformation, @NotNull JTextComponent pTextComponent)
+  void _performRollback(@NonNull _RollbackInformation pRollbackInformation, @NonNull JTextComponent pTextComponent)
   {
     try
     {
@@ -212,7 +211,7 @@ class ChunkPopupWindow extends JWindow
    * @return _RollbackInformation with which the rollback can be performed
    */
   @VisibleForTesting
-  @NotNull _RollbackInformation _calculateRollbackInfo(@NotNull IRepository pRepo, @NotNull IChangeDelta pChangeDelta, @NotNull File pFile)
+  @NonNull _RollbackInformation _calculateRollbackInfo(@NonNull IRepository pRepo, @NonNull IChangeDelta pChangeDelta, @NonNull File pFile)
   {
     int startOffset;
     int length;
@@ -245,7 +244,7 @@ class ChunkPopupWindow extends JWindow
    * @return String containing all the lines marked as affected by the IFileChangeChunk
    */
   @VisibleForTesting
-  @NotNull String _getAffectedContents(@NotNull String pContents, @NotNull IChangeDelta pChangeDelta)
+  @NonNull String _getAffectedContents(@NonNull String pContents, @NonNull IChangeDelta pChangeDelta)
   {
     if (pContents.contains("\n"))
     {
@@ -294,7 +293,7 @@ class ChunkPopupWindow extends JWindow
   {
 
     @Override
-    public void eventDispatched(@NotNull AWTEvent pEvent)
+    public void eventDispatched(@NonNull AWTEvent pEvent)
     {
       if (!_isSourceRecursive(pEvent, ChunkPopupWindow.this))
       {
@@ -319,7 +318,7 @@ class ChunkPopupWindow extends JWindow
       }
     }
 
-    private boolean isGainedFocus(@NotNull AWTEvent pEvent)
+    private boolean isGainedFocus(@NonNull AWTEvent pEvent)
     {
       return (pEvent.getID() == WindowEvent.WINDOW_LOST_FOCUS && ((WindowEvent) pEvent).getOppositeWindow() instanceof ChunkPopupWindow)
           || (pEvent.getID() == WindowEvent.WINDOW_GAINED_FOCUS && pEvent.getSource() instanceof ChunkPopupWindow);

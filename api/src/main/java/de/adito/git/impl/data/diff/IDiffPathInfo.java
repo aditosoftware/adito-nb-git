@@ -1,7 +1,7 @@
 package de.adito.git.impl.data.diff;
 
 import de.adito.git.api.data.diff.EChangeSide;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -15,7 +15,7 @@ public interface IDiffPathInfo
   @Nullable
   File getTopLevelDirectory();
 
-  @NotNull
+  @NonNull
   String getFilePath(EChangeSide pChangeSide);
 
 }

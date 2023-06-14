@@ -5,7 +5,7 @@ import de.adito.git.api.data.IConfig;
 import de.adito.git.api.data.ITag;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.api.progress.IProgressHandle;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -26,8 +26,8 @@ public interface ICloneRepo
    * @return Returns a list of IBranches of the repository
    * @throws AditoGitException if any exceptions from JGit occur during branch retrieval (such as wrong password or invalid ssh key)
    */
-  @NotNull
-  List<IBranch> getBranchesFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException;
+  @NonNull
+  List<IBranch> getBranchesFromRemoteRepo(@NonNull String pUrl, @Nullable String pSshPath) throws AditoGitException;
 
   /**
    * Get the tags of one repository which is not cloned or downloaded yet.
@@ -37,8 +37,8 @@ public interface ICloneRepo
    * @return the list of tags available in the repository
    * @throws AditoGitException if any exceptions from JGit occur during branch retrieval (such as wrong password or invalid ssh key)
    */
-  @NotNull
-  List<ITag> getTagsFromRemoteRepo(@NotNull String pUrl, @Nullable String pSshPath) throws AditoGitException;
+  @NonNull
+  List<ITag> getTagsFromRemoteRepo(@NonNull String pUrl, @Nullable String pSshPath) throws AditoGitException;
 
   /**
    * Clone the repository from a URL to the local path
@@ -53,8 +53,8 @@ public interface ICloneRepo
    * @param pProjectName    the project name
    * @throws AditoGitException if any error occurs during the clone
    */
-  void cloneProject(@Nullable IProgressHandle pProgressHandle, @NotNull String pLocalPath, @NotNull String pProjectName,
-                    @NotNull String pURL, @Nullable String pBranchName, @Nullable String pTag, @Nullable String pRemote,
+  void cloneProject(@Nullable IProgressHandle pProgressHandle, @NonNull String pLocalPath, @NonNull String pProjectName,
+                    @NonNull String pURL, @Nullable String pBranchName, @Nullable String pTag, @Nullable String pRemote,
                     String pSshPath) throws AditoGitException;
 
   /**

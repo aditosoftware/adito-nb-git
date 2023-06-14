@@ -7,7 +7,7 @@ import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.nbm.IGitConstants;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
@@ -43,7 +43,7 @@ public class DiffLocalChangesNBAction extends NBAction
   }
 
   @Override
-  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NotNull Observable<Optional<IRepository>> pRepositoryObservable)
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
     return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
   }
@@ -99,7 +99,7 @@ public class DiffLocalChangesNBAction extends NBAction
    * @param pRepository     observable with the repository containing the files from the selected nodes
    * @return IFileChangeType of the file in the selected node, or null if no or more than one node are selected
    */
-  @NotNull
+  @NonNull
   private static List<IFileChangeType> _getIFileChangeType(Node[] pActivatedNodes, Observable<Optional<IRepository>> pRepository)
   {
     List<File> filesOfNodes = getAllFilesOfNodes(pActivatedNodes);
@@ -122,8 +122,8 @@ public class DiffLocalChangesNBAction extends NBAction
    * @param pEnding ending of the file. Can be just the type, but may also be more than that
    * @return List of files (NOTE: not directories!) matching the ending
    */
-  @NotNull
-  private static List<File> _getFilesOfType(@NotNull File pParent, @NotNull String pEnding)
+  @NonNull
+  private static List<File> _getFilesOfType(@NonNull File pParent, @NonNull String pEnding)
   {
     File[] matchingFiles = pParent.listFiles(pFile -> pFile.isFile() && pFile.getName().endsWith(pEnding));
     return matchingFiles == null ? List.of() : Arrays.asList(matchingFiles);

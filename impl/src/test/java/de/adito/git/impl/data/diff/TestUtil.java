@@ -4,8 +4,8 @@ import de.adito.git.api.data.EFileType;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.IFileContentInfo;
 import de.adito.git.api.data.diff.IFileDiff;
+import lombok.NonNull;
 import org.eclipse.jgit.diff.EditList;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 
@@ -23,7 +23,7 @@ class TestUtil
    * @param pNewVersion Text after changes
    * @return IFileDiff with some default parameters and the passed arguments
    */
-  static IFileDiff _createFileDiff(@NotNull EditList pEditList, @NotNull String pOldVersion, @NotNull String pNewVersion)
+  static IFileDiff _createFileDiff(@NonNull EditList pEditList, @NonNull String pOldVersion, @NonNull String pNewVersion)
   {
     IDiffPathInfo diffPathInfo = new DiffPathInfoImpl(null, "filea", "fileb");
     IDiffDetails diffDetails = new DiffDetailsImpl("old", "new", EChangeType.CHANGED, EFileType.FILE, EFileType.FILE);

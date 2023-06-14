@@ -4,7 +4,7 @@ import de.adito.git.nbm.util.ProjectUtility;
 import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.api.project.Project;
 import org.openide.windows.TopComponent;
 
@@ -26,7 +26,7 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
     super(TopComponent.getRegistry());
   }
 
-  @NotNull
+  @NonNull
   public static Observable<Optional<Project>> create()
   {
     return _CACHE.calculateParallel("create", () -> Observable
@@ -38,9 +38,9 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
                        (pOptionalProject, pProjects) -> pOptionalProject.map(pProject -> pProjects.contains(pProject) ? pProject : null)));
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected PropertyChangeListener registerListener(@NotNull TopComponent.Registry pListenableValue, @NotNull IFireable<Optional<Project>> pFireable)
+  protected PropertyChangeListener registerListener(@NonNull TopComponent.Registry pListenableValue, @NonNull IFireable<Optional<Project>> pFireable)
   {
     PropertyChangeListener pcl = e -> pFireable.fireValueChanged(ProjectUtility.findProjectFromActives(pListenableValue));
     pListenableValue.addPropertyChangeListener(pcl);
@@ -49,7 +49,7 @@ public class ActiveProjectObservable extends AbstractListenerObservable<Property
 
 
   @Override
-  protected void removeListener(@NotNull TopComponent.Registry pListenableValue, @NotNull PropertyChangeListener pListener)
+  protected void removeListener(@NonNull TopComponent.Registry pListenableValue, @NonNull PropertyChangeListener pListener)
   {
     pListenableValue.removePropertyChangeListener(pListener);
   }

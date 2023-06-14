@@ -1,6 +1,6 @@
 package de.adito.git.gui.tree;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -30,7 +30,7 @@ public class TagTreeBackgroundUpdater extends SwingWorker<List<TreeUpdate>, Tree
   }
 
   @Override
-  @NotNull
+  @NonNull
   protected List<TreeUpdate> doInBackground()
   {
     return _updateTree((DefaultMutableTreeNode) treeModel.getRoot(), treeModel, Paths.get(""), members);
@@ -78,8 +78,8 @@ public class TagTreeBackgroundUpdater extends SwingWorker<List<TreeUpdate>, Tree
    * @param pPath      path to the current node (empty if root)
    * @param pMembers   paths leading to this node, can also contain the path to the node itself
    */
-  @NotNull
-  private List<TreeUpdate> _updateTree(@Nullable DefaultMutableTreeNode pParent, @NotNull DefaultTreeModel pTreeModel, @NotNull Path pPath, @NotNull List<Path> pMembers)
+  @NonNull
+  private List<TreeUpdate> _updateTree(@Nullable DefaultMutableTreeNode pParent, @NonNull DefaultTreeModel pTreeModel, @NonNull Path pPath, @NonNull List<Path> pMembers)
   {
     List<TreeUpdate> updates = new ArrayList<>();
     if (pParent != null)
@@ -129,9 +129,9 @@ public class TagTreeBackgroundUpdater extends SwingWorker<List<TreeUpdate>, Tree
    * @param pMembers   paths that are children of the current node (or the current path itself)
    * @return list of updates perform on the treeModel
    */
-  @NotNull
-  private List<TreeUpdate> _createTreeNodes(@Nullable DefaultMutableTreeNode pParent, @NotNull DefaultTreeModel pTreeModel, @NotNull Path pPath,
-                                            @NotNull List<Path> pMembers)
+  @NonNull
+  private List<TreeUpdate> _createTreeNodes(@Nullable DefaultMutableTreeNode pParent, @NonNull DefaultTreeModel pTreeModel, @NonNull Path pPath,
+                                            @NonNull List<Path> pMembers)
   {
     List<TreeUpdate> updates = new ArrayList<>();
     DefaultMutableTreeNode newNode;
@@ -170,8 +170,8 @@ public class TagTreeBackgroundUpdater extends SwingWorker<List<TreeUpdate>, Tree
    * @param pChildrenMembers list to fill with the members of the childNode
    * @return the new path to the childNode
    */
-  @NotNull
-  private Path _getChildMembers(@NotNull Path pPath, @NotNull List<Path> pMembers, @NotNull List<Path> pChildrenMembers)
+  @NonNull
+  private Path _getChildMembers(@NonNull Path pPath, @NonNull List<Path> pMembers, @NonNull List<Path> pChildrenMembers)
   {
     Path childPath = pMembers.get(0).subpath(0, pPath.getFileName().toString().isEmpty() ? pPath.getNameCount() : pPath.getNameCount() + 1);
     for (int index = pMembers.size() - 1; index >= 0; index--)

@@ -1,6 +1,6 @@
 package de.adito.git.api.data;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -60,7 +60,7 @@ public interface ICommitFilter extends Predicate<ICommit>
    *
    * @return List of files where each loaded commit has touched at least one of the files in the list. Emtpy if not specified
    */
-  @NotNull List<File> getFiles();
+  @NonNull List<File> getFiles();
 
   /**
    * defines the author of the commits

@@ -3,7 +3,7 @@ package de.adito.git.impl.data;
 import de.adito.git.api.data.ICommit;
 import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.data.diff.IFileChangeType;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
@@ -17,28 +17,28 @@ public class DiffInfoImpl implements IDiffInfo
   private final ICommit parentCommit;
   private final List<IFileChangeType> changedFiles;
 
-  public DiffInfoImpl(@NotNull ICommit pBaseCommit, @NotNull ICommit pParentCommit, @NotNull List<IFileChangeType> pChangedFiles)
+  public DiffInfoImpl(@NonNull ICommit pBaseCommit, @NonNull ICommit pParentCommit, @NonNull List<IFileChangeType> pChangedFiles)
   {
     baseCommit = pBaseCommit;
     parentCommit = pParentCommit;
     changedFiles = pChangedFiles;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public ICommit getBaseCommit()
   {
     return baseCommit;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public ICommit getParentCommit()
   {
     return parentCommit;
   }
 
-  @NotNull
+  @NonNull
   @Override
   public List<IFileChangeType> getChangedFiles()
   {

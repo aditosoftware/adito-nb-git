@@ -8,7 +8,7 @@ import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.window.content.IWindowContentProvider;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.util.NbBundle;
 import org.openide.windows.Mode;
 import org.openide.windows.WindowManager;
@@ -27,14 +27,14 @@ import java.util.function.Consumer;
 class CommitHistoryTopComponent extends AbstractRepositoryTopComponent
 {
 
-  @NotNull
+  @NonNull
   private final IPrefStore prefStore;
   @Nullable
   private final String displayableContext;
   private final CompositeDisposable disposable = new CompositeDisposable();
 
   @Inject
-  CommitHistoryTopComponent(@NotNull IWindowContentProvider pWindowContentProvider, @NotNull IPrefStore pPrefStore,
+  CommitHistoryTopComponent(@NonNull IWindowContentProvider pWindowContentProvider, @NonNull IPrefStore pPrefStore,
                             @Assisted Observable<Optional<IRepository>> pRepository, @Assisted TableModel tableModel, @Assisted Runnable loadMoreCallback,
                             @Assisted Consumer<ICommitFilter> pRefreshContent, @Assisted ICommitFilter pStartFilter, @Assisted @Nullable String pDisplayableContext)
   {

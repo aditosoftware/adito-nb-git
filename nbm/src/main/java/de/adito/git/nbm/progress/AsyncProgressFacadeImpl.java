@@ -4,7 +4,7 @@ import com.google.inject.Singleton;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IBulkFileChangeExecutor;
 import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.api.progress.IProgressHandle;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.netbeans.api.progress.ProgressHandle;
@@ -30,48 +30,48 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
    * @param pHandle the progressHandler
    * @return a NetBeans {@link ProgressHandle} wrap
    */
-  @NotNull
-  public static IProgressHandle wrapNBHandle(@NotNull ProgressHandle pHandle)
+  @NonNull
+  public static IProgressHandle wrapNBHandle(@NonNull ProgressHandle pHandle)
   {
     _NetBeansHandle handle = new _NetBeansHandle(null, pHandle);
     handle.inProgress = true; //workaround
     return handle;
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public <T, Ex extends Throwable> Future<T> executeInBackground(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  public <T, Ex extends Throwable> Future<T> executeInBackground(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor)
   {
     return executeInBackground(pDisplayName, pExecutor, false);
   }
 
   @Override
-  public @NotNull <T, Ex extends Throwable> Future<T> executeInBackgroundWithoutIndexing(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  public @NonNull <T, Ex extends Throwable> Future<T> executeInBackgroundWithoutIndexing(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor)
   {
     return executeInBackground(pDisplayName, pExecutor, true);
   }
 
-  private @NotNull <T, Ex extends Throwable> Future<T> executeInBackground(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor, boolean pIsWithoutIndexing)
+  private @NonNull <T, Ex extends Throwable> Future<T> executeInBackground(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor, boolean pIsWithoutIndexing)
   {
     _NetBeansHandle handle = new _NetBeansHandle(pDisplayName, ProgressHandle.createHandle(pDisplayName));
     return PROCESSOR.submit(new _Runner<>(handle, pExecutor, pIsWithoutIndexing));
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public <T, Ex extends Throwable> T executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  public <T, Ex extends Throwable> T executeAndBlockWithProgress(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor)
   {
     return executeAndBlockWithProgress(pDisplayName, pExecutor, false);
   }
 
   @Override
-  @NotNull
-  public <T, Ex extends Throwable> T executeAndBlockWithProgressWithoutIndexing(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor)
+  @NonNull
+  public <T, Ex extends Throwable> T executeAndBlockWithProgressWithoutIndexing(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor)
   {
     return executeAndBlockWithProgress(pDisplayName, pExecutor, true);
   }
 
-  private <T, Ex extends Throwable> @NotNull T executeAndBlockWithProgress(@NotNull String pDisplayName, @NotNull IExec<T, Ex> pExecutor, boolean pWithoutIndexing)
+  private <T, Ex extends Throwable> @NonNull T executeAndBlockWithProgress(@NonNull String pDisplayName, @NonNull IExec<T, Ex> pExecutor, boolean pWithoutIndexing)
   {
     return BaseProgressUtils.showProgressDialogAndRun(pProgressHandle -> {
       try
@@ -107,7 +107,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
     private final boolean stopIndexing;
     private final IBulkFileChangeExecutor bulkFileChangeExecutor;
 
-    _Runner(@NotNull _NetBeansHandle pProgressHandle, @NotNull IExec<T, Ex> pExec, boolean pStopIndexing)
+    _Runner(@NonNull _NetBeansHandle pProgressHandle, @NonNull IExec<T, Ex> pExec, boolean pStopIndexing)
     {
       handle = pProgressHandle;
       exec = pExec;
@@ -154,7 +154,7 @@ public class AsyncProgressFacadeImpl implements IAsyncProgressFacade
     private final String displayName;
     private boolean inProgress = false;
 
-    _NetBeansHandle(@Nullable String pDisplayName, @NotNull ProgressHandle pHandle)
+    _NetBeansHandle(@Nullable String pDisplayName, @NonNull ProgressHandle pHandle)
     {
       displayName = pDisplayName;
       handle = pHandle;

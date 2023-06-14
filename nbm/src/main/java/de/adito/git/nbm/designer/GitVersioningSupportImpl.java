@@ -8,7 +8,7 @@ import de.adito.git.api.ICloneRepo;
 import de.adito.git.api.data.IBranch;
 import de.adito.git.api.exception.AditoGitException;
 import de.adito.git.nbm.IGitConstants;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -26,7 +26,7 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
   private static final ICloneRepo repo = IGitConstants.INJECTOR.getInstance(ICloneRepo.class);
 
   @Override
-  public boolean performClone(@NotNull String pRemoteURI, @NotNull File pTarget, @Nullable Map<String, String> pOptions) throws Exception
+  public boolean performClone(@NonNull String pRemoteURI, @NonNull File pTarget, @Nullable Map<String, String> pOptions) throws Exception
   {
     String branchName = pOptions == null ? null : pOptions.get("branch");
     String remote = pOptions == null ? null : pOptions.get("remote");
@@ -35,9 +35,9 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     return true;
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public List<IRemoteBranch> getBranchesInRepository(@NotNull String pRemoteUrl) throws AditoVersioningException
+  public List<IRemoteBranch> getBranchesInRepository(@NonNull String pRemoteUrl) throws AditoVersioningException
   {
     try
     {
@@ -52,9 +52,9 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
-  public List<ITag> getTagsInRepository(@NotNull String pRemoteUrl) throws AditoVersioningException
+  public List<ITag> getTagsInRepository(@NonNull String pRemoteUrl) throws AditoVersioningException
   {
     try
     {
@@ -78,7 +78,7 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     private final String name;
     private final String id;
 
-    public RemoteBranchImpl(@NotNull IBranch pBranch)
+    public RemoteBranchImpl(@NonNull IBranch pBranch)
     {
       name = pBranch.getSimpleName();
       id = pBranch.getId();
@@ -103,7 +103,7 @@ public class GitVersioningSupportImpl implements IGitVersioningSupport
     private final String name;
     private final String id;
 
-    public RemoteTagImpl(@NotNull de.adito.git.api.data.ITag pTag)
+    public RemoteTagImpl(@NonNull de.adito.git.api.data.ITag pTag)
     {
       name = pTag.getName();
       id = pTag.getId();

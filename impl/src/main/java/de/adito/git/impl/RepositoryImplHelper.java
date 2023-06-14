@@ -13,6 +13,7 @@ import de.adito.git.impl.data.diff.FileDiffImpl;
 import de.adito.git.impl.data.diff.MergeDataImpl;
 import de.adito.git.impl.revfilters.StashCommitFilter;
 import de.adito.git.impl.util.GitRawTextComparator;
+import lombok.NonNull;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.*;
@@ -24,7 +25,6 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.util.io.NullOutputStream;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -55,7 +55,7 @@ public class RepositoryImplHelper
    * @return RevCommit that matches the passed identifier
    * @throws IOException if JGit encountered an error condition
    */
-  static RevCommit getRevCommit(@NotNull Git pGit, String pIdentifier) throws IOException
+  static RevCommit getRevCommit(@NonNull Git pGit, String pIdentifier) throws IOException
   {
     try (RevWalk revWalk = new RevWalk(pGit.getRepository()))
     {
@@ -71,7 +71,7 @@ public class RepositoryImplHelper
    * @throws IOException if an exception occurs while JGit is reading the git config file
    */
   @Nullable
-  static String getRemoteTrackingBranch(@NotNull Git pGit, @Nullable String pBranch) throws IOException
+  static String getRemoteTrackingBranch(@NonNull Git pGit, @Nullable String pBranch) throws IOException
   {
     return new BranchConfig(pGit.getRepository().getConfig(), pBranch == null ? pGit.getRepository().getBranch() : pBranch).getRemoteTrackingBranch();
   }
@@ -83,7 +83,7 @@ public class RepositoryImplHelper
    * @return List<DiffEntry> with the DiffEntrys that make the difference between the two commits/branches/files
    * @throws AditoGitException if JGit encountered an error condition
    */
-  static List<DiffEntry> doDiff(@NotNull Git pGit, @NotNull ObjectId pCurrentId, @Nullable ObjectId pCompareToId) throws AditoGitException
+  static List<DiffEntry> doDiff(@NonNull Git pGit, @NonNull ObjectId pCurrentId, @Nullable ObjectId pCompareToId) throws AditoGitException
   {
     try
     {
@@ -105,7 +105,7 @@ public class RepositoryImplHelper
     }
   }
 
-  static List<IBranch> branchList(@NotNull Git pGit, @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
+  static List<IBranch> branchList(@NonNull Git pGit, @NonNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     ListBranchCommand listBranchCommand = pGit.branchList().setListMode(ListBranchCommand.ListMode.ALL);
     List<IBranch> branches = new ArrayList<>();
@@ -128,7 +128,7 @@ public class RepositoryImplHelper
     return branches;
   }
 
-  static IFileStatus status(@NotNull Git pGit)
+  static IFileStatus status(@NonNull Git pGit)
   {
     StatusCommand statusCommand = pGit.status();
     Status currentStatus;
@@ -143,8 +143,8 @@ public class RepositoryImplHelper
     return new FileStatusImpl(currentStatus, pGit.getRepository().getDirectory());
   }
 
-  static Optional<IRepositoryState> currentState(@NotNull Git pGit, @NotNull Function<String, IBranch> pGetBranchFunction,
-                                                 @NotNull TrackedBranchStatusCache pTrackedBranchStatusCache)
+  static Optional<IRepositoryState> currentState(@NonNull Git pGit, @NonNull Function<String, IBranch> pGetBranchFunction,
+                                                 @NonNull TrackedBranchStatusCache pTrackedBranchStatusCache)
   {
     try
     {
@@ -228,9 +228,9 @@ public class RepositoryImplHelper
    * @throws IOException       JGit exception
    * @throws AditoGitException if no commit fitting the ID can be found
    */
-  @NotNull
-  static List<IMergeData> getStashConflictMerge(@NotNull Git pGit, @NotNull Set<String> pConflicts, String pStashCommitId,
-                                                @NotNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFn)
+  @NonNull
+  static List<IMergeData> getStashConflictMerge(@NonNull Git pGit, @NonNull Set<String> pConflicts, String pStashCommitId,
+                                                @NonNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFn)
       throws IOException, AditoGitException
   {
     RevCommit toUnstash = getStashedCommit(pGit, pStashCommitId);
@@ -261,7 +261,7 @@ public class RepositoryImplHelper
     return mergeConflicts;
   }
 
-  @NotNull
+  @NonNull
   static List<ICommit> getStashedCommits(Git pGit) throws AditoGitException
   {
     List<ICommit> stashedCommits = new ArrayList<>();
@@ -282,7 +282,7 @@ public class RepositoryImplHelper
    * @return RevCommit with the specified id or null if no matching stashed commit could be found
    * @throws AditoGitException if JGit encounters an error
    */
-  static RevCommit getStashedCommit(@NotNull Git pGit, @NotNull String pStashCommitId) throws AditoGitException
+  static RevCommit getStashedCommit(@NonNull Git pGit, @NonNull String pStashCommitId) throws AditoGitException
   {
     Collection<RevCommit> stashList;
     try
@@ -309,7 +309,7 @@ public class RepositoryImplHelper
    * @return index of the specified commit in the stash stack, or -1 if no commit with the passed ID can be found
    * @throws AditoGitException if JGit encounters an error
    */
-  static int getStashIndexForId(@NotNull Git pGit, @NotNull String pStashCommitId) throws AditoGitException
+  static int getStashIndexForId(@NonNull Git pGit, @NonNull String pStashCommitId) throws AditoGitException
   {
     int index = 0;
     boolean commitExists = false;
@@ -344,10 +344,10 @@ public class RepositoryImplHelper
    * @return List<IMergeData> describing the changes from the fork commit to each branch
    * @throws AditoGitException if JGit encountered an error condition
    */
-  @NotNull
-  static List<IMergeData> getMergeConflicts(@NotNull Git pGit, @NotNull String pCurrentBranch, @NotNull String pBranchToMerge,
-                                            @NotNull ICommit pForkCommit, @NotNull Set<String> pConflicts,
-                                            @NotNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFunction) throws AditoGitException
+  @NonNull
+  static List<IMergeData> getMergeConflicts(@NonNull Git pGit, @NonNull String pCurrentBranch, @NonNull String pBranchToMerge,
+                                            @NonNull ICommit pForkCommit, @NonNull Set<String> pConflicts,
+                                            @NonNull BiFunction<ICommit, ICommit, List<IFileDiff>> pDiffFunction) throws AditoGitException
   {
     List<IMergeData> mergeConflicts = new ArrayList<>();
     ICommit parentBranchCommit;
@@ -418,7 +418,7 @@ public class RepositoryImplHelper
    * @param pToMergeDiff IFileDiff from branch to merge to fork-point
    * @return created IMergeData with the artifical OLD text
    */
-  @NotNull
+  @NonNull
   private static IMergeData _createBothAddedMergeData(IFileDiff pParentDiff, IFileDiff pToMergeDiff)
   {
     EditList changedLines = StandAloneDiffProviderImpl.getChangedLines(pParentDiff.getFileContentInfo(EChangeSide.NEW).getFileContent().get(),
@@ -454,7 +454,7 @@ public class RepositoryImplHelper
                                               oldToMergeFCI, pToMergeDiff.getFileContentInfo(EChangeSide.NEW)));
   }
 
-  static boolean isValidCommit(@NotNull Git pGit, @NotNull ObjectId pMergeBaseId)
+  static boolean isValidCommit(@NonNull Git pGit, @NonNull ObjectId pMergeBaseId)
   {
     try
     {
@@ -481,7 +481,7 @@ public class RepositoryImplHelper
    * @throws IOException if an error occurs during parsing
    */
   @Nullable
-  static RevCommit findForkPoint(@NotNull Git pGit, String pParentBranchName, String pForeignBranchName) throws IOException
+  static RevCommit findForkPoint(@NonNull Git pGit, String pParentBranchName, String pForeignBranchName) throws IOException
   {
     HashSet<ObjectId> parsedIds = new HashSet<>();
     try (RevWalk walk = new RevWalk(pGit.getRepository()))
@@ -522,7 +522,7 @@ public class RepositoryImplHelper
    *                    this list is a linked list (complexity on insert)
    * @param pRevWalk    RevWalk that allows a lookup of the commits that are associated with ObjectIds
    */
-  private static void addCommitsSortedByTime(@NotNull List<ObjectId> pCommits, @NotNull List<RevCommit> pParentList, @NotNull RevWalk pRevWalk)
+  private static void addCommitsSortedByTime(@NonNull List<ObjectId> pCommits, @NonNull List<RevCommit> pParentList, @NonNull RevWalk pRevWalk)
   {
     pCommits.stream().map(pRevWalk::lookupCommit).forEach(pCommit -> addCommitByTime(pCommit, pParentList));
   }
@@ -534,7 +534,7 @@ public class RepositoryImplHelper
    * @param pCommitList List of Commits, will be changed -> has to be mutable. Also has to be sorted for this method to work (sorted by commit time, latest commits come first)
    */
   @VisibleForTesting
-  static void addCommitByTime(@NotNull RevCommit pCommit, @NotNull List<RevCommit> pCommitList)
+  static void addCommitByTime(@NonNull RevCommit pCommit, @NonNull List<RevCommit> pCommitList)
   {
     ListIterator<RevCommit> commitListIterator = pCommitList.listIterator();
     while (commitListIterator.hasNext())
@@ -558,8 +558,8 @@ public class RepositoryImplHelper
    * @return List of ICommits matching the provided criteria
    * @throws AditoGitException if JGit throws an exception/returns null
    */
-  @NotNull
-  static DAGFilterIterator<ICommit> getCommits(@NotNull Git pGit, @NotNull ICommitFilter pCommitFilter) throws AditoGitException
+  @NonNull
+  static DAGFilterIterator<ICommit> getCommits(@NonNull Git pGit, @NonNull ICommitFilter pCommitFilter) throws AditoGitException
   {
     try
     {
@@ -623,7 +623,7 @@ public class RepositoryImplHelper
    * @throws IOException if an exception occurs while JGit is reading the git config file
    */
   @Nullable
-  public static String getRemoteName(@NotNull Git pGit, @Nullable String pRemoteUrl) throws IOException
+  public static String getRemoteName(@NonNull Git pGit, @Nullable String pRemoteUrl) throws IOException
   {
     String remoteName = null;
     if (pRemoteUrl != null)
@@ -637,7 +637,7 @@ public class RepositoryImplHelper
     return remoteName;
   }
 
-  static File getRebaseMergeHead(@NotNull Git pGit)
+  static File getRebaseMergeHead(@NonNull Git pGit)
   {
     return new File(pGit.getRepository().getDirectory().getAbsolutePath(), "rebase-merge/head");
   }

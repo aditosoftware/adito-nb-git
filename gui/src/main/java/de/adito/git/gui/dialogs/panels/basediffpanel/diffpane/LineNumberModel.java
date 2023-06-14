@@ -8,7 +8,7 @@ import de.adito.git.gui.swing.SwingUtil;
 import de.adito.git.gui.swing.TextPaneUtil;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -30,11 +30,11 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
 {
 
   private static final Logger LOGGER = Logger.getLogger(LineNumberModel.class.getName());
-  @NotNull
+  @NonNull
   private final Disposable areaDisposable;
-  @NotNull
+  @NonNull
   private LineNumber[] lineNumberInfos = new LineNumber[0];
-  @NotNull
+  @NonNull
   private TreeMap<Integer, LineNumber> coordinateMapping = new TreeMap<>();
 
   /**
@@ -42,8 +42,8 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    * @param pEditorPane                editorPane containing the text, used to determine the y coordinates of the lines
    * @param pViewAreaObs               Observable of the dimension of the viewPort, triggering on resize or zoom events
    */
-  public LineNumberModel(@NotNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable, @NotNull JEditorPane pEditorPane,
-                         @NotNull Observable<Dimension> pViewAreaObs)
+  public LineNumberModel(@NonNull Observable<IDeltaTextChangeEvent> pTextChangeEventObservable, @NonNull JEditorPane pEditorPane,
+                         @NonNull Observable<Dimension> pViewAreaObs)
   {
     areaDisposable = Observable.combineLatest(pTextChangeEventObservable, pViewAreaObs, (pChangesEvent, pArea) -> pChangesEvent)
         .throttleLatest(200, TimeUnit.MILLISECONDS, true)
@@ -57,7 +57,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    * @param pYEnd   end (bigger) y coordinate for which lineNumbers should be retrieved
    * @return Collection of all lineNumbers whose y coordinates lie in the given range, returns an empty list if pYStart is bigger than pYEnd
    */
-  @NotNull
+  @NonNull
   public Collection<LineNumber> getLineNumbersToDraw(int pYStart, int pYEnd)
   {
     if (pYStart > pYEnd)
@@ -90,7 +90,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    * @param pEditorPane JEditorPane with the text from the IFileChangesEvent. It's UI defines the y values for the lines
    */
   @VisibleForTesting
-  void calculateLineNumColors(@NotNull IDeltaTextChangeEvent pEvent, @NotNull JEditorPane pEditorPane)
+  void calculateLineNumColors(@NonNull IDeltaTextChangeEvent pEvent, @NonNull JEditorPane pEditorPane)
   {
     SwingUtil.invokeInEDT(() -> {
       try
@@ -115,8 +115,8 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    * @param pViewCoordinatesColors Array of LineNumbers
    * @return TreeMap with the LineNumbers as values and the y coordinates of the LineNumbers as value
    */
-  @NotNull
-  private TreeMap<Integer, LineNumber> calculateCoordinateMapping(@NotNull LineNumber[] pViewCoordinatesColors)
+  @NonNull
+  private TreeMap<Integer, LineNumber> calculateCoordinateMapping(@NonNull LineNumber[] pViewCoordinatesColors)
   {
     TreeMap<Integer, LineNumber> lineNumberMap = new TreeMap<>();
     for (LineNumber lineNumber : pViewCoordinatesColors)
@@ -139,7 +139,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    * @param pEvent    IDeltaTextChangeEvent that trigger the recalculation
    * @param pNewValue new/updated values for the LineNumbers
    */
-  private void notifyListeners(@NotNull IDeltaTextChangeEvent pEvent, @NotNull LineNumber[] pNewValue)
+  private void notifyListeners(@NonNull IDeltaTextChangeEvent pEvent, @NonNull LineNumber[] pNewValue)
   {
     for (LineNumberListener listener : listeners)
     {

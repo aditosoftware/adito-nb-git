@@ -5,7 +5,7 @@ import de.adito.git.api.data.IMergeDetails;
 import de.adito.git.api.data.diff.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.*;
@@ -20,7 +20,7 @@ public class MergeDiffStatusModel extends AbstractTableModel implements IDiscard
   private List<IMergeData> mergeDiffs = new ArrayList<>();
   private final Disposable disposable;
 
-  public MergeDiffStatusModel(@NotNull Observable<List<IMergeData>> pMergeDiffObservable, @NotNull IMergeDetails pMergeDetails)
+  public MergeDiffStatusModel(@NonNull Observable<List<IMergeData>> pMergeDiffObservable, @NonNull IMergeDetails pMergeDetails)
   {
     columnNames = List.of("Filename", "Filepath", pMergeDetails.getYoursOrigin(), pMergeDetails.getTheirsOrigin());
     disposable = pMergeDiffObservable.subscribe(pMergeDiffs -> {

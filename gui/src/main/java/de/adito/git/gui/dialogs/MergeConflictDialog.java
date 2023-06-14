@@ -30,7 +30,6 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
 import lombok.*;
-import org.jetbrains.annotations.NotNull;
 import org.openide.util.NbBundle;
 
 import javax.swing.*;
@@ -109,7 +108,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     mergeConflictTable.requestFocus();
   }
 
-  private void _initGui(@NotNull IMergeDetails pMergeDetails, boolean pShowAutoResolve, IQuickSearchProvider pQuickSearchProvider)
+  private void _initGui(@NonNull IMergeDetails pMergeDetails, boolean pShowAutoResolve, IQuickSearchProvider pQuickSearchProvider)
   {
     setLayout(new BorderLayout(5, 10));
     setPreferredSize(ComponentResizeListener._getPreferredSize(prefStore, PREF_STORE_SIZE_KEY, new Dimension(800, 600)));
@@ -187,7 +186,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
     }));
   }
 
-  @NotNull
+  @NonNull
   private Observable<Optional<List<IMergeData>>> _observeSelectedMergeDiff()
   {
     return observableCache.calculateParallel("selectedMergeDiff", () -> Observable
@@ -208,7 +207,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
         }));
   }
 
-  @NotNull
+  @NonNull
   private Observable<List<IMergeData>> _observeMergeDiffList()
   {
     return observableCache.calculateParallel("mergeDiffList", () -> Observable
@@ -225,7 +224,7 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
    * @param pYoursOrigin                 name of the branch/commit that is the origin of the yours version
    * @param pTheirsOrigin                name of the branch/commit that is the origin of the theirs version
    */
-  private void _doManualResolve(Observable<Optional<List<IMergeData>>> pSelectedMergeDiffObservable, @NotNull String pYoursOrigin, @NotNull String pTheirsOrigin)
+  private void _doManualResolve(Observable<Optional<List<IMergeData>>> pSelectedMergeDiffObservable, @NonNull String pYoursOrigin, @NonNull String pTheirsOrigin)
   {
     Optional<List<IMergeData>> mergeDiffOptional = pSelectedMergeDiffObservable.blockingFirst();
     mergeDiffOptional.ifPresent(pMergeDatas -> {
@@ -319,10 +318,10 @@ class MergeConflictDialog extends AditoBaseDialog<Object> implements IDiscardabl
 
   private class ManualResolveAction extends AbstractAction
   {
-    @NotNull
+    @NonNull
     private final IMergeDetails mergeDetails;
 
-    public ManualResolveAction(@NotNull IMergeDetails pMergeDetails)
+    public ManualResolveAction(@NonNull IMergeDetails pMergeDetails)
     {
       mergeDetails = pMergeDetails;
     }

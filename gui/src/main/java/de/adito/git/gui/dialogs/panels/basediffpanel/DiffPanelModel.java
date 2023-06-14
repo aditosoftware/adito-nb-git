@@ -4,7 +4,7 @@ import de.adito.git.api.data.diff.EChangeSide;
 import de.adito.git.api.data.diff.IChangeDelta;
 import de.adito.git.api.data.diff.IDeltaTextChangeEvent;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -58,7 +58,7 @@ public class DiffPanelModel
    * @param pDoOnAccept Consumer that determines what happens with the IFileChangeChunk if the user clicks on the "accept changes" icon
    * @return this Object for fluent calls
    */
-  public DiffPanelModel setDoOnAccept(@NotNull Consumer<IChangeDelta> pDoOnAccept)
+  public DiffPanelModel setDoOnAccept(@NonNull Consumer<IChangeDelta> pDoOnAccept)
   {
     doOnAccept = pDoOnAccept;
     return this;

@@ -4,7 +4,7 @@ import de.adito.git.api.data.diff.*;
 import de.adito.git.gui.guice.dummies.SimpleFileSystemUtil;
 import de.adito.git.gui.swing.LineNumber;
 import de.adito.git.impl.StandAloneDiffProviderImpl;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Rectangle;
@@ -52,8 +52,8 @@ class LineChangeMarkingModelTest
    * @param pNewVersion  New version of the text for the diff
    * @return LineChangeMarkingModel set up with
    */
-  @NotNull
-  private static LineChangeMarkingModel getLineChangeMarkingModel(@NotNull LineNumber[] pLineNumbers, @NotNull String pOldVersion, @NotNull String pNewVersion)
+  @NonNull
+  private static LineChangeMarkingModel getLineChangeMarkingModel(@NonNull LineNumber[] pLineNumbers, @NonNull String pOldVersion, @NonNull String pNewVersion)
   {
     IFileDiff fileDiff = new StandAloneDiffProviderImpl(new SimpleFileSystemUtil()).diffOffline(pOldVersion, pNewVersion);
     IDeltaTextChangeEvent deltaTextChangeEvent = mock(IDeltaTextChangeEvent.class);

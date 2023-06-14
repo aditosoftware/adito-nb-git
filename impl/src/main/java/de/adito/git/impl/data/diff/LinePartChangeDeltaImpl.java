@@ -3,7 +3,7 @@ package de.adito.git.impl.data.diff;
 import de.adito.git.api.data.diff.EChangeSide;
 import de.adito.git.api.data.diff.EChangeType;
 import de.adito.git.api.data.diff.ILinePartChangeDelta;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.Color;
 import java.util.function.Function;
@@ -25,7 +25,7 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
    * @param pChangeDeltaTextOffsets ChangeDeltaTextOffsets data object, should contain start- and endIndices of each the the two text versions,
    *                                as seen on the whole document
    */
-  public LinePartChangeDeltaImpl(@NotNull EChangeType pChangeType, @NotNull ChangeDeltaTextOffsets pChangeDeltaTextOffsets)
+  public LinePartChangeDeltaImpl(@NonNull EChangeType pChangeType, @NonNull ChangeDeltaTextOffsets pChangeDeltaTextOffsets)
   {
     changeType = pChangeType;
     startTextIndexOld = pChangeDeltaTextOffsets.getStartIndexOriginal();
@@ -35,14 +35,14 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
   }
 
   @Override
-  @NotNull
+  @NonNull
   public EChangeType getChangeType()
   {
     return changeType;
   }
 
   @Override
-  @NotNull
+  @NonNull
   public EConflictType getConflictType()
   {
     return EConflictType.NONE;
@@ -61,14 +61,14 @@ public final class LinePartChangeDeltaImpl implements ILinePartChangeDelta
   }
 
   @Override
-  @NotNull
+  @NonNull
   public Color getDiffColor()
   {
     return changeType.getDiffColor();
   }
 
   @Override
-  @NotNull
+  @NonNull
   public Color getSecondaryDiffColor()
   {
     return changeType.getSecondaryDiffColor();

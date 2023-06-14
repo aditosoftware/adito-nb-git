@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import de.adito.git.api.prefs.IPrefStore;
 import de.adito.git.gui.dialogs.*;
 import de.adito.git.gui.swing.SwingUtil;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -159,7 +159,7 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
      * @param pPrefStore      PrefStore for storing the current bounds
      * @param pPreferencesKey this is the key for storing the bounds value
      */
-    public ResizeListener(@NotNull IPrefStore pPrefStore, @NotNull String pPreferencesKey)
+    public ResizeListener(@NonNull IPrefStore pPrefStore, @NonNull String pPreferencesKey)
     {
       prefStore = pPrefStore;
       preferencesKey = pPreferencesKey;
@@ -197,8 +197,8 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
    * @param pRectangle rectangle that should be transformed to a string
    * @return string representation of the rectangle
    */
-  @NotNull
-  static String rectangleToString(@NotNull Rectangle pRectangle)
+  @NonNull
+  static String rectangleToString(@NonNull Rectangle pRectangle)
   {
     return (int) pRectangle.getX() + RECT_STRING_SEPARATOR + (int) pRectangle.getY() + RECT_STRING_SEPARATOR
         + (int) pRectangle.getWidth() + RECT_STRING_SEPARATOR + (int) pRectangle.getHeight();
@@ -211,7 +211,7 @@ class DialogDisplayerNBImpl implements IDialogDisplayer
    * @return Rectangle representation of the string, or null if no rectangle can be parsed from the string
    */
   @Nullable
-  static Rectangle parseRectangle(@NotNull String pStringVersion)
+  static Rectangle parseRectangle(@NonNull String pStringVersion)
   {
     // remove spaces and split the string along the separator
     String[] splits = pStringVersion.replaceAll(" ", "").split(RECT_STRING_SEPARATOR);

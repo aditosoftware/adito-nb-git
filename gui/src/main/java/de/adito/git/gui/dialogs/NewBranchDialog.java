@@ -8,7 +8,7 @@ import de.adito.git.impl.Util;
 import de.adito.swing.TableLayoutUtil;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -28,7 +28,7 @@ import java.util.*;
 class NewBranchDialog extends AditoBaseDialog<Boolean>
 {
 
-  private final @NotNull List<IBranch> branchList;
+  private final @NonNull List<IBranch> branchList;
   private final JTextField textField = new JTextField();
   private final JCheckBox checkbox = new JCheckBox();
   private final HashSet<String> branchMap = new HashSet<>();

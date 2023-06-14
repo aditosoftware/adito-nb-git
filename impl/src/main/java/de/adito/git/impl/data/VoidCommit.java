@@ -1,7 +1,7 @@
 package de.adito.git.impl.data;
 
 import de.adito.git.api.data.ICommit;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.time.Instant;
 import java.util.List;
@@ -68,13 +68,13 @@ final class VoidCommit implements ICommit
   }
 
   @Override
-  public @NotNull List<ICommit> getParents()
+  public @NonNull List<ICommit> getParents()
   {
     return List.of();
   }
 
   @Override
-  public void setParents(@NotNull List<ICommit> pCommits)
+  public void setParents(@NonNull List<ICommit> pCommits)
   {
     // no parents for an invalid/non-existant commit, so this op does nothing
   }

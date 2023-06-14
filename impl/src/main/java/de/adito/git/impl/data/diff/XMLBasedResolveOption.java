@@ -1,6 +1,6 @@
 package de.adito.git.impl.data.diff;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -18,7 +18,7 @@ abstract class XMLBasedResolveOption implements ResolveOption
 {
   private final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-  NodeList parseConflictText(@NotNull ByteArrayInputStream pInputStream) throws IOException, SAXException, ParserConfigurationException
+  NodeList parseConflictText(@NonNull ByteArrayInputStream pInputStream) throws IOException, SAXException, ParserConfigurationException
   {
     DocumentBuilder db = dbf.newDocumentBuilder();
     Document document = db.parse(pInputStream);

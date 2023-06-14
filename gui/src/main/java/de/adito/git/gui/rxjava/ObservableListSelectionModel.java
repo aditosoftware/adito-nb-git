@@ -5,7 +5,7 @@ import de.adito.util.reactive.AbstractListenerObservable;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -20,7 +20,7 @@ public class ObservableListSelectionModel implements ListSelectionModel, IDiscar
   private final ObservableCache observableCache = new ObservableCache();
   private final CompositeDisposable disposables = new CompositeDisposable();
 
-  public ObservableListSelectionModel(@NotNull ListSelectionModel pDelegate)
+  public ObservableListSelectionModel(@NonNull ListSelectionModel pDelegate)
   {
     delegate = pDelegate;
     disposables.add(new ObservableCacheDisposable(observableCache));
@@ -160,14 +160,14 @@ public class ObservableListSelectionModel implements ListSelectionModel, IDiscar
 
   private static class _SelectedRowsObservable extends AbstractListenerObservable<ListSelectionListener, ListSelectionModel, Integer[]>
   {
-    _SelectedRowsObservable(@NotNull ListSelectionModel pListenableValue)
+    _SelectedRowsObservable(@NonNull ListSelectionModel pListenableValue)
     {
       super(pListenableValue);
     }
 
-    @NotNull
+    @NonNull
     @Override
-    protected ListSelectionListener registerListener(@NotNull ListSelectionModel pListSelectionModel, @NotNull IFireable<Integer[]> pIFireable)
+    protected ListSelectionListener registerListener(@NonNull ListSelectionModel pListSelectionModel, @NonNull IFireable<Integer[]> pIFireable)
     {
       ListSelectionListener listener = e -> {
         if (!e.getValueIsAdjusting())
@@ -178,13 +178,13 @@ public class ObservableListSelectionModel implements ListSelectionModel, IDiscar
     }
 
     @Override
-    protected void removeListener(@NotNull ListSelectionModel pListenableValue, @NotNull ListSelectionListener pLISTENER)
+    protected void removeListener(@NonNull ListSelectionModel pListenableValue, @NonNull ListSelectionListener pLISTENER)
     {
       pListenableValue.removeListSelectionListener(pLISTENER);
     }
 
-    @NotNull
-    private static Integer[] _getSelectedRows(@NotNull ListSelectionModel pModel)
+    @NonNull
+    private static Integer[] _getSelectedRows(@NonNull ListSelectionModel pModel)
     {
       int iMin = pModel.getMinSelectionIndex();
       int iMax = pModel.getMaxSelectionIndex();

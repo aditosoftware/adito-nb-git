@@ -3,7 +3,7 @@ package de.adito.git.gui.window;
 import de.adito.git.api.IRepository;
 import de.adito.git.api.data.ICommitFilter;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.Optional;
 
@@ -15,8 +15,8 @@ import java.util.Optional;
 public interface IWindowProvider
 {
 
-  void showCommitHistoryWindow(@NotNull Observable<Optional<IRepository>> pRepository, @NotNull ICommitFilter pCommitFilter);
+  void showCommitHistoryWindow(@NonNull Observable<Optional<IRepository>> pRepository, @NonNull ICommitFilter pCommitFilter);
 
-  void showStatusWindow(@NotNull Observable<Optional<IRepository>> pRepository);
+  void showStatusWindow(@NonNull Observable<Optional<IRepository>> pRepository);
 
 }

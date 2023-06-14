@@ -1,7 +1,7 @@
 package de.adito.git.impl.observables;
 
 import de.adito.util.reactive.AbstractListenerObservable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
@@ -16,15 +16,15 @@ public class PropertyChangeObservable<RESULTTYPE> extends AbstractListenerObserv
 {
   private final String propertyName;
 
-  public PropertyChangeObservable(@NotNull JComponent pListenableValue, @NotNull String pPropertyName)
+  public PropertyChangeObservable(@NonNull JComponent pListenableValue, @NonNull String pPropertyName)
   {
     super(pListenableValue);
     propertyName = pPropertyName;
   }
 
-  @NotNull
+  @NonNull
   @Override
-  protected PropertyChangeListener registerListener(@NotNull JComponent pJComponent, @NotNull IFireable<Optional<RESULTTYPE>> pIFireable)
+  protected PropertyChangeListener registerListener(@NonNull JComponent pJComponent, @NonNull IFireable<Optional<RESULTTYPE>> pIFireable)
   {
     PropertyChangeListener listener = evt -> pIFireable.fireValueChanged(Optional.of((RESULTTYPE) evt.getNewValue()));
     pJComponent.addPropertyChangeListener(propertyName, listener);
@@ -32,7 +32,7 @@ public class PropertyChangeObservable<RESULTTYPE> extends AbstractListenerObserv
   }
 
   @Override
-  protected void removeListener(@NotNull JComponent pJComponent, @NotNull PropertyChangeListener pPropertyChangeListener)
+  protected void removeListener(@NonNull JComponent pJComponent, @NonNull PropertyChangeListener pPropertyChangeListener)
   {
     pJComponent.removePropertyChangeListener(propertyName, pPropertyChangeListener);
   }

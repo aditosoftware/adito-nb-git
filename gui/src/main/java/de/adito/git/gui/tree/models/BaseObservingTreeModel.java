@@ -7,7 +7,7 @@ import de.adito.git.api.exception.InterruptedRuntimeException;
 import de.adito.git.gui.tree.TreeUpdate;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultTreeModel;
@@ -38,7 +38,7 @@ public abstract class BaseObservingTreeModel<T> extends DefaultTreeModel impleme
   /**
    * @return Comparator that orders according to the nodeInfo of a FileChangeTypeNode
    */
-  @NotNull
+  @NonNull
   Comparator<TreeNode> _getDefaultComparator()
   {
     return Comparator.comparing(pO -> {
@@ -59,7 +59,7 @@ public abstract class BaseObservingTreeModel<T> extends DefaultTreeModel impleme
    * @return the child with the passed name, or null if none with that name exists
    */
   @Nullable
-  protected FileChangeTypeNode _getChildNode(@NotNull FileChangeTypeNode pNode, @NotNull String pChildName)
+  protected FileChangeTypeNode _getChildNode(@NonNull FileChangeTypeNode pNode, @NonNull String pChildName)
   {
     for (int index = pNode.getChildCount() - 1; index >= 0; index--)
     {
@@ -77,8 +77,8 @@ public abstract class BaseObservingTreeModel<T> extends DefaultTreeModel impleme
    * @param pDiffInfo DiffInfo for which to create the nodeDescription
    * @return formatted String used as nodeDescription in a FileChangeTypeNode
    */
-  @NotNull
-  protected String _getCommitNodeDescription(@NotNull IDiffInfo pDiffInfo)
+  @NonNull
+  protected String _getCommitNodeDescription(@NonNull IDiffInfo pDiffInfo)
   {
     return String.format("commit %8.8s", pDiffInfo.getParentCommit().getId());
   }
@@ -87,8 +87,8 @@ public abstract class BaseObservingTreeModel<T> extends DefaultTreeModel impleme
    * @param pDiffInfos List of DiffInfos whose changed files should be added up
    * @return List with all changed files, does not contain duplicates
    */
-  @NotNull
-  protected List<IFileChangeType> _getAllChangedFiles(@NotNull List<IDiffInfo> pDiffInfos)
+  @NonNull
+  protected List<IFileChangeType> _getAllChangedFiles(@NonNull List<IDiffInfo> pDiffInfos)
   {
     if (pDiffInfos.size() == 1)
       return pDiffInfos.get(0).getChangedFiles();
@@ -103,8 +103,8 @@ public abstract class BaseObservingTreeModel<T> extends DefaultTreeModel impleme
    * @param pList     list with the DiffInfos
    * @param pRootNode root node of the tree
    */
-  @NotNull
-  protected List<TreeUpdate> _removeOldCommitNodes(@NotNull List<IDiffInfo> pList, @NotNull FileChangeTypeNode pRootNode)
+  @NonNull
+  protected List<TreeUpdate> _removeOldCommitNodes(@NonNull List<IDiffInfo> pList, @NonNull FileChangeTypeNode pRootNode)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     for (int index = pRootNode.getChildCount() - 1; index >= 0; index--)
@@ -126,8 +126,8 @@ public abstract class BaseObservingTreeModel<T> extends DefaultTreeModel impleme
    * @param pMap  Map that is an image of the tree
    * @param pNode node to update
    */
-  @NotNull
-  List<TreeUpdate> _updateTree(@NotNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NotNull FileChangeTypeNode pNode)
+  @NonNull
+  List<TreeUpdate> _updateTree(@NonNull HashMap<File, HashMap<File, FileChangeTypeNodeInfo>> pMap, @NonNull FileChangeTypeNode pNode)
   {
     List<TreeUpdate> treeUpdates = new ArrayList<>();
     if (Thread.currentThread().isInterrupted())

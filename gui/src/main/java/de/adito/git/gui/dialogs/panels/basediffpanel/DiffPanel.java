@@ -18,7 +18,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.reactivex.rxjava3.subjects.Subject;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -47,8 +47,8 @@ public class DiffPanel extends JPanel implements IDiscardable
    * @param pAcceptIcon          ImageIcon that is used for the "accept these changes" button
    * @param pEditorKitObservable EditorKitObservable that holds the editorKit for the current IFileDiff
    */
-  public DiffPanel(@NotNull IIconLoader pIconLoader, @NotNull Observable<Optional<IFileDiff>> pFileDiffObs,
-                   @Nullable ImageIcon pAcceptIcon, @NotNull Observable<Optional<EditorKit>> pEditorKitObservable, @Nullable String pLeftHeader,
+  public DiffPanel(@NonNull IIconLoader pIconLoader, @NonNull Observable<Optional<IFileDiff>> pFileDiffObs,
+                   @Nullable ImageIcon pAcceptIcon, @NonNull Observable<Optional<EditorKit>> pEditorKitObservable, @Nullable String pLeftHeader,
                    @Nullable String pRightHeader)
   {
     Observable<IDeltaTextChangeEvent> changesEventObservable = pFileDiffObs
@@ -93,7 +93,7 @@ public class DiffPanel extends JPanel implements IDiscardable
    * @param currentDiffPanelModel DiffPanelModel for the more up-to-date side of the diff
    * @param oldDiffPanelModel     DiffPanelModel for the older version of the diff
    */
-  private void initModels(@Nullable ImageIcon pAcceptIcon, @NotNull DiffPanelModel currentDiffPanelModel, @NotNull DiffPanelModel oldDiffPanelModel)
+  private void initModels(@Nullable ImageIcon pAcceptIcon, @NonNull DiffPanelModel currentDiffPanelModel, @NonNull DiffPanelModel oldDiffPanelModel)
   {
     LineNumberModel oldLinesModel = oldVersionDiffPane.createLineNumberModel();
     LineChangeMarkingModel oldLineChangeMarkingsModel = new LineChangeMarkingModel(oldLinesModel, oldDiffPanelModel.getChangeSide());
@@ -124,7 +124,7 @@ public class DiffPanel extends JPanel implements IDiscardable
    * @param pIconLoader IconLoader for the Toolbar icons
    * @return JPanel with the aforementioned elements
    */
-  @NotNull
+  @NonNull
   private JPanel _getOptionsPanel(IIconLoader pIconLoader)
   {
     JPanel optionsPanel = new JPanel(new BorderLayout());

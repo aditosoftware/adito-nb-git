@@ -10,7 +10,7 @@ import de.adito.git.api.progress.IAsyncProgressFacade;
 import de.adito.git.gui.dialogs.IDialogProvider;
 import de.adito.git.impl.Util;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.awt.event.ActionEvent;
 import java.util.Collections;
@@ -34,7 +34,7 @@ public class CheckoutCommitAction extends AbstractTableAction
   @Inject
   public CheckoutCommitAction(INotifyUtil pNotifyUtil, IAsyncProgressFacade pProgressFacade,
                               @Assisted Observable<Optional<IRepository>> pRepository, @Assisted Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
-                              @NotNull IDialogProvider pDialogProvider)
+                              @NonNull IDialogProvider pDialogProvider)
   {
     super("Checkout Commit", _getIsEnabledObservable(pSelectedCommitObservable, pRepository));
     notifyUtil = pNotifyUtil;
@@ -76,8 +76,8 @@ public class CheckoutCommitAction extends AbstractTableAction
    * @param pRepository               Observable of the repository
    * @return Observable that signifies if the action is enabled or disabled
    */
-  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NotNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
-                                                                       @NotNull Observable<Optional<IRepository>> pRepository)
+  private static Observable<Optional<Boolean>> _getIsEnabledObservable(@NonNull Observable<Optional<List<ICommit>>> pSelectedCommitObservable,
+                                                                       @NonNull Observable<Optional<IRepository>> pRepository)
   {
     Observable<Optional<IRepositoryState>> repoState = pRepository.switchMap(pRepoOpt -> pRepoOpt.map(IRepository::getRepositoryState)
         .orElse(Observable.just(Optional.empty())));

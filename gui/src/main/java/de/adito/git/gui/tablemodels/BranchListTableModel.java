@@ -5,7 +5,7 @@ import de.adito.git.api.data.EBranchType;
 import de.adito.git.api.data.IBranch;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.Collections;
@@ -29,7 +29,7 @@ public class BranchListTableModel extends AbstractTableModel implements IDiscard
    * @param pBranches   The List of Branches to show
    * @param pBranchType The BranchType for the Branch
    */
-  public BranchListTableModel(Observable<Optional<List<IBranch>>> pBranches, @NotNull EBranchType pBranchType)
+  public BranchListTableModel(Observable<Optional<List<IBranch>>> pBranches, @NonNull EBranchType pBranchType)
   {
     branchType = pBranchType;
     branchesDisposable = pBranches.subscribe(pBranchList -> {

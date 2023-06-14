@@ -1,6 +1,6 @@
 package de.adito.git.gui.swing;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import javax.swing.*;
 import java.util.function.Supplier;
@@ -15,7 +15,7 @@ public class MutableIconActionButton
 
   private final JButton button;
 
-  public MutableIconActionButton(@NotNull Action pAction, @NotNull Supplier<Boolean> pBooleanSupplier, @NotNull ImageIcon pIcon, @NotNull ImageIcon pAlternativeIcon)
+  public MutableIconActionButton(@NonNull Action pAction, @NonNull Supplier<Boolean> pBooleanSupplier, @NonNull ImageIcon pIcon, @NonNull ImageIcon pAlternativeIcon)
   {
     button = new JButton(pBooleanSupplier.get() ? pIcon : pAlternativeIcon);
     button.addActionListener(e -> {
