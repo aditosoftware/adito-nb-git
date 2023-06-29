@@ -92,7 +92,7 @@ public class Util
    * @return the most likely encoding used to represent the byte array as String
    */
   @NonNull
-  public static Charset getEncoding(@NonNull byte[] pContents, @NonNull IFileSystemUtil pFileSystemUtil)
+  public static Charset getEncoding(byte @NonNull [] pContents, @NonNull IFileSystemUtil pFileSystemUtil)
   {
     return pFileSystemUtil.getEncoding(pContents);
   }

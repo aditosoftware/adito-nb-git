@@ -37,7 +37,7 @@ public class DiffServiceImpl implements IDiffService
   }
 
   @Override
-  public void showDiff(@NonNull byte[] pVersionLeft, @NonNull byte[] pVersionRight)
+  public void showDiff(byte @NonNull [] pVersionLeft, byte @NonNull [] pVersionRight)
   {
     dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME),
                                   List.of(standAloneDiffProvider.diffOffline(pVersionLeft, pVersionRight)), null, null, null, null, false, false);
@@ -51,7 +51,7 @@ public class DiffServiceImpl implements IDiffService
   }
 
   @Override
-  public void showDiff(@NonNull byte[] pVersionLeft, @NonNull byte[] pVersionRight, @NonNull String pTitle, @Nullable String pHeaderLeft, @Nullable String pHeaderRight)
+  public void showDiff(byte @NonNull [] pVersionLeft, byte @NonNull [] pVersionRight, @NonNull String pTitle, @Nullable String pHeaderLeft, @Nullable String pHeaderRight)
   {
     dialogProvider.showDiffDialog(new File(TEMP_FOLDER_NAME), List.of(standAloneDiffProvider.diffOffline(pVersionLeft, pVersionRight)), null, pTitle, pHeaderLeft,
                                   pHeaderRight, false, false);

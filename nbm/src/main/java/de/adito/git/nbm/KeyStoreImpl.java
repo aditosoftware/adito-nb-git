@@ -11,7 +11,7 @@ import org.netbeans.api.keyring.Keyring;
 public class KeyStoreImpl implements IKeyStore
 {
   @Override
-  public void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription)
+  public void save(@NonNull String pKey, char @NonNull [] pPassword, @Nullable String pDescription)
   {
     Keyring.save(pKey, pPassword, pDescription);
   }

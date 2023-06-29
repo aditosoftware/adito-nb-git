@@ -68,6 +68,6 @@ public interface IFileSystemUtil
    * @return Encoding that was most likely used to create the byte array
    */
   @NonNull
-  Charset getEncoding(@NonNull byte[] pContent);
+  Charset getEncoding(byte @NonNull [] pContent);
 
 }

@@ -16,7 +16,7 @@ public interface IKeyStore
    * @param pPassword    sensitive information that should be stored
    * @param pDescription optional description
    */
-  void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription);
+  void save(@NonNull String pKey, char @NonNull [] pPassword, @Nullable String pDescription);
 
   /**
    * Deletes a key from the store. If the key was not in the store to begin with, does nothing.

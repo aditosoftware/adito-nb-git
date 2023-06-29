@@ -125,7 +125,7 @@ class LineNumPanel extends JPanel implements IDiscardable, LineNumberColorsListe
   }
 
   @Override
-  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, LineNumber @NonNull [] pLineNumbers)
   {
     recalcAndRedraw();
   }

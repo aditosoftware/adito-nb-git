@@ -40,7 +40,7 @@ abstract class NBAction extends NodeAction implements Disposable
   Node[] lastActivated = new Node[0];
 
   @NonNull
-  static Optional<List<IFileChangeType>> getUncommittedFilesOfNodes(@NonNull Node[] pActivatedNodes,
+  static Optional<List<IFileChangeType>> getUncommittedFilesOfNodes(Node @NonNull [] pActivatedNodes,
                                                                     @NonNull Observable<Optional<IRepository>> pRepository)
   {
     List<File> files = getAllFilesOfNodes(pActivatedNodes);
@@ -66,7 +66,7 @@ abstract class NBAction extends NodeAction implements Disposable
    * @return a list of Files from activeNodes.
    */
   @NonNull
-  static List<File> getAllFilesOfNodes(@NonNull Node[] pActivatedNodes)
+  static List<File> getAllFilesOfNodes(Node @NonNull [] pActivatedNodes)
   {
     List<File> fileList = new ArrayList<>();
     for (Node node : pActivatedNodes)
@@ -95,7 +95,7 @@ abstract class NBAction extends NodeAction implements Disposable
    * @return The repository of the node
    */
   @NonNull
-  static Observable<Optional<IRepository>> getCurrentRepository(@NonNull Node[] pActivatedNodes)
+  static Observable<Optional<IRepository>> getCurrentRepository(Node @NonNull [] pActivatedNodes)
   {
     return Observable.just(repositoryObservable.blockingFirst(Optional.empty()));
   }

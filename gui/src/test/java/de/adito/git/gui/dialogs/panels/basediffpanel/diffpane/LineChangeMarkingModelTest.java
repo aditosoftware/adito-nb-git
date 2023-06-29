@@ -53,7 +53,7 @@ class LineChangeMarkingModelTest
    * @return LineChangeMarkingModel set up with
    */
   @NonNull
-  private static LineChangeMarkingModel getLineChangeMarkingModel(@NonNull LineNumber[] pLineNumbers, @NonNull String pOldVersion, @NonNull String pNewVersion)
+  private static LineChangeMarkingModel getLineChangeMarkingModel(LineNumber @NonNull [] pLineNumbers, @NonNull String pOldVersion, @NonNull String pNewVersion)
   {
     IFileDiff fileDiff = new StandAloneDiffProviderImpl(new SimpleFileSystemUtil()).diffOffline(pOldVersion, pNewVersion);
     IDeltaTextChangeEvent deltaTextChangeEvent = mock(IDeltaTextChangeEvent.class);

@@ -116,7 +116,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    * @return TreeMap with the LineNumbers as values and the y coordinates of the LineNumbers as value
    */
   @NonNull
-  private TreeMap<Integer, LineNumber> calculateCoordinateMapping(@NonNull LineNumber[] pViewCoordinatesColors)
+  private TreeMap<Integer, LineNumber> calculateCoordinateMapping(LineNumber @NonNull [] pViewCoordinatesColors)
   {
     TreeMap<Integer, LineNumber> lineNumberMap = new TreeMap<>();
     for (LineNumber lineNumber : pViewCoordinatesColors)
@@ -139,7 +139,7 @@ public class LineNumberModel extends ListenableModel<LineNumberListener> impleme
    * @param pEvent    IDeltaTextChangeEvent that trigger the recalculation
    * @param pNewValue new/updated values for the LineNumbers
    */
-  private void notifyListeners(@NonNull IDeltaTextChangeEvent pEvent, @NonNull LineNumber[] pNewValue)
+  private void notifyListeners(@NonNull IDeltaTextChangeEvent pEvent, LineNumber @NonNull [] pNewValue)
   {
     for (LineNumberListener listener : listeners)
     {

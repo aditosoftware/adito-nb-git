@@ -17,6 +17,6 @@ public interface LineNumberListener
    * @param pLineNumbers     Array containing a LineNumber Object for each line present in the editor. Contains the line number and coordinates at which the line number
    *                         should be drawn
    */
-  void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers);
+  void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, LineNumber @NonNull [] pLineNumbers);
 
 }

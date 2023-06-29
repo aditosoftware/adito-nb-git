@@ -133,7 +133,7 @@ public class NBFileSystemUtilImpl implements IFileSystemUtil
 
   @NonNull
   @Override
-  public Charset getEncoding(@NonNull byte[] pContent)
+  public Charset getEncoding(byte @NonNull [] pContent)
   {
     FileObject tempFo = null;
 

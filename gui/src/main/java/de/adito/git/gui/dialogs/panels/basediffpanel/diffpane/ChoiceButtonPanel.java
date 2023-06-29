@@ -145,7 +145,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
    * changed and instead the list is only exchanged with another one (like above) this should mean that there are no concurrentModificationExceptions
    * and we do not need any locks or copied immutable lists
    *
-   * @param pGraphics Graphics object to paint with
+   * @param pGraphics                      Graphics object to paint with
    * @param pChangedChunkConnectionsToDraw List of ChangedChunkConnections that represent the connections of the colored areas of the left- and right LineChangeMarkingModels
    */
   private void _paintIcons(@NonNull Graphics pGraphics, @NonNull List<ChangedChunkConnection> pChangedChunkConnectionsToDraw)
@@ -174,7 +174,7 @@ class ChoiceButtonPanel extends JPanel implements IDiscardable, LineNumberListen
   }
 
   @Override
-  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, LineNumber @NonNull [] pLineNumbers)
   {
     // do nothing, either the iconInfos or the viewLineChangeMarkins should also change -> will get notification about that -> don't do the same work twice
   }

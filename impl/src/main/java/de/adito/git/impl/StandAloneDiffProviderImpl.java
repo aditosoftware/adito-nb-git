@@ -34,7 +34,7 @@ public class StandAloneDiffProviderImpl implements IStandAloneDiffProvider
   }
 
   @Override
-  public IFileDiff diffOffline(@NonNull byte[] pVersion1, @NonNull byte[] pVersion2)
+  public IFileDiff diffOffline(byte @NonNull [] pVersion1, byte @NonNull [] pVersion2)
   {
     RawText fileContents = new RawText(pVersion1);
     RawText currentFileContents = new RawText(pVersion2);

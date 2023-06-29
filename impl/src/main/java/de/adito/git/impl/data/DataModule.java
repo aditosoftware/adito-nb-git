@@ -42,7 +42,7 @@ public class DataModule extends AbstractModule
   {
 
     @Override
-    public void save(@NonNull String pKey, @NonNull char[] pPassword, @Nullable String pDescription)
+    public void save(@NonNull String pKey, char @NonNull [] pPassword, @Nullable String pDescription)
     {
       throw new NotImplementedException();
     }

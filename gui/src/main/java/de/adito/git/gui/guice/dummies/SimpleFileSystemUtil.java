@@ -48,7 +48,7 @@ public class SimpleFileSystemUtil implements IFileSystemUtil
 
   @NonNull
   @Override
-  public Charset getEncoding(@NonNull byte[] pContent)
+  public Charset getEncoding(byte @NonNull [] pContent)
   {
     return StandardCharsets.UTF_8;
   }

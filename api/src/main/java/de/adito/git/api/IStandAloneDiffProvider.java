@@ -27,6 +27,6 @@ public interface IStandAloneDiffProvider
    * @param pVersion2 byte array to be compared to pVersion1
    * @return List of IFileChangeChunks containing the changed lines between the two versions
    */
-  IFileDiff diffOffline(@NonNull byte[] pVersion1, @NonNull byte[] pVersion2);
+  IFileDiff diffOffline(byte @NonNull [] pVersion1, byte @NonNull [] pVersion2);
 
 }

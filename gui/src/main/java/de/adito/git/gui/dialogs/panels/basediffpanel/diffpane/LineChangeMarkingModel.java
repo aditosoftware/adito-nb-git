@@ -108,7 +108,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
    * @param pTextChangeEvent IDeltaTextChangeEvent that contains the ChangeDeltas who are the basis for the LineNumberColors
    * @param pLineNumbers     Array of LineNumbers that give the y coordinates for each line
    */
-  private void calculateLineNumColors(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
+  private void calculateLineNumColors(@NonNull IDeltaTextChangeEvent pTextChangeEvent, LineNumber @NonNull [] pLineNumbers)
   {
     List<LineNumberColor> lineNumberColors = new ArrayList<>();
     try
@@ -206,7 +206,7 @@ public class LineChangeMarkingModel extends ListenableModel<LineNumberColorsList
   }
 
   @Override
-  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, LineNumber @NonNull [] pLineNumbers)
   {
     calculateLineNumColors(pTextChangeEvent, pLineNumbers);
   }

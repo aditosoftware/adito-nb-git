@@ -79,7 +79,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
   }
 
   @Override
-  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
+  public void lineNumbersChanged(@NonNull IDeltaTextChangeEvent pTextChangeEvent, LineNumber @NonNull [] pLineNumbers)
   {
     calculateIconInfos(pTextChangeEvent, pLineNumbers);
   }
@@ -114,7 +114,7 @@ public class IconInfoModel extends ListenableModel<IconInfoModelListener> implem
    * @param pTextChangeEvent IDeltaTextChangeEvent that contains all ChangeDeltas for the current diff/merge
    * @param pLineNumbers     array of LineNumbers that give the y coordinates of each line
    */
-  private void calculateIconInfos(@NonNull IDeltaTextChangeEvent pTextChangeEvent, @NonNull LineNumber[] pLineNumbers)
+  private void calculateIconInfos(@NonNull IDeltaTextChangeEvent pTextChangeEvent, LineNumber @NonNull [] pLineNumbers)
   {
     List<IconInfo> acceptIconInfoList = new ArrayList<>();
     List<IconInfo> discardIconInfoList = new ArrayList<>();

@@ -104,7 +104,7 @@ class LineNumberModelTest
    */
   @NonNull
   private static LineNumberModel setUpLineNumberModelTest(@NonNull AtomicReference<IDeltaTextChangeEvent> textEventRef, @NonNull AtomicReference<LineNumber[]> lineNumbersRef,
-                                                          @NonNull LineNumber[] lineNumbers, @NonNull IDeltaTextChangeEvent textChangeMock,
+                                                          LineNumber @NonNull [] lineNumbers, @NonNull IDeltaTextChangeEvent textChangeMock,
                                                           @NonNull AtomicReference<MockedStatic<TextPaneUtil>> mockStatic) throws Exception
   {
     JEditorPane editorPane = new JEditorPane();
