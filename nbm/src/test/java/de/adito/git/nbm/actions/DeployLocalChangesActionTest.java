@@ -1,16 +1,11 @@
 package de.adito.git.nbm.actions;
 
-import de.adito.git.api.IRepository;
-import de.adito.git.nbm.repo.RepositoryCache;
-import de.adito.git.nbm.util.ProjectUtility;
-import io.reactivex.rxjava3.core.Observable;
 import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
-import org.openide.windows.TopComponent;
 
 import java.awt.event.ActionEvent;
-import java.util.Optional;
-import java.util.logging.*;
+import java.util.*;
+import java.util.regex.Matcher;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,7 +17,7 @@ import static org.mockito.Mockito.*;
  */
 class DeployLocalChangesActionTest
 {
-  private DeployLocalChangesAction deploy;
+  private DeployLocalChangesAction deployLocalChangesAction;
 
   /**
    * initialize the needed object
@@ -30,25 +25,25 @@ class DeployLocalChangesActionTest
   @BeforeEach
   void init()
   {
-    deploy = new DeployLocalChangesAction();
+    deployLocalChangesAction = new DeployLocalChangesAction();
   }
 
   /**
-   * check, if the name returns null
+   * check, if the name returns the default value
    */
   @Test
   void getName()
   {
-    assertNotNull(deploy.getName());
+    assertNotNull(deployLocalChangesAction.getName());
   }
 
   /**
-   * check, if the help returns null
+   * check, if the help returns the default value
    */
   @Test
   void getHelpCtx()
   {
-    assertNull(deploy.getHelpCtx());
+    assertNull(deployLocalChangesAction.getHelpCtx());
   }
 
   /**
@@ -58,56 +53,79 @@ class DeployLocalChangesActionTest
   class ActionPerformed
   {
     /**
-     * checks, if no project and repository are available and therefore should return a log
+     * Checks if no error is thrown when method is called
      */
     @Test
-    void shouldNotThrowIfNoProjectsOrRepositoryAvailableAndShouldReturnLog()
+    void shouldNotThrowIfActionPerformedIsCalled()
     {
-      try (MockedStatic<Logger> loggerMockedStatic = mockStatic(Logger.class))
-      {
-        Logger mockedLogger = mock(Logger.class);
-        loggerMockedStatic.when(() -> Logger.getLogger(any())).thenReturn(mockedLogger);
-
-
-        Observable test2 = spy(Observable.class);
-        System.out.println(test2.blockingFirst().getClass());
-
-        assertAll(
-            () -> assertDoesNotThrow(() -> deploy.actionPerformed(mock(ActionEvent.class))),
-            () -> verify(mockedLogger).log(Level.INFO, "No Repository was found")
-        );
-      }
+      assertDoesNotThrow(() -> deployLocalChangesAction.actionPerformed(mock(ActionEvent.class)));
     }
 
+    /**
+     * Checks if the "deploy"-method is called and do nothing
+     */
     @Test
-    void shouldReturnLogWhenStatusIsEmptyOrNotPresent()
+    void shouldCallDeploy()
     {
+      List<String> uncommittedFiles = new ArrayList<>();
+      uncommittedFiles.add("test");
 
-      TopComponent y = new TopComponent();
-      var stuff = mock(TopComponent.Registry.class);
-      var test = ProjectUtility.findProjectFromActives(stuff);
+      DeployLocalChangesAction deploySpy = spy(DeployLocalChangesAction.class);
 
-      try (MockedStatic<Logger> loggerMockedStatic = mockStatic(Logger.class);
-           MockedStatic<RepositoryCache> cache = mockStatic(RepositoryCache.class);
-      )
+      doNothing().when(deploySpy).deploy(any());
+      doReturn(uncommittedFiles).when(deploySpy).getSourcesToDeploy(new HashSet<>());
+
+      deploySpy.actionPerformed(mock(ActionEvent.class));
+
+      verify(deploySpy).deploy(uncommittedFiles);
+    }
+  }
+
+  /**
+   * Checks the method {@link DeployLocalChangesAction#getSourcesToDeploy}
+   */
+  @Nested
+  class GetSourcesToDeploy
+  {
+    /**
+     * checks if an empty list is returned when parameter is empty
+     */
+    @Test
+    void shouldReturnEmptyList()
+    {
+      assertEquals(new ArrayList<>(), deployLocalChangesAction.getSourcesToDeploy(new HashSet<>()));
+    }
+
+    /**
+     * checks if the empty provided list will not trigger the matcher-function
+     */
+    @Test
+    void shouldReturnEmptyListIfUncommitedChangesAreEmpty()
+    {
+      try (MockedStatic<Matcher> matcherMockedStatic = mockStatic(Matcher.class))
       {
-        RepositoryCache cache2 = mock(RepositoryCache.class);
-        Observable<Optional<IRepository>> test2 = mock(Observable.class);
-        IRepository test3 = mock(IRepository.class);
-        doReturn(test2).when(cache2).findRepository(test.get());
-        doReturn(test2.blockingFirst()).when(test2).blockingFirst().isPresent();
-        //when(test2.blockingFirst()).thenReturn(test2.blockingFirst().get().getStatus().blockingFirst().get().getUncommitted().get().getFile().);
-
-        Logger mockedLogger = mock(Logger.class);
-        loggerMockedStatic.when(() -> Logger.getLogger(any())).thenReturn(mockedLogger);
+        Matcher matcher = mock(Matcher.class);
 
         assertAll(
-            () -> assertDoesNotThrow(() -> deploy.actionPerformed(mock(ActionEvent.class))),
-            () -> verify(mockedLogger).log(Level.WARNING, "a")
+            () -> assertEquals(new ArrayList<>(), deployLocalChangesAction.getSourcesToDeploy(new HashSet<>())),
+            () -> verify(matcher, never()).group(anyInt())
         );
       }
-
     }
-    
+
+    /**
+     * checks if the function with the Regex returns the expected list
+     */
+    @Test
+    void shouldFindMatcherAndAddToList()
+    {
+      List<String> expected = new ArrayList<>();
+      expected.add("myEntity");
+
+      Set<String> set = new HashSet<>();
+      set.add("entity/myEntity/myEntity.aod");
+
+      assertEquals(expected, deployLocalChangesAction.getSourcesToDeploy(set));
+    }
   }
 }
