@@ -1,18 +1,20 @@
 package de.adito.git.nbm.actions;
 
 import com.google.common.annotations.VisibleForTesting;
-import de.adito.git.api.IRepository;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
+import de.adito.git.api.*;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.util.RepositoryUtility;
-import de.adito.notification.INotificationFacade;
 import io.reactivex.rxjava3.core.Observable;
-import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.Project;
 import org.openide.awt.*;
 import org.openide.modules.Modules;
+import org.openide.nodes.Node;
 import org.openide.util.*;
-import org.openide.util.actions.SystemAction;
+import org.openide.util.actions.NodeAction;
 
-import java.awt.event.ActionEvent;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.*;
@@ -23,37 +25,26 @@ import java.util.regex.*;
  * @author F.Adler, 27.06.2023
  */
 @ActionID(category = "adito/ribbon", id = "de.adito.git.nbm.actions.DeployLocalChangesAction")
-@ActionRegistration(displayName = "#ACTION_deployProject",
-    iconBase = "de/adito/git/nbm/actions/indent_dark.png")
+@ActionRegistration(displayName = "#LBL_deployProject_Name", iconBase = "#ICON_deployProject_Path")
 @ActionReferences({
-    @ActionReference(path = "Toolbars/deploy", position = 500, separatorAfter = 550),
+    @ActionReference(path = "Toolbars/deploy", position = 200, separatorAfter = 250),
     @ActionReference(path = "Shortcuts", name = "SA-F8")})
-public class DeployLocalChangesAction extends SystemAction
+public class DeployLocalChangesAction extends NodeAction
 {
+  private final transient INotifyUtil notifyUtil = IGitConstants.INJECTOR.getInstance(INotifyUtil.class);
 
   @Override
-  public String getName()
+  protected String iconResource()
   {
-    return NbBundle.getMessage(getClass(), "ACTION_deployProject");
+    return NbBundle.getMessage(DeployLocalChangesAction.class, "ICON_deployProject_Path");
   }
 
   @Override
-  public HelpCtx getHelpCtx()
-  {
-    return null;
-  }
-
-  /**
-   * Perform a ADITO Designer deploy of all sources that are not committed
-   *
-   * @param pActionEvent the event to be processed
-   */
-  @Override
-  public void actionPerformed(@NonNull ActionEvent pActionEvent)
+  protected void performAction(Node[] pNodes)
   {
     Observable<List<String>> uncommittedFilesObs = RepositoryUtility.getRepositoryObservable()
         .switchMap(pRepo -> pRepo.map(IRepository::getStatus).orElseGet(() -> Observable.just(Optional.empty())))
-        .map(pIFileStatus -> pIFileStatus.isPresent() ? pIFileStatus.get().getUncommittedChanges() : Set.<String>of())
+        .map(pIFileStatus -> pIFileStatus.isPresent() ? getAllUncommittedChanges(pIFileStatus) : Set.<String>of())
         .map(this::getSourcesToDeploy);
 
     List<String> uncommittedFiles = uncommittedFilesObs.blockingFirst();
@@ -63,10 +54,62 @@ public class DeployLocalChangesAction extends SystemAction
     }
     else
     {
-      INotificationFacade.INSTANCE.notify("Deploy", "There is nothing to deploy", true, null);
+      notifyUtil.notify(NbBundle.getMessage(getClass(), "LBL_Deploy_Name"), NbBundle.getMessage(getClass(), "LBL_DeployNothingFound_Name"), true);
     }
   }
 
+  @Override
+  protected boolean enable(@NotNull Node[] pNodes)
+  {
+    return getCountOfSelectedProjects(pNodes) == 1;
+  }
+
+  /**
+   * Get all currently selected nodes as a long
+   *
+   * @param nodes currently selected nodes
+   * @return the number of projects that are selected
+   */
+  protected int getCountOfSelectedProjects(@NotNull Node[] nodes)
+  {
+    return ((int) Arrays.stream(nodes)
+        .map(pNode -> IProjectQuery
+            .getInstance()
+            .findProjects(pNode, IProjectQuery.ReturnType.MULTIPLE_TO_NULL))
+        .filter(Objects::nonNull)
+        .distinct()
+        .count());
+  }
+
+  @Override
+  public String getName()
+  {
+    return NbBundle.getMessage(getClass(), "LBL_deployProject_Name");
+  }
+
+  @Override
+  public HelpCtx getHelpCtx()
+  {
+    return null;
+  }
+
+  /**
+   * Get all uncommitted changes including untracked files that are added to the project
+   *
+   * @param pIFileStatus FileStatus of the current project/repository
+   * @return complete list of all uncommitted changes
+   */
+  public Set<String> getAllUncommittedChanges(@NotNull Optional<IFileStatus> pIFileStatus)
+  {
+    if (pIFileStatus.isPresent())
+    {
+      IFileStatus fileStatus = pIFileStatus.get();
+      Set<String> uncommittedFiles = new HashSet<>(fileStatus.getUncommittedChanges());
+      uncommittedFiles.addAll(fileStatus.getUntracked());
+      return uncommittedFiles;
+    }
+    return new HashSet<>();
+  }
 
   /**
    * Creates a list and returns all sources that are not committed and should be deployed
@@ -75,14 +118,16 @@ public class DeployLocalChangesAction extends SystemAction
    * @return The list of sources which should be deployed
    */
   @VisibleForTesting
-  List<String> getSourcesToDeploy(@NonNull Set<String> pUncommittedFiles)
+  List<String> getSourcesToDeploy(@NotNull Set<String> pUncommittedFiles)
   {
     Set<String> uncommittedList = new HashSet<>();
+    //the following regex will find the name that has to be deployed
+    //e.g. myContext/myEntity/myField/myProcess.js -> myEntity
     String regex = ".+?/([^/]+)/.*";
     Pattern pattern = Pattern.compile(regex);
-    for (String e : pUncommittedFiles)
+    for (String path : pUncommittedFiles)
     {
-      Matcher matcher = pattern.matcher(e);
+      Matcher matcher = pattern.matcher(path);
       if (matcher.find())
       {
         uncommittedList.add(matcher.group(1));
@@ -92,12 +137,12 @@ public class DeployLocalChangesAction extends SystemAction
   }
 
   /**
-   * Reflectionmethod to call the ADITO Designers deploy
+   * Perform the deploy via reflection, since the deploy functionality is part of the ADITO Designer and cannot be called otherwise
    *
    * @param pUncommittedList The list of sources that should be deployed
    */
   @VisibleForTesting
-  void deploy(@NonNull List<String> pUncommittedList)
+  void deploy(@NotNull List<String> pUncommittedList)
   {
     try
     {
@@ -112,7 +157,7 @@ public class DeployLocalChangesAction extends SystemAction
     }
     catch (ReflectiveOperationException pE)
     {
-      INotificationFacade.INSTANCE.error(pE);
+      notifyUtil.notify(pE, pE.getMessage(), true);
     }
   }
 }
