@@ -1,5 +1,6 @@
 package de.adito.git.gui.sequences;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import de.adito.git.api.INotifyUtil;
 import de.adito.git.api.IRepository;
@@ -38,6 +39,7 @@ public class MergeConflictSequence
 
   private static final Logger logger = Logger.getLogger(MergeConflictSequence.class.getName());
   private static final int NUM_MAX_CHARS_FOR_RESOLVE = 80000;
+  private static final int MAX_CHANGED_LINES_FOR_RESOLVE_DEFAULT = 50;
   private final IDialogProvider dialogProvider;
   private final IPrefStore prefStore;
   private final IAsyncProgressFacade asyncProgressFacade;
@@ -118,7 +120,7 @@ public class MergeConflictSequence
         pProgressHandle.setDescription("Trying to resolve  " + mergeData.getFilePath());
         try
         {
-          if (!_isSkipMergeData(mergeData))
+          if (!isSkipMergeData(mergeData))
           {
             mergeData.markConflicting(pResolveOptionsProvider);
             if (mergeData.getDiff(EConflictSide.YOURS).getChangeDeltas()
@@ -152,17 +154,78 @@ public class MergeConflictSequence
   }
 
   /**
+   * isHugeFile  max > 0   manyChanges    skip
+   * isHugeFile  max > 0   fewChanges     noskip
+   * isHugeFile  max == 0  manyChanges    skip
+   * isHugeFile  max == 0  fewChanges     skip
+   * noHugeFile  max > 0   manyChanges    noskip
+   * noHugeFile  max > 0   fewChanges     noskip
+   * noHugeFile  max == 0  manyChanges    noskip
+   * noHugeFile  max == 0  fewChanges     noskip
    * Check if the mergeData should be analyzed for conflicts or skipped because marking the conflicts takes a long time
    *
    * @param pMergeData MergeData to check
    * @return true if the particular mergeData should be skipped
    */
-  private static boolean _isSkipMergeData(IMergeData pMergeData)
+  @VisibleForTesting
+  static boolean isSkipMergeData(IMergeData pMergeData)
   {
     IFileDiff theirsData = pMergeData.getDiff(EConflictSide.THEIRS);
     IFileDiff yoursData = pMergeData.getDiff(EConflictSide.YOURS);
-    return theirsData.getText(EChangeSide.NEW).length() > NUM_MAX_CHARS_FOR_RESOLVE || theirsData.getText(EChangeSide.OLD).length() > NUM_MAX_CHARS_FOR_RESOLVE
-        || yoursData.getText(EChangeSide.NEW).length() > NUM_MAX_CHARS_FOR_RESOLVE || yoursData.getText(EChangeSide.OLD).length() > NUM_MAX_CHARS_FOR_RESOLVE;
+    int maxChangedLinesForResolve = Integer.parseInt(System.getProperty("de.adito.git.resolve.maxlines", String.valueOf(MAX_CHANGED_LINES_FOR_RESOLVE_DEFAULT)));
+    // Check if the file is a language file or something similar. Since these files can, due to their size, contain lots of changed lines, resolving
+    // may take a long time (since the word-based resolve has high complexity). To avoid too long auto-resolve times, these files are then skipped in the auto-resolve
+    if (!isHugeFile(yoursData, theirsData))
+    {
+      return false;
+    }
+    if (maxChangedLinesForResolve == 0)
+    {
+      return true;
+    }
+    return containsManyChanges(yoursData, theirsData);
+  }
+
+  /**
+   * Check if the merge is a potentially huge file e.g. a language file.
+   *
+   * @param pYoursData  yours side of the merge
+   * @param pTheirsData theirs side of the merge
+   * @return true if the diff contains a side with more than NUM_MAX_CHARS_FOR_RESOLVE lines
+   */
+  @VisibleForTesting
+  static boolean isHugeFile(@NonNull IFileDiff pYoursData, @NonNull IFileDiff pTheirsData)
+  {
+    return pTheirsData.getText(EChangeSide.NEW).length() > NUM_MAX_CHARS_FOR_RESOLVE || pTheirsData.getText(EChangeSide.OLD).length() > NUM_MAX_CHARS_FOR_RESOLVE
+        || pYoursData.getText(EChangeSide.NEW).length() > NUM_MAX_CHARS_FOR_RESOLVE || pYoursData.getText(EChangeSide.OLD).length() > NUM_MAX_CHARS_FOR_RESOLVE;
+  }
+
+  /**
+   * Check if the merged data contains more than MAX_CHANGED_LINES_FOR_RESOLVE line changes
+   *
+   * @param pYoursData  yours side of the merge
+   * @param pTheirsData theirs side of the merge
+   * @return true if the sum of changed lines of both diffs is bigger than MAX_CHANGED_LINES_FOR_RESOLVE
+   */
+  @VisibleForTesting
+  static boolean containsManyChanges(@NonNull IFileDiff pYoursData, @NonNull IFileDiff pTheirsData)
+  {
+    return getNumLineChanges(pYoursData) + getNumLineChanges(pTheirsData) > MAX_CHANGED_LINES_FOR_RESOLVE_DEFAULT;
+  }
+
+  /**
+   * Get the number of changed lines in the diff
+   *
+   * @param pFileDiff diff to analyse
+   * @return number of changed lines in the diff
+   */
+  @VisibleForTesting
+  static int getNumLineChanges(@NonNull IFileDiff pFileDiff)
+  {
+    return pFileDiff.getChangeDeltas().stream()
+        .mapToInt(pIChangeDelta -> pIChangeDelta.getEndLine(EChangeSide.OLD) - pIChangeDelta.getStartLine(EChangeSide.OLD)
+            + pIChangeDelta.getEndLine(EChangeSide.NEW) - pIChangeDelta.getStartLine(EChangeSide.NEW))
+        .sum();
   }
 
   public static void acceptMergeSide(IMergeData mergeData, EConflictSide pConflictSide)

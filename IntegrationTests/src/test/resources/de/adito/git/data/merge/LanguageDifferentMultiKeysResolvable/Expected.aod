@@ -16,16 +16,16 @@
       <value>Test</value>
     </stringEntry>
     <stringEntry>
-      <name>VersionB</name>
-      <value>VersionB</value>
-    </stringEntry>
-    <stringEntry>
       <name>VersionA</name>
       <value>VersionB</value>
     </stringEntry>
     <stringEntry>
       <name>VersionC</name>
       <value>VersionC</value>
+    </stringEntry>
+    <stringEntry>
+      <name>VersionB</name>
+      <value>VersionB</value>
     </stringEntry>
     <stringEntry>
       <name>Suffix</name>
