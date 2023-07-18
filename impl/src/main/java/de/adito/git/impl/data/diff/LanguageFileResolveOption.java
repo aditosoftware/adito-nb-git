@@ -24,7 +24,10 @@ public class LanguageFileResolveOption extends XMLBasedResolveOption
   @Override
   public List<IDeltaTextChangeEvent> resolveConflict(@NonNull IChangeDelta acceptedDelta, @NonNull IFileDiff pAcceptedDiff, @NonNull IFileDiff pOtherDiff, @NonNull EConflictSide pConflictSide, @NonNull ConflictPair pConflictPair)
   {
-    return new ArrayList<>(pAcceptedDiff.acceptDelta(acceptedDelta, false, true, false));
+    List<IDeltaTextChangeEvent> changeEvents = pOtherDiff.acceptDelta(pOtherDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(EConflictSide.getOpposite(pConflictSide))), false, true, false);
+    changeEvents.forEach(pTextChangeEvent -> pAcceptedDiff.processTextEvent(pTextChangeEvent.getOffset(), pTextChangeEvent.getLength(), pTextChangeEvent.getText(),
+                                                                            pTextChangeEvent.getSide(), false, false));
+    return new ArrayList<>(pAcceptedDiff.acceptDelta(pAcceptedDiff.getChangeDeltas().get(pConflictPair.getIndexOfSide(pConflictSide)), false, true, false));
   }
 
   @Override

@@ -16,11 +16,11 @@
       <value>Test</value>
     </stringEntry>
     <stringEntry>
-      <name>VersionB</name>
+      <name>VersionA</name>
       <value>VersionB</value>
     </stringEntry>
     <stringEntry>
-      <name>VersionA</name>
+      <name>VersionB</name>
       <value>VersionB</value>
     </stringEntry>
     <stringEntry>
