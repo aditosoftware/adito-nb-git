@@ -1,17 +1,15 @@
 package de.adito.git.nbm.actions;
 
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
+import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
+import io.reactivex.rxjava3.core.Observable;
 import lombok.NonNull;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
-import org.mockito.MockedStatic;
-import org.netbeans.api.project.Project;
 import org.openide.nodes.Node;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +35,7 @@ class DeployLocalChangesActionTest
   }
 
   /**
-   * check if the icon resource is not null
+   * Check if the icon resource is not null
    */
   @Test
   void getIconResource()
@@ -46,7 +44,7 @@ class DeployLocalChangesActionTest
   }
 
   /**
-   * check, if the name returns the default value
+   * Check, if the name returns the default value
    */
   @Test
   void getName()
@@ -54,15 +52,60 @@ class DeployLocalChangesActionTest
     assertNotNull(deployLocalChangesAction.getName());
   }
 
+  //Maybe relevant in the future, but currently not working
+  /*
+   * Check if a message is returned to the user when the deploy is not available
+   *
+   * @Test void shouldReturnLogWhenErrorIsThrown()
+   * {
+   * try (MockedStatic<Modules> modules = mockStatic(Modules.class);
+   * MockedStatic<ModuleInfo> moduleInfo = mockStatic(ModuleInfo.class);
+   * MockedStatic<INotifyUtil> notify = mockStatic(INotifyUtil.class))
+   * {
+   * var notifyUtil = mock(INotifyUtil.class);
+   * <p>
+   * //doNothing().when(notifyUtil).notify((Exception) any(), any(), eq(true));
+   * <p>
+   * Modules modulesMock = mock(Modules.class);
+   * modules.when(Modules::getDefault).thenReturn(modulesMock);
+   * var moduleInfoMock = mock(ModuleInfo.class);
+   * <p>
+   * when(Modules.getDefault()).thenReturn(modulesMock);
+   * doReturn(moduleInfoMock).when(modulesMock).findCodeNameBase("de.adito.designer.netbeans.Deploy");
+   * doThrow(new IllegalArgumentException()).when(moduleInfoMock).getClassLoader();
+   * <p>
+   * try
+   * {
+   * deployLocalChangesAction.deploy(List.of("test"));
+   * }
+   * catch (Exception e)
+   * {
+   * notifyUtil.notify(e, e.getMessage(), true);
+   * }
+   * verify(notifyUtil).notify((Exception) any(), any(), eq(true));
+   * }
+   * }
+   */
+
   /**
-   * check, if the help returns the default value
+   * Checks if the getIsEnabledObservable method returns the right enabled state
    */
   @Test
-  void getHelpCtx()
+  void shouldCallIsEnabled()
   {
-    assertNull(deployLocalChangesAction.getHelpCtx());
-  }
+    DeployLocalChangesAction deploySpy = spy(DeployLocalChangesAction.class);
+    var repository = mock(IRepository.class);
 
+    doReturn(true).when(deploySpy).isEnabled(repository);
+
+    var isEnabledObservable = deploySpy.getIsEnabledObservable(Observable.just(Optional.of(repository)));
+    var actual = (isEnabledObservable.blockingFirst());
+
+    assertAll(
+        () -> verify(deploySpy).isEnabled(any()),
+        () -> assertEquals(Optional.of(true), actual)
+    );
+  }
 
   /**
    * Checks the method {@link DeployLocalChangesAction#enable}
@@ -79,61 +122,40 @@ class DeployLocalChangesActionTest
     @NonNull
     private Stream<Arguments> provideNodeArrays()
     {
-      Node nodeMock1 = mock(Node.class);
-      Node nodeMock2 = mock(Node.class);
-      doReturn("project1").when(nodeMock1).getDisplayName();
-      doReturn("project2").when(nodeMock2).getDisplayName();
+      IRepository repository = spy(IRepository.class);
+      IRepository repository2 = spy(IRepository.class);
+
+      IFileStatus fileStatus = spy(IFileStatus.class);
+      IFileStatus fileStatus2 = spy(IFileStatus.class);
+
+      //pretend if there are uncommitted changes
+      doReturn(Observable.just(Optional.of(fileStatus))).when(repository).getStatus();
+      doReturn(true).when(fileStatus).hasUncommittedChanges();
+
+      //pretend there are no uncommitted changes
+      doReturn(Observable.just(Optional.of(fileStatus2))).when(repository2).getStatus();
+      doReturn(false).when(fileStatus2).hasUncommittedChanges();
 
       return Stream.of(
-          Arguments.of(new Node[]{nodeMock1}, true),
-          Arguments.of(new Node[]{nodeMock1, nodeMock2}, false)
+          Arguments.of(repository, true),
+          Arguments.of(repository2, false),
+          Arguments.of(null, false)
       );
     }
 
     /**
-     * parameterized test to check that the action is only available if one project is selected
+     * Parameterized test to check that the action is only available if one project is selected
      *
-     * @param nodes
+     * @param pRepository    the repository that will be checked
      * @param expectedResult the expected result
      */
     @ParameterizedTest
     @MethodSource("provideNodeArrays")
-    void shouldReturnExpectedResult(Node[] nodes, boolean expectedResult)
+    void shouldReturnExpectedResult(IRepository pRepository, boolean expectedResult)
     {
       DeployLocalChangesAction deploySpy = spy(DeployLocalChangesAction.class);
-      doReturn((nodes.length)).when(deploySpy).getCountOfSelectedProjects(nodes);
-      boolean result = deploySpy.enable(nodes);
 
-      assertEquals(expectedResult, result);
-    }
-  }
-
-  /**
-   * Checks the method {@link DeployLocalChangesAction#getCountOfSelectedProjects}
-   */
-  @Nested
-  class GetCountOfSelectedProjects
-  {
-
-    /**
-     * Checks if the given nodes returns the expected amount of projects
-     */
-    @Test
-    void shouldReturnCountOfSelectedNodes()
-    {
-      try (var mockedStat = mockStatic(IProjectQuery.class))
-      {
-        Node nodeMock1 = mock(Node.class);
-        Project project1 = mock(Project.class);
-        IProjectQuery projectQuery = mock(IProjectQuery.class);
-
-        when(IProjectQuery.getInstance()).thenReturn(projectQuery);
-        doReturn(project1).when(projectQuery).findProjects(nodeMock1, IProjectQuery.ReturnType.MULTIPLE_TO_NULL);
-
-        int result = deployLocalChangesAction.getCountOfSelectedProjects(new Node[]{nodeMock1});
-
-        assertEquals(1, result);
-      }
+      assertEquals(expectedResult, deploySpy.isEnabled(pRepository));
     }
   }
 
@@ -151,10 +173,9 @@ class DeployLocalChangesActionTest
     {
       Set<String> expected = Set.of("/myTest/myTestEntity/myProcess/process.js");
 
-      Optional optional = mock(Optional.class);
       IFileStatus fileStatus = mock(IFileStatus.class);
       Optional<IFileStatus> optionalIFileStatus = Optional.of(fileStatus);
-      doReturn(Set.<String>of("/myTest/myTestEntity/myProcess/process.js")).when(fileStatus).getUncommittedChanges();
+      doReturn(Set.of("/myTest/myTestEntity/myProcess/process.js")).when(fileStatus).getUncommittedChanges();
 
       Set<String> result = deployLocalChangesAction.getAllUncommittedChanges(optionalIFileStatus);
 
@@ -214,46 +235,37 @@ class DeployLocalChangesActionTest
   /**
    * Checks the method {@link DeployLocalChangesAction#getSourcesToDeploy}
    */
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
   @Nested
   class GetSourcesToDeploy
   {
     /**
-     * checks if an empty list is returned when parameter is empty
+     * Parameterized Method for the getSourcesToDeploy method
+     *
+     * @return Array of nodes and a corresponding expected result as an argument
      */
-    @Test
-    void shouldReturnEmptyList()
+    @NonNull
+    private Stream<Arguments> provideSetsOfArguments()
     {
-      assertEquals(new ArrayList<>(), deployLocalChangesAction.getSourcesToDeploy(new HashSet<>()));
+      return Stream.of(
+          Arguments.of(List.of(), Set.of()),
+          Arguments.of(List.of("myEntity"), Set.of("entity/myEntity/myEntity.aod")),
+          Arguments.of(List.of("test", "myEntity"), Set.of("entity/myEntity/myEntity.aod", "test/test/test/test/test.js"))
+      );
     }
 
-    /**
-     * checks if the empty provided list will not trigger the matcher-function
-     */
-    @Test
-    void shouldReturnEmptyListIfUncommitedChangesAreEmpty()
-    {
-      try (MockedStatic<Matcher> matcherMockedStatic = mockStatic(Matcher.class))
-      {
-        Matcher matcher = mock(Matcher.class);
-
-        assertAll(
-            () -> assertEquals(new ArrayList<>(), deployLocalChangesAction.getSourcesToDeploy(new HashSet<>())),
-            () -> verify(matcher, never()).group(anyInt())
-        );
-      }
-    }
 
     /**
-     * checks if the function with the Regex returns the expected list
+     * Check if the regex returns the expected result
+     *
+     * @param pExpected expected result
+     * @param pToTest   set of relative file paths as strings
      */
-    @Test
-    void shouldFindMatcherAndAddToList()
+    @ParameterizedTest
+    @MethodSource("provideSetsOfArguments")
+    void shouldReturnExpectedResults(List<String> pExpected, Set<String> pToTest)
     {
-      List<String> expected = List.of("myEntity");
-
-      Set<String> set = Set.of("entity/myEntity/myEntity.aod");
-
-      assertEquals(expected, deployLocalChangesAction.getSourcesToDeploy(set));
+      assertEquals(pExpected, deployLocalChangesAction.getSourcesToDeploy(pToTest));
     }
   }
 }

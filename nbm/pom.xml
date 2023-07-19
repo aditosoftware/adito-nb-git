@@ -26,10 +26,6 @@
       <artifactId>nb-adito-interface</artifactId>
     </dependency>
     <dependency>
-      <groupId>de.adito.nbm</groupId>
-      <artifactId>de-adito-metrics-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>de.adito.nb-modules</groupId>
       <artifactId>de-adito-netbeans-utilities</artifactId>
       <version>RELEASE122-1.6.2-4</version>

@@ -1,19 +1,18 @@
 package de.adito.git.nbm.actions;
 
 import com.google.common.annotations.VisibleForTesting;
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
 import de.adito.git.api.*;
 import de.adito.git.api.data.IFileStatus;
 import de.adito.git.nbm.IGitConstants;
 import de.adito.git.nbm.util.RepositoryUtility;
 import io.reactivex.rxjava3.core.Observable;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 import org.netbeans.api.project.Project;
 import org.openide.awt.*;
 import org.openide.modules.Modules;
 import org.openide.nodes.Node;
-import org.openide.util.*;
-import org.openide.util.actions.NodeAction;
+import org.openide.util.NbBundle;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -25,18 +24,18 @@ import java.util.regex.*;
  * @author F.Adler, 27.06.2023
  */
 @ActionID(category = "adito/ribbon", id = "de.adito.git.nbm.actions.DeployLocalChangesAction")
-@ActionRegistration(displayName = "#LBL_deployProject_Name", iconBase = "#ICON_deployProject_Path")
+@ActionRegistration(displayName = "#LBL_deployProject_Name", iconBase = "de/adito/git/nbm/actions/indent_dark.png")
 @ActionReferences({
     @ActionReference(path = "Toolbars/deploy", position = 200, separatorAfter = 250),
     @ActionReference(path = "Shortcuts", name = "SA-F8")})
-public class DeployLocalChangesAction extends NodeAction
+public class DeployLocalChangesAction extends NBAction
 {
   private final transient INotifyUtil notifyUtil = IGitConstants.INJECTOR.getInstance(INotifyUtil.class);
 
   @Override
   protected String iconResource()
   {
-    return NbBundle.getMessage(DeployLocalChangesAction.class, "ICON_deployProject_Path");
+    return "de/adito/git/nbm/actions/indent_dark.png";
   }
 
   @Override
@@ -58,27 +57,27 @@ public class DeployLocalChangesAction extends NodeAction
     }
   }
 
-  @Override
-  protected boolean enable(@NotNull Node[] pNodes)
+  @VisibleForTesting
+  boolean isEnabled(@Nullable IRepository pRepository)
   {
-    return getCountOfSelectedProjects(pNodes) == 1;
+    if (pRepository == null)
+      return false;
+
+    Observable<Object> res = pRepository
+        .getStatus()
+        .map(pIFileStatus ->
+                 pIFileStatus
+                     .map(IFileStatus::hasUncommittedChanges)
+                     .orElse(false)
+        );
+
+    return !Boolean.FALSE.equals(res.blockingFirst());
   }
 
-  /**
-   * Get all currently selected nodes as a long
-   *
-   * @param nodes currently selected nodes
-   * @return the number of projects that are selected
-   */
-  protected int getCountOfSelectedProjects(@NotNull Node[] nodes)
+  @Override
+  protected Observable<Optional<Boolean>> getIsEnabledObservable(@NonNull Observable<Optional<IRepository>> pRepositoryObservable)
   {
-    return ((int) Arrays.stream(nodes)
-        .map(pNode -> IProjectQuery
-            .getInstance()
-            .findProjects(pNode, IProjectQuery.ReturnType.MULTIPLE_TO_NULL))
-        .filter(Objects::nonNull)
-        .distinct()
-        .count());
+    return pRepositoryObservable.map(pRepoOpt -> pRepoOpt.map(this::isEnabled));
   }
 
   @Override
@@ -87,11 +86,6 @@ public class DeployLocalChangesAction extends NodeAction
     return NbBundle.getMessage(getClass(), "LBL_deployProject_Name");
   }
 
-  @Override
-  public HelpCtx getHelpCtx()
-  {
-    return null;
-  }
 
   /**
    * Get all uncommitted changes including untracked files that are added to the project
@@ -99,7 +93,7 @@ public class DeployLocalChangesAction extends NodeAction
    * @param pIFileStatus FileStatus of the current project/repository
    * @return complete list of all uncommitted changes
    */
-  public Set<String> getAllUncommittedChanges(@NotNull Optional<IFileStatus> pIFileStatus)
+  public Set<String> getAllUncommittedChanges(@NonNull Optional<IFileStatus> pIFileStatus)
   {
     if (pIFileStatus.isPresent())
     {
@@ -118,7 +112,7 @@ public class DeployLocalChangesAction extends NodeAction
    * @return The list of sources which should be deployed
    */
   @VisibleForTesting
-  List<String> getSourcesToDeploy(@NotNull Set<String> pUncommittedFiles)
+  List<String> getSourcesToDeploy(@NonNull Set<String> pUncommittedFiles)
   {
     Set<String> uncommittedList = new HashSet<>();
     //the following regex will find the name that has to be deployed
@@ -142,7 +136,7 @@ public class DeployLocalChangesAction extends NodeAction
    * @param pUncommittedList The list of sources that should be deployed
    */
   @VisibleForTesting
-  void deploy(@NotNull List<String> pUncommittedList)
+  void deploy(@NonNull List<String> pUncommittedList)
   {
     try
     {
@@ -154,6 +148,7 @@ public class DeployLocalChangesAction extends NodeAction
       Constructor<?> guiConstructor = gui.getConstructor(Project.class, List.class);
       Object guiInstance = guiConstructor.newInstance(null, pUncommittedList);
       deployStarterClass.getMethod("deploy", iInteractiveDeployCallback).invoke(null, guiInstance);
+
     }
     catch (ReflectiveOperationException pE)
     {
