@@ -4,6 +4,7 @@ import de.adito.git.api.IRepository;
 import de.adito.git.api.data.IFileStatus;
 import io.reactivex.rxjava3.core.Observable;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
@@ -51,41 +52,6 @@ class DeployLocalChangesActionTest
   {
     assertNotNull(deployLocalChangesAction.getName());
   }
-
-  //Maybe relevant in the future, but currently not working
-  /*
-   * Check if a message is returned to the user when the deploy is not available
-   *
-   * @Test void shouldReturnLogWhenErrorIsThrown()
-   * {
-   * try (MockedStatic<Modules> modules = mockStatic(Modules.class);
-   * MockedStatic<ModuleInfo> moduleInfo = mockStatic(ModuleInfo.class);
-   * MockedStatic<INotifyUtil> notify = mockStatic(INotifyUtil.class))
-   * {
-   * var notifyUtil = mock(INotifyUtil.class);
-   * <p>
-   * //doNothing().when(notifyUtil).notify((Exception) any(), any(), eq(true));
-   * <p>
-   * Modules modulesMock = mock(Modules.class);
-   * modules.when(Modules::getDefault).thenReturn(modulesMock);
-   * var moduleInfoMock = mock(ModuleInfo.class);
-   * <p>
-   * when(Modules.getDefault()).thenReturn(modulesMock);
-   * doReturn(moduleInfoMock).when(modulesMock).findCodeNameBase("de.adito.designer.netbeans.Deploy");
-   * doThrow(new IllegalArgumentException()).when(moduleInfoMock).getClassLoader();
-   * <p>
-   * try
-   * {
-   * deployLocalChangesAction.deploy(List.of("test"));
-   * }
-   * catch (Exception e)
-   * {
-   * notifyUtil.notify(e, e.getMessage(), true);
-   * }
-   * verify(notifyUtil).notify((Exception) any(), any(), eq(true));
-   * }
-   * }
-   */
 
   /**
    * Checks if the getIsEnabledObservable method returns the right enabled state
@@ -151,7 +117,7 @@ class DeployLocalChangesActionTest
      */
     @ParameterizedTest
     @MethodSource("provideNodeArrays")
-    void shouldReturnExpectedResult(IRepository pRepository, boolean expectedResult)
+    void shouldReturnExpectedResult(@Nullable IRepository pRepository, boolean expectedResult)
     {
       DeployLocalChangesAction deploySpy = spy(DeployLocalChangesAction.class);
 
@@ -263,7 +229,7 @@ class DeployLocalChangesActionTest
      */
     @ParameterizedTest
     @MethodSource("provideSetsOfArguments")
-    void shouldReturnExpectedResults(List<String> pExpected, Set<String> pToTest)
+    void shouldReturnExpectedResults(@NonNull List<String> pExpected, @NonNull Set<String> pToTest)
     {
       assertEquals(pExpected, deployLocalChangesAction.getSourcesToDeploy(pToTest));
     }

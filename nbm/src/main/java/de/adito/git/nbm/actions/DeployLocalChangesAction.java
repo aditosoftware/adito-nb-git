@@ -63,15 +63,12 @@ public class DeployLocalChangesAction extends NBAction
     if (pRepository == null)
       return false;
 
-    Observable<Object> res = pRepository
-        .getStatus()
+    return pRepository.getStatus()
         .map(pIFileStatus ->
                  pIFileStatus
                      .map(IFileStatus::hasUncommittedChanges)
                      .orElse(false)
-        );
-
-    return !Boolean.FALSE.equals(res.blockingFirst());
+        ).blockingFirst();
   }
 
   @Override
