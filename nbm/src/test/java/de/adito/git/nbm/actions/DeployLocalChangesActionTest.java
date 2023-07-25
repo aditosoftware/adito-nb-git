@@ -9,6 +9,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
 import org.openide.nodes.Node;
+import org.openide.util.NbBundle;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -39,7 +40,7 @@ class DeployLocalChangesActionTest
    * Check if the icon resource is not null
    */
   @Test
-  void getIconResource()
+  void shouldGetIconResource()
   {
     assertNotNull(deployLocalChangesAction.iconResource());
   }
@@ -48,29 +49,9 @@ class DeployLocalChangesActionTest
    * Check, if the name returns the default value
    */
   @Test
-  void getName()
+  void shouldGetName()
   {
-    assertNotNull(deployLocalChangesAction.getName());
-  }
-
-  /**
-   * Checks if the getIsEnabledObservable method returns the right enabled state
-   */
-  @Test
-  void shouldCallIsEnabled()
-  {
-    DeployLocalChangesAction deploySpy = spy(DeployLocalChangesAction.class);
-    var repository = mock(IRepository.class);
-
-    doReturn(true).when(deploySpy).isEnabled(repository);
-
-    var isEnabledObservable = deploySpy.getIsEnabledObservable(Observable.just(Optional.of(repository)));
-    var actual = (isEnabledObservable.blockingFirst());
-
-    assertAll(
-        () -> verify(deploySpy).isEnabled(any()),
-        () -> assertEquals(Optional.of(true), actual)
-    );
+    assertEquals(NbBundle.getMessage(getClass(), "LBL_deployProject_Name"), deployLocalChangesAction.getName());
   }
 
   /**
@@ -180,10 +161,10 @@ class DeployLocalChangesActionTest
     }
 
     /**
-     * Checks if the "deploy"-method is called and do nothing
+     * Checks if the "deploy"-method is called if there is at least one element to deploy
      */
     @Test
-    void shouldCallDeploy()
+    void shouldVerifyIfDeployWasCorrectlyCalled()
     {
       List<String> uncommittedFiles = List.of("test");
 
@@ -194,7 +175,12 @@ class DeployLocalChangesActionTest
 
       deploySpy.performAction(any());
 
-      verify(deploySpy).deploy(uncommittedFiles);
+      assertAll(
+          () -> verify(deploySpy).deploy(uncommittedFiles),
+          () -> verify(deploySpy).performAction(any()),
+          () -> verify(deploySpy).getSourcesToDeploy(new HashSet<>())
+      );
+      verifyNoMoreInteractions(deploySpy);
     }
   }
 
