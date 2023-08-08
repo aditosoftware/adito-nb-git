@@ -3,41 +3,59 @@ package de.adito.git.gui.dialogs;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.jidesoft.swing.*;
+import com.jidesoft.swing.CheckBoxTree;
+import com.jidesoft.swing.CheckBoxTreeSelectionModel;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IBeforeCommitAction;
 import de.adito.git.api.*;
-import de.adito.git.api.data.*;
+import de.adito.git.api.data.IConfig;
+import de.adito.git.api.data.IFileStatus;
+import de.adito.git.api.data.IRepositoryState;
 import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.api.prefs.IPrefStore;
-import de.adito.git.gui.*;
+import de.adito.git.gui.Constants;
+import de.adito.git.gui.DelayedSupplier;
+import de.adito.git.gui.PopupMouseListener;
 import de.adito.git.gui.actions.IActionProvider;
 import de.adito.git.gui.dialogs.results.CommitDialogResult;
 import de.adito.git.gui.icon.IIconLoader;
-import de.adito.git.gui.quicksearch.*;
+import de.adito.git.gui.quicksearch.QuickSearchTreeCallbackImpl;
+import de.adito.git.gui.quicksearch.SearchableCheckboxTree;
 import de.adito.git.gui.rxjava.ObservableTreeSelectionModel;
-import de.adito.git.gui.swing.*;
+import de.adito.git.gui.swing.InputFieldTablePanel;
+import de.adito.git.gui.swing.MutableIconActionButton;
 import de.adito.git.gui.tree.TreeUtil;
 import de.adito.git.gui.tree.models.*;
-import de.adito.git.gui.tree.nodes.*;
-import de.adito.git.gui.tree.renderer.*;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
+import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
+import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 import de.adito.git.impl.observables.DocumentChangeObservable;
 import de.adito.swing.LinedDecorator;
 import de.adito.util.reactive.AbstractListenerObservable;
-import de.adito.util.reactive.cache.*;
+import de.adito.util.reactive.cache.ObservableCache;
+import de.adito.util.reactive.cache.ObservableCacheDisposable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import lombok.*;
-import org.jetbrains.annotations.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.Document;
-import javax.swing.tree.*;
-import java.awt.*;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.io.File;
-import java.util.List;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -59,7 +77,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private static final String BEFORE_COMMIT_CHECKBOX_PREFS = "de.adito.git.gui.dialogs.";
   private static final int DETAILS_LINE_DECORATOR_HEIGHT = 16;
   private final JPanel tableSearchView = new JPanel(new BorderLayout());
-  private final JEditorPane messagePane = new JEditorPane();
+  private final JTextArea commitMessageArea = new JTextArea();
   private final JCheckBox amendCheckBox = new JCheckBox("Amend Commit");
   private final IActionProvider actionProvider;
   private final LookupProvider lookupProvider;
@@ -81,7 +99,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
                       IIconLoader pIconLoader, IPrefStore pPrefStore, @Assisted @NonNull IDialogDisplayer.IDescriptor pIsValidDescriptor,
                       @Assisted @NonNull Observable<Optional<IRepository>> pRepository, @Assisted @NonNull Observable<Optional<List<IFileChangeType>>> pFilesToCommit,
                       @Assisted String pMessageTemplate, @Assisted @NonNull DelayedSupplier<List<IBeforeCommitAction>> pSelectedActionsSupplier,
-                      @Assisted @NonNull DelayedSupplier<List<File>> pDelayedSupplier, IEditorKitProvider pEditorKitProvider)
+                      @Assisted @NonNull DelayedSupplier<List<File>> pDelayedSupplier)
   {
     actionProvider = pActionProvider;
     lookupProvider = pLookupProvider;
@@ -102,16 +120,21 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     if (optRepo.isPresent() && dir != null)
     {
       _initCheckBoxTree(pFileSystemUtil, pQuickSearchProvider, pFilesToCommit, filesToCommitObservable, dir);
-      SwingUtilities.invokeLater(() -> {
-        messagePane.setEditorKit(pEditorKitProvider.getEditorKitForContentType("text/plain"));
-        messagePane.setText(pMessageTemplate);
-      });
-      Observable<Boolean> nonEmptyTextObservable = Observable.create(new DocumentChangeObservable(messagePane))
+      // Observable that triggers each time the commit message is adjusted. Fires true if the commit message is not empty, false otherwise
+      Observable<Boolean> nonEmptyTextObservable = Observable.create(new DocumentChangeObservable(commitMessageArea))
+          .startWithItem(commitMessageArea.getDocument())
           .switchMap(pDocument -> Observable.create(new _NonEmptyTextObservable(pDocument)))
-          .startWithItem(messagePane.getDocument().getLength() > 0);
+          .startWithItem(commitMessageArea.getDocument().getLength() > 0);
+      // Combine the observable of the files to commit and the observable of the commit message to an observable that fires true if the commit action can be performed
+      // (non-empty commit message and at least one file selected)
       disposables.add(Observable.combineLatest(_observeSelectedFiles(), nonEmptyTextObservable, (pFiles, pValid) -> !pFiles.isEmpty() && pValid)
                           .subscribe(pIsValidDescriptor::setValid));
-      _initGui(dir, optRepo.get().getConfig());
+
+      SwingUtilities.invokeLater(() -> {
+        _initGui(dir, optRepo.get().getConfig());
+        commitMessageArea.setLineWrap(true);
+        commitMessageArea.setText(pMessageTemplate);
+      });
     }
     else
     {
@@ -153,7 +176,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
     amendCheckBox.addActionListener(e -> {
       if (amendCheckBox.getModel().isSelected())
       {
-        messagePane.setText(pRepository.blockingFirst().map(pRepo -> {
+        commitMessageArea.setText(pRepository.blockingFirst().map(pRepo -> {
           try
           {
             return pRepo.getCommit(null).getShortMessage();
@@ -313,13 +336,15 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   private void _initGui(@NonNull File pDir, @NonNull IConfig pConfig)
   {
     // EditorPane for the Commit message
-    messagePane.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
+    commitMessageArea.setMinimumSize(MESSAGE_PANE_MIN_SIZE);
+    JScrollPane messageScrollPane = new JScrollPane(commitMessageArea);
+    messageScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     JPanel messagePaneWithHeader = new JPanel(new BorderLayout());
     LinedDecorator cmDecorator = new LinedDecorator("Commit Message", 32);
     cmDecorator.setBorder(new EmptyBorder(0, 0, 7, 0));
     messagePaneWithHeader.add(cmDecorator, BorderLayout.NORTH);
-    messagePaneWithHeader.add(messagePane, BorderLayout.CENTER);
+    messagePaneWithHeader.add(messageScrollPane, BorderLayout.CENTER);
     messagePaneWithHeader.setBorder(null);
 
     // mainContent center
@@ -429,6 +454,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
             .map(IRepository::getTopLevelDirectory))
         .switchMap(pTLDOpt -> pTLDOpt
             .map(pTLD -> Observable.create(new _CBTreeObservable(checkBoxTree))
+                .throttleLatest(100, TimeUnit.MILLISECONDS)
                 .startWithItem(List.of()))
             // in case the repository was not present: Everything is empty, but no exception/crash
             .orElseGet(() -> Observable.just(List.of()))));
@@ -437,7 +463,7 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   @Override
   public String getMessage()
   {
-    return messagePane.getText();
+    return commitMessageArea.getText();
   }
 
   @Override
