@@ -101,7 +101,14 @@ class CommitAction extends AbstractTableAction
     }
   }
 
-  static String getCommitMessageStorageKey(@NonNull Observable<Optional<IRepository>> pRepository)
+  /**
+   * retrieve the key that is used to store the commit message for the current repository
+   *
+   * @param pRepository Observable of the Repository
+   * @return String with the key with which to access the stored commit message for the repository
+   */
+  @NonNull
+  private static String getCommitMessageStorageKey(@NonNull Observable<Optional<IRepository>> pRepository)
   {
     return COMMIT_MESSAGE_BASE_STORAGE_KEY + pRepository.blockingFirst(Optional.empty())
         .map(IRepository::getTopLevelDirectory)

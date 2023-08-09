@@ -169,6 +169,7 @@ class MergeAction extends AbstractTableAction
    * @return AfterMergeConflictsSteps that determine if a commit and unstash should happen
    * @throws AditoGitException thrown if the user tries to abort the merge and HEAD cannot be reset to the tip of the current branch
    */
+  @NonNull
   private AfterMergeConflictsSteps dealWithMergeConflicts(@NonNull IProgressHandle pProgressHandle, @NonNull IRepository pRepository, @NonNull IBranch pCurrentBranch,
                                                           @NonNull IMergeDetails pMergeDetails) throws AditoGitException
   {
