@@ -28,7 +28,7 @@ public class MergeRemoteAction extends MergeAction
                     MergeConflictSequence pMergeConflictSequence, IActionProvider pActionProvider, @Assisted Observable<Optional<IRepository>> pRepoObs,
                     @Assisted Observable<Optional<IBranch>> pTargetBranch)
   {
-    super(pPrefStore, pProgressFacade, pDialogProvider, pSaveUtil, pNotifyUtil, pMergeConflictSequence, pRepoObs, pTargetBranch);
+    super(pPrefStore, pProgressFacade, pDialogProvider, pSaveUtil, pNotifyUtil, pActionProvider, pMergeConflictSequence, pRepoObs, pTargetBranch);
     actionProvider = pActionProvider;
     putValue(Action.NAME, "Fetch and merge into Current");
   }
