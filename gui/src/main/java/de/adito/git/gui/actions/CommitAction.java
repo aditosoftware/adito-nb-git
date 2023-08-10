@@ -69,7 +69,7 @@ class CommitAction extends AbstractTableAction
   {
     saveUtil.saveUnsavedFiles();
     Optional<IRepository> currentRepoOpt = repository.blockingFirst();
-    String prefStoreInstanceKey = COMMIT_MESSAGE_BASE_STORAGE_KEY + currentRepoOpt.map(pRepo -> pRepo.getTopLevelDirectory().getAbsolutePath()).orElse("");
+    String prefStoreInstanceKey = getCommitMessageStorageKey(repository);
     Observable<Optional<IRepository>> repo = Observable.just(currentRepoOpt);
     if (messageTemplate == null || messageTemplate.isEmpty())
     {
@@ -99,6 +99,21 @@ class CommitAction extends AbstractTableAction
     {
       prefStore.put(prefStoreInstanceKey, dialogResult.getMessage());
     }
+  }
+
+  /**
+   * retrieve the key that is used to store the commit message for the current repository
+   *
+   * @param pRepository Observable of the Repository
+   * @return String with the key with which to access the stored commit message for the repository
+   */
+  @NonNull
+  private static String getCommitMessageStorageKey(@NonNull Observable<Optional<IRepository>> pRepository)
+  {
+    return COMMIT_MESSAGE_BASE_STORAGE_KEY + pRepository.blockingFirst(Optional.empty())
+        .map(IRepository::getTopLevelDirectory)
+        .map(File::getAbsolutePath)
+        .orElse("");
   }
 
   /**

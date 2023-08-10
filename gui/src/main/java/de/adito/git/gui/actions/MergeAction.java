@@ -1,5 +1,6 @@
 package de.adito.git.gui.actions;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import de.adito.git.api.INotifyUtil;
@@ -21,11 +22,15 @@ import de.adito.git.gui.sequences.MergeConflictSequence;
 import de.adito.git.impl.Util;
 import de.adito.git.impl.data.MergeDetailsImpl;
 import io.reactivex.rxjava3.core.Observable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
 
 import java.awt.event.ActionEvent;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author m.kaspera 24.10.2018
@@ -36,6 +41,7 @@ class MergeAction extends AbstractTableAction
   private static final String STASH_ID_KEY = "merge::stashCommitId";
   private final ISaveUtil saveUtil;
   private final INotifyUtil notifyUtil;
+  private final IActionProvider actionProvider;
   private final MergeConflictSequence mergeConflictSequence;
   final Observable<Optional<IRepository>> repositoryObservable;
   private final IPrefStore prefStore;
@@ -45,7 +51,8 @@ class MergeAction extends AbstractTableAction
 
   @Inject
   MergeAction(IPrefStore pPrefStore, IAsyncProgressFacade pProgressFacade, IDialogProvider pDialogProvider, ISaveUtil pSaveUtil, INotifyUtil pNotifyUtil,
-              MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepoObs, @Assisted Observable<Optional<IBranch>> pTargetBranch)
+              IActionProvider pActionProvider, MergeConflictSequence pMergeConflictSequence, @Assisted Observable<Optional<IRepository>> pRepoObs,
+              @Assisted Observable<Optional<IBranch>> pTargetBranch)
   {
     super("Merge into Current", _getIsEnabledObservable(pTargetBranch));
     prefStore = pPrefStore;
@@ -53,6 +60,7 @@ class MergeAction extends AbstractTableAction
     dialogProvider = pDialogProvider;
     saveUtil = pSaveUtil;
     notifyUtil = pNotifyUtil;
+    actionProvider = pActionProvider;
     mergeConflictSequence = pMergeConflictSequence;
     repositoryObservable = pRepoObs;
     targetBranch = pTargetBranch;
@@ -76,10 +84,19 @@ class MergeAction extends AbstractTableAction
                                                               });
   }
 
-  private void _doMerge(IProgressHandle pProgressHandle, IRepository pRepository, IBranch pSelectedBranch) throws AditoGitException
+  /**
+   * perform the actual merge
+   *
+   * @param pProgressHandle ProgressHandle that allows informing the user about the current work
+   * @param pRepository     Repository of the project that the merge is done in
+   * @param pSelectedBranch The branch that is merged into the current branch
+   * @throws AditoGitException if the stash/unstash encounters a problem, an error is encountered during the merge or the result cannot be commited
+   */
+  private void _doMerge(@NonNull IProgressHandle pProgressHandle, @NonNull IRepository pRepository, @NonNull IBranch pSelectedBranch) throws AditoGitException
   {
     saveUtil.saveUnsavedFiles();
     boolean unstashChanges = true;
+    AfterMergeConflictsSteps afterMergeConflictsSteps = AfterMergeConflictsSteps.COMMIT_AND_UNSTASH;
     try
     {
       if (pRepository.getStatus().blockingFirst().map(IFileStatus::hasUncommittedChanges).orElse(false)
@@ -90,35 +107,17 @@ class MergeAction extends AbstractTableAction
       IBranch currentBranch = pRepository.getRepositoryState().blockingFirst().orElseThrow().getCurrentBranch();
       pProgressHandle.setDescription("Merging branches");
       List<IMergeData> mergeConflictDiffs = pRepository.merge(currentBranch, pSelectedBranch);
+      String suggestedCommitMessage = createSuggestedCommitMessage(pRepository, pSelectedBranch, mergeConflictDiffs);
       if (!mergeConflictDiffs.isEmpty())
       {
         IMergeDetails mergeDetails = new MergeDetailsImpl(mergeConflictDiffs, currentBranch.getSimpleName(), pSelectedBranch.getSimpleName());
-        IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepository)),
-                                                                                                           mergeDetails, true);
-        IUserPromptDialogResult<?, ?> promptDialogResult = null;
-        if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
-        {
-          promptDialogResult = dialogProvider.showMessageDialog(null, Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
-                                                                List.of(EButtons.SAVE, EButtons.ABORT),
-                                                                List.of(EButtons.SAVE));
-          if (promptDialogResult.isOkay())
-          {
-            unstashChanges = false;
-            notifyUtil.notify("Saved merge state", Util.getResource(this.getClass(), "mergeSavedStateMsg"), false);
-            return;
-          }
-        }
-        if (!dialogResult.isFinishMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
-        {
-          pProgressHandle.setDescription("Aborting merge");
-          pRepository.reset(currentBranch.getId(), EResetType.HARD);
-          // do not execute the "show commit dialog" part after this, the finally block should still be executed even if we return here
-          return;
-        }
+        afterMergeConflictsSteps = dealWithMergeConflicts(pProgressHandle, pRepository, currentBranch, mergeDetails);
       }
-      pRepository.commit("merged " + pSelectedBranch.getSimpleName() + " into " + pRepository.getRepositoryState().blockingFirst()
-          .map(pState -> pState.getCurrentBranch().getSimpleName())
-          .orElse("current Branch"));
+      if (afterMergeConflictsSteps.isCommitWithDialog())
+        commitAfterMergeConflicts(pRepository, suggestedCommitMessage);
+        // in case there were no conflicts just commit the changes with the default message
+      else if (afterMergeConflictsSteps.isCommit)
+        pRepository.commit(suggestedCommitMessage);
     }
     catch (AlreadyUpToDateAditoGitException pE)
     {
@@ -127,8 +126,89 @@ class MergeAction extends AbstractTableAction
     }
     finally
     {
-      _performUnstash(pProgressHandle, pRepository, unstashChanges);
+      if (afterMergeConflictsSteps.isUnstash())
+        _performUnstash(pProgressHandle, pRepository, unstashChanges);
     }
+  }
+
+  /**
+   * Create a commit message that contains information about the merge:
+   * - which branches were mergen
+   * - if there were conflicts, list which files had conflicts
+   *
+   * @param pRepository         Repository of the project that the merge is done in
+   * @param pSelectedBranch     The branch that is merged into the current branch
+   * @param pMergeConflictDiffs List of IMergeData that contains the conflicting files
+   * @return String with the message that should be given to the commit dialog as template for the user
+   */
+  @VisibleForTesting
+  @NonNull
+  static String createSuggestedCommitMessage(@NonNull IRepository pRepository, @NonNull IBranch pSelectedBranch, @NonNull List<IMergeData> pMergeConflictDiffs)
+  {
+    String mergeMessage = "merged " + pSelectedBranch.getSimpleName() + " into " + pRepository.getRepositoryState().blockingFirst()
+        .map(pState -> pState.getCurrentBranch().getSimpleName())
+        .orElse("current Branch");
+    if (pMergeConflictDiffs.isEmpty())
+    {
+      return mergeMessage;
+    }
+    else
+    {
+      String conflictingFiles = pMergeConflictDiffs.stream().map(IMergeData::getFilePath).map(pPath -> "#     " + pPath).collect(Collectors.joining("\n"));
+      return String.format("%s\n\n#  merge had %d conflicting files:\n%s", mergeMessage, pMergeConflictDiffs.size(), conflictingFiles);
+    }
+  }
+
+  /**
+   * Perform the mergeConflictsSequence and handle the abort and save of the current merge
+   *
+   * @param pProgressHandle ProgressHandle that allows informing the user about the current work
+   * @param pRepository     Repository of the project that the merge is done in
+   * @param pCurrentBranch  Branch that the user is coming from (branch the user was on before he invoked the merge)
+   * @param pMergeDetails   Details of the merge, includes conflicting files and such
+   * @return AfterMergeConflictsSteps that determine if a commit and unstash should happen
+   * @throws AditoGitException thrown if the user tries to abort the merge and HEAD cannot be reset to the tip of the current branch
+   */
+  @NonNull
+  private AfterMergeConflictsSteps dealWithMergeConflicts(@NonNull IProgressHandle pProgressHandle, @NonNull IRepository pRepository, @NonNull IBranch pCurrentBranch,
+                                                          @NonNull IMergeDetails pMergeDetails) throws AditoGitException
+  {
+    IMergeConflictDialogResult<?, ?> dialogResult = mergeConflictSequence.performMergeConflictSequence(Observable.just(Optional.of(pRepository)),
+                                                                                                       pMergeDetails, true);
+    IUserPromptDialogResult<?, ?> promptDialogResult = null;
+    if (!(dialogResult.isAbortMerge() || dialogResult.isFinishMerge()))
+    {
+      promptDialogResult = dialogProvider.showMessageDialog(null, Util.getResource(this.getClass(), "mergeSaveStateQuestion"),
+                                                            List.of(EButtons.SAVE, EButtons.ABORT),
+                                                            List.of(EButtons.SAVE));
+      if (promptDialogResult.isOkay())
+      {
+        notifyUtil.notify("Saved merge state", Util.getResource(this.getClass(), "mergeSavedStateMsg"), false);
+        return AfterMergeConflictsSteps.NO_COMMIT_NO_UNSTASH;
+      }
+    }
+    if (!dialogResult.isFinishMerge() || (promptDialogResult != null && !promptDialogResult.isOkay()))
+    {
+      pProgressHandle.setDescription("Aborting merge");
+      pRepository.reset(pCurrentBranch.getId(), EResetType.HARD);
+      // do not execute the "show commit dialog" part after this (no changes), but unstash the previously changed files
+      return AfterMergeConflictsSteps.NO_COMMIT_BUT_UNSTASH;
+    }
+    // there were conflicting files in the merge, so present the user with the dialog and a preset commit message and let him decide if the message suits him
+    return AfterMergeConflictsSteps.COMMIT_WITH_DIALOG_AND_UNSTASH;
+  }
+
+  /**
+   * Show the commit dialog, and based on the user input commit the selected changes (or leave them as-is if the user aborts)
+   *
+   * @param pRepository            repository that contains the changes to commit
+   * @param suggestedCommitMessage message that should be preset for user convenience
+   */
+  private void commitAfterMergeConflicts(@NonNull IRepository pRepository, @NonNull String suggestedCommitMessage)
+  {
+    actionProvider.getCommitAction(Observable.just(Optional.of(pRepository)), pRepository.getStatus()
+                                       .map(pStatus -> pStatus.map(IFileStatus::getUncommitted)),
+                                   suggestedCommitMessage).actionPerformed(null);
   }
 
   private void _performUnstash(IProgressHandle pProgressHandle, IRepository pRepository, boolean pUnstashChanges)
@@ -151,5 +231,36 @@ class MergeAction extends AbstractTableAction
   private static Observable<Optional<Boolean>> _getIsEnabledObservable(Observable<Optional<IBranch>> pTargetBranch)
   {
     return pTargetBranch.map(pBranch -> Optional.of(pBranch.isPresent()));
+  }
+
+  /**
+   * Enum that represents steps that should be done after a merge conflict resolution
+   */
+  @AllArgsConstructor
+  private enum AfterMergeConflictsSteps
+  {
+    /**
+     * Do a fast commit (uses default commit message, does not ask the user for the commit message) and unstash the stashed changes afterwards
+     */
+    COMMIT_AND_UNSTASH(true, false, true),
+    /**
+     * Do a commit with commit message approval (show the default commit dialog with preset commit message template) from the user and unstash the stashed changes afterwards
+     */
+    COMMIT_WITH_DIALOG_AND_UNSTASH(false, true, true),
+    /**
+     * Do not commit but perform an unstash (used in conjunction with an aborted merge -> reset to state before the merge began and unstash changes)
+     */
+    NO_COMMIT_BUT_UNSTASH(false, false, true),
+    /**
+     * Neither commit nor unstash, used if some conflicts were resolved and the current state of the merge should be kept for later
+     */
+    NO_COMMIT_NO_UNSTASH(false, false, false);
+
+    @Getter
+    private final boolean isCommit;
+    @Getter
+    private final boolean isCommitWithDialog;
+    @Getter
+    private final boolean isUnstash;
   }
 }

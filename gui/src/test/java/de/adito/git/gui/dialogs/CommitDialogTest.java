@@ -2,9 +2,11 @@ package de.adito.git.gui.dialogs;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.git.IBeforeCommitAction;
 import de.adito.git.api.IRepository;
-import de.adito.git.api.data.diff.*;
+import de.adito.git.api.data.diff.EChangeType;
+import de.adito.git.api.data.diff.IFileChangeType;
 import de.adito.git.gui.DelayedSupplier;
-import de.adito.git.gui.tree.nodes.*;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
+import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 import de.adito.git.impl.data.FileChangeTypeImpl;
 import io.reactivex.rxjava3.core.Observable;
 import lombok.NonNull;
@@ -37,7 +39,7 @@ class CommitDialogTest
     DelayedSupplier<List<File>> pDelayedSupplier = new DelayedSupplier<>();
     DelayedSupplier<List<IBeforeCommitAction>> pSelectedActionsSupplier = new DelayedSupplier<>();
 
-    CommitDialog commitDialog = new CommitDialog(null, null, null, null, null, null, pIsValidDescriptor, pRepository, pFilesToCommit, null, pSelectedActionsSupplier, pDelayedSupplier, null);
+    CommitDialog commitDialog = new CommitDialog(null, null, null, null, null, null, pIsValidDescriptor, pRepository, pFilesToCommit, null, pSelectedActionsSupplier, pDelayedSupplier);
 
     File packageJson = new File("c:/projects/basic/package.json");
     File entityValueChange = new File("c:/projects/basic/entity/My_entity/entityfields/myfield/onValueChange.js");
