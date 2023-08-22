@@ -48,6 +48,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.Document;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
@@ -488,6 +489,9 @@ class CommitDialog extends AditoBaseDialog<CommitDialogResult> implements IDisca
   {
     disposables.clear();
     observableTreeSelectionModel.discard();
+    TreeCellRenderer cellRenderer = checkBoxTree.getCellRenderer();
+    if (cellRenderer instanceof IDiscardable)
+      ((IDiscardable) cellRenderer).discard();
     treeUpdater.discard();
   }
 
