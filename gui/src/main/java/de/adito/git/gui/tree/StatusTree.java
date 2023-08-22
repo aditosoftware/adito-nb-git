@@ -51,6 +51,8 @@ public class StatusTree implements IDiscardable
       pScrollPane.setViewportView(searchableTree);
     observableTreeSelectionModel = new ObservableTreeSelectionModel(searchableTree.getSelectionModel());
     searchableTree.setSelectionModel(observableTreeSelectionModel);
+    // use large tree model, this speeds up the expansion of the tree in case there are lots of elements in the tree.
+    searchableTree.setLargeModel(true);
   }
 
   /**
