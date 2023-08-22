@@ -34,11 +34,7 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
         @Override
         public AsyncIconLabel load(@NonNull CacheKey key)
         {
-          return new AsyncIconLabel(() -> {
-            Image icon;
-            icon = fileSystemUtil.getIcon(key.file, key.isExpanded);
-            return icon;
-          });
+          return new AsyncIconLabel(() -> fileSystemUtil.getIcon(key.file, key.isExpanded));
         }
       });
   final File projectDir;
