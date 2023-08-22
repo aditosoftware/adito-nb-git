@@ -22,6 +22,7 @@ public class AsyncIconLabel extends JLabel
     super(pDefaultImage == null ? MissingIcon.get16x16() : pDefaultImage, SwingConstants.CENTER);
     GitProcessExecutors.submit(() -> {
       Image icon = pIconSupplier.get();
+      // This should probably be called in the EDT, however, the view experience is better this way since the icons are updated more consistently
       setIcon(new ImageIcon(icon));
     });
   }
