@@ -23,7 +23,6 @@ public class AsyncIconLabel extends JLabel
     GitProcessExecutors.submit(() -> {
       Image icon = pIconSupplier.get();
       setIcon(new ImageIcon(icon));
-      repaint();
     });
   }
 

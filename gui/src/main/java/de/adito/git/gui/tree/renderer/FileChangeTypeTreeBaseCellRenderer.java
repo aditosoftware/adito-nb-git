@@ -1,6 +1,10 @@
 package de.adito.git.gui.tree.renderer;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
+import de.adito.git.gui.icon.MissingIcon;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
 import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
 
@@ -10,20 +14,26 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;
 import java.io.File;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Renderer with special logic for FileChangeTypeNodes, the additional info the the right of the name of the node is left to the subclasses
  *
  * @author m.kaspera, 26.02.2019
  */
-public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCellRenderer
+public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCellRenderer implements IDiscardable
 {
 
   static final String FILE_SINGULAR = "file";
   static final String FILE_PLURAL = "files";
   private static final int PANEL_HGAP = 5;
+  private static final Logger LOGGER = Logger.getLogger(FileChangeTypeTreeBaseCellRenderer.class.getName());
   private final IFileSystemUtil fileSystemUtil;
   private final DefaultTreeCellRenderer defaultRenderer;
+  private final Cache<File, AsyncIconLabel> asyncIconCache = CacheBuilder.newBuilder().expireAfterAccess(30, TimeUnit.SECONDS).build();
   final File projectDir;
 
   public FileChangeTypeTreeBaseCellRenderer(IFileSystemUtil pFileSystemUtil, File pProjectDir)
@@ -44,19 +54,29 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
       if (nodeInfo == null)
         return defaultRenderer.getTreeCellRendererComponent(pTree, pValue, pSelected, pExpanded, pLeaf, pRow, pHasFocus);
       JPanel panel = new JPanel(new BorderLayout(PANEL_HGAP, 0));
+      File iconFile = pLeaf ? nodeInfo.getNodeFile() : projectDir;
       // icon for the file/folder
-      JLabel iconLabel = new AsyncIconLabel(() -> {
-        Image icon;
-        if (!pLeaf)
-        {
-          icon = fileSystemUtil.getIcon(projectDir, pExpanded);
-        }
-        else
-        {
-          icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
-        }
-        return icon;
-      });
+      JLabel iconLabel;
+      try
+      {
+        iconLabel = asyncIconCache.get(iconFile, () -> new AsyncIconLabel(() -> {
+          Image icon;
+          if (!pLeaf)
+          {
+            icon = fileSystemUtil.getIcon(projectDir, pExpanded);
+          }
+          else
+          {
+            icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
+          }
+          return icon;
+        }));
+      }
+      catch (ExecutionException pE)
+      {
+        LOGGER.log(Level.WARNING, pE, () -> "Failed to load icon asynchronously");
+        iconLabel = new JLabel(MissingIcon.get16x16());
+      }
       panel.add(iconLabel, BorderLayout.WEST);
       // name of the file/folder, if nodes are collapsed the path from the parentNode to the childNode
       JLabel fileLabel = new JLabel(nodeInfo.getNodeDescription());
@@ -86,5 +106,9 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
    */
   abstract void _addAdditionalInfo(FileChangeTypeNodeInfo pNodeInfo, FileChangeTypeNode pNode, boolean pLeaf, JPanel pPanel);
 
-
+  @Override
+  public void discard()
+  {
+    asyncIconCache.invalidateAll();
+  }
 }

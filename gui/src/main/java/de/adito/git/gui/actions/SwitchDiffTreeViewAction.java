@@ -2,6 +2,7 @@ package de.adito.git.gui.actions;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import de.adito.git.api.IDiscardable;
 import de.adito.git.api.IFileSystemUtil;
 import de.adito.git.api.data.IDiffInfo;
 import de.adito.git.api.prefs.IPrefStore;
@@ -12,6 +13,7 @@ import de.adito.git.gui.tree.renderer.FileChangeTypeFlatTreeCellRenderer;
 import de.adito.git.gui.tree.renderer.FileChangeTypeTreeCellRenderer;
 
 import javax.swing.*;
+import javax.swing.tree.TreeCellRenderer;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
@@ -45,6 +47,9 @@ class SwitchDiffTreeViewAction extends AbstractAction
   public void actionPerformed(ActionEvent e)
   {
     BaseObservingTreeModel<IDiffInfo> treeModel;
+    TreeCellRenderer renderer = tree.getCellRenderer();
+    if (renderer instanceof IDiscardable)
+      ((IDiscardable) renderer).discard();
     if (Constants.TREE_VIEW_FLAT.equals(prefStore.get(callerName + Constants.TREE_VIEW_TYPE_KEY)))
     {
       treeModel = new DiffTreeModel(projectDirectory);
