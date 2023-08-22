@@ -1,23 +1,17 @@
 package de.adito.git.gui.tree.renderer;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import de.adito.git.api.IDiscardable;
-import de.adito.git.api.IFileSystemUtil;
+import com.google.common.cache.*;
+import de.adito.git.api.*;
 import de.adito.git.gui.icon.MissingIcon;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNode;
-import de.adito.git.gui.tree.nodes.FileChangeTypeNodeInfo;
+import de.adito.git.gui.tree.nodes.*;
+import lombok.*;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Image;
+import java.awt.*;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * Renderer with special logic for FileChangeTypeNodes, the additional info the the right of the name of the node is left to the subclasses
@@ -33,7 +27,20 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
   private static final Logger LOGGER = Logger.getLogger(FileChangeTypeTreeBaseCellRenderer.class.getName());
   private final IFileSystemUtil fileSystemUtil;
   private final DefaultTreeCellRenderer defaultRenderer;
-  private final Cache<File, AsyncIconLabel> asyncIconCache = CacheBuilder.newBuilder().expireAfterAccess(30, TimeUnit.SECONDS).build();
+  private final LoadingCache<CacheKey, AsyncIconLabel> asyncIconCache = CacheBuilder.newBuilder()
+      .maximumSize(500)
+      .build(new CacheLoader<>()
+      {
+        @Override
+        public AsyncIconLabel load(@NonNull CacheKey key)
+        {
+          return new AsyncIconLabel(() -> {
+            Image icon;
+            icon = fileSystemUtil.getIcon(key.file, key.isExpanded);
+            return icon;
+          });
+        }
+      });
   final File projectDir;
 
   public FileChangeTypeTreeBaseCellRenderer(IFileSystemUtil pFileSystemUtil, File pProjectDir)
@@ -55,22 +62,13 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
         return defaultRenderer.getTreeCellRendererComponent(pTree, pValue, pSelected, pExpanded, pLeaf, pRow, pHasFocus);
       JPanel panel = new JPanel(new BorderLayout(PANEL_HGAP, 0));
       File iconFile = pLeaf ? nodeInfo.getNodeFile() : projectDir;
+
       // icon for the file/folder
       JLabel iconLabel;
       try
       {
-        iconLabel = asyncIconCache.get(iconFile, () -> new AsyncIconLabel(() -> {
-          Image icon;
-          if (!pLeaf)
-          {
-            icon = fileSystemUtil.getIcon(projectDir, pExpanded);
-          }
-          else
-          {
-            icon = fileSystemUtil.getIcon(nodeInfo.getNodeFile(), pExpanded);
-          }
-          return icon;
-        }));
+        CacheKey cacheKey = new CacheKey(iconFile, pExpanded, pLeaf);
+        iconLabel = asyncIconCache.get(cacheKey);
       }
       catch (ExecutionException pE)
       {
@@ -78,6 +76,7 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
         iconLabel = new JLabel(MissingIcon.get16x16());
       }
       panel.add(iconLabel, BorderLayout.WEST);
+
       // name of the file/folder, if nodes are collapsed the path from the parentNode to the childNode
       JLabel fileLabel = new JLabel(nodeInfo.getNodeDescription());
       if (!pSelected && pLeaf && !nodeInfo.getMembers().isEmpty())
@@ -85,6 +84,7 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
         fileLabel.setForeground(nodeInfo.getMembers().get(0).getChangeType().getStatusColor());
       }
       panel.add(fileLabel, BorderLayout.CENTER);
+
       // if the node is not a leaf, write how many leaves the tree with node as root has
       _addAdditionalInfo(nodeInfo, node, pLeaf, panel);
       if (pSelected)
@@ -110,5 +110,21 @@ public abstract class FileChangeTypeTreeBaseCellRenderer extends DefaultTreeCell
   public void discard()
   {
     asyncIconCache.invalidateAll();
+  }
+
+  /**
+   * Key for the cache, combines infos necessary for the icon such as:
+   * - which file is referenced
+   * - is the node expanded
+   * - is the node a leaf
+   */
+  @AllArgsConstructor
+  @EqualsAndHashCode
+  private static final class CacheKey
+  {
+    final File file;
+    final boolean isExpanded;
+    final boolean isLeaf;
+
   }
 }
