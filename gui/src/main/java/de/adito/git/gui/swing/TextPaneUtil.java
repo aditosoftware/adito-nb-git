@@ -100,6 +100,8 @@ public class TextPaneUtil
             .map(pRectangle -> new LineNumber(pLineIndex + 1, 0, (int) pRectangle.getY(), (int) pRectangle.getHeight()))
             .orElse(new LineNumber(pLineIndex + 1, 0, 0, 0));
       }
+      // it is possible that the modelToView causes a mutex error if called outside the EDT (very small chance though). If we wait for the EDT here,
+      // the result isn't properly rendered however -> quick way is to just catch the error. In the future, a rework may be done that properly uses the EDT thread
       catch (Error pError)
       {
         LOGGER.log(Level.WARNING, "Git Plugin: Error determining line position", pError);
