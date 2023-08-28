@@ -6,6 +6,20 @@ OpenIDE-Module-Name: Git
 OpenIDE-Module-Display-Category: ADITO / VCS
 OpenIDE-Module-Long-Description: Git Support for NetBeans IDE.
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.9.9</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+    <ul>
+      <li>Added hotkey and toolbar button for the action that deploys changed files (default hotkey: shift + alt + F8)</li>
+      <li>Auto-resolve no longer ignores files based on size (implemented due to perfomance), but on the number of changed lines</li>
+      <li>In merges that contain conflicting files, the commit dialog is now always shown and contains a pre-formed commit message with the list of conflicting files</li>
+      <li>Improved asynchronous icon loading so that once loading the real icon is done, the real icon is always shown</li>
+      <li>Improved the time it takes trees to expand its nodes. This is especially notable in large datasets</li>
+    </ul>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIX</p>
+  <ul>
+    <li>Fix: In a merge, import conflict chunks can't be resolved/accepted</li>
+    <li>Fix: Possible exception when closing the diff window</li>
+  </ul>
   <p style="font-weight: bold;">v1.9.8</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
   <ul>
