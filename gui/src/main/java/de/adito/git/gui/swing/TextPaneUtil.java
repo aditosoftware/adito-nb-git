@@ -4,15 +4,17 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.text.*;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import java.awt.*;
 import java.util.Optional;
+import java.util.logging.*;
 
 /**
  * @author m.kaspera, 24.01.2020
  */
 public class TextPaneUtil
 {
+
+  private static final Logger LOGGER = Logger.getLogger(TextPaneUtil.class.getName());
 
   /**
    * calculates the y coordinates of each line in the text editor
@@ -91,10 +93,17 @@ public class TextPaneUtil
     int startOffset = lineElement.getStartOffset();
     if (pView != null)
     {
-      return Optional.ofNullable(pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle()))
-          .map(Shape::getBounds)
-          .map(pRectangle -> new LineNumber(pLineIndex + 1, 0, (int) pRectangle.getY(), (int) pRectangle.getHeight()))
-          .orElse(new LineNumber(pLineIndex + 1, 0, 0, 0));
+      try
+      {
+        return Optional.ofNullable(pView.modelToView(startOffset, Position.Bias.Forward, startOffset + 1, Position.Bias.Forward, new Rectangle()))
+            .map(Shape::getBounds)
+            .map(pRectangle -> new LineNumber(pLineIndex + 1, 0, (int) pRectangle.getY(), (int) pRectangle.getHeight()))
+            .orElse(new LineNumber(pLineIndex + 1, 0, 0, 0));
+      }
+      catch (Error pError)
+      {
+        LOGGER.log(Level.WARNING, "Git Plugin: Error determining line position", pError);
+      }
     }
     return null;
 
