@@ -13,6 +13,7 @@ import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 import org.openide.loaders.DataObject;
 import org.openide.windows.WindowManager;
 
@@ -26,12 +27,14 @@ import java.io.File;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import static de.adito.git.gui.Constants.ARROW_RIGHT;
 
 /**
  * @author a.arnold, 26.11.2018
  */
+@Log
 class EditorColorizer extends JPanel implements IDiscardable
 {
   private static final int COLORIZER_WIDTH = 10;
@@ -212,6 +215,13 @@ class EditorColorizer extends JPanel implements IDiscardable
     catch (BadLocationException pE)
     {
       throw new RuntimeException(pE);
+    }
+    catch (Error pError)
+    {
+      // rethrow error if it is not the mutex error. If it is the mutex error, just log it and ignore it otherwise since it should only occur when the editor is closed
+      if (!Objects.equals(pError.getMessage(), "Interrupted mutex acquiring"))
+        throw pError;
+      log.log(Level.INFO, pError, () -> "Git Plugin: Error while calculating the positions of the changed lines");
     }
     return newChangeList;
   }
